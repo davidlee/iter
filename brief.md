@@ -1,0 +1,122 @@
+# iter: habit tracker 
+
+Let's use Claude Code to build a CLI habit tracker app. Working title "iter".
+
+- assume we use Golang, for the nice CLI libraries like charmbracelet.
+- data is stored for each day (an entry)
+- a day's entry can be partially complete and subsequently appended / edited
+    - expect a complete entry to accumulate through several uses
+- an entry's fields have typed data (implicitly nullable)
+    - comment (text)
+    - boolean
+    - numeric (units named in schema; default = "count") 
+        - unsigned int
+        - unsigned decimal
+        - decimal
+    - time of day
+        - HH:MM
+    - duration
+        - entry format
+            - HH:MM:SS
+            - minutes
+            - seconds
+  - out of initial scope
+    - checklist (array of \[boolean, description] defined by schema)
+    - list (variable array of \[ boolean | numeric | time | duration, description])
+- goals & entry format are defined by a schema
+    - goal types
+        - simple (boolean pass / fail)
+            - manually scored during entry
+            - automatically scored 
+                - based on criteria + entry data
+                - criteria types
+                    - based on entry field type:
+                        - numeric, duration
+                            - gt / gte
+                            - lt / lte
+                            - range (before + after; gt\[e] + lt\[e])
+                            - periodicity
+                                - (at least | at most) n per n (days | weeks | months)
+                        - time
+                            - before (time)
+                            - after (time)
+                        - checklist 
+                            - bitmask
+                    - infer based on criteria if more is better / less is better (for display)
+        - elastic (mini/midi/maxi goals)
+            - manually scored
+            - automatically scored
+                - 3 x sets of criteria
+        - informational 
+            - no success / failure, just the data
+            - can specify whether higher is better / lower is better, for display 
+    - criteria have 
+        - an optional multi-line description
+        - criteria
+    - as well as criteria, goals have
+        - title, optional description (markdown, multi-line), and position (unique int). 
+        - Numeric types have a "unit" (string), e.g. "kg".
+        - an optional unique identifier (string) to make entries robust to minor changes in schema; if missing, an identifier will be generated from the title (sluggified). This identifies the schema entry for a given entry section. 
+
+Goals:
+- low friction entry (efficient & attractive CLI / TUI interface)
+- flexibility to represent diverse goals
+- resilience (esp of historical entry data) to evolving goals
+  - scoring should reflect goals on the date of entry
+  - changes to goal schema should not unnecessarily interfere with aggregation, correlation & analysis of entries over time
+      - behaviour in response to schema changes should be defined and documented
+      - the entry parser should be permissive
+      - data formats should be designed with this change tolerance as a key design goal
+- loosely coupled, maintainable code
+    - clean separation of responsibility for
+        - defining, editing & validating the schema
+        - recording / editing entries
+        - visualisation & analysis of trends
+        - primary storage of entry data vs derived data / projections for analysis and display
+    - well-specified, shared interface / library code to ensure consistent behaviour between collaborating units of functionality
+    - provable correctness
+        - extensive unit tests
+        - clearly specified and documented behaviour
+    - interoperability 
+        - text files as primary data format
+        - minimise novelty in data formats / DSLs
+            - prefer widely adopted formats & conventions
+            - if a DSL is truly necessary, extend or subset existing conventions / formats where possible.
+        - expose data securely via an (optional) API / MCP server
+        - compatibility with a wide range of version control / backup / sync tools (git, jujutsu, Dropbox, anysync, rsync, etc)
+        - support for user's preferred editor for text entry
+        - robust definition of data formats and behaviour to allow piecewise substitution (eg. a web dashboard showing historical trends)
+    - privacy (self-hosted data; API authentication)
+- sufficient performance
+  - to work with years of accumulated data
+  - allowance for caching / specialised storage for aggregation & analysis
+- simplicity
+  - in implementation: minimise codebase size & complexity given design goals & functionality
+  - design for simplicity: make scope & design choices which weigh value & necessity carefully against implementation complexity footprint
+  - carefully consider removing functionality where doing so can lead to a simpler implementation
+
+Initial Scope:
+- out of scope
+    - schema builder
+        - schema defined manually using a DSL in a text file
+    - visualisation & analysis
+    - API / MCP server
+    - caching / secondary datastores required for handling large volumes of data
+    - support for editors (eg neovim) during entry
+    - full-screen TUI interface 
+    - being more than slightly clever about changing entries with modified schemas
+- in scope
+    - cli app with subcommands
+        - entry: submit or append to the current day's entry according to the schema
+            - interactive, dynamic - based on structure of goal schema
+            - show but don't overwrite any fields already filled
+        - revise: edit the current day's entry, allowing fields already filled to be altered
+        - list: show dates with previous entries
+        - edit: edit a previous entry
+            - detect schema incompatibility
+            - disallow editing of incompatible fields
+        - goals: show the goal schema, formatted in colour for maximum human readability
+        - validate: goal schema validation
+            - error messages with line number
+    - nice colours and UI
+
