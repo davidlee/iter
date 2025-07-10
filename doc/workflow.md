@@ -23,16 +23,17 @@ This document outlines the collaboration model between the User (acting as Tech 
   - Update task files with commit ids.
   - Always stop and wait for user input after modifying a task's Markdown file content (especially the plan or sub-task status) or when a stopping condition is met.
   - When submitting a task (or subtask) for user review, provide a detailed git commit message. 
-    - commit title, e.g. "[T000] Subtask 2.2: add core data models and validation" 
-    - summary of:
-        - features added / behaviour changes
-        - any dependencies or libraries added / removed
+    - a commit title in "conventional commits" style, referencing the task ID, subtask, and status; e.g. "feat:[T012/2.2] (complete) - add core data models and validation" 
+    - short description of the main purpose of the commit (1-2 sentences)
+    - a summary (where relevant) of:
+        - functional changes / feature additions
+        - dependencies or libraries added / removed
         - any refactoring or improvements made to adapt existing code
-        - tests written
+        - tests written or modified
         - other QA checks undertaken
         - accompanying documentation, if any
-        - feedback addressed
-        - security considerations (potential or addressed)
+        - feedback addressed during work
+        - security, performance, maintainability considerations (potential or already addressed)
         - considerations for future extension or improvement
 
     - No self-congratulation or elaboration of benefits is necessary.

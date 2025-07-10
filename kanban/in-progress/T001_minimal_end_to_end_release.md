@@ -97,6 +97,11 @@ This task is important because it establishes the architectural foundation and c
         - *Code/Artifacts to be created or modified:* `cmd/entry.go`, `main.go`
         - *Testing Strategy:* Test command parsing, help output, error scenarios
         - *AI Notes:* Structure should support future subcommands (revise, list, etc.)
+    - [x] **5.3 File initialization:** Create sample files when goals.yml or entries.yml missing
+        - *Design:* Check for file existence, create minimal sample goals and empty entries structure
+        - *Code/Artifacts to be created or modified:* `cmd/entry.go`, potentially new initialization module
+        - *Testing Strategy:* Test file creation, sample content validation, edge cases
+        - *AI Notes:* Should create user-friendly sample goals and proper YAML structure
 
 - [ ] **6. Integration & Testing**: Ensure end-to-end functionality works correctly
     - [ ] **6.1 End-to-end testing:** Test complete workflow from goals.yml to entries.yml
@@ -127,6 +132,7 @@ This task is important because it establishes the architectural foundation and c
 - `2025-01-10 - AI:` Subtask 4.1 completed - Defined comprehensive entry data structures in internal/models/entry.go. Implemented EntryLog, DayEntry, and GoalEntry structs with full CRUD operations. Added validation, date handling, boolean value helpers, and range queries. Designed for partial entry support and future incremental updates. Created 48 unit tests covering all functionality. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 4.2 completed - Implemented comprehensive entry storage in internal/storage/entries.go. Created EntryStorage with atomic writes, YAML parsing, validation, and backup functionality. Added high-level operations for day/goal entry management with automatic file creation. Includes date range queries and today-specific helpers. Created 37 unit tests covering all storage operations and error scenarios. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 5.1 completed - Built interactive UI for today's entry collection in internal/ui/entry.go. Created EntryCollector with charmbracelet libraries: huh for forms, lipgloss for styling. Features include welcome/completion messages, goal-by-goal entry collection, optional notes, existing entry loading/updating, and comprehensive error handling. Updated cmd/entry.go to integrate UI with CLI. Created comprehensive unit tests covering all functionality. All tests pass and linter reports 0 issues.
+- `2025-01-10 - AI:` Subtask 5.3 completed - Added file initialization feature in internal/init/files.go. Created FileInitializer that checks for missing goals.yml/entries.yml and creates user-friendly samples. Sample goals: "Morning Exercise" and "Daily Reading" with descriptions, prompts, and help text. Empty entries.yml with proper YAML structure. Updated cmd/entry.go to call initializer before UI. Created comprehensive unit tests covering all scenarios. All tests pass and linter reports 0 issues.
 
 ## 6. Code Snippets & Artifacts
 

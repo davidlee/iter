@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
+	init_pkg "davidlee/iter/internal/init"
 	"davidlee/iter/internal/ui"
 )
 
@@ -27,6 +28,12 @@ func init() {
 func runEntry(_ *cobra.Command, _ []string) error {
 	// Get the resolved paths
 	paths := GetPaths()
+
+	// Ensure config files exist, creating samples if missing
+	initializer := init_pkg.NewFileInitializer()
+	if err := initializer.EnsureConfigFiles(paths.GoalsFile, paths.EntriesFile); err != nil {
+		return err
+	}
 
 	// Create entry collector and run interactive UI
 	collector := ui.NewEntryCollector()
