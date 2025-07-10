@@ -38,13 +38,13 @@ This task is important because it establishes the architectural foundation and c
 
 **Sub-tasks:**
 
-- [WIP] **1. Project Setup & Dependencies**: Setup Go modules and required libraries
+- [x] **1. Project Setup & Dependencies**: Setup Go modules and required libraries
     - [x] **1.1 Add required dependencies:** Add charmbracelet libraries, goccy/go-yaml, testify
         - *Design:* Update go.mod with bubbletea, huh, lipgloss, bubbles, goccy/go-yaml, testify
         - *Code/Artifacts to be created or modified:* `go.mod`, `go.sum`
         - *Testing Strategy:* Verify dependencies resolve correctly with `go mod tidy`
         - *AI Notes:* Follow CLAUDE.md specifications for exact library versions
-    - [ ] **1.2 Setup linting and formatting:** Configure golangci-lint and gofumpt
+    - [x] **1.2 Setup linting and formatting:** Configure golangci-lint and gofumpt
         - *Design:* Create .golangci.yml with staticcheck, revive, gosec, errcheck, govet, gocritic, nilnil, nilerr
         - *Code/Artifacts to be created or modified:* `.golangci.yml`, potentially Makefile or scripts
         - *Testing Strategy:* Run golangci-lint and gofumpt on sample code
@@ -119,6 +119,7 @@ This task is important because it establishes the architectural foundation and c
 - `2025-01-10 - User:` Requested epic task card for minimal end-to-end release following workflow.md format
 - `2025-01-10 - AI:` Created comprehensive task breakdown focusing on simple boolean goals as starting point, designed for extensibility to future goal types
 - `2025-01-10 - AI:` Subtask 1.1 completed - Added all required dependencies (bubbletea, huh, lipgloss, bubbles, goccy/go-yaml, testify). Created main.go with blank imports to preserve dependencies after go mod tidy.
+- `2025-01-10 - AI:` Subtask 1.2 completed - Setup .golangci.yml with staticcheck, revive, gosec, errcheck, govet, gocritic, nilnil, nilerr, ineffassign, unused, misspell. Installed gofumpt and golangci-lint tools. Both run successfully on current code.
 
 ## 6. Code Snippets & Artifacts
 

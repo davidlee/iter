@@ -1,0 +1,78 @@
+version: 2
+
+run:
+  timeout: 5m
+  tests: true
+  skip-dirs:
+    - vendor
+
+linters:
+  disable-all: true
+  enable:
+    - staticcheck
+    - revive
+    - gosec
+    - errcheck
+    - govet
+    - gocritic
+    - nilnil
+    - nilerr
+    - ineffassign
+    - unused
+    - misspell
+
+linters-settings:
+  staticcheck:
+    checks: ["all"]
+  
+  revive:
+    severity: warning
+    rules:
+      - name: exported
+        severity: warning
+        disabled: false
+      - name: var-naming
+        severity: warning
+        disabled: false
+      - name: package-comments
+        severity: warning
+        disabled: false
+  
+  gosec:
+    severity: "medium"
+    confidence: "medium"
+    excludes:
+      - G204 # Subprocess launched with variable
+      - G304 # File path provided as taint input
+  
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+      - experimental
+    disabled-checks:
+      - commentedOutCode
+      - whyNoLint
+  
+  nilnil:
+    checked-types:
+      - ptr
+      - func
+      - iface
+      - map
+      - chan
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-use-default: false
+  exclude:
+    # Exclude some lints that are not useful for this project
+    - "should have a package comment"
+    - "exported .* should have comment or be unexported"
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - gocritic

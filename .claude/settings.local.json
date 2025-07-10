@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(go get:*)",
-      "Bash(go mod:*)"
+      "Bash(go mod:*)",
+      "Bash(gofumpt:*)",
+      "Bash(golangci-lint run:*)"
     ],
     "deny": []
   }
