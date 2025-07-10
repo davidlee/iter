@@ -11,8 +11,8 @@ const DefaultAppName = "iter"
 
 // Paths holds the resolved configuration paths for the application.
 type Paths struct {
-	ConfigDir  string
-	GoalsFile  string
+	ConfigDir   string
+	GoalsFile   string
 	EntriesFile string
 }
 
@@ -28,7 +28,7 @@ func GetDefaultPaths() (*Paths, error) {
 	}
 
 	appConfigDir := filepath.Join(configDir, DefaultAppName)
-	
+
 	return &Paths{
 		ConfigDir:   appConfigDir,
 		GoalsFile:   filepath.Join(appConfigDir, "goals.yml"),
@@ -49,7 +49,7 @@ func GetPathsWithConfigDir(configDir string) *Paths {
 // EnsureConfigDir creates the config directory if it doesn't exist.
 // It creates the directory with appropriate permissions (0750).
 func (p *Paths) EnsureConfigDir() error {
-	return os.MkdirAll(p.ConfigDir, 0750)
+	return os.MkdirAll(p.ConfigDir, 0o750)
 }
 
 // getXDGConfigDir returns the XDG config directory following the spec:

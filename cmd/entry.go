@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"davidlee/iter/internal/ui"
 )
 
 // entryCmd represents the entry command
@@ -27,12 +27,8 @@ func init() {
 func runEntry(_ *cobra.Command, _ []string) error {
 	// Get the resolved paths
 	paths := GetPaths()
-	
-	// TODO: This will be implemented in later subtasks
-	fmt.Printf("Entry command would use config directory: %s\n", paths.ConfigDir)
-	fmt.Printf("Goals file: %s\n", paths.GoalsFile)
-	fmt.Printf("Entries file: %s\n", paths.EntriesFile)
-	fmt.Println("Entry collection UI not yet implemented...")
-	
-	return nil
+
+	// Create entry collector and run interactive UI
+	collector := ui.NewEntryCollector()
+	return collector.CollectTodayEntries(paths.GoalsFile, paths.EntriesFile)
 }

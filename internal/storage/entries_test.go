@@ -115,7 +115,7 @@ entries:
         value: true
 `
 
-		err := os.WriteFile(entriesFile, []byte(yamlContent), 0600)
+		err := os.WriteFile(entriesFile, []byte(yamlContent), 0o600)
 		require.NoError(t, err)
 
 		entryLog, err := storage.LoadFromFile(entriesFile)
@@ -140,7 +140,7 @@ entries:
 		entriesFile := filepath.Join(tempDir, "unreadable.yml")
 
 		// Create file and remove read permission
-		err := os.WriteFile(entriesFile, []byte("test"), 0000)
+		err := os.WriteFile(entriesFile, []byte("test"), 0o000)
 		require.NoError(t, err)
 
 		_, err = storage.LoadFromFile(entriesFile)
@@ -593,7 +593,7 @@ version: ""
 entries: []
 `
 
-		err := os.WriteFile(entriesFile, []byte(invalidYAML), 0600)
+		err := os.WriteFile(entriesFile, []byte(invalidYAML), 0o600)
 		require.NoError(t, err)
 
 		err = storage.ValidateFile(entriesFile)

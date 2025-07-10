@@ -20,11 +20,11 @@ func TestRootCommand(t *testing.T) {
 	t.Run("supports config-dir flag", func(t *testing.T) {
 		cmd := rootCmd
 		cmd.SetArgs([]string{"--config-dir", "/tmp/test"})
-		
+
 		// Parse flags
 		err := cmd.ParseFlags([]string{"--config-dir", "/tmp/test"})
 		require.NoError(t, err)
-		
+
 		// Check that the flag was set
 		flag := cmd.Flag("config-dir")
 		require.NotNil(t, flag)
@@ -38,7 +38,7 @@ func TestInitializePaths(t *testing.T) {
 		tempDir := t.TempDir()
 		originalXDG := os.Getenv("XDG_CONFIG_HOME")
 		require.NoError(t, os.Setenv("XDG_CONFIG_HOME", tempDir))
-		
+
 		// Cleanup
 		defer func() {
 			if originalXDG == "" {
@@ -47,25 +47,25 @@ func TestInitializePaths(t *testing.T) {
 				require.NoError(t, os.Setenv("XDG_CONFIG_HOME", originalXDG))
 			}
 		}()
-		
+
 		// Reset configDir to ensure we test default behavior
 		originalConfigDir := configDir
 		configDir = ""
 		defer func() {
 			configDir = originalConfigDir
 		}()
-		
+
 		// Test
 		err := initializePaths(rootCmd, []string{})
 		require.NoError(t, err)
-		
+
 		// Verify paths were set correctly
 		require.NotNil(t, paths)
 		expected := filepath.Join(tempDir, "iter")
 		assert.Equal(t, expected, paths.ConfigDir)
 		assert.Equal(t, filepath.Join(expected, "goals.yml"), paths.GoalsFile)
 		assert.Equal(t, filepath.Join(expected, "entries.yml"), paths.EntriesFile)
-		
+
 		// Verify directory was created
 		info, err := os.Stat(expected)
 		require.NoError(t, err)
@@ -76,24 +76,24 @@ func TestInitializePaths(t *testing.T) {
 		// Setup
 		tempDir := t.TempDir()
 		customConfigDir := filepath.Join(tempDir, "custom-iter")
-		
+
 		// Set configDir global variable (simulating flag being set)
 		originalConfigDir := configDir
 		configDir = customConfigDir
 		defer func() {
 			configDir = originalConfigDir
 		}()
-		
+
 		// Test
 		err := initializePaths(rootCmd, []string{})
 		require.NoError(t, err)
-		
+
 		// Verify paths were set correctly
 		require.NotNil(t, paths)
 		assert.Equal(t, customConfigDir, paths.ConfigDir)
 		assert.Equal(t, filepath.Join(customConfigDir, "goals.yml"), paths.GoalsFile)
 		assert.Equal(t, filepath.Join(customConfigDir, "entries.yml"), paths.EntriesFile)
-		
+
 		// Verify directory was created
 		info, err := os.Stat(customConfigDir)
 		require.NoError(t, err)
@@ -105,16 +105,16 @@ func TestGetPaths(t *testing.T) {
 	t.Run("returns paths after initialization", func(t *testing.T) {
 		// Setup - ensure paths is initialized
 		tempDir := t.TempDir()
-		
+
 		originalConfigDir := configDir
 		configDir = tempDir
 		defer func() {
 			configDir = originalConfigDir
 		}()
-		
+
 		err := initializePaths(rootCmd, []string{})
 		require.NoError(t, err)
-		
+
 		// Test
 		result := GetPaths()
 		require.NotNil(t, result)

@@ -27,14 +27,14 @@ func (es *EntryStorage) LoadFromFile(filePath string) (*models.EntryLog, error) 
 		// File doesn't exist, return empty entry log
 		return models.CreateEmptyEntryLog(), nil
 	}
-	
+
 	// Read file contents
 	// #nosec G304 - filePath is provided by the application, not user input
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read entries file %s: %w", filePath, err)
 	}
-	
+
 	// Parse YAML
 	return es.ParseYAML(data)
 }
@@ -42,17 +42,17 @@ func (es *EntryStorage) LoadFromFile(filePath string) (*models.EntryLog, error) 
 // ParseYAML parses YAML data into an entry log and validates it.
 func (es *EntryStorage) ParseYAML(data []byte) (*models.EntryLog, error) {
 	var entryLog models.EntryLog
-	
+
 	// Parse YAML with strict mode to catch unknown fields
 	if err := yaml.UnmarshalWithOptions(data, &entryLog, yaml.Strict()); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML: %w", err)
 	}
-	
+
 	// Validate the parsed entry log
 	if err := entryLog.Validate(); err != nil {
 		return nil, fmt.Errorf("entry log validation failed: %w", err)
 	}
-	
+
 	return &entryLog, nil
 }
 
@@ -63,7 +63,7 @@ func (es *EntryStorage) SaveToFile(entryLog *models.EntryLog, filePath string) e
 	if err := entryLog.Validate(); err != nil {
 		return fmt.Errorf("cannot save invalid entry log: %w", err)
 	}
-	
+
 	// Marshal to YAML with pretty formatting
 	data, err := yaml.MarshalWithOptions(entryLog,
 		yaml.Indent(2),
@@ -72,26 +72,26 @@ func (es *EntryStorage) SaveToFile(entryLog *models.EntryLog, filePath string) e
 	if err != nil {
 		return fmt.Errorf("failed to marshal entry log to YAML: %w", err)
 	}
-	
+
 	// Ensure the directory exists
 	dir := filepath.Dir(filePath)
-	if err := os.MkdirAll(dir, 0750); err != nil {
+	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", dir, err)
 	}
-	
+
 	// Write to temporary file first for atomic operation
 	tempFile := filePath + ".tmp"
-	if err := os.WriteFile(tempFile, data, 0600); err != nil {
+	if err := os.WriteFile(tempFile, data, 0o600); err != nil {
 		return fmt.Errorf("failed to write temporary file %s: %w", tempFile, err)
 	}
-	
+
 	// Atomically rename temporary file to final file
 	if err := os.Rename(tempFile, filePath); err != nil {
 		// Clean up temporary file on failure
 		_ = os.Remove(tempFile) // Ignore error since we're already in error state
 		return fmt.Errorf("failed to rename temporary file to %s: %w", filePath, err)
 	}
-	
+
 	return nil
 }
 
@@ -103,17 +103,17 @@ func (es *EntryStorage) AddDayEntry(filePath string, dayEntry models.DayEntry) e
 	if err != nil {
 		return fmt.Errorf("failed to load existing entries: %w", err)
 	}
-	
+
 	// Add the day entry
 	if err := entryLog.AddDayEntry(dayEntry); err != nil {
 		return fmt.Errorf("failed to add day entry: %w", err)
 	}
-	
+
 	// Save the updated log
 	if err := es.SaveToFile(entryLog, filePath); err != nil {
 		return fmt.Errorf("failed to save updated entries: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -125,17 +125,17 @@ func (es *EntryStorage) UpdateDayEntry(filePath string, dayEntry models.DayEntry
 	if err != nil {
 		return fmt.Errorf("failed to load existing entries: %w", err)
 	}
-	
+
 	// Update the day entry
 	if err := entryLog.UpdateDayEntry(dayEntry); err != nil {
 		return fmt.Errorf("failed to update day entry: %w", err)
 	}
-	
+
 	// Save the updated log
 	if err := es.SaveToFile(entryLog, filePath); err != nil {
 		return fmt.Errorf("failed to save updated entries: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -146,13 +146,13 @@ func (es *EntryStorage) GetDayEntry(filePath string, date string) (*models.DayEn
 	if err != nil {
 		return nil, fmt.Errorf("failed to load entries: %w", err)
 	}
-	
+
 	// Find the day entry
 	dayEntry, found := entryLog.GetDayEntry(date)
 	if !found {
 		return nil, fmt.Errorf("no entry found for date %s", date)
 	}
-	
+
 	return dayEntry, nil
 }
 
@@ -170,7 +170,7 @@ func (es *EntryStorage) AddGoalEntry(filePath string, date string, goalEntry mod
 	if err != nil {
 		return fmt.Errorf("failed to load existing entries: %w", err)
 	}
-	
+
 	// Find or create day entry
 	dayEntry, found := entryLog.GetDayEntry(date)
 	if !found {
@@ -184,17 +184,17 @@ func (es *EntryStorage) AddGoalEntry(filePath string, date string, goalEntry mod
 		}
 		dayEntry, _ = entryLog.GetDayEntry(date)
 	}
-	
+
 	// Add the goal entry
 	if err := dayEntry.AddGoalEntry(goalEntry); err != nil {
 		return fmt.Errorf("failed to add goal entry: %w", err)
 	}
-	
+
 	// Save the updated log
 	if err := es.SaveToFile(entryLog, filePath); err != nil {
 		return fmt.Errorf("failed to save updated entries: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -206,7 +206,7 @@ func (es *EntryStorage) UpdateGoalEntry(filePath string, date string, goalEntry 
 	if err != nil {
 		return fmt.Errorf("failed to load existing entries: %w", err)
 	}
-	
+
 	// Find or create day entry
 	dayEntry, found := entryLog.GetDayEntry(date)
 	if !found {
@@ -220,17 +220,17 @@ func (es *EntryStorage) UpdateGoalEntry(filePath string, date string, goalEntry 
 		}
 		dayEntry, _ = entryLog.GetDayEntry(date)
 	}
-	
+
 	// Update the goal entry
 	if err := dayEntry.UpdateGoalEntry(goalEntry); err != nil {
 		return fmt.Errorf("failed to update goal entry: %w", err)
 	}
-	
+
 	// Save the updated log
 	if err := es.SaveToFile(entryLog, filePath); err != nil {
 		return fmt.Errorf("failed to save updated entries: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -247,13 +247,13 @@ func (es *EntryStorage) GetEntriesForDateRange(filePath string, startDate, endDa
 	if err != nil {
 		return nil, fmt.Errorf("failed to load entries: %w", err)
 	}
-	
+
 	// Get entries in range
 	entries, err := entryLog.GetEntriesForDateRange(startDate, endDate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get entries for date range: %w", err)
 	}
-	
+
 	return entries, nil
 }
 
@@ -269,29 +269,29 @@ func (es *EntryStorage) BackupFile(filePath string) error {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return fmt.Errorf("entries file not found: %s", filePath)
 	}
-	
+
 	// Create backup filename with timestamp
 	backupPath := filePath + ".backup"
-	
+
 	// Read original file
 	// #nosec G304 - filePath is provided by the application, not user input
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to read entries file for backup: %w", err)
 	}
-	
+
 	// Write backup file
-	if err := os.WriteFile(backupPath, data, 0600); err != nil {
+	if err := os.WriteFile(backupPath, data, 0o600); err != nil {
 		return fmt.Errorf("failed to write backup file: %w", err)
 	}
-	
+
 	return nil
 }
 
 // CreateSampleEntryLog creates a sample entry log with some example data.
 func (es *EntryStorage) CreateSampleEntryLog() *models.EntryLog {
 	entryLog := models.CreateEmptyEntryLog()
-	
+
 	// Add a sample day entry
 	sampleDay := models.DayEntry{
 		Date: "2024-01-01",
@@ -308,7 +308,7 @@ func (es *EntryStorage) CreateSampleEntryLog() *models.EntryLog {
 			},
 		},
 	}
-	
+
 	entryLog.Entries = append(entryLog.Entries, sampleDay)
 	return entryLog
 }

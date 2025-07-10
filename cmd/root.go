@@ -75,4 +75,3 @@ func initializePaths(_ *cobra.Command, _ []string) error {
 func GetPaths() *config.Paths {
 	return paths
 }
-

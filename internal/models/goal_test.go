@@ -18,10 +18,10 @@ func TestGoal_Validate(t *testing.T) {
 			},
 			ScoringType: ManualScoring,
 		}
-		
+
 		err := goal.Validate()
 		require.NoError(t, err)
-		
+
 		// ID should be auto-generated
 		assert.Equal(t, "morning_meditation", goal.ID)
 	})
@@ -42,7 +42,7 @@ func TestGoal_Validate(t *testing.T) {
 				},
 			},
 		}
-		
+
 		err := goal.Validate()
 		require.NoError(t, err)
 		assert.Equal(t, "daily_exercise", goal.ID)
@@ -59,7 +59,7 @@ func TestGoal_Validate(t *testing.T) {
 			},
 			ScoringType: ManualScoring,
 		}
-		
+
 		err := goal.Validate()
 		require.NoError(t, err)
 		assert.Equal(t, "custom_meditation_id", goal.ID)
@@ -74,7 +74,7 @@ func TestGoal_Validate(t *testing.T) {
 			},
 			ScoringType: ManualScoring,
 		}
-		
+
 		err := goal.Validate()
 		assert.EqualError(t, err, "goal title is required")
 	})
@@ -89,7 +89,7 @@ func TestGoal_Validate(t *testing.T) {
 			},
 			ScoringType: ManualScoring,
 		}
-		
+
 		err := goal.Validate()
 		assert.EqualError(t, err, "goal position must be positive, got 0")
 	})
@@ -103,7 +103,7 @@ func TestGoal_Validate(t *testing.T) {
 			},
 			ScoringType: ManualScoring,
 		}
-		
+
 		err := goal.Validate()
 		assert.EqualError(t, err, "goal_type is required")
 	})
@@ -118,7 +118,7 @@ func TestGoal_Validate(t *testing.T) {
 			},
 			ScoringType: ManualScoring,
 		}
-		
+
 		err := goal.Validate()
 		assert.EqualError(t, err, "invalid goal_type: invalid_type")
 	})
@@ -132,7 +132,7 @@ func TestGoal_Validate(t *testing.T) {
 				Type: BooleanFieldType,
 			},
 		}
-		
+
 		err := goal.Validate()
 		assert.EqualError(t, err, "scoring_type is required for simple goals")
 	})
@@ -145,7 +145,7 @@ func TestGoal_Validate(t *testing.T) {
 			FieldType:   FieldType{Type: BooleanFieldType},
 			ScoringType: AutomaticScoring,
 		}
-		
+
 		err := goal.Validate()
 		assert.EqualError(t, err, "criteria is required for automatic scoring")
 	})
@@ -161,7 +161,7 @@ func TestGoal_Validate(t *testing.T) {
 			},
 			ScoringType: ManualScoring,
 		}
-		
+
 		err := goal.Validate()
 		assert.Contains(t, err.Error(), "goal ID 'invalid-id-with-dashes' is invalid")
 	})
@@ -261,7 +261,7 @@ func TestSchema_Validate(t *testing.T) {
 				},
 			},
 		}
-		
+
 		err := schema.Validate()
 		assert.NoError(t, err)
 	})
@@ -270,7 +270,7 @@ func TestSchema_Validate(t *testing.T) {
 		schema := Schema{
 			Goals: []Goal{},
 		}
-		
+
 		err := schema.Validate()
 		assert.EqualError(t, err, "schema version is required")
 	})
@@ -281,7 +281,7 @@ func TestSchema_Validate(t *testing.T) {
 			CreatedDate: "invalid-date",
 			Goals:       []Goal{},
 		}
-		
+
 		err := schema.Validate()
 		assert.Contains(t, err.Error(), "invalid created_date format")
 	})
@@ -308,7 +308,7 @@ func TestSchema_Validate(t *testing.T) {
 				},
 			},
 		}
-		
+
 		err := schema.Validate()
 		assert.EqualError(t, err, "duplicate goal ID: duplicate_id")
 	})
@@ -333,7 +333,7 @@ func TestSchema_Validate(t *testing.T) {
 				},
 			},
 		}
-		
+
 		err := schema.Validate()
 		assert.EqualError(t, err, "duplicate goal position: 1")
 	})
@@ -353,7 +353,7 @@ func TestGenerateIDFromTitle(t *testing.T) {
 		{"123 Numbers", "123_numbers"},
 		{"___underscores___", "underscores"},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			result := generateIDFromTitle(tt.title)
@@ -377,7 +377,7 @@ func TestIsValidID(t *testing.T) {
 		{"invalid id", false},
 		{"Invalid_ID", false}, // uppercase not allowed
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.id, func(t *testing.T) {
 			result := isValidID(tt.id)

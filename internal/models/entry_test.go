@@ -24,7 +24,7 @@ func TestEntryLog_Validate(t *testing.T) {
 				},
 			},
 		}
-		
+
 		err := entryLog.Validate()
 		assert.NoError(t, err)
 	})
@@ -33,7 +33,7 @@ func TestEntryLog_Validate(t *testing.T) {
 		entryLog := EntryLog{
 			Entries: []DayEntry{},
 		}
-		
+
 		err := entryLog.Validate()
 		assert.EqualError(t, err, "entry log version is required")
 	})
@@ -46,7 +46,7 @@ func TestEntryLog_Validate(t *testing.T) {
 				{Date: "2024-01-01", Goals: []GoalEntry{}}, // Duplicate
 			},
 		}
-		
+
 		err := entryLog.Validate()
 		assert.EqualError(t, err, "duplicate date: 2024-01-01")
 	})
@@ -58,7 +58,7 @@ func TestEntryLog_Validate(t *testing.T) {
 				{Date: ""}, // Invalid date
 			},
 		}
-		
+
 		err := entryLog.Validate()
 		assert.Contains(t, err.Error(), "day entry at index 0")
 		assert.Contains(t, err.Error(), "date is required")
@@ -80,7 +80,7 @@ func TestDayEntry_Validate(t *testing.T) {
 				},
 			},
 		}
-		
+
 		err := dayEntry.Validate()
 		assert.NoError(t, err)
 	})
@@ -89,7 +89,7 @@ func TestDayEntry_Validate(t *testing.T) {
 		dayEntry := DayEntry{
 			Goals: []GoalEntry{},
 		}
-		
+
 		err := dayEntry.Validate()
 		assert.EqualError(t, err, "date is required")
 	})
@@ -99,7 +99,7 @@ func TestDayEntry_Validate(t *testing.T) {
 			Date:  "invalid-date",
 			Goals: []GoalEntry{},
 		}
-		
+
 		err := dayEntry.Validate()
 		assert.Contains(t, err.Error(), "invalid date format")
 	})
@@ -112,7 +112,7 @@ func TestDayEntry_Validate(t *testing.T) {
 				{GoalID: "meditation", Value: false}, // Duplicate
 			},
 		}
-		
+
 		err := dayEntry.Validate()
 		assert.Contains(t, err.Error(), "duplicate goal ID for date 2024-01-01: meditation")
 	})
@@ -124,7 +124,7 @@ func TestDayEntry_Validate(t *testing.T) {
 				{GoalID: ""}, // Invalid goal entry
 			},
 		}
-		
+
 		err := dayEntry.Validate()
 		assert.Contains(t, err.Error(), "goal entry at index 0")
 		assert.Contains(t, err.Error(), "goal ID is required")
@@ -137,7 +137,7 @@ func TestGoalEntry_Validate(t *testing.T) {
 			GoalID: "meditation",
 			Value:  true,
 		}
-		
+
 		err := goalEntry.Validate()
 		assert.NoError(t, err)
 	})
@@ -148,7 +148,7 @@ func TestGoalEntry_Validate(t *testing.T) {
 			Value:  false,
 			Notes:  "Was feeling sick today",
 		}
-		
+
 		err := goalEntry.Validate()
 		assert.NoError(t, err)
 	})
@@ -157,7 +157,7 @@ func TestGoalEntry_Validate(t *testing.T) {
 		goalEntry := GoalEntry{
 			Value: true,
 		}
-		
+
 		err := goalEntry.Validate()
 		assert.EqualError(t, err, "goal ID is required")
 	})
@@ -167,7 +167,7 @@ func TestGoalEntry_Validate(t *testing.T) {
 			GoalID: "   ",
 			Value:  true,
 		}
-		
+
 		err := goalEntry.Validate()
 		assert.EqualError(t, err, "goal ID is required")
 	})
@@ -177,7 +177,7 @@ func TestGoalEntry_Validate(t *testing.T) {
 			GoalID: "meditation",
 			// Value is nil
 		}
-		
+
 		err := goalEntry.Validate()
 		assert.EqualError(t, err, "goal value is required")
 	})
@@ -208,14 +208,14 @@ func TestEntryLog_GetDayEntry(t *testing.T) {
 func TestEntryLog_AddDayEntry(t *testing.T) {
 	t.Run("add valid day entry", func(t *testing.T) {
 		entryLog := CreateEmptyEntryLog()
-		
+
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
 			Goals: []GoalEntry{
 				{GoalID: "meditation", Value: true},
 			},
 		}
-		
+
 		err := entryLog.AddDayEntry(dayEntry)
 		assert.NoError(t, err)
 		assert.Len(t, entryLog.Entries, 1)
@@ -229,23 +229,23 @@ func TestEntryLog_AddDayEntry(t *testing.T) {
 				{Date: "2024-01-01", Goals: []GoalEntry{}},
 			},
 		}
-		
+
 		dayEntry := DayEntry{
 			Date:  "2024-01-01",
 			Goals: []GoalEntry{},
 		}
-		
+
 		err := entryLog.AddDayEntry(dayEntry)
 		assert.EqualError(t, err, "entry for date 2024-01-01 already exists")
 	})
 
 	t.Run("add invalid day entry", func(t *testing.T) {
 		entryLog := CreateEmptyEntryLog()
-		
+
 		dayEntry := DayEntry{
 			Date: "", // Invalid
 		}
-		
+
 		err := entryLog.AddDayEntry(dayEntry)
 		assert.Contains(t, err.Error(), "invalid day entry")
 	})
@@ -264,7 +264,7 @@ func TestEntryLog_UpdateDayEntry(t *testing.T) {
 				},
 			},
 		}
-		
+
 		updatedEntry := DayEntry{
 			Date: "2024-01-01",
 			Goals: []GoalEntry{
@@ -272,7 +272,7 @@ func TestEntryLog_UpdateDayEntry(t *testing.T) {
 				{GoalID: "exercise", Value: true},
 			},
 		}
-		
+
 		err := entryLog.UpdateDayEntry(updatedEntry)
 		assert.NoError(t, err)
 		assert.Len(t, entryLog.Entries, 1)
@@ -281,14 +281,14 @@ func TestEntryLog_UpdateDayEntry(t *testing.T) {
 
 	t.Run("add new entry when not exists", func(t *testing.T) {
 		entryLog := CreateEmptyEntryLog()
-		
+
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
 			Goals: []GoalEntry{
 				{GoalID: "meditation", Value: true},
 			},
 		}
-		
+
 		err := entryLog.UpdateDayEntry(dayEntry)
 		assert.NoError(t, err)
 		assert.Len(t, entryLog.Entries, 1)
@@ -325,12 +325,12 @@ func TestDayEntry_AddGoalEntry(t *testing.T) {
 			Date:  "2024-01-01",
 			Goals: []GoalEntry{},
 		}
-		
+
 		goalEntry := GoalEntry{
 			GoalID: "meditation",
 			Value:  true,
 		}
-		
+
 		err := dayEntry.AddGoalEntry(goalEntry)
 		assert.NoError(t, err)
 		assert.Len(t, dayEntry.Goals, 1)
@@ -344,12 +344,12 @@ func TestDayEntry_AddGoalEntry(t *testing.T) {
 				{GoalID: "meditation", Value: true},
 			},
 		}
-		
+
 		goalEntry := GoalEntry{
 			GoalID: "meditation",
 			Value:  false,
 		}
-		
+
 		err := dayEntry.AddGoalEntry(goalEntry)
 		assert.EqualError(t, err, "entry for goal meditation already exists on date 2024-01-01")
 	})
@@ -363,13 +363,13 @@ func TestDayEntry_UpdateGoalEntry(t *testing.T) {
 				{GoalID: "meditation", Value: false},
 			},
 		}
-		
+
 		updatedGoal := GoalEntry{
 			GoalID: "meditation",
 			Value:  true,
 			Notes:  "Had a great session",
 		}
-		
+
 		err := dayEntry.UpdateGoalEntry(updatedGoal)
 		assert.NoError(t, err)
 		assert.Len(t, dayEntry.Goals, 1)
@@ -382,12 +382,12 @@ func TestDayEntry_UpdateGoalEntry(t *testing.T) {
 			Date:  "2024-01-01",
 			Goals: []GoalEntry{},
 		}
-		
+
 		goalEntry := GoalEntry{
 			GoalID: "meditation",
 			Value:  true,
 		}
-		
+
 		err := dayEntry.UpdateGoalEntry(goalEntry)
 		assert.NoError(t, err)
 		assert.Len(t, dayEntry.Goals, 1)
@@ -400,7 +400,7 @@ func TestGoalEntry_BooleanValue(t *testing.T) {
 			GoalID: "meditation",
 			Value:  true,
 		}
-		
+
 		value, ok := goalEntry.GetBooleanValue()
 		assert.True(t, ok)
 		assert.True(t, value)
@@ -411,7 +411,7 @@ func TestGoalEntry_BooleanValue(t *testing.T) {
 			GoalID: "steps",
 			Value:  12345,
 		}
-		
+
 		value, ok := goalEntry.GetBooleanValue()
 		assert.False(t, ok)
 		assert.False(t, value)
@@ -422,7 +422,7 @@ func TestGoalEntry_BooleanValue(t *testing.T) {
 			GoalID: "meditation",
 			Value:  false,
 		}
-		
+
 		goalEntry.SetBooleanValue(true)
 		assert.Equal(t, true, goalEntry.Value)
 	})
@@ -431,7 +431,7 @@ func TestGoalEntry_BooleanValue(t *testing.T) {
 func TestCreateTodayEntry(t *testing.T) {
 	entry := CreateTodayEntry()
 	today := time.Now().Format("2006-01-02")
-	
+
 	assert.Equal(t, today, entry.Date)
 	assert.Empty(t, entry.Goals)
 	assert.True(t, entry.IsToday())
@@ -439,10 +439,10 @@ func TestCreateTodayEntry(t *testing.T) {
 
 func TestCreateBooleanGoalEntry(t *testing.T) {
 	entry := CreateBooleanGoalEntry("meditation", true)
-	
+
 	assert.Equal(t, "meditation", entry.GoalID)
 	assert.Equal(t, true, entry.Value)
-	
+
 	value, ok := entry.GetBooleanValue()
 	assert.True(t, ok)
 	assert.True(t, value)
@@ -451,7 +451,7 @@ func TestCreateBooleanGoalEntry(t *testing.T) {
 func TestDayEntry_IsToday(t *testing.T) {
 	today := time.Now().Format("2006-01-02")
 	yesterday := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
-	
+
 	t.Run("today's entry", func(t *testing.T) {
 		entry := DayEntry{Date: today}
 		assert.True(t, entry.IsToday())
@@ -467,7 +467,7 @@ func TestDayEntry_GetDate(t *testing.T) {
 	t.Run("valid date", func(t *testing.T) {
 		entry := DayEntry{Date: "2024-01-01"}
 		date, err := entry.GetDate()
-		
+
 		assert.NoError(t, err)
 		assert.Equal(t, 2024, date.Year())
 		assert.Equal(t, time.January, date.Month())
@@ -477,17 +477,17 @@ func TestDayEntry_GetDate(t *testing.T) {
 	t.Run("invalid date", func(t *testing.T) {
 		entry := DayEntry{Date: "invalid-date"}
 		_, err := entry.GetDate()
-		
+
 		assert.Error(t, err)
 	})
 }
 
 func TestCreateEmptyEntryLog(t *testing.T) {
 	entryLog := CreateEmptyEntryLog()
-	
+
 	assert.Equal(t, "1.0.0", entryLog.Version)
 	assert.Empty(t, entryLog.Entries)
-	
+
 	err := entryLog.Validate()
 	assert.NoError(t, err)
 }

@@ -8,14 +8,14 @@ import (
 
 // EntryLog represents the top-level structure for all daily entries.
 type EntryLog struct {
-	Version string      `yaml:"version"`
-	Entries []DayEntry  `yaml:"entries"`
+	Version string     `yaml:"version"`
+	Entries []DayEntry `yaml:"entries"`
 }
 
 // DayEntry represents all goal completions for a single day.
 type DayEntry struct {
-	Date    string      `yaml:"date"`    // ISO date format: YYYY-MM-DD
-	Goals   []GoalEntry `yaml:"goals"`   // Goal completions for this day
+	Date  string      `yaml:"date"`  // ISO date format: YYYY-MM-DD
+	Goals []GoalEntry `yaml:"goals"` // Goal completions for this day
 }
 
 // GoalEntry represents the completion data for a single goal on a specific day.
@@ -39,23 +39,23 @@ func (el *EntryLog) Validate() error {
 	if el.Version == "" {
 		return fmt.Errorf("entry log version is required")
 	}
-	
+
 	// Track unique dates
 	dates := make(map[string]bool)
-	
+
 	// Validate each day entry
 	for i, dayEntry := range el.Entries {
 		if err := dayEntry.Validate(); err != nil {
 			return fmt.Errorf("day entry at index %d: %w", i, err)
 		}
-		
+
 		// Check date uniqueness
 		if dates[dayEntry.Date] {
 			return fmt.Errorf("duplicate date: %s", dayEntry.Date)
 		}
 		dates[dayEntry.Date] = true
 	}
-	
+
 	return nil
 }
 
@@ -65,28 +65,28 @@ func (de *DayEntry) Validate() error {
 	if de.Date == "" {
 		return fmt.Errorf("date is required")
 	}
-	
+
 	// Validate date format
 	if _, err := time.Parse("2006-01-02", de.Date); err != nil {
 		return fmt.Errorf("invalid date format, expected YYYY-MM-DD: %w", err)
 	}
-	
+
 	// Track unique goal IDs for this day
 	goalIDs := make(map[string]bool)
-	
+
 	// Validate each goal entry
 	for i, goalEntry := range de.Goals {
 		if err := goalEntry.Validate(); err != nil {
 			return fmt.Errorf("goal entry at index %d: %w", i, err)
 		}
-		
+
 		// Check goal ID uniqueness within this day
 		if goalIDs[goalEntry.GoalID] {
 			return fmt.Errorf("duplicate goal ID for date %s: %s", de.Date, goalEntry.GoalID)
 		}
 		goalIDs[goalEntry.GoalID] = true
 	}
-	
+
 	return nil
 }
 
@@ -96,12 +96,12 @@ func (ge *GoalEntry) Validate() error {
 	if strings.TrimSpace(ge.GoalID) == "" {
 		return fmt.Errorf("goal ID is required")
 	}
-	
+
 	// Value is required (can be false for booleans, but not nil)
 	if ge.Value == nil {
 		return fmt.Errorf("goal value is required")
 	}
-	
+
 	return nil
 }
 
@@ -122,15 +122,15 @@ func (el *EntryLog) AddDayEntry(dayEntry DayEntry) error {
 	if err := dayEntry.Validate(); err != nil {
 		return fmt.Errorf("invalid day entry: %w", err)
 	}
-	
+
 	// Check if entry for this date already exists
 	if _, exists := el.GetDayEntry(dayEntry.Date); exists {
 		return fmt.Errorf("entry for date %s already exists", dayEntry.Date)
 	}
-	
+
 	// Add the entry
 	el.Entries = append(el.Entries, dayEntry)
-	
+
 	return nil
 }
 
@@ -140,7 +140,7 @@ func (el *EntryLog) UpdateDayEntry(dayEntry DayEntry) error {
 	if err := dayEntry.Validate(); err != nil {
 		return fmt.Errorf("invalid day entry: %w", err)
 	}
-	
+
 	// Find existing entry
 	for i := range el.Entries {
 		if el.Entries[i].Date == dayEntry.Date {
@@ -148,7 +148,7 @@ func (el *EntryLog) UpdateDayEntry(dayEntry DayEntry) error {
 			return nil
 		}
 	}
-	
+
 	// Entry doesn't exist, add it
 	el.Entries = append(el.Entries, dayEntry)
 	return nil
@@ -171,15 +171,15 @@ func (de *DayEntry) AddGoalEntry(goalEntry GoalEntry) error {
 	if err := goalEntry.Validate(); err != nil {
 		return fmt.Errorf("invalid goal entry: %w", err)
 	}
-	
+
 	// Check if entry for this goal already exists
 	if _, exists := de.GetGoalEntry(goalEntry.GoalID); exists {
 		return fmt.Errorf("entry for goal %s already exists on date %s", goalEntry.GoalID, de.Date)
 	}
-	
+
 	// Add the entry
 	de.Goals = append(de.Goals, goalEntry)
-	
+
 	return nil
 }
 
@@ -189,7 +189,7 @@ func (de *DayEntry) UpdateGoalEntry(goalEntry GoalEntry) error {
 	if err := goalEntry.Validate(); err != nil {
 		return fmt.Errorf("invalid goal entry: %w", err)
 	}
-	
+
 	// Find existing entry
 	for i := range de.Goals {
 		if de.Goals[i].GoalID == goalEntry.GoalID {
@@ -197,7 +197,7 @@ func (de *DayEntry) UpdateGoalEntry(goalEntry GoalEntry) error {
 			return nil
 		}
 	}
-	
+
 	// Entry doesn't exist, add it
 	de.Goals = append(de.Goals, goalEntry)
 	return nil
@@ -259,28 +259,28 @@ func (el *EntryLog) GetEntriesForDateRange(startDate, endDate string) ([]DayEntr
 	if err != nil {
 		return nil, fmt.Errorf("invalid start date format: %w", err)
 	}
-	
+
 	end, err := time.Parse("2006-01-02", endDate)
 	if err != nil {
 		return nil, fmt.Errorf("invalid end date format: %w", err)
 	}
-	
+
 	if start.After(end) {
 		return nil, fmt.Errorf("start date %s is after end date %s", startDate, endDate)
 	}
-	
+
 	var result []DayEntry
 	for _, entry := range el.Entries {
 		entryDate, err := time.Parse("2006-01-02", entry.Date)
 		if err != nil {
 			continue // Skip invalid dates
 		}
-		
-		if (entryDate.Equal(start) || entryDate.After(start)) && 
-		   (entryDate.Equal(end) || entryDate.Before(end)) {
+
+		if (entryDate.Equal(start) || entryDate.After(start)) &&
+			(entryDate.Equal(end) || entryDate.Before(end)) {
 			result = append(result, entry)
 		}
 	}
-	
+
 	return result, nil
 }

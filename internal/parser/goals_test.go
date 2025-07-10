@@ -173,7 +173,7 @@ goals:
     scoring_type: "manual"
 `
 
-		err := os.WriteFile(goalsFile, []byte(yamlContent), 0600)
+		err := os.WriteFile(goalsFile, []byte(yamlContent), 0o600)
 		require.NoError(t, err)
 
 		// Load and parse
@@ -197,7 +197,7 @@ goals:
 		goalsFile := filepath.Join(tempDir, "unreadable.yml")
 
 		// Create file and remove read permission
-		err := os.WriteFile(goalsFile, []byte("test"), 0000)
+		err := os.WriteFile(goalsFile, []byte("test"), 0o000)
 		require.NoError(t, err)
 
 		_, err = parser.LoadFromFile(goalsFile)
@@ -320,7 +320,7 @@ goals:
     scoring_type: "manual"
 `
 
-		err := os.WriteFile(goalsFile, []byte(yamlContent), 0600)
+		err := os.WriteFile(goalsFile, []byte(yamlContent), 0o600)
 		require.NoError(t, err)
 
 		err = parser.ValidateFile(goalsFile)
@@ -342,7 +342,7 @@ goals:
     scoring_type: "manual"
 `
 
-		err := os.WriteFile(goalsFile, []byte(yamlContent), 0600)
+		err := os.WriteFile(goalsFile, []byte(yamlContent), 0o600)
 		require.NoError(t, err)
 
 		err = parser.ValidateFile(goalsFile)
@@ -415,7 +415,7 @@ func TestGetGoalsByType(t *testing.T) {
 				{GoalType: models.SimpleGoal, Title: "Simple 1"},
 			},
 		}
-		
+
 		goals := GetGoalsByType(simpleSchema, models.InformationalGoal)
 		assert.Empty(t, goals)
 	})
@@ -474,7 +474,7 @@ func TestGetSimpleBooleanGoals(t *testing.T) {
 				},
 			},
 		}
-		
+
 		goals := GetSimpleBooleanGoals(emptySchema)
 		assert.Empty(t, goals)
 	})

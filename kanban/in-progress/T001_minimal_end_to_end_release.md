@@ -86,8 +86,8 @@ This task is important because it establishes the architectural foundation and c
         - *Testing Strategy:* Unit tests for concurrent access, corruption handling
         - *AI Notes:* Should preserve existing entries when adding new ones
 
-- [ ] **5. CLI Interface**: Create polished CLI using charmbracelet libraries
-    - [ ] **5.1 Entry collection UI:** Build interactive UI for today's entry
+- [WIP] **5. CLI Interface**: Create polished CLI using charmbracelet libraries
+    - [x] **5.1 Entry collection UI:** Build interactive UI for today's entry
         - *Design:* Use huh for form inputs, bubbletea for app flow, lipgloss for styling
         - *Code/Artifacts to be created or modified:* `internal/ui/entry.go`
         - *Testing Strategy:* Manual testing of UI flow, unit tests for business logic
@@ -126,6 +126,7 @@ This task is important because it establishes the architectural foundation and c
 - `2025-01-10 - AI:` Subtask 3.2 completed - Implemented comprehensive YAML parsing in internal/parser/goals.go using goccy/go-yaml. Created GoalParser with LoadFromFile, SaveToFile, ParseYAML methods and validation. Added helper functions for goal lookup and filtering. Fixed schema validation to properly generate IDs. Created 28 unit tests with comprehensive error handling. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 4.1 completed - Defined comprehensive entry data structures in internal/models/entry.go. Implemented EntryLog, DayEntry, and GoalEntry structs with full CRUD operations. Added validation, date handling, boolean value helpers, and range queries. Designed for partial entry support and future incremental updates. Created 48 unit tests covering all functionality. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 4.2 completed - Implemented comprehensive entry storage in internal/storage/entries.go. Created EntryStorage with atomic writes, YAML parsing, validation, and backup functionality. Added high-level operations for day/goal entry management with automatic file creation. Includes date range queries and today-specific helpers. Created 37 unit tests covering all storage operations and error scenarios. All tests pass and linter reports 0 issues.
+- `2025-01-10 - AI:` Subtask 5.1 completed - Built interactive UI for today's entry collection in internal/ui/entry.go. Created EntryCollector with charmbracelet libraries: huh for forms, lipgloss for styling. Features include welcome/completion messages, goal-by-goal entry collection, optional notes, existing entry loading/updating, and comprehensive error handling. Updated cmd/entry.go to integrate UI with CLI. Created comprehensive unit tests covering all functionality. All tests pass and linter reports 0 issues.
 
 ## 6. Code Snippets & Artifacts
 
