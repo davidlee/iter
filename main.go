@@ -2,7 +2,7 @@
 package main
 
 import (
-	"fmt"
+	"davidlee/iter/cmd"
 
 	// Import dependencies to keep them in go.mod
 	_ "github.com/charmbracelet/bubbles"
@@ -14,6 +14,5 @@ import (
 )
 
 func main() {
-	fmt.Println("iter - habit tracker")
-	fmt.Println("Work in progress...")
+	cmd.Execute()
 }

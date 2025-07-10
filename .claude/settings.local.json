@@ -6,7 +6,13 @@
       "Bash(gofumpt:*)",
       "Bash(golangci-lint run:*)",
       "Bash(mkdir:*)",
-      "Bash(go test:*)"
+      "Bash(go test:*)",
+      "Bash(go build:*)",
+      "Bash(./iter --help)",
+      "Bash(./iter entry)",
+      "Bash(./iter:*)",
+      "Bash(ls:*)",
+      "Bash(XDG_CONFIG_HOME=/tmp/xdg-test ./iter entry)"
     ],
     "deny": []
   }

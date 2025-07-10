@@ -50,13 +50,13 @@ This task is important because it establishes the architectural foundation and c
         - *Testing Strategy:* Run golangci-lint and gofumpt on sample code
         - *AI Notes:* May need to adjust linting rules as code develops
 
-- [WIP] **2. Configuration Management**: Implement XDG-compliant config paths with CLI override
+- [x] **2. Configuration Management**: Implement XDG-compliant config paths with CLI override
     - [x] **2.1 XDG path resolution:** Implement XDG Base Directory specification support
         - *Design:* Function to resolve ~/.config/iter/ as default, support XDG_CONFIG_HOME
         - *Code/Artifacts to be created or modified:* `internal/config/paths.go`
         - *Testing Strategy:* Unit tests for path resolution with various XDG env vars
         - *AI Notes:* Should gracefully handle missing directories
-    - [ ] **2.2 CLI flag support:** Add --config-dir flag for custom config location
+    - [x] **2.2 CLI flag support:** Add --config-dir flag for custom config location
         - *Design:* Use cobra or flag package for CLI parsing, override default paths
         - *Code/Artifacts to be created or modified:* `cmd/root.go`, `cmd/entry.go`
         - *Testing Strategy:* Test CLI flag parsing and path override functionality
@@ -121,6 +121,7 @@ This task is important because it establishes the architectural foundation and c
 - `2025-01-10 - AI:` Subtask 1.1 completed - Added all required dependencies (bubbletea, huh, lipgloss, bubbles, goccy/go-yaml, testify). Created main.go with blank imports to preserve dependencies after go mod tidy.
 - `2025-01-10 - AI:` Subtask 1.2 completed - Setup .golangci.yml with staticcheck, revive, gosec, errcheck, govet, gocritic, nilnil, nilerr, ineffassign, unused, misspell. Installed gofumpt and golangci-lint tools. Both run successfully on current code.
 - `2025-01-10 - AI:` Subtask 2.1 completed - Implemented XDG Base Directory specification support in internal/config/paths.go. Created Paths struct with GetDefaultPaths() and GetPathsWithConfigDir() functions. Added comprehensive unit tests covering XDG_CONFIG_HOME scenarios. All tests pass and linter reports 0 issues.
+- `2025-01-10 - AI:` Subtask 2.2 completed - Added --config-dir CLI flag support using cobra. Created cmd/root.go with persistent flag handling and cmd/entry.go with placeholder entry command. CLI properly resolves paths from flag or XDG defaults, creates config directories, and includes comprehensive unit tests. All tests pass and linter reports 0 issues.
 
 ## 6. Code Snippets & Artifacts
 
