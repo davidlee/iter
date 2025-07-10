@@ -50,8 +50,8 @@ This task is important because it establishes the architectural foundation and c
         - *Testing Strategy:* Run golangci-lint and gofumpt on sample code
         - *AI Notes:* May need to adjust linting rules as code develops
 
-- [ ] **2. Configuration Management**: Implement XDG-compliant config paths with CLI override
-    - [ ] **2.1 XDG path resolution:** Implement XDG Base Directory specification support
+- [WIP] **2. Configuration Management**: Implement XDG-compliant config paths with CLI override
+    - [x] **2.1 XDG path resolution:** Implement XDG Base Directory specification support
         - *Design:* Function to resolve ~/.config/iter/ as default, support XDG_CONFIG_HOME
         - *Code/Artifacts to be created or modified:* `internal/config/paths.go`
         - *Testing Strategy:* Unit tests for path resolution with various XDG env vars
@@ -120,6 +120,7 @@ This task is important because it establishes the architectural foundation and c
 - `2025-01-10 - AI:` Created comprehensive task breakdown focusing on simple boolean goals as starting point, designed for extensibility to future goal types
 - `2025-01-10 - AI:` Subtask 1.1 completed - Added all required dependencies (bubbletea, huh, lipgloss, bubbles, goccy/go-yaml, testify). Created main.go with blank imports to preserve dependencies after go mod tidy.
 - `2025-01-10 - AI:` Subtask 1.2 completed - Setup .golangci.yml with staticcheck, revive, gosec, errcheck, govet, gocritic, nilnil, nilerr, ineffassign, unused, misspell. Installed gofumpt and golangci-lint tools. Both run successfully on current code.
+- `2025-01-10 - AI:` Subtask 2.1 completed - Implemented XDG Base Directory specification support in internal/config/paths.go. Created Paths struct with GetDefaultPaths() and GetPathsWithConfigDir() functions. Added comprehensive unit tests covering XDG_CONFIG_HOME scenarios. All tests pass and linter reports 0 issues.
 
 ## 6. Code Snippets & Artifacts
 
