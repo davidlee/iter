@@ -34,77 +34,77 @@ This task is important because it establishes the architectural foundation and c
 ---
 ## 3. Implementation Plan & Progress
 
-**Overall Status:** `Not Started`
+**Overall Status:** `In Progress`
 
 **Sub-tasks:**
 
-- [ ] **Project Setup & Dependencies**: Setup Go modules and required libraries
-    - [ ] **Add required dependencies:** Add charmbracelet libraries, goccy/go-yaml, testify
+- [WIP] **1. Project Setup & Dependencies**: Setup Go modules and required libraries
+    - [x] **1.1 Add required dependencies:** Add charmbracelet libraries, goccy/go-yaml, testify
         - *Design:* Update go.mod with bubbletea, huh, lipgloss, bubbles, goccy/go-yaml, testify
         - *Code/Artifacts to be created or modified:* `go.mod`, `go.sum`
         - *Testing Strategy:* Verify dependencies resolve correctly with `go mod tidy`
         - *AI Notes:* Follow CLAUDE.md specifications for exact library versions
-    - [ ] **Setup linting and formatting:** Configure golangci-lint and gofumpt
+    - [ ] **1.2 Setup linting and formatting:** Configure golangci-lint and gofumpt
         - *Design:* Create .golangci.yml with staticcheck, revive, gosec, errcheck, govet, gocritic, nilnil, nilerr
         - *Code/Artifacts to be created or modified:* `.golangci.yml`, potentially Makefile or scripts
         - *Testing Strategy:* Run golangci-lint and gofumpt on sample code
         - *AI Notes:* May need to adjust linting rules as code develops
 
-- [ ] **Configuration Management**: Implement XDG-compliant config paths with CLI override
-    - [ ] **XDG path resolution:** Implement XDG Base Directory specification support
+- [ ] **2. Configuration Management**: Implement XDG-compliant config paths with CLI override
+    - [ ] **2.1 XDG path resolution:** Implement XDG Base Directory specification support
         - *Design:* Function to resolve ~/.config/iter/ as default, support XDG_CONFIG_HOME
         - *Code/Artifacts to be created or modified:* `internal/config/paths.go`
         - *Testing Strategy:* Unit tests for path resolution with various XDG env vars
         - *AI Notes:* Should gracefully handle missing directories
-    - [ ] **CLI flag support:** Add --config-dir flag for custom config location
+    - [ ] **2.2 CLI flag support:** Add --config-dir flag for custom config location
         - *Design:* Use cobra or flag package for CLI parsing, override default paths
         - *Code/Artifacts to be created or modified:* `cmd/root.go`, `cmd/entry.go`
         - *Testing Strategy:* Test CLI flag parsing and path override functionality
         - *AI Notes:* Consider using cobra for future CLI extension
 
-- [ ] **Goal Parser & Validation**: Parse simple boolean goals from goals.yml
-    - [ ] **Goal structure definition:** Define Go structs for simple boolean goals
+- [ ] **3. Goal Parser & Validation**: Parse simple boolean goals from goals.yml
+    - [ ] **3.1 Goal structure definition:** Define Go structs for simple boolean goals
         - *Design:* Goal struct with ID, Name, Type fields; GoalSet for collection
         - *Code/Artifacts to be created or modified:* `internal/models/goal.go`
         - *Testing Strategy:* Unit tests for goal struct validation
         - *AI Notes:* Design should be extensible for future goal types
-    - [ ] **YAML parsing:** Implement goals.yml parsing with validation
+    - [ ] **3.2 YAML parsing:** Implement goals.yml parsing with validation
         - *Design:* Use goccy/go-yaml, validate required fields, handle parse errors
         - *Code/Artifacts to be created or modified:* `internal/parser/goals.go`
         - *Testing Strategy:* Unit tests with valid/invalid YAML examples
         - *AI Notes:* Should provide clear error messages for invalid YAML
 
-- [ ] **Entry Management**: Implement entry collection and storage
-    - [ ] **Entry data model:** Define entry structure for boolean goal completion
+- [ ] **4. Entry Management**: Implement entry collection and storage
+    - [ ] **4.1 Entry data model:** Define entry structure for boolean goal completion
         - *Design:* Entry struct with Date, GoalID, Value fields; EntrySet for collection
         - *Code/Artifacts to be created or modified:* `internal/models/entry.go`
         - *Testing Strategy:* Unit tests for entry validation and serialization
         - *AI Notes:* Consider partial entry support for future incremental updates
-    - [ ] **Entry storage:** Implement entries.yml read/write with validation
+    - [ ] **4.2 Entry storage:** Implement entries.yml read/write with validation
         - *Design:* YAML serialization, atomic writes, backup on corruption
         - *Code/Artifacts to be created or modified:* `internal/storage/entries.go`
         - *Testing Strategy:* Unit tests for concurrent access, corruption handling
         - *AI Notes:* Should preserve existing entries when adding new ones
 
-- [ ] **CLI Interface**: Create polished CLI using charmbracelet libraries
-    - [ ] **Entry collection UI:** Build interactive UI for today's entry
+- [ ] **5. CLI Interface**: Create polished CLI using charmbracelet libraries
+    - [ ] **5.1 Entry collection UI:** Build interactive UI for today's entry
         - *Design:* Use huh for form inputs, bubbletea for app flow, lipgloss for styling
         - *Code/Artifacts to be created or modified:* `internal/ui/entry.go`
         - *Testing Strategy:* Manual testing of UI flow, unit tests for business logic
         - *AI Notes:* Should handle keyboard navigation and validation gracefully
-    - [ ] **CLI command structure:** Implement entry subcommand with proper help
+    - [ ] **5.2 CLI command structure:** Implement entry subcommand with proper help
         - *Design:* Main command with entry subcommand, help text, error handling
         - *Code/Artifacts to be created or modified:* `cmd/entry.go`, `main.go`
         - *Testing Strategy:* Test command parsing, help output, error scenarios
         - *AI Notes:* Structure should support future subcommands (revise, list, etc.)
 
-- [ ] **Integration & Testing**: Ensure end-to-end functionality works correctly
-    - [ ] **End-to-end testing:** Test complete workflow from goals.yml to entries.yml
+- [ ] **6. Integration & Testing**: Ensure end-to-end functionality works correctly
+    - [ ] **6.1 End-to-end testing:** Test complete workflow from goals.yml to entries.yml
         - *Design:* Create test scenarios with sample goals and entries
         - *Code/Artifacts to be created or modified:* `integration_test.go` or similar
         - *Testing Strategy:* Full workflow testing with temporary directories
         - *AI Notes:* Should test both happy path and error scenarios
-    - [ ] **Code quality:** Ensure formatting, linting, and test coverage
+    - [ ] **6.2 Code quality:** Ensure formatting, linting, and test coverage
         - *Design:* Run gofumpt, golangci-lint, go test with coverage
         - *Code/Artifacts to be created or modified:* Any code quality fixes needed
         - *Testing Strategy:* Automated checks pass, reasonable test coverage
@@ -118,6 +118,7 @@ This task is important because it establishes the architectural foundation and c
 
 - `2025-01-10 - User:` Requested epic task card for minimal end-to-end release following workflow.md format
 - `2025-01-10 - AI:` Created comprehensive task breakdown focusing on simple boolean goals as starting point, designed for extensibility to future goal types
+- `2025-01-10 - AI:` Subtask 1.1 completed - Added all required dependencies (bubbletea, huh, lipgloss, bubbles, goccy/go-yaml, testify). Created main.go with blank imports to preserve dependencies after go mod tidy.
 
 ## 6. Code Snippets & Artifacts
 
