@@ -62,13 +62,13 @@ This task is important because it establishes the architectural foundation and c
         - *Testing Strategy:* Test CLI flag parsing and path override functionality
         - *AI Notes:* Consider using cobra for future CLI extension
 
-- [WIP] **3. Goal Parser & Validation**: Parse simple boolean goals from goals.yml
+- [x] **3. Goal Parser & Validation**: Parse simple boolean goals from goals.yml
     - [x] **3.1 Goal structure definition:** Define Go structs for simple boolean goals
         - *Design:* Goal struct with ID, Name, Type fields; GoalSet for collection
         - *Code/Artifacts to be created or modified:* `internal/models/goal.go`
         - *Testing Strategy:* Unit tests for goal struct validation
         - *AI Notes:* Design should be extensible for future goal types
-    - [ ] **3.2 YAML parsing:** Implement goals.yml parsing with validation
+    - [x] **3.2 YAML parsing:** Implement goals.yml parsing with validation
         - *Design:* Use goccy/go-yaml, validate required fields, handle parse errors
         - *Code/Artifacts to be created or modified:* `internal/parser/goals.go`
         - *Testing Strategy:* Unit tests with valid/invalid YAML examples
@@ -123,6 +123,7 @@ This task is important because it establishes the architectural foundation and c
 - `2025-01-10 - AI:` Subtask 2.1 completed - Implemented XDG Base Directory specification support in internal/config/paths.go. Created Paths struct with GetDefaultPaths() and GetPathsWithConfigDir() functions. Added comprehensive unit tests covering XDG_CONFIG_HOME scenarios. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 2.2 completed - Added --config-dir CLI flag support using cobra. Created cmd/root.go with persistent flag handling and cmd/entry.go with placeholder entry command. CLI properly resolves paths from flag or XDG defaults, creates config directories, and includes comprehensive unit tests. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 3.1 completed - Defined comprehensive Go structs for goal schema in internal/models/goal.go. Implemented Schema, Goal, FieldType, Criteria, and Condition structs following doc/specifications/goal_schema.md closely. Added validation methods, ID generation, and extensible design for future goal types. Created 35 unit tests covering all validation scenarios. All tests pass and linter reports 0 issues.
+- `2025-01-10 - AI:` Subtask 3.2 completed - Implemented comprehensive YAML parsing in internal/parser/goals.go using goccy/go-yaml. Created GoalParser with LoadFromFile, SaveToFile, ParseYAML methods and validation. Added helper functions for goal lookup and filtering. Fixed schema validation to properly generate IDs. Created 28 unit tests with comprehensive error handling. All tests pass and linter reports 0 issues.
 
 ## 6. Code Snippets & Artifacts
 

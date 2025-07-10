@@ -225,22 +225,22 @@ func (s *Schema) Validate() error {
 	positions := make(map[int]bool)
 	
 	// Validate each goal
-	for i, goal := range s.Goals {
-		if err := goal.Validate(); err != nil {
+	for i := range s.Goals {
+		if err := s.Goals[i].Validate(); err != nil {
 			return fmt.Errorf("goal at index %d: %w", i, err)
 		}
 		
 		// Check ID uniqueness
-		if ids[goal.ID] {
-			return fmt.Errorf("duplicate goal ID: %s", goal.ID)
+		if ids[s.Goals[i].ID] {
+			return fmt.Errorf("duplicate goal ID: %s", s.Goals[i].ID)
 		}
-		ids[goal.ID] = true
+		ids[s.Goals[i].ID] = true
 		
 		// Check position uniqueness
-		if positions[goal.Position] {
-			return fmt.Errorf("duplicate goal position: %d", goal.Position)
+		if positions[s.Goals[i].Position] {
+			return fmt.Errorf("duplicate goal position: %d", s.Goals[i].Position)
 		}
-		positions[goal.Position] = true
+		positions[s.Goals[i].Position] = true
 	}
 	
 	return nil
