@@ -74,13 +74,13 @@ This task is important because it establishes the architectural foundation and c
         - *Testing Strategy:* Unit tests with valid/invalid YAML examples
         - *AI Notes:* Should provide clear error messages for invalid YAML
 
-- [WIP] **4. Entry Management**: Implement entry collection and storage
+- [x] **4. Entry Management**: Implement entry collection and storage
     - [x] **4.1 Entry data model:** Define entry structure for boolean goal completion
         - *Design:* Entry struct with Date, GoalID, Value fields; EntrySet for collection
         - *Code/Artifacts to be created or modified:* `internal/models/entry.go`
         - *Testing Strategy:* Unit tests for entry validation and serialization
         - *AI Notes:* Consider partial entry support for future incremental updates
-    - [ ] **4.2 Entry storage:** Implement entries.yml read/write with validation
+    - [x] **4.2 Entry storage:** Implement entries.yml read/write with validation
         - *Design:* YAML serialization, atomic writes, backup on corruption
         - *Code/Artifacts to be created or modified:* `internal/storage/entries.go`
         - *Testing Strategy:* Unit tests for concurrent access, corruption handling
@@ -125,6 +125,7 @@ This task is important because it establishes the architectural foundation and c
 - `2025-01-10 - AI:` Subtask 3.1 completed - Defined comprehensive Go structs for goal schema in internal/models/goal.go. Implemented Schema, Goal, FieldType, Criteria, and Condition structs following doc/specifications/goal_schema.md closely. Added validation methods, ID generation, and extensible design for future goal types. Created 35 unit tests covering all validation scenarios. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 3.2 completed - Implemented comprehensive YAML parsing in internal/parser/goals.go using goccy/go-yaml. Created GoalParser with LoadFromFile, SaveToFile, ParseYAML methods and validation. Added helper functions for goal lookup and filtering. Fixed schema validation to properly generate IDs. Created 28 unit tests with comprehensive error handling. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 4.1 completed - Defined comprehensive entry data structures in internal/models/entry.go. Implemented EntryLog, DayEntry, and GoalEntry structs with full CRUD operations. Added validation, date handling, boolean value helpers, and range queries. Designed for partial entry support and future incremental updates. Created 48 unit tests covering all functionality. All tests pass and linter reports 0 issues.
+- `2025-01-10 - AI:` Subtask 4.2 completed - Implemented comprehensive entry storage in internal/storage/entries.go. Created EntryStorage with atomic writes, YAML parsing, validation, and backup functionality. Added high-level operations for day/goal entry management with automatic file creation. Includes date range queries and today-specific helpers. Created 37 unit tests covering all storage operations and error scenarios. All tests pass and linter reports 0 issues.
 
 ## 6. Code Snippets & Artifacts
 

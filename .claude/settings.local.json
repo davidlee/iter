@@ -13,7 +13,8 @@
       "Bash(./iter:*)",
       "Bash(ls:*)",
       "Bash(XDG_CONFIG_HOME=/tmp/xdg-test ./iter entry)",
-      "Bash(go run:*)"
+      "Bash(go run:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
