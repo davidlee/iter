@@ -22,6 +22,20 @@ This document outlines the collaboration model between the User (acting as Tech 
   - Create git commit messages with the task or sub task ID, in the form "[task: $ID] description"
   - Update task files with commit ids.
   - Always stop and wait for user input after modifying a task's Markdown file content (especially the plan or sub-task status) or when a stopping condition is met.
+  - When submitting a task (or subtask) for user review, provide a detailed git commit message. 
+    - commit title, e.g. "[T000] Subtask 2.2: add core data models and validation" 
+    - summary of:
+        - features added / behaviour changes
+        - any dependencies or libraries added / removed
+        - any refactoring or improvements made to adapt existing code
+        - tests written
+        - other QA checks undertaken
+        - accompanying documentation, if any
+        - feedback addressed
+        - security considerations (potential or addressed)
+        - considerations for future extension or improvement
+
+    - No self-congratulation or elaboration of benefits is necessary.
 
 ## Kanban System: Folders & Files
 
