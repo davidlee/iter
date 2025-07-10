@@ -1,41 +1,50 @@
-  Goal Schema Format Specification
+  # Goal Schema Format Specification
 
-  Overview
+  ## Overview
 
-  This specification defines the syntax and data structures for the habit tracker
-  goal schema. The schema enables:
-  1. Validation: Ensuring schema correctness and entry compatibility
-  2. Parser Implementation: Structured data extraction from schema files
-  3. CLI Generation: Dynamic prompt creation for user entry
-  4. Entry Validation: Checking daily log entries against schema requirements
+This specification defines the syntax and data structures for the habit tracker
+goal schema. The schema enables:
 
-  Design Principles
+1. Validation: Ensuring schema correctness and entry compatibility
+2. Parser Implementation: Structured data extraction from schema files
+3. CLI Generation: Dynamic prompt creation for user entry
+4. Entry Validation: Checking daily log entries against schema requirements
 
-  - Resilience: Schema changes shouldn't break historical data
-  - Flexibility: Support diverse goal types and data formats
-  - Clarity: Human-readable format with clear validation rules
-  - Extensibility: Easy to add new field types and criteria
+## Design Principles
 
-  File Format
+- Resilience: Schema changes shouldn't break historical data
+- Flexibility: Support diverse goal types and data formats
+- Clarity: Human-readable format with clear validation rules
+- Extensibility: Easy to add new field types and criteria
 
-  Schema files use YAML format for human readability while maintaining structured
-  parsing capabilities.
+## File Format
 
-  Data Type Specifications
+Schema files use YAML format for human readability while maintaining structured
+parsing capabilities.
 
-  Base Field Types
+# Data Type Specifications
 
-  # Text field for free-form comments
+## Base Field Types
+
+### Text field for free-form comments
+
+```  
   text:
     type: "text"
     multiline: boolean (default: false)
+```
 
-  # Boolean field for yes/no questions  
+### Boolean field for yes/no questions  
+
+``` 
   boolean:
     type: "boolean"
     default: boolean (optional)
+``` 
 
-  # Numeric fields with units
+### Numeric fields with units
+
+``` 
   numeric:
     type: "unsigned_int" | "unsigned_decimal" | "decimal"
     unit: string (e.g., "kg", "hours", "count")
@@ -51,30 +60,34 @@
   duration:
     type: "duration"
     format: "HH:MM:SS" | "minutes" | "seconds"
+``` 
 
-  Validation Rules
+## Validation Rules
 
-  - text: Any string, newlines allowed if multiline=true
-  - boolean: Accepts true/false, yes/no, y/n, 1/0 (case-insensitive)
-  - numeric: Must be valid number of specified type, within min/max if specified
-  - time: Must match HH:MM format, 00:00-23:59 range
-  - duration: Must match specified format, non-negative values
+- text: Any string, newlines allowed if multiline=true
+- boolean: Accepts true/false, yes/no, y/n, 1/0 (case-insensitive)
+- numeric: Must be valid number of specified type, within min/max if specified
+- time: Must match HH:MM format, 00:00-23:59 range
+- duration: Must match specified format, non-negative values
 
-  Goal Type Specifications
+## Goal Type Specifications
 
-  Simple Goals
+### Simple Goals
 
-  Boolean pass/fail goals with manual or automatic scoring.
+Boolean pass/fail goals with manual or automatic scoring.
 
+``` 
   goal_type: "simple"
   scoring_type: "manual" | "automatic"
   criteria: # Required if scoring_type="automatic"
     # Criteria specification (see below)
+``` 
 
-  Elastic Goals
+### Elastic Goals
 
-  Three-tier achievement goals (mini/midi/maxi) with manual or automatic scoring.
+Three-tier achievement goals (mini/midi/maxi) with manual or automatic scoring.
 
+``` 
   goal_type: "elastic"
   scoring_type: "manual" | "automatic"
   mini_criteria: # Required if scoring_type="automatic"
@@ -83,51 +96,64 @@
     # Criteria for medium achievement level
   maxi_criteria: # Required if scoring_type="automatic"
     # Criteria for maximum achievement level
+``` 
 
-  Informational Goals
+### Informational Goals
 
-  Data collection without success/failure scoring.
+Data collection without success/failure scoring.
 
+``` 
   goal_type: "informational"
   direction: "higher_better" | "lower_better" | "neutral" # Optional, for display
+``` 
 
-  Criteria Specification
+## Criteria Specification
 
-  Numeric/Duration Criteria
+### Numeric/Duration Criteria
 
-  # Simple comparisons
+Simple comparisons
+
+```
   greater_than: number
   greater_than_or_equal: number
   less_than: number
   less_than_or_equal: number
+```
 
-  # Range constraints
+Range constraints
+```
   range:
     min: number
     max: number
     min_inclusive: boolean (default: true)
     max_inclusive: boolean (default: false)
+```
 
-  # Periodicity (requires historical data)
+Periodicity (requires historical data)
+```
   periodicity:
     count: integer
     operator: "at_least" | "at_most"
     period: integer
     unit: "days" | "weeks" | "months"
+```
 
-  Time Criteria
+### Time Criteria
 
-  # Time constraints (HH:MM format)
+Time constraints (HH:MM format)
+```
   before: "HH:MM"
   after: "HH:MM"
+```
 
-  Boolean Criteria
-
+Boolean Criteria
+```
   equals: true | false
+```
 
-  Composite Criteria
+### Composite Criteria
 
-  # Logical operators
+Logical operators
   and:
     - # Array of criteria (all must pass)
   or:
@@ -135,17 +161,20 @@
   not:
     # Single criteria to negate
 
-  Schema Structure
+## Schema Structure
 
-  Top-Level Schema
+### Top-Level Schema
 
+```
   version: "1.0.0" # Semantic version
   created_date: "2024-01-01" # ISO8601 date
   goals:
     - # Array of Goal objects
+```
 
-  Goal Object
+## Goal Object
 
+```
   title: "Goal Title" # Human-readable name
   id: "goal_id" # Optional unique identifier (auto-generated if missing)
   position: 1 # Unique integer for display order
@@ -168,43 +197,45 @@
   direction: "higher_better" | "lower_better" | "neutral" # Informational only
   prompt: "Enter your value:" # CLI prompt text
   help_text: "Optional additional guidance" # Optional
+```
 
-  Identifier System
+## Identifier System
 
-  ID Generation
+### ID Generation
 
-  - If id is omitted, generate from title: lowercase, replace spaces/special chars
-   with underscores
-  - Ensure uniqueness within schema
-  - Example: "Daily Exercise" → "daily_exercise"
+- If id is omitted, generate from title: lowercase, replace spaces/special chars
+  with underscores
+- Ensure uniqueness within schema
+- Example: "Daily Exercise" → "daily_exercise"
 
-  Change Resilience
+### Change Resilience
 
-  - Entry validation matches fields by goal ID
-  - Position changes don't affect historical data
-  - Missing goals in entries are preserved as "orphaned"
-  - Schema validation warns about orphaned fields
+- Entry validation matches fields by goal ID
+- Position changes don't affect historical data
+- Missing goals in entries are preserved as "orphaned"
+- Schema validation warns about orphaned fields
 
-  Validation Requirements
+## Validation Requirements
 
-  Schema Validation
+### Schema Validation
 
-  1. Structure: Valid YAML matching specification
-  2. Uniqueness: All goal IDs and positions must be unique
-  3. Completeness: Required fields present based on goal_type and scoring_type
-  4. Consistency: Field types compatible with criteria
-  5. References: All criteria reference valid field types
+1. Structure: Valid YAML matching specification
+2. Uniqueness: All goal IDs and positions must be unique
+3. Completeness: Required fields present based on goal_type and scoring_type
+4. Consistency: Field types compatible with criteria
+5. References: All criteria reference valid field types
 
-  Entry Validation
+### Entry Validation
 
-  1. Field Matching: Entry fields match goal IDs in schema
-  2. Type Checking: Values conform to field type specifications
-  3. Criteria Evaluation: Automatic scoring based on criteria
-  4. Orphan Detection: Flag fields without matching goals
-  5. Historical Context: Periodicity criteria require entry history
+1. Field Matching: Entry fields match goal IDs in schema
+2. Type Checking: Values conform to field type specifications
+3. Criteria Evaluation: Automatic scoring based on criteria
+4. Orphan Detection: Flag fields without matching goals
+5. Historical Context: Periodicity criteria require entry history
 
-  Example Schema
+## Example Schema
 
+```
   version: "1.0.0"
   created_date: "2024-01-01"
   goals:
@@ -250,7 +281,8 @@
         max: 10
       direction: "higher_better"
       prompt: "Rate your sleep quality (1-10):"
+```
 
-  This specification provides the foundation for implementing a robust validator
-  and parser that can handle the complexity of the habit tracking system while
-  maintaining resilience to schema changes.
+This specification provides the foundation for implementing a robust validator
+and parser that can handle the complexity of the habit tracking system while
+maintaining resilience to schema changes.
