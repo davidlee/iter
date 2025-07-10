@@ -79,7 +79,7 @@ go run main.go [subcommand]
 
 ## Development process
 
-We use markdown files within the repo to plan, break down, and track progress of work. Read and closely follow the instructions in `doc/kanban/workflow.md`.
+We use markdown files within `kanban/` to plan, break down, and track progress of work. Read and closely follow the instructions in `doc/workflow.md`.
 
 ## Planned CLI Commands
 

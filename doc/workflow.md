@@ -13,7 +13,7 @@ This document outlines the collaboration model between the User (acting as Tech 
   - Answer agent's questions and resolves roadblocks.
 
 - AI (Claude) Responsibilities:
-  - Draft new task file in `doc/kanban/backlog` (using `task_template.md`) on request
+  - Draft new task file in `kanban/backlog` (as per `kanban/backlog/T000_example.md`) on request
   - Refine selected tasks by proposing detailed "Implementation Plan & Progress" sections within the task's Markdown file. This includes sub-tasks, design considerations (e.g., function signatures, data models), and testing strategies.
   - Work only on tasks selected by the User.
   - Generates code, documentation, tests, or other artifacts as per the agreed sub-tasks.
@@ -25,9 +25,9 @@ This document outlines the collaboration model between the User (acting as Tech 
 
 ## Kanban System: Folders & Files
 
-The project work is managed in `doc/kanban` and subdirectories: 
+The project work is managed in `kanban/` and subdirectories: 
 
-- doc/kanban/
+- kanban/
   - backlog/: Tasks not yet being worked on.
   - in-progress/: Tasks being actively worked on.
   - in-review/: Tasks the AI considers completed, pending user validation.
@@ -61,11 +61,11 @@ Tasks often have relationships with each other that should be explicitly documen
 
 ## AI Interaction with Task Markdown:
 
-*   When planning, AI will propose content for "3. Implementation Plan & Progress".
-*   When working, AI will update sub-task statuses (`[ ]`, `[WIP]`, `[x]`, `[blocked]`) in section 3.
-*   AI will add entries to "4. Roadblocks" and "5. Notes / Discussion Log" as needed.
-*   AI will place generated content in "6. Code Snippets & Artifacts" or as specified.
-*   **AI will always provide the complete, updated Markdown content of the task file it modified, or clearly indicate the exact changes made.**
+- When planning, AI will propose content for "3. Implementation Plan & Progress".
+- When working, AI will update sub-task statuses (`[ ]`, `[WIP]`, `[x]`, `[blocked]`) in section 3.
+- AI will add entries to "4. Roadblocks" and "5. Notes / Discussion Log" as needed.
+- AI will place generated content in "6. Code Snippets & Artifacts" or as otherwise specified.
+- AI may edit task files in place, in which case it will always print the complete, verbatim content of the changed file to the user.
 
 ### 4. Git Workflow & Commit Conventions
 
@@ -100,7 +100,7 @@ Tasks often have relationships with each other that should be explicitly documen
 
 2.  **Task Creation (Optional - If AI assists):**
     *   User: "Suggest a task for implementing X."
-    *   AI: Proposes a new task by drafting the full Markdown content for a new file (e.g., `backlog/new_task.md`), including basic sections (Goal, ACs) and an empty Implementation Plan.
+    *   AI: Proposes a new task by drafting the full Markdown content for a new file (e.g., `kanban/backlog/new_task.md`), including basic sections (Goal, ACs) and an empty Implementation Plan.
     *   User: Reviews, modifies, saves the file to `backlog/`, and commits or can ask AI to proceed to some changes.
 
 3.  **Planning Phase (for a selected task):**
