@@ -64,11 +64,11 @@ This builds upon the boolean goal foundation from T001 to provide more sophistic
         - *AI Notes:* Completed - Added validateElasticCriteriaOrdering() method in Goal.Validate() that checks mini ≤ midi ≤ maxi for numeric field types. Includes extractNumericCriteriaValue() helper. Added comprehensive tests for ordering validation and error cases.
 
 - [ ] **3. Scoring Engine**: Implement automatic scoring for elastic goals
-    - [ ] **3.1 Create scoring engine for criteria evaluation**
+    - [x] **3.1 Create scoring engine for criteria evaluation**
         - *Design:* ScoreEngine that evaluates values against elastic criteria
         - *Code/Artifacts to be created or modified:* `internal/scoring/engine.go` (new package)
         - *Testing Strategy:* Comprehensive unit tests for different field types and criteria
-        - *AI Notes:* Should handle numeric, duration, time field types with appropriate operators
+        - *AI Notes:* Completed - Created comprehensive scoring engine with support for all field types (numeric, duration, time, boolean, text). Engine evaluates values against mini/midi/maxi criteria and returns achievement levels. Includes extensive test coverage (7 test suites, 24 test cases) for value conversion, condition evaluation, and error handling. All tests pass, no linting issues.
     - [ ] **3.2 Integrate scoring with entry collection**
         - *Design:* Automatic scoring during entry creation, fallback to manual for complex cases
         - *Code/Artifacts to be created or modified:* `internal/ui/entry.go`, scoring integration
