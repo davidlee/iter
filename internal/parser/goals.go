@@ -21,6 +21,13 @@ func NewGoalParser() *GoalParser {
 // LoadFromFile loads and parses a goals.yml file from the given path.
 // It returns the parsed schema or an error if parsing or validation fails.
 func (gp *GoalParser) LoadFromFile(filePath string) (*models.Schema, error) {
+	return gp.LoadFromFileWithIDPersistence(filePath, true)
+}
+
+// LoadFromFileWithIDPersistence loads and parses a goals.yml file with optional ID persistence.
+// If persistIDs is true and goal IDs are generated during validation, the file is updated
+// with the generated IDs to maintain data integrity.
+func (gp *GoalParser) LoadFromFileWithIDPersistence(filePath string, persistIDs bool) (*models.Schema, error) {
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("goals file not found: %s", filePath)
@@ -33,8 +40,67 @@ func (gp *GoalParser) LoadFromFile(filePath string) (*models.Schema, error) {
 		return nil, fmt.Errorf("failed to read goals file %s: %w", filePath, err)
 	}
 
-	// Parse YAML
-	return gp.ParseYAML(data)
+	// Parse YAML with change tracking if persistence is enabled
+	var schema *models.Schema
+	var wasModified bool
+	if persistIDs {
+		schema, wasModified, err = gp.ParseYAMLWithChangeTracking(data)
+	} else {
+		schema, err = gp.ParseYAML(data)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// If ID persistence is enabled and IDs were generated, save back to file
+	if persistIDs && wasModified {
+		if err := gp.saveGeneratedIDs(schema, filePath); err != nil {
+			// Log the error but don't fail the load operation
+			// This ensures read-only files or permission issues don't break normal usage
+			fmt.Fprintf(os.Stderr, "Warning: failed to persist generated goal IDs to %s: %v\n", filePath, err)
+		}
+	}
+
+	return schema, nil
+}
+
+// ParseYAMLWithChangeTracking parses YAML data and tracks whether goal IDs were generated.
+func (gp *GoalParser) ParseYAMLWithChangeTracking(data []byte) (*models.Schema, bool, error) {
+	var schema models.Schema
+
+	// Parse YAML with strict mode to catch unknown fields
+	if err := yaml.UnmarshalWithOptions(data, &schema, yaml.Strict()); err != nil {
+		return nil, false, fmt.Errorf("failed to parse YAML: %w", err)
+	}
+
+	// Validate the parsed schema with change tracking
+	wasModified, err := schema.ValidateAndTrackChanges()
+	if err != nil {
+		return nil, false, fmt.Errorf("schema validation failed: %w", err)
+	}
+
+	return &schema, wasModified, nil
+}
+
+// saveGeneratedIDs saves the schema with generated IDs back to the file.
+func (gp *GoalParser) saveGeneratedIDs(schema *models.Schema, filePath string) error {
+	// Check if file is writable before attempting to save
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to check file permissions: %w", err)
+	}
+
+	// Check if file is read-only
+	if fileInfo.Mode()&0o200 == 0 {
+		return fmt.Errorf("file is read-only, cannot persist generated IDs")
+	}
+
+	// Save the updated schema back to the file
+	if err := gp.SaveToFile(schema, filePath); err != nil {
+		return fmt.Errorf("failed to save schema with generated IDs: %w", err)
+	}
+
+	return nil
 }
 
 // ParseYAML parses YAML data into a goal schema and validates it.

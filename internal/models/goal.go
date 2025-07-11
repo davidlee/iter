@@ -130,6 +130,30 @@ func (g *Goal) Validate() error {
 		g.ID = generateIDFromTitle(g.Title)
 	}
 
+	return g.validateInternal()
+}
+
+// ValidateAndTrackChanges validates a goal and returns whether it was modified.
+// Returns (wasModified, error) where wasModified indicates if ID was generated.
+func (g *Goal) ValidateAndTrackChanges() (bool, error) {
+	// Title is required
+	if strings.TrimSpace(g.Title) == "" {
+		return false, fmt.Errorf("goal title is required")
+	}
+
+	// Check if ID needs to be generated
+	wasModified := false
+	if g.ID == "" {
+		g.ID = generateIDFromTitle(g.Title)
+		wasModified = true
+	}
+
+	return wasModified, g.validateInternal()
+}
+
+// validateInternal performs the core validation logic (shared between Validate methods).
+func (g *Goal) validateInternal() error {
+
 	// Validate ID format
 	if !isValidID(g.ID) {
 		return fmt.Errorf("goal ID '%s' is invalid: must contain only letters, numbers, and underscores", g.ID)
@@ -260,6 +284,48 @@ func (s *Schema) Validate() error {
 	}
 
 	return nil
+}
+
+// ValidateAndTrackChanges validates a schema and returns whether it was modified.
+// Returns (wasModified, error) where wasModified indicates if any goal IDs were generated.
+func (s *Schema) ValidateAndTrackChanges() (bool, error) {
+	// Version is required
+	if s.Version == "" {
+		return false, fmt.Errorf("schema version is required")
+	}
+
+	// Created date should be valid if provided
+	if s.CreatedDate != "" {
+		if _, err := time.Parse("2006-01-02", s.CreatedDate); err != nil {
+			return false, fmt.Errorf("invalid created_date format, expected YYYY-MM-DD: %w", err)
+		}
+	}
+
+	// Track unique constraints and modifications
+	ids := make(map[string]bool)
+	wasModified := false
+
+	// Validate each goal and auto-assign positions
+	for i := range s.Goals {
+		// Auto-assign position based on array index (1-based)
+		s.Goals[i].Position = i + 1
+
+		goalModified, err := s.Goals[i].ValidateAndTrackChanges()
+		if err != nil {
+			return false, fmt.Errorf("goal at index %d: %w", i, err)
+		}
+		if goalModified {
+			wasModified = true
+		}
+
+		// Check ID uniqueness
+		if ids[s.Goals[i].ID] {
+			return false, fmt.Errorf("duplicate goal ID: %s", s.Goals[i].ID)
+		}
+		ids[s.Goals[i].ID] = true
+	}
+
+	return wasModified, nil
 }
 
 // generateIDFromTitle creates a valid ID from a goal title.

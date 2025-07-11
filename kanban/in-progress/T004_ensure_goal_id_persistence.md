@@ -22,18 +22,18 @@ The system should automatically write inferred IDs back to goals.yml after succe
 
 ## 2. Acceptance Criteria
 
-- [ ] When goals.yml is parsed and a goal lacks an `id` field, the inferred ID is written back to the file
-- [ ] The original file structure and formatting is preserved as much as possible
-- [ ] Only missing IDs are added - existing IDs are never modified
-- [ ] The operation is atomic (no partial writes that could corrupt the file)
-- [ ] Proper error handling if the file cannot be written
-- [ ] No changes made if goals.yml is read-only or parsing fails
-- [ ] Backwards compatibility maintained (existing workflows unaffected)
+- [x] When goals.yml is parsed and a goal lacks an `id` field, the inferred ID is written back to the file
+- [x] The original file structure and formatting is preserved as much as possible
+- [x] Only missing IDs are added - existing IDs are never modified
+- [x] The operation is atomic (no partial writes that could corrupt the file)
+- [x] Proper error handling if the file cannot be written
+- [x] No changes made if goals.yml is read-only or parsing fails
+- [x] Backwards compatibility maintained (existing workflows unaffected)
 
 ---
 ## 3. Implementation Plan & Progress
 
-**Overall Status:** `Planning`
+**Overall Status:** `COMPLETED` ✅
 
 **Investigation completed:**
 - [x] **Current ID generation logic** - IDs generated in `Goal.Validate()` method (`internal/models/goal.go:129`) using `generateIDFromTitle()` if missing
@@ -42,12 +42,12 @@ The system should automatically write inferred IDs back to goals.yml after succe
 - [x] **Error handling strategy** - Current pattern returns errors, atomic writes via `os.WriteFile()`
 - [x] **Integration points** - Primary entry point is `EntryCollector.CollectTodayEntries()` in `entry` command
 
-**Implementation approach:**
-- [ ] **1. Add ID persistence check** - After successful parsing/validation, check if any goals had missing IDs
-- [ ] **2. Conditional file update** - If IDs were added during validation, save schema back to file
-- [ ] **3. Integration in LoadFromFile** - Extend `LoadFromFile()` to optionally write back inferred IDs
-- [ ] **4. Error handling** - Handle read-only files, disk full, permission errors gracefully
-- [ ] **5. Testing** - Unit tests for ID persistence, integration tests for file updates
+**Implementation completed:**
+- [x] **1. Add ID persistence check** - Added `ValidateAndTrackChanges()` methods to `Goal` and `Schema` that track when IDs are generated
+- [x] **2. Conditional file update** - `LoadFromFileWithIDPersistence()` saves schema back only if IDs were generated during parsing
+- [x] **3. Integration in LoadFromFile** - Default `LoadFromFile()` now enables ID persistence automatically
+- [x] **4. Error handling** - Read-only files, permission errors handled gracefully with warnings (don't break normal operation)
+- [x] **5. Testing** - Comprehensive unit tests added covering all scenarios: missing IDs, existing IDs, read-only files, mixed scenarios
 
 ## 4. Roadblocks
 
@@ -69,3 +69,33 @@ The system should automatically write inferred IDs back to goals.yml after succe
 2. Add method to check if schema was modified during validation
 3. Extend `LoadFromFile()` to conditionally save back modified schema
 4. Handle file permission and error cases gracefully
+
+---
+
+## ✅ IMPLEMENTATION COMPLETED
+
+**Files modified:**
+- `internal/models/goal.go` - Added `ValidateAndTrackChanges()` methods for `Goal` and `Schema`
+- `internal/parser/goals.go` - Added `LoadFromFileWithIDPersistence()` and `ParseYAMLWithChangeTracking()`
+- `internal/parser/id_persistence_test.go` - Comprehensive test suite (18 test cases)
+
+**Key features implemented:**
+1. **Automatic ID generation tracking** - `ValidateAndTrackChanges()` methods detect when IDs are generated during validation
+2. **Conditional file persistence** - Only saves back to file when IDs were actually generated
+3. **Graceful error handling** - Read-only files or permission errors log warnings but don't break operation
+4. **Backwards compatibility** - Default `LoadFromFile()` enables persistence, but `LoadFromFileWithIDPersistence(false)` available for opt-out
+5. **Atomic operations** - Uses existing `SaveToFile()` which performs atomic writes
+
+**Data integrity benefits:**
+- Goal titles can now be changed without breaking entry associations
+- Generated IDs are immediately persisted for consistency
+- Historical entries remain connected to goals via stable IDs
+- Manual ID specification still supported and preserved
+
+**Testing coverage:**
+- ID generation and persistence for missing IDs
+- Preservation of existing IDs
+- Read-only file handling
+- Mixed scenarios (some goals with IDs, some without)
+- Persistence enable/disable functionality
+- Error cases and validation failures

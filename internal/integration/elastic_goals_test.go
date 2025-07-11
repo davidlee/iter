@@ -42,9 +42,10 @@ func TestElasticGoalsEndToEnd(t *testing.T) {
 	var exerciseDurationGoal, waterIntakeGoal *models.Goal
 	for i := range schema.Goals {
 		if schema.Goals[i].GoalType == models.ElasticGoal {
-			if schema.Goals[i].ID == "exercise_duration" {
+			switch schema.Goals[i].ID {
+			case "exercise_duration":
 				exerciseDurationGoal = &schema.Goals[i]
-			} else if schema.Goals[i].ID == "water_intake" {
+			case "water_intake":
 				waterIntakeGoal = &schema.Goals[i]
 			}
 		}
