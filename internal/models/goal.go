@@ -177,6 +177,11 @@ func (g *Goal) Validate() error {
 			if g.MaxiCriteria == nil {
 				return fmt.Errorf("maxi_criteria is required for automatic scoring of elastic goals")
 			}
+
+			// Validate criteria ordering for numeric field types
+			if err := g.validateElasticCriteriaOrdering(); err != nil {
+				return fmt.Errorf("invalid elastic criteria ordering: %w", err)
+			}
 		}
 	}
 
@@ -333,4 +338,68 @@ func (g *Goal) RequiresAutomaticScoring() bool {
 // RequiresManualScoring returns true if this goal uses manual scoring.
 func (g *Goal) RequiresManualScoring() bool {
 	return g.ScoringType == ManualScoring
+}
+
+// validateElasticCriteriaOrdering validates that elastic goal criteria are properly ordered
+// for numeric field types (mini ≤ midi ≤ maxi).
+func (g *Goal) validateElasticCriteriaOrdering() error {
+	// Only validate ordering for numeric field types
+	switch g.FieldType.Type {
+	case UnsignedIntFieldType, UnsignedDecimalFieldType, DecimalFieldType, DurationFieldType:
+		// These field types should have ordered criteria
+	default:
+		// For other field types (text, boolean, time), ordering doesn't apply
+		return nil
+	}
+
+	mini := extractNumericCriteriaValue(g.MiniCriteria)
+	midi := extractNumericCriteriaValue(g.MidiCriteria)
+	maxi := extractNumericCriteriaValue(g.MaxiCriteria)
+
+	// If any value couldn't be extracted, skip ordering validation
+	if mini == nil || midi == nil || maxi == nil {
+		return nil
+	}
+
+	// Validate mini ≤ midi ≤ maxi
+	if *mini > *midi {
+		return fmt.Errorf("mini criteria value (%.2f) must be ≤ midi criteria value (%.2f)", *mini, *midi)
+	}
+	if *midi > *maxi {
+		return fmt.Errorf("midi criteria value (%.2f) must be ≤ maxi criteria value (%.2f)", *midi, *maxi)
+	}
+
+	return nil
+}
+
+// extractNumericCriteriaValue extracts a numeric value from criteria for ordering validation.
+// Returns nil if no comparable numeric value can be extracted.
+func extractNumericCriteriaValue(criteria *Criteria) *float64 {
+	if criteria == nil || criteria.Condition == nil {
+		return nil
+	}
+
+	cond := criteria.Condition
+
+	// Try different numeric comparison operators
+	if cond.GreaterThan != nil {
+		return cond.GreaterThan
+	}
+	if cond.GreaterThanOrEqual != nil {
+		return cond.GreaterThanOrEqual
+	}
+	if cond.LessThan != nil {
+		return cond.LessThan
+	}
+	if cond.LessThanOrEqual != nil {
+		return cond.LessThanOrEqual
+	}
+
+	// For range conditions, use the minimum value
+	if cond.Range != nil {
+		return &cond.Range.Min
+	}
+
+	// Could not extract a numeric value
+	return nil
 }

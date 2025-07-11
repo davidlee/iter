@@ -51,17 +51,17 @@ This builds upon the boolean goal foundation from T001 to provide more sophistic
         - *Testing Strategy:* Unit tests for achievement level serialization and validation
         - *AI Notes:* Completed - added AchievementLevel type, validation, helper methods, and convenience functions
 
-- [ ] **2. Parser Enhancements**: Support elastic goals in YAML parsing
-    - [ ] **2.1 Extend YAML parsing for elastic goal structure**
+- [x] **2. Parser Enhancements**: Support elastic goals in YAML parsing
+    - [x] **2.1 Extend YAML parsing for elastic goal structure**
         - *Design:* Parse mini_criteria, midi_criteria, maxi_criteria from YAML
         - *Code/Artifacts to be created or modified:* `internal/parser/goals.go`, tests
         - *Testing Strategy:* Unit tests with sample elastic goal YAML configurations
-        - *AI Notes:* Validate that criteria are properly ordered (mini ≤ midi ≤ maxi for numeric types)
-    - [ ] **2.2 Add validation for elastic goal consistency**
+        - *AI Notes:* Completed - YAML parsing already works due to existing struct tags. Added comprehensive tests for elastic goals with numeric criteria (duration, unsigned_int), manual scoring, and validation error cases.
+    - [x] **2.2 Add validation for elastic goal consistency**
         - *Design:* Ensure criteria make logical sense (e.g., mini < midi < maxi for "higher is better")
         - *Code/Artifacts to be created or modified:* `internal/parser/goals.go`, validation functions
         - *Testing Strategy:* Unit tests for invalid criteria combinations
-        - *AI Notes:* Consider different field types may have different validation rules
+        - *AI Notes:* Completed - Added validateElasticCriteriaOrdering() method in Goal.Validate() that checks mini ≤ midi ≤ maxi for numeric field types. Includes extractNumericCriteriaValue() helper. Added comprehensive tests for ordering validation and error cases.
 
 - [ ] **3. Scoring Engine**: Implement automatic scoring for elastic goals
     - [ ] **3.1 Create scoring engine for criteria evaluation**

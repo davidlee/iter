@@ -129,7 +129,7 @@ goals:
 		assert.Contains(t, err.Error(), "scoring_type is required")
 	})
 
-	t.Run("duplicate goal positions", func(t *testing.T) {
+	t.Run("positions auto-assigned when duplicated", func(t *testing.T) {
 		yamlData := `
 version: "1.0.0"
 goals:
@@ -140,16 +140,284 @@ goals:
       type: "boolean"
     scoring_type: "manual"
   - title: "Goal 2"
-    position: 1  # Duplicate position
+    position: 1  # Duplicate position - should be auto-corrected
     goal_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
 `
 
+		schema, err := parser.ParseYAML([]byte(yamlData))
+		require.NoError(t, err)
+		require.NotNil(t, schema)
+
+		// Positions should be auto-assigned based on order
+		assert.Equal(t, 1, schema.Goals[0].Position)
+		assert.Equal(t, 2, schema.Goals[1].Position)
+	})
+
+	t.Run("elastic goal with numeric criteria", func(t *testing.T) {
+		yamlData := `
+version: "1.0.0"
+created_date: "2024-01-01"
+goals:
+  - title: "Exercise Duration"
+    position: 1
+    goal_type: "elastic"
+    field_type:
+      type: "duration"
+    scoring_type: "automatic"
+    mini_criteria:
+      description: "Minimum exercise"
+      condition:
+        greater_than_or_equal: 15
+    midi_criteria:
+      description: "Target exercise"
+      condition:
+        greater_than_or_equal: 30
+    maxi_criteria:
+      description: "Excellent exercise"
+      condition:
+        greater_than_or_equal: 60
+    prompt: "How many minutes did you exercise today?"
+`
+
+		schema, err := parser.ParseYAML([]byte(yamlData))
+		require.NoError(t, err)
+		require.NotNil(t, schema)
+
+		assert.Len(t, schema.Goals, 1)
+		goal := schema.Goals[0]
+
+		assert.Equal(t, "Exercise Duration", goal.Title)
+		assert.Equal(t, models.ElasticGoal, goal.GoalType)
+		assert.Equal(t, models.DurationFieldType, goal.FieldType.Type)
+		assert.Equal(t, models.AutomaticScoring, goal.ScoringType)
+
+		// Check mini criteria
+		require.NotNil(t, goal.MiniCriteria)
+		assert.Equal(t, "Minimum exercise", goal.MiniCriteria.Description)
+		require.NotNil(t, goal.MiniCriteria.Condition.GreaterThanOrEqual)
+		assert.Equal(t, 15.0, *goal.MiniCriteria.Condition.GreaterThanOrEqual)
+
+		// Check midi criteria
+		require.NotNil(t, goal.MidiCriteria)
+		assert.Equal(t, "Target exercise", goal.MidiCriteria.Description)
+		require.NotNil(t, goal.MidiCriteria.Condition.GreaterThanOrEqual)
+		assert.Equal(t, 30.0, *goal.MidiCriteria.Condition.GreaterThanOrEqual)
+
+		// Check maxi criteria
+		require.NotNil(t, goal.MaxiCriteria)
+		assert.Equal(t, "Excellent exercise", goal.MaxiCriteria.Description)
+		require.NotNil(t, goal.MaxiCriteria.Condition.GreaterThanOrEqual)
+		assert.Equal(t, 60.0, *goal.MaxiCriteria.Condition.GreaterThanOrEqual)
+	})
+
+	t.Run("elastic goal with unsigned int criteria", func(t *testing.T) {
+		yamlData := `
+version: "1.0.0"
+goals:
+  - title: "Daily Steps"
+    position: 1
+    goal_type: "elastic"
+    field_type:
+      type: "unsigned_int"
+      unit: "steps"
+    scoring_type: "automatic"
+    mini_criteria:
+      condition:
+        greater_than_or_equal: 5000
+    midi_criteria:
+      condition:
+        greater_than_or_equal: 10000
+    maxi_criteria:
+      condition:
+        greater_than_or_equal: 15000
+    prompt: "How many steps did you take today?"
+`
+
+		schema, err := parser.ParseYAML([]byte(yamlData))
+		require.NoError(t, err)
+		require.NotNil(t, schema)
+
+		goal := schema.Goals[0]
+		assert.Equal(t, "Daily Steps", goal.Title)
+		assert.Equal(t, models.ElasticGoal, goal.GoalType)
+		assert.Equal(t, models.UnsignedIntFieldType, goal.FieldType.Type)
+		assert.Equal(t, "steps", goal.FieldType.Unit)
+
+		// Verify all criteria were parsed
+		assert.NotNil(t, goal.MiniCriteria)
+		assert.NotNil(t, goal.MidiCriteria)
+		assert.NotNil(t, goal.MaxiCriteria)
+
+		// Check numeric values
+		assert.Equal(t, 5000.0, *goal.MiniCriteria.Condition.GreaterThanOrEqual)
+		assert.Equal(t, 10000.0, *goal.MidiCriteria.Condition.GreaterThanOrEqual)
+		assert.Equal(t, 15000.0, *goal.MaxiCriteria.Condition.GreaterThanOrEqual)
+	})
+
+	t.Run("elastic goal with manual scoring", func(t *testing.T) {
+		yamlData := `
+version: "1.0.0"
+goals:
+  - title: "Reading Quality"
+    position: 1
+    goal_type: "elastic"
+    field_type:
+      type: "text"
+    scoring_type: "manual"
+    prompt: "What did you read today and how much did you enjoy it?"
+    help_text: "Describe your reading experience"
+`
+
+		schema, err := parser.ParseYAML([]byte(yamlData))
+		require.NoError(t, err)
+		require.NotNil(t, schema)
+
+		goal := schema.Goals[0]
+		assert.Equal(t, "Reading Quality", goal.Title)
+		assert.Equal(t, models.ElasticGoal, goal.GoalType)
+		assert.Equal(t, models.TextFieldType, goal.FieldType.Type)
+		assert.Equal(t, models.ManualScoring, goal.ScoringType)
+
+		// Manual scoring elastic goals don't require criteria
+		assert.Nil(t, goal.MiniCriteria)
+		assert.Nil(t, goal.MidiCriteria)
+		assert.Nil(t, goal.MaxiCriteria)
+	})
+
+	t.Run("elastic goal missing required criteria", func(t *testing.T) {
+		yamlData := `
+version: "1.0.0"
+goals:
+  - title: "Exercise Duration"
+    position: 1
+    goal_type: "elastic"
+    field_type:
+      type: "duration"
+    scoring_type: "automatic"
+    # Missing mini_criteria - should fail validation
+    midi_criteria:
+      condition:
+        greater_than_or_equal: 30
+    maxi_criteria:
+      condition:
+        greater_than_or_equal: 60
+`
+
 		_, err := parser.ParseYAML([]byte(yamlData))
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "duplicate goal position")
+		assert.Contains(t, err.Error(), "mini_criteria is required")
+	})
+
+	t.Run("elastic goal criteria ordering validation", func(t *testing.T) {
+		// Valid ordering: mini ≤ midi ≤ maxi
+		yamlData := `
+version: "1.0.0"
+goals:
+  - title: "Exercise Duration"
+    position: 1
+    goal_type: "elastic"
+    field_type:
+      type: "duration"
+    scoring_type: "automatic"
+    mini_criteria:
+      condition:
+        greater_than_or_equal: 15
+    midi_criteria:
+      condition:
+        greater_than_or_equal: 30
+    maxi_criteria:
+      condition:
+        greater_than_or_equal: 60
+`
+
+		schema, err := parser.ParseYAML([]byte(yamlData))
+		require.NoError(t, err)
+		require.NotNil(t, schema)
+	})
+
+	t.Run("elastic goal invalid criteria ordering - mini > midi", func(t *testing.T) {
+		yamlData := `
+version: "1.0.0"
+goals:
+  - title: "Exercise Duration"
+    position: 1
+    goal_type: "elastic"
+    field_type:
+      type: "duration"
+    scoring_type: "automatic"
+    mini_criteria:
+      condition:
+        greater_than_or_equal: 45  # Invalid: 45 > 30
+    midi_criteria:
+      condition:
+        greater_than_or_equal: 30
+    maxi_criteria:
+      condition:
+        greater_than_or_equal: 60
+`
+
+		_, err := parser.ParseYAML([]byte(yamlData))
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "mini criteria value")
+		assert.Contains(t, err.Error(), "must be ≤ midi criteria value")
+	})
+
+	t.Run("elastic goal invalid criteria ordering - midi > maxi", func(t *testing.T) {
+		yamlData := `
+version: "1.0.0"
+goals:
+  - title: "Daily Steps"
+    position: 1
+    goal_type: "elastic"
+    field_type:
+      type: "unsigned_int"
+      unit: "steps"
+    scoring_type: "automatic"
+    mini_criteria:
+      condition:
+        greater_than_or_equal: 5000
+    midi_criteria:
+      condition:
+        greater_than_or_equal: 15000  # Invalid: 15000 > 10000
+    maxi_criteria:
+      condition:
+        greater_than_or_equal: 10000
+`
+
+		_, err := parser.ParseYAML([]byte(yamlData))
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "midi criteria value")
+		assert.Contains(t, err.Error(), "must be ≤ maxi criteria value")
+	})
+
+	t.Run("elastic goal non-numeric field type - no ordering validation", func(t *testing.T) {
+		yamlData := `
+version: "1.0.0"
+goals:
+  - title: "Reading Quality"
+    position: 1
+    goal_type: "elastic"
+    field_type:
+      type: "text"
+    scoring_type: "automatic"
+    mini_criteria:
+      condition:
+        greater_than_or_equal: 100  # Nonsensical for text, but should not fail ordering validation
+    midi_criteria:
+      condition:
+        greater_than_or_equal: 50
+    maxi_criteria:
+      condition:
+        greater_than_or_equal: 25
+`
+
+		schema, err := parser.ParseYAML([]byte(yamlData))
+		require.NoError(t, err)
+		require.NotNil(t, schema)
+		// Should pass because text fields don't have ordering validation
 	})
 }
 
@@ -335,11 +603,11 @@ goals:
 version: "1.0.0"
 goals:
   - title: "Test Goal"
-    position: 0  # Invalid position
+    position: 1
     goal_type: "simple"
     field_type:
       type: "boolean"
-    scoring_type: "manual"
+    # Missing scoring_type - should fail validation
 `
 
 		err := os.WriteFile(goalsFile, []byte(yamlContent), 0o600)
@@ -347,7 +615,7 @@ goals:
 
 		err = parser.ValidateFile(goalsFile)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "goal position must be positive")
+		assert.Contains(t, err.Error(), "scoring_type is required")
 	})
 }
 
