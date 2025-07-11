@@ -3,33 +3,36 @@ package ui
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
 	"davidlee/iter/internal/models"
 	"davidlee/iter/internal/parser"
+	"davidlee/iter/internal/scoring"
 	"davidlee/iter/internal/storage"
 )
 
 // EntryCollector handles the interactive collection of today's habit entries.
 type EntryCollector struct {
-	goalParser   *parser.GoalParser
-	entryStorage *storage.EntryStorage
-	goals        []models.Goal
-	entries      map[string]bool
-	notes        map[string]string
+	goalParser    *parser.GoalParser
+	entryStorage  *storage.EntryStorage
+	scoringEngine *scoring.Engine
+	goals         []models.Goal
+	entries       map[string]interface{}                      // Stores raw values for all goal types
+	achievements  map[string]*models.AchievementLevel         // Stores achievement levels for elastic goals
+	notes         map[string]string
 }
 
 // NewEntryCollector creates a new entry collector instance.
 func NewEntryCollector() *EntryCollector {
 	return &EntryCollector{
-		goalParser:   parser.NewGoalParser(),
-		entryStorage: storage.NewEntryStorage(),
-		entries:      make(map[string]bool),
-		notes:        make(map[string]string),
+		goalParser:    parser.NewGoalParser(),
+		entryStorage:  storage.NewEntryStorage(),
+		scoringEngine: scoring.NewEngine(),
+		entries:       make(map[string]interface{}),
+		achievements:  make(map[string]*models.AchievementLevel),
+		notes:         make(map[string]string),
 	}
 }
 
@@ -41,10 +44,10 @@ func (ec *EntryCollector) CollectTodayEntries(goalsFile, entriesFile string) err
 		return fmt.Errorf("failed to load goals: %w", err)
 	}
 
-	// Get simple boolean goals for MVP
-	ec.goals = parser.GetSimpleBooleanGoals(schema)
+	// Get all goals (simple, elastic, and informational)
+	ec.goals = schema.Goals
 	if len(ec.goals) == 0 {
-		return fmt.Errorf("no simple boolean goals found in %s", goalsFile)
+		return fmt.Errorf("no goals found in %s", goalsFile)
 	}
 
 	// Load existing entries for today (if any)
@@ -85,150 +88,51 @@ func (ec *EntryCollector) loadExistingEntries(entriesFile string) error {
 
 	// Load existing entries into our maps
 	for _, goalEntry := range dayEntry.Goals {
-		if boolVal, ok := goalEntry.GetBooleanValue(); ok {
-			ec.entries[goalEntry.GoalID] = boolVal
-			ec.notes[goalEntry.GoalID] = goalEntry.Notes
+		ec.entries[goalEntry.GoalID] = goalEntry.Value
+		ec.notes[goalEntry.GoalID] = goalEntry.Notes
+		
+		// Load achievement level for elastic goals
+		if goalEntry.AchievementLevel != nil {
+			ec.achievements[goalEntry.GoalID] = goalEntry.AchievementLevel
 		}
 	}
 
 	return nil
 }
 
-// collectGoalEntry collects the entry for a single goal using interactive UI.
+// collectGoalEntry collects the entry for a single goal using the appropriate handler.
 func (ec *EntryCollector) collectGoalEntry(goal models.Goal) error {
-	// Prepare the form title with goal information
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("12")). // Bright blue
-		Margin(1, 0)
-
-	title := titleStyle.Render(goal.Title)
-
-	// Prepare description if available
-	var description string
-	if goal.Description != "" {
-		descStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("8")). // Gray
-			Italic(true)
-		description = descStyle.Render(goal.Description)
-	}
-
-	// Prepare help text if available
-	var help string
-	if goal.HelpText != "" {
-		helpStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("10")). // Bright green
-			Faint(true)
-		help = helpStyle.Render("💡 " + goal.HelpText)
-	}
-
-	// Get current value (if any)
-	currentValue, hasExisting := ec.entries[goal.ID]
-
-	// Create the completion question
-	var completed bool
-	prompt := goal.Prompt
-	if prompt == "" {
-		prompt = fmt.Sprintf("Did you complete: %s?", goal.Title)
-	}
-
-	// Show existing value in prompt if available
-	if hasExisting {
-		status := "❌ No"
-		if currentValue {
-			status = "✅ Yes"
+	// Create existing entry data from our maps
+	var existing *ExistingEntry
+	if value, hasValue := ec.entries[goal.ID]; hasValue {
+		existing = &ExistingEntry{
+			Value:            value,
+			Notes:            ec.notes[goal.ID],
+			AchievementLevel: ec.achievements[goal.ID],
 		}
-		prompt = fmt.Sprintf("%s (currently: %s)", prompt, status)
 	}
 
-	// Create the form
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewConfirm().
-				Title(prompt).
-				Description(description).
-				Value(&completed).
-				Affirmative("Yes").
-				Negative("No"),
-		).Title(title),
-	)
+	// Create the appropriate handler for this goal type
+	handler := CreateGoalHandler(goal, ec.scoringEngine)
 
-	// Add help text as a note if available
-	if help != "" {
-		form = form.WithShowHelp(true)
+	// Use the handler to collect the entry
+	result, err := handler.CollectEntry(goal, existing)
+	if err != nil {
+		return fmt.Errorf("failed to collect entry for goal %s: %w", goal.ID, err)
 	}
 
-	// Run the form
-	if err := form.Run(); err != nil {
-		return fmt.Errorf("form execution failed: %w", err)
-	}
-
-	// Store the result
-	ec.entries[goal.ID] = completed
-
-	// Optionally collect notes if the user wants to add them
-	if err := ec.collectOptionalNotes(goal, completed); err != nil {
-		return fmt.Errorf("failed to collect notes: %w", err)
+	// Store the results in our maps
+	ec.entries[goal.ID] = result.Value
+	ec.notes[goal.ID] = result.Notes
+	
+	// Store achievement level if present (for elastic goals)
+	if result.AchievementLevel != nil {
+		ec.achievements[goal.ID] = result.AchievementLevel
 	}
 
 	return nil
 }
 
-// collectOptionalNotes allows the user to optionally add notes for a goal.
-func (ec *EntryCollector) collectOptionalNotes(goal models.Goal, _ bool) error {
-	// Get existing notes
-	existingNotes := ec.notes[goal.ID]
-
-	// Ask if user wants to add notes
-	var wantNotes bool
-	notesPrompt := "Add notes for this entry?"
-	if existingNotes != "" {
-		notesPrompt = fmt.Sprintf("Update notes? (current: %s)", existingNotes)
-	}
-
-	notesForm := huh.NewForm(
-		huh.NewGroup(
-			huh.NewConfirm().
-				Title(notesPrompt).
-				Value(&wantNotes).
-				Affirmative("Yes").
-				Negative("Skip"),
-		),
-	)
-
-	if err := notesForm.Run(); err != nil {
-		return fmt.Errorf("notes prompt failed: %w", err)
-	}
-
-	if !wantNotes {
-		return nil
-	}
-
-	// Collect the notes
-	var notes string
-	if existingNotes != "" {
-		notes = existingNotes // Pre-populate with existing notes
-	}
-
-	notesInputForm := huh.NewForm(
-		huh.NewGroup(
-			huh.NewText().
-				Title("Notes:").
-				Description("Optional notes about this goal (press Enter when done)").
-				Value(&notes).
-				Placeholder("Why did you succeed/fail? How did you feel?"),
-		),
-	)
-
-	if err := notesInputForm.Run(); err != nil {
-		return fmt.Errorf("notes input failed: %w", err)
-	}
-
-	// Store the notes (even if empty, to clear existing notes)
-	ec.notes[goal.ID] = strings.TrimSpace(notes)
-
-	return nil
-}
 
 // saveEntries saves all collected entries to the entries file.
 func (ec *EntryCollector) saveEntries(entriesFile string) error {
@@ -237,16 +141,17 @@ func (ec *EntryCollector) saveEntries(entriesFile string) error {
 	// Create goal entries from collected data
 	var goalEntries []models.GoalEntry
 	for _, goal := range ec.goals {
-		completed, exists := ec.entries[goal.ID]
+		value, exists := ec.entries[goal.ID]
 		if !exists {
 			continue // Skip goals that weren't processed
 		}
 
 		goalEntry := models.GoalEntry{
-			GoalID:      goal.ID,
-			Value:       completed,
-			Notes:       ec.notes[goal.ID],
-			CompletedAt: timePtr(time.Now()),
+			GoalID:           goal.ID,
+			Value:            value,
+			AchievementLevel: ec.achievements[goal.ID], // Will be nil for simple/informational goals
+			Notes:            ec.notes[goal.ID],
+			CompletedAt:      timePtr(time.Now()),
 		}
 
 		goalEntries = append(goalEntries, goalEntry)
@@ -293,9 +198,38 @@ func (ec *EntryCollector) displayCompletion() {
 	completedCount := 0
 	totalCount := len(ec.goals)
 
-	for _, completed := range ec.entries {
-		if completed {
-			completedCount++
+	// Count completions based on goal type and value
+	for goalID, value := range ec.entries {
+		// Find the goal to determine how to interpret completion
+		var goal *models.Goal
+		for i := range ec.goals {
+			if ec.goals[i].ID == goalID {
+				goal = &ec.goals[i]
+				break
+			}
+		}
+
+		if goal == nil {
+			continue
+		}
+
+		// Determine if this goal is "completed" based on its type
+		switch goal.GoalType {
+		case models.SimpleGoal:
+			// Simple goals: check boolean value
+			if boolVal, ok := value.(bool); ok && boolVal {
+				completedCount++
+			}
+		case models.ElasticGoal:
+			// Elastic goals: consider any achievement level as completion
+			if achievementLevel := ec.achievements[goalID]; achievementLevel != nil && *achievementLevel != models.AchievementNone {
+				completedCount++
+			}
+		case models.InformationalGoal:
+			// Informational goals: any non-empty value counts as completion
+			if value != nil && fmt.Sprintf("%v", value) != "" {
+				completedCount++
+			}
 		}
 	}
 

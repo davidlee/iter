@@ -207,10 +207,10 @@ func TestEntryCollector_displayCompletion(t *testing.T) {
 	t.Run("perfect completion", func(t *testing.T) {
 		collector := NewEntryCollector()
 		collector.goals = []models.Goal{
-			{ID: "meditation", Title: "Morning Meditation"},
-			{ID: "exercise", Title: "Daily Exercise"},
+			{ID: "meditation", Title: "Morning Meditation", GoalType: models.SimpleGoal},
+			{ID: "exercise", Title: "Daily Exercise", GoalType: models.SimpleGoal},
 		}
-		collector.entries = map[string]bool{
+		collector.entries = map[string]interface{}{
 			"meditation": true,
 			"exercise":   true,
 		}
@@ -225,10 +225,10 @@ func TestEntryCollector_displayCompletion(t *testing.T) {
 	t.Run("partial completion", func(t *testing.T) {
 		collector := NewEntryCollector()
 		collector.goals = []models.Goal{
-			{ID: "meditation", Title: "Morning Meditation"},
-			{ID: "exercise", Title: "Daily Exercise"},
+			{ID: "meditation", Title: "Morning Meditation", GoalType: models.SimpleGoal},
+			{ID: "exercise", Title: "Daily Exercise", GoalType: models.SimpleGoal},
 		}
-		collector.entries = map[string]bool{
+		collector.entries = map[string]interface{}{
 			"meditation": true,
 			"exercise":   false,
 		}
@@ -240,10 +240,10 @@ func TestEntryCollector_displayCompletion(t *testing.T) {
 	t.Run("no completion", func(t *testing.T) {
 		collector := NewEntryCollector()
 		collector.goals = []models.Goal{
-			{ID: "meditation", Title: "Morning Meditation"},
-			{ID: "exercise", Title: "Daily Exercise"},
+			{ID: "meditation", Title: "Morning Meditation", GoalType: models.SimpleGoal},
+			{ID: "exercise", Title: "Daily Exercise", GoalType: models.SimpleGoal},
 		}
-		collector.entries = map[string]bool{
+		collector.entries = map[string]interface{}{
 			"meditation": false,
 			"exercise":   false,
 		}
@@ -288,7 +288,7 @@ func TestEntryCollector_CollectTodayEntries_ErrorCases(t *testing.T) {
 		collector := NewEntryCollector()
 		err = collector.CollectTodayEntries(goalsFile, entriesFile)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "no simple boolean goals found")
+		assert.Contains(t, err.Error(), "no goals found")
 	})
 }
 
