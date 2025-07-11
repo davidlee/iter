@@ -65,4 +65,20 @@ As a developer maintaining the goal schema specification, I want to remove the e
 
 ## 6. Code Snippets & Artifacts 
 
-*(Generated content will be placed here during implementation)*
+**Commit:** `d9810fa` - refactor: [T002] (complete) - remove position attribute from goal schema
+
+### Changes Made:
+
+1. **Goal Object Specification** (`doc/specifications/goal_schema.md`):
+   - Removed `position: 1 # Unique integer for display order` from Goal object structure
+   - Added new "Goal Ordering" section explaining position inference from YAML array sequence
+
+2. **Validation Requirements**:
+   - Updated from "All goal IDs and positions must be unique" to "All goal IDs must be unique"
+   - Updated Change Resilience section to reference sequence-based ordering
+
+3. **Example Schema**:
+   - Removed position attributes from all three example goals (Daily Exercise, Morning Meditation, Sleep Quality)
+   - Goals maintain logical ordering through their sequence in the YAML file
+
+The schema is now simpler and more maintainable while preserving all functionality.
