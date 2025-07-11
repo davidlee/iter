@@ -79,20 +79,6 @@ func TestGoal_Validate(t *testing.T) {
 		assert.EqualError(t, err, "goal title is required")
 	})
 
-	t.Run("position must be positive", func(t *testing.T) {
-		goal := Goal{
-			Title:    "Test Goal",
-			Position: 0,
-			GoalType: SimpleGoal,
-			FieldType: FieldType{
-				Type: BooleanFieldType,
-			},
-			ScoringType: ManualScoring,
-		}
-
-		err := goal.Validate()
-		assert.EqualError(t, err, "goal position must be positive, got 0")
-	})
 
 	t.Run("goal type is required", func(t *testing.T) {
 		goal := Goal{
@@ -313,20 +299,20 @@ func TestSchema_Validate(t *testing.T) {
 		assert.EqualError(t, err, "duplicate goal ID: duplicate_id")
 	})
 
-	t.Run("duplicate goal positions", func(t *testing.T) {
+	t.Run("positions are auto-assigned from array order", func(t *testing.T) {
 		schema := Schema{
 			Version: "1.0.0",
 			Goals: []Goal{
 				{
 					Title:       "Goal 1",
-					Position:    1,
+					Position:    0, // Will be auto-assigned to 1
 					GoalType:    SimpleGoal,
 					FieldType:   FieldType{Type: BooleanFieldType},
 					ScoringType: ManualScoring,
 				},
 				{
-					Title:       "Goal 2",
-					Position:    1, // Duplicate position
+					Title:       "Goal 2", 
+					Position:    0, // Will be auto-assigned to 2
 					GoalType:    SimpleGoal,
 					FieldType:   FieldType{Type: BooleanFieldType},
 					ScoringType: ManualScoring,
@@ -335,7 +321,11 @@ func TestSchema_Validate(t *testing.T) {
 		}
 
 		err := schema.Validate()
-		assert.EqualError(t, err, "duplicate goal position: 1")
+		assert.NoError(t, err)
+		
+		// Check that positions were auto-assigned
+		assert.Equal(t, 1, schema.Goals[0].Position)
+		assert.Equal(t, 2, schema.Goals[1].Position)
 	})
 }
 

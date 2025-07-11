@@ -135,10 +135,7 @@ func (g *Goal) Validate() error {
 		return fmt.Errorf("goal ID '%s' is invalid: must contain only letters, numbers, and underscores", g.ID)
 	}
 
-	// Position must be positive
-	if g.Position <= 0 {
-		return fmt.Errorf("goal position must be positive, got %d", g.Position)
-	}
+	// Position is auto-assigned during parsing and not validated here
 
 	// Goal type is required
 	if g.GoalType == "" {
@@ -240,10 +237,12 @@ func (s *Schema) Validate() error {
 
 	// Track unique constraints
 	ids := make(map[string]bool)
-	positions := make(map[int]bool)
 
-	// Validate each goal
+	// Validate each goal and auto-assign positions
 	for i := range s.Goals {
+		// Auto-assign position based on array index (1-based)
+		s.Goals[i].Position = i + 1
+		
 		if err := s.Goals[i].Validate(); err != nil {
 			return fmt.Errorf("goal at index %d: %w", i, err)
 		}
@@ -253,12 +252,6 @@ func (s *Schema) Validate() error {
 			return fmt.Errorf("duplicate goal ID: %s", s.Goals[i].ID)
 		}
 		ids[s.Goals[i].ID] = true
-
-		// Check position uniqueness
-		if positions[s.Goals[i].Position] {
-			return fmt.Errorf("duplicate goal position: %d", s.Goals[i].Position)
-		}
-		positions[s.Goals[i].Position] = true
 	}
 
 	return nil
