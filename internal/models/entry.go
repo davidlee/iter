@@ -18,13 +18,24 @@ type DayEntry struct {
 	Goals []GoalEntry `yaml:"goals"` // Goal completions for this day
 }
 
+// AchievementLevel represents the achievement level for elastic goals.
+type AchievementLevel string
+
+// Achievement levels for elastic goals.
+const (
+	AchievementNone AchievementLevel = "none" // No achievement level met
+	AchievementMini AchievementLevel = "mini" // Minimum achievement level
+	AchievementMidi AchievementLevel = "midi" // Medium achievement level
+	AchievementMaxi AchievementLevel = "maxi" // Maximum achievement level
+)
+
 // GoalEntry represents the completion data for a single goal on a specific day.
 type GoalEntry struct {
-	GoalID string      `yaml:"goal_id"`
-	Value  interface{} `yaml:"value"`
-	// Future fields for automatic scoring results, timestamps, etc.
-	CompletedAt *time.Time `yaml:"completed_at,omitempty"`
-	Notes       string     `yaml:"notes,omitempty"`
+	GoalID           string            `yaml:"goal_id"`
+	Value            interface{}       `yaml:"value"`
+	AchievementLevel *AchievementLevel `yaml:"achievement_level,omitempty"` // For elastic goals
+	CompletedAt      *time.Time        `yaml:"completed_at,omitempty"`
+	Notes            string            `yaml:"notes,omitempty"`
 }
 
 // BooleanEntry is a convenience type for boolean goal entries.
@@ -100,6 +111,13 @@ func (ge *GoalEntry) Validate() error {
 	// Value is required (can be false for booleans, but not nil)
 	if ge.Value == nil {
 		return fmt.Errorf("goal value is required")
+	}
+
+	// Validate achievement level if present
+	if ge.AchievementLevel != nil {
+		if !isValidAchievementLevel(*ge.AchievementLevel) {
+			return fmt.Errorf("invalid achievement level: %s", *ge.AchievementLevel)
+		}
 	}
 
 	return nil
@@ -217,6 +235,30 @@ func (ge *GoalEntry) SetBooleanValue(value bool) {
 	ge.Value = value
 }
 
+// GetAchievementLevel returns the achievement level for this goal entry.
+// Returns the level and true if set, or AchievementNone and false if not set.
+func (ge *GoalEntry) GetAchievementLevel() (AchievementLevel, bool) {
+	if ge.AchievementLevel != nil {
+		return *ge.AchievementLevel, true
+	}
+	return AchievementNone, false
+}
+
+// SetAchievementLevel sets the achievement level for this goal entry.
+func (ge *GoalEntry) SetAchievementLevel(level AchievementLevel) {
+	ge.AchievementLevel = &level
+}
+
+// HasAchievementLevel returns true if this goal entry has an achievement level set.
+func (ge *GoalEntry) HasAchievementLevel() bool {
+	return ge.AchievementLevel != nil
+}
+
+// ClearAchievementLevel removes the achievement level from this goal entry.
+func (ge *GoalEntry) ClearAchievementLevel() {
+	ge.AchievementLevel = nil
+}
+
 // CreateTodayEntry creates a new day entry for today's date.
 func CreateTodayEntry() DayEntry {
 	return DayEntry{
@@ -230,6 +272,23 @@ func CreateBooleanGoalEntry(goalID string, completed bool) GoalEntry {
 	return GoalEntry{
 		GoalID: goalID,
 		Value:  completed,
+	}
+}
+
+// CreateElasticGoalEntry creates a new goal entry for an elastic goal with achievement level.
+func CreateElasticGoalEntry(goalID string, value interface{}, level AchievementLevel) GoalEntry {
+	return GoalEntry{
+		GoalID:           goalID,
+		Value:            value,
+		AchievementLevel: &level,
+	}
+}
+
+// CreateValueOnlyGoalEntry creates a new goal entry with just a value (no achievement level).
+func CreateValueOnlyGoalEntry(goalID string, value interface{}) GoalEntry {
+	return GoalEntry{
+		GoalID: goalID,
+		Value:  value,
 	}
 }
 
@@ -283,4 +342,19 @@ func (el *EntryLog) GetEntriesForDateRange(startDate, endDate string) ([]DayEntr
 	}
 
 	return result, nil
+}
+
+// isValidAchievementLevel checks if an achievement level is valid.
+func isValidAchievementLevel(level AchievementLevel) bool {
+	switch level {
+	case AchievementNone, AchievementMini, AchievementMidi, AchievementMaxi:
+		return true
+	default:
+		return false
+	}
+}
+
+// IsValidAchievementLevel checks if a string represents a valid achievement level.
+func IsValidAchievementLevel(level string) bool {
+	return isValidAchievementLevel(AchievementLevel(level))
 }

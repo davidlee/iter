@@ -543,3 +543,132 @@ func TestEntryLog_GetEntriesForDateRange(t *testing.T) {
 		assert.Contains(t, err.Error(), "start date 2024-01-10 is after end date 2024-01-05")
 	})
 }
+
+func TestGoalEntry_AchievementLevel(t *testing.T) {
+	t.Run("GetAchievementLevel with no level set", func(t *testing.T) {
+		entry := GoalEntry{
+			GoalID: "test_goal",
+			Value:  30,
+		}
+
+		level, ok := entry.GetAchievementLevel()
+		assert.False(t, ok)
+		assert.Equal(t, AchievementNone, level)
+		assert.False(t, entry.HasAchievementLevel())
+	})
+
+	t.Run("SetAchievementLevel and GetAchievementLevel", func(t *testing.T) {
+		entry := GoalEntry{
+			GoalID: "test_goal",
+			Value:  30,
+		}
+
+		entry.SetAchievementLevel(AchievementMidi)
+
+		level, ok := entry.GetAchievementLevel()
+		assert.True(t, ok)
+		assert.Equal(t, AchievementMidi, level)
+		assert.True(t, entry.HasAchievementLevel())
+	})
+
+	t.Run("ClearAchievementLevel", func(t *testing.T) {
+		level := AchievementMidi
+		entry := GoalEntry{
+			GoalID:           "test_goal",
+			Value:            30,
+			AchievementLevel: &level,
+		}
+
+		assert.True(t, entry.HasAchievementLevel())
+
+		entry.ClearAchievementLevel()
+
+		retrievedLevel, ok := entry.GetAchievementLevel()
+		assert.False(t, ok)
+		assert.Equal(t, AchievementNone, retrievedLevel)
+		assert.False(t, entry.HasAchievementLevel())
+	})
+
+	t.Run("validate valid achievement levels", func(t *testing.T) {
+		validLevels := []AchievementLevel{
+			AchievementNone,
+			AchievementMini,
+			AchievementMidi,
+			AchievementMaxi,
+		}
+
+		for _, levelValue := range validLevels {
+			level := levelValue // Create a copy for pointer
+			entry := GoalEntry{
+				GoalID:           "test_goal",
+				Value:            30,
+				AchievementLevel: &level,
+			}
+
+			err := entry.Validate()
+			assert.NoError(t, err, "Level %s should be valid", level)
+		}
+	})
+
+	t.Run("validate invalid achievement level", func(t *testing.T) {
+		invalidLevel := AchievementLevel("invalid")
+		entry := GoalEntry{
+			GoalID:           "test_goal",
+			Value:            30,
+			AchievementLevel: &invalidLevel,
+		}
+
+		err := entry.Validate()
+		assert.EqualError(t, err, "invalid achievement level: invalid")
+	})
+}
+
+func TestCreateElasticGoalEntry(t *testing.T) {
+	t.Run("create elastic goal entry", func(t *testing.T) {
+		entry := CreateElasticGoalEntry("exercise", 45, AchievementMidi)
+
+		assert.Equal(t, "exercise", entry.GoalID)
+		assert.Equal(t, 45, entry.Value)
+
+		level, ok := entry.GetAchievementLevel()
+		assert.True(t, ok)
+		assert.Equal(t, AchievementMidi, level)
+		assert.True(t, entry.HasAchievementLevel())
+	})
+}
+
+func TestCreateValueOnlyGoalEntry(t *testing.T) {
+	t.Run("create value-only goal entry", func(t *testing.T) {
+		entry := CreateValueOnlyGoalEntry("reading", "30 minutes")
+
+		assert.Equal(t, "reading", entry.GoalID)
+		assert.Equal(t, "30 minutes", entry.Value)
+		assert.False(t, entry.HasAchievementLevel())
+	})
+}
+
+func TestAchievementLevelValidation(t *testing.T) {
+	t.Run("IsValidAchievementLevel with valid levels", func(t *testing.T) {
+		validLevels := []string{"none", "mini", "midi", "maxi"}
+
+		for _, level := range validLevels {
+			assert.True(t, IsValidAchievementLevel(level), "Level %s should be valid", level)
+		}
+	})
+
+	t.Run("IsValidAchievementLevel with invalid levels", func(t *testing.T) {
+		invalidLevels := []string{"", "invalid", "MINI", "maximum", "minimum"}
+
+		for _, level := range invalidLevels {
+			assert.False(t, IsValidAchievementLevel(level), "Level %s should be invalid", level)
+		}
+	})
+
+	t.Run("isValidAchievementLevel with constants", func(t *testing.T) {
+		assert.True(t, isValidAchievementLevel(AchievementNone))
+		assert.True(t, isValidAchievementLevel(AchievementMini))
+		assert.True(t, isValidAchievementLevel(AchievementMidi))
+		assert.True(t, isValidAchievementLevel(AchievementMaxi))
+		assert.False(t, isValidAchievementLevel(AchievementLevel("invalid")))
+	})
+}

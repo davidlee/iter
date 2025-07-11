@@ -39,17 +39,17 @@ This builds upon the boolean goal foundation from T001 to provide more sophistic
 
 **Sub-tasks:**
 
-- [WIP] **1. Model Extensions**: Extend goal and entry models for elastic goals
+- [x] **1. Model Extensions**: Extend goal and entry models for elastic goals
     - [x] **1.1 Update Goal model for elastic criteria**
         - *Design:* Add MiniCriteria, MidiCriteria, MaxiCriteria fields to Goal struct
         - *Code/Artifacts to be created or modified:* `internal/models/goal.go`, tests
         - *Testing Strategy:* Unit tests for elastic goal validation and criteria parsing
         - *AI Notes:* Completed - elastic criteria fields were already present, added validation logic and helper methods
-    - [ ] **1.2 Update Entry model for achievement levels**
+    - [x] **1.2 Update Entry model for achievement levels**
         - *Design:* Add AchievementLevel field to GoalEntry, support "none"/"mini"/"midi"/"maxi"
         - *Code/Artifacts to be created or modified:* `internal/models/entry.go`, tests
         - *Testing Strategy:* Unit tests for achievement level serialization and validation
-        - *AI Notes:* Preserve raw values alongside achievement levels for audit trail
+        - *AI Notes:* Completed - added AchievementLevel type, validation, helper methods, and convenience functions
 
 - [ ] **2. Parser Enhancements**: Support elastic goals in YAML parsing
     - [ ] **2.1 Extend YAML parsing for elastic goal structure**
@@ -120,6 +120,7 @@ This builds upon the boolean goal foundation from T001 to provide more sophistic
 - `2025-07-11 - User:` Requested implementation of elastic goals with mini/midi/maxi achievement levels
 - `2025-07-11 - AI:` Created comprehensive task breakdown building on T001 foundation, focusing on scoring engine and UI enhancements for multi-level achievements
 - `2025-07-11 - AI:` Subtask 1.1 completed - Updated Goal model with elastic goal validation. Added validation for required criteria fields when using automatic scoring, plus helper methods (IsElastic, RequiresAutomaticScoring, etc.). Added comprehensive unit tests for elastic goal validation and helper methods. All tests pass, no linting issues.
+- `2025-07-11 - AI:` Subtask 1.2 completed - Updated Entry model with achievement levels. Added AchievementLevel type with constants (none/mini/midi/maxi), AchievementLevel field to GoalEntry struct, validation for achievement levels, helper methods (GetAchievementLevel, SetAchievementLevel, HasAchievementLevel, ClearAchievementLevel), and convenience functions (CreateElasticGoalEntry, CreateValueOnlyGoalEntry). Added 13 new unit tests covering all achievement level functionality. All tests pass, code properly formatted, no linting issues.
 
 ## 6. Code Snippets & Artifacts 
 
