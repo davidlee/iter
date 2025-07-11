@@ -124,13 +124,16 @@ Based on investigation of existing codebase:
     - [x] State persistence between steps for long flows
   - [x] **Documentation**: Complete analysis documented in `doc/flow_analysis_T005.md`
 
-- [ ] **2.1 Bubbletea Goal Creation Wizard (Enhanced UX)**
-  - [ ] Convert multi-step goal creation to unified bubbletea application
-  - [ ] Implement progress indicators showing current step (Step X of Y)
-  - [ ] Add back/forward navigation between steps
-  - [ ] Real-time validation with contextual error display
-  - [ ] Goal preview and confirmation step before saving
-  - [ ] Enhanced error recovery without losing progress
+- [x] **2.1 Bubbletea Goal Creation Wizard (Enhanced UX)** ✅ **FOUNDATION COMPLETE**
+  - [x] Create wizard infrastructure (interfaces, state management, navigation)
+  - [x] Implement progress indicators showing current step (Step X of Y)
+  - [x] Add back/forward navigation between steps with validation
+  - [x] Real-time validation framework with contextual error display
+  - [x] Goal preview and summary rendering
+  - [x] Enhanced error recovery and state serialization
+  - [x] Hybrid integration: enhanced wizard for elastic goals, simple forms for others
+  - [x] Complete bubbletea model with tea.Model interface implementation
+  - [ ] **Next**: Implement specific step handlers for each goal type
 
 - [ ] **2.2 Simple Goal Wizard Flow**
   - [ ] Step 1: Basic info (title, description, goal type pre-selected)

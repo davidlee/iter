@@ -3,10 +3,13 @@ package goalconfig
 import (
 	"fmt"
 
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
 	"davidlee/iter/internal/models"
 	"davidlee/iter/internal/parser"
+	"davidlee/iter/internal/ui/goalconfig/wizard"
 )
 
 // GoalConfigurator provides UI for managing goal configurations
@@ -34,10 +37,26 @@ func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
 	// Display welcome message
 	gc.displayAddGoalWelcome()
 
-	// Run interactive goal creation
-	newGoal, err := gc.goalBuilder.BuildGoal(schema.Goals)
+	// Prompt for goal type first to determine which flow to use
+	goalType, useWizard, err := gc.promptForGoalTypeAndMode()
 	if err != nil {
-		return fmt.Errorf("goal creation cancelled or failed: %w", err)
+		return fmt.Errorf("goal type selection failed: %w", err)
+	}
+
+	var newGoal *models.Goal
+
+	if useWizard {
+		// Use enhanced bubbletea wizard for complex flows
+		newGoal, err = gc.runGoalWizard(goalType, schema.Goals)
+		if err != nil {
+			return fmt.Errorf("goal creation wizard failed: %w", err)
+		}
+	} else {
+		// Use existing huh forms for simple flows
+		newGoal, err = gc.goalBuilder.BuildGoal(schema.Goals)
+		if err != nil {
+			return fmt.Errorf("goal creation cancelled or failed: %w", err)
+		}
 	}
 
 	// Validate the new goal
@@ -124,4 +143,81 @@ func (gc *GoalConfigurator) loadSchema(goalsFilePath string) (*models.Schema, er
 // saveSchema saves the goals schema back to file
 func (gc *GoalConfigurator) saveSchema(schema *models.Schema, goalsFilePath string) error {
 	return gc.goalParser.SaveToFile(schema, goalsFilePath)
+}
+
+// promptForGoalTypeAndMode prompts for goal type and determines whether to use wizard
+func (gc *GoalConfigurator) promptForGoalTypeAndMode() (models.GoalType, bool, error) {
+	var goalType models.GoalType
+	var useEnhanced bool
+
+	// Goal type selection
+	goalTypeForm := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[models.GoalType]().
+				Title("Goal Type").
+				Description("Choose how this goal will be tracked and scored").
+				Options(
+					huh.NewOption("Simple (Pass/Fail)", models.SimpleGoal),
+					huh.NewOption("Elastic (Mini/Midi/Maxi levels)", models.ElasticGoal),
+					huh.NewOption("Informational (Data tracking only)", models.InformationalGoal),
+				).
+				Value(&goalType),
+		),
+	)
+
+	if err := goalTypeForm.Run(); err != nil {
+		return "", false, err
+	}
+
+	// Mode selection - offer enhanced wizard for complex goal types
+	if goalType == models.ElasticGoal {
+		modeForm := huh.NewForm(
+			huh.NewGroup(
+				huh.NewConfirm().
+					Title("Use Enhanced Wizard?").
+					Description("Enhanced wizard provides progress tracking, navigation, and better error recovery for complex elastic goals.").
+					Affirmative("Enhanced Wizard").
+					Negative("Simple Forms").
+					Value(&useEnhanced),
+			),
+		)
+
+		if err := modeForm.Run(); err != nil {
+			return goalType, false, err
+		}
+	}
+
+	return goalType, useEnhanced, nil
+}
+
+// runGoalWizard runs the bubbletea-based goal creation wizard
+func (gc *GoalConfigurator) runGoalWizard(goalType models.GoalType, existingGoals []models.Goal) (*models.Goal, error) {
+	// Create and run the wizard
+	wizardModel := wizard.NewGoalWizardModel(goalType, existingGoals)
+	
+	program := tea.NewProgram(wizardModel)
+	finalModel, err := program.Run()
+	if err != nil {
+		return nil, fmt.Errorf("wizard execution failed: %w", err)
+	}
+
+	// Extract result from final model
+	if wizardModel, ok := finalModel.(*wizard.GoalWizardModel); ok {
+		result := wizardModel.GetResult()
+		if result == nil {
+			return nil, fmt.Errorf("wizard completed without result")
+		}
+		
+		if result.Cancelled {
+			return nil, fmt.Errorf("wizard was cancelled")
+		}
+		
+		if result.Error != nil {
+			return nil, fmt.Errorf("wizard error: %w", result.Error)
+		}
+		
+		return result.Goal, nil
+	}
+
+	return nil, fmt.Errorf("unexpected wizard model type")
 }
