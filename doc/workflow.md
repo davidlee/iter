@@ -81,7 +81,7 @@ Tasks often have relationships with each other that should be explicitly documen
 - AI will place generated content in "6. Code Snippets & Artifacts" or as otherwise specified.
 - AI may edit task files in place, in which case it will always print the complete, verbatim content of the changed file to the user.
 
-### 4. Git Workflow & Commit Conventions
+### Git Workflow & Commit Conventions
 
 *   **Commit Conventions:**
     *   All commits should reference the task ID they relate to.
@@ -105,7 +105,7 @@ Tasks often have relationships with each other that should be explicitly documen
     *   When a task is completed: `git commit -m "type(scope): description [task-id]"`
     *   The task file should be updated with commit references.
 
-### 6. Core Workflow
+### Core Workflow
 
 1.  **Session Start / Context Restoration:**
     *   AI will read all the files in the categories in-progress and all other files that will help building the context for this.
