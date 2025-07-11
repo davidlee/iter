@@ -20,14 +20,14 @@ func (n *DefaultNavigationController) CanGoBack(state State) bool {
 // CanGoForward checks if navigation forward is possible
 func (n *DefaultNavigationController) CanGoForward(state State) bool {
 	currentStep := state.GetCurrentStep()
-	
+
 	// Can go forward if:
 	// 1. Not on the last step
 	// 2. Current step is completed or can be skipped
 	if currentStep >= state.GetTotalSteps()-1 {
 		return false
 	}
-	
+
 	// Check if current step is valid for navigation
 	return state.IsStepCompleted(currentStep) || n.canSkipStep(currentStep, state)
 }
@@ -40,18 +40,18 @@ func (n *DefaultNavigationController) CanGoToStep(index int, state State) bool {
 	if index < 0 || index >= state.GetTotalSteps() {
 		return false
 	}
-	
+
 	// Can always go to completed steps
 	if state.IsStepCompleted(index) {
 		return true
 	}
-	
+
 	// Can go to the immediate next step if all previous steps are completed
 	currentStep := state.GetCurrentStep()
 	if index == currentStep+1 {
 		return n.allPreviousStepsCompleted(index, state)
 	}
-	
+
 	return false
 }
 
@@ -95,7 +95,7 @@ func (n *DefaultNavigationController) Finish() tea.Cmd {
 func (n *DefaultNavigationController) canSkipStep(_ int, _ State) bool {
 	// Some steps can be skipped based on previous choices
 	// For example, criteria steps can be skipped if manual scoring is selected
-	
+
 	// This logic would be implemented based on the specific step dependencies
 	// For now, we don't allow skipping incomplete steps
 	return false

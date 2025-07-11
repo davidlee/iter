@@ -3,17 +3,18 @@ package wizard
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"davidlee/iter/internal/models"
 )
 
-// GoalState implements State for goal creation  
+// GoalState implements State for goal creation
 type GoalState struct {
-	CurrentStep    int                 `json:"currentStep"`
-	TotalSteps     int                 `json:"totalSteps"`
-	Steps          map[int]StepData    `json:"steps"`
-	CompletedSteps map[int]bool        `json:"completedSteps"`
-	GoalType       models.GoalType     `json:"goalType"`
+	CurrentStep    int              `json:"currentStep"`
+	TotalSteps     int              `json:"totalSteps"`
+	Steps          map[int]StepData `json:"steps"`
+	CompletedSteps map[int]bool     `json:"completedSteps"`
+	GoalType       models.GoalType  `json:"goalType"`
 }
 
 // NewGoalState creates a new goal wizard state
@@ -61,12 +62,12 @@ func (s *GoalState) ToGoal() (*models.Goal, error) {
 	if basicData == nil {
 		return nil, fmt.Errorf("basic information is required")
 	}
-	
+
 	basicInfo, ok := basicData.(*BasicInfoStepData)
 	if !ok {
 		return nil, fmt.Errorf("invalid basic information data")
 	}
-	
+
 	// Create base goal
 	goal := &models.Goal{
 		Title:       basicInfo.Title,
@@ -74,28 +75,30 @@ func (s *GoalState) ToGoal() (*models.Goal, error) {
 		GoalType:    basicInfo.GoalType,
 		Position:    0, // Will be set by the configurator
 	}
-	
+
 	// Add field type configuration
 	switch s.GoalType {
 	case models.SimpleGoal:
 		goal.FieldType = models.FieldType{
 			Type: models.BooleanFieldType,
 		}
-		
+
 		// Add scoring configuration
 		if err := s.addSimpleGoalScoring(goal); err != nil {
 			return nil, fmt.Errorf("failed to add scoring configuration: %w", err)
 		}
-		
+
 	case models.ElasticGoal:
-		// TODO: Implement elastic goal configuration
-		return nil, fmt.Errorf("elastic goal configuration not yet implemented")
-		
+		// Add field type configuration from field config step
+		if err := s.addElasticGoalConfiguration(goal); err != nil {
+			return nil, fmt.Errorf("failed to add elastic goal configuration: %w", err)
+		}
+
 	case models.InformationalGoal:
 		// TODO: Implement informational goal configuration
 		return nil, fmt.Errorf("informational goal configuration not yet implemented")
 	}
-	
+
 	return goal, nil
 }
 
@@ -105,26 +108,26 @@ func (s *GoalState) addSimpleGoalScoring(goal *models.Goal) error {
 	if scoringData == nil {
 		return fmt.Errorf("scoring configuration is required")
 	}
-	
+
 	scoring, ok := scoringData.(*ScoringStepData)
 	if !ok {
 		return fmt.Errorf("invalid scoring configuration data")
 	}
-	
+
 	goal.ScoringType = scoring.ScoringType
-	
+
 	// Add criteria if automatic scoring
 	if scoring.ScoringType == models.AutomaticScoring {
 		criteriaData := s.GetStep(2)
 		if criteriaData == nil {
 			return fmt.Errorf("criteria configuration is required for automatic scoring")
 		}
-		
+
 		criteria, ok := criteriaData.(*CriteriaStepData)
 		if !ok {
 			return fmt.Errorf("invalid criteria configuration data")
 		}
-		
+
 		goal.Criteria = &models.Criteria{
 			Description: criteria.Description,
 			Condition: &models.Condition{
@@ -132,8 +135,132 @@ func (s *GoalState) addSimpleGoalScoring(goal *models.Goal) error {
 			},
 		}
 	}
-	
+
 	return nil
+}
+
+func (s *GoalState) addElasticGoalConfiguration(goal *models.Goal) error {
+	// Get field configuration
+	fieldConfigData := s.GetStep(1) // field_config step
+	if fieldConfigData == nil {
+		return fmt.Errorf("field configuration is required")
+	}
+
+	fieldConfig, ok := fieldConfigData.(*FieldConfigStepData)
+	if !ok {
+		return fmt.Errorf("invalid field configuration data")
+	}
+
+	// Set field type based on configuration
+	goal.FieldType = models.FieldType{
+		Type: fieldConfig.FieldType,
+		Unit: fieldConfig.Unit,
+		Min:  fieldConfig.Min,
+		Max:  fieldConfig.Max,
+	}
+
+	// Add scoring configuration
+	scoringData := s.GetStep(2) // scoring step
+	if scoringData == nil {
+		return fmt.Errorf("scoring configuration is required")
+	}
+
+	scoring, ok := scoringData.(*ScoringStepData)
+	if !ok {
+		return fmt.Errorf("invalid scoring configuration data")
+	}
+
+	goal.ScoringType = scoring.ScoringType
+
+	// Add criteria if automatic scoring
+	if scoring.ScoringType == models.AutomaticScoring {
+		// Get all three criteria levels
+		miniData := s.GetStep(3)
+		midiData := s.GetStep(4)
+		maxiData := s.GetStep(5)
+
+		if miniData == nil || midiData == nil || maxiData == nil {
+			return fmt.Errorf("all criteria levels (mini/midi/maxi) are required for automatic scoring")
+		}
+
+		mini, miniOk := miniData.(*CriteriaStepData)
+		midi, midiOk := midiData.(*CriteriaStepData)
+		maxi, maxiOk := maxiData.(*CriteriaStepData)
+
+		if !miniOk || !midiOk || !maxiOk {
+			return fmt.Errorf("invalid criteria configuration data")
+		}
+
+		// Create mini criteria
+		goal.MiniCriteria = &models.Criteria{
+			Description: mini.Description,
+			Condition:   s.createConditionFromCriteria(mini),
+		}
+
+		// Create midi criteria
+		goal.MidiCriteria = &models.Criteria{
+			Description: midi.Description,
+			Condition:   s.createConditionFromCriteria(midi),
+		}
+
+		// Create maxi criteria
+		goal.MaxiCriteria = &models.Criteria{
+			Description: maxi.Description,
+			Condition:   s.createConditionFromCriteria(maxi),
+		}
+	}
+
+	return nil
+}
+
+func (s *GoalState) createConditionFromCriteria(criteria *CriteriaStepData) *models.Condition {
+	if criteria.BooleanValue {
+		// For boolean criteria (simple goals)
+		return &models.Condition{
+			Equals: &criteria.BooleanValue,
+		}
+	}
+
+	// For numeric criteria (elastic goals)
+	if criteria.Value != "" {
+		value, err := strconv.ParseFloat(criteria.Value, 64)
+		if err != nil {
+			// Invalid numeric value, fallback to boolean
+			return &models.Condition{
+				Equals: &criteria.BooleanValue,
+			}
+		}
+
+		// Create condition based on comparison type
+		switch criteria.ComparisonType {
+		case "gte":
+			return &models.Condition{
+				GreaterThanOrEqual: &value,
+			}
+		case "gt":
+			return &models.Condition{
+				GreaterThan: &value,
+			}
+		case "lte":
+			return &models.Condition{
+				LessThanOrEqual: &value,
+			}
+		case "lt":
+			return &models.Condition{
+				LessThan: &value,
+			}
+		default:
+			// Default to greater than or equal
+			return &models.Condition{
+				GreaterThanOrEqual: &value,
+			}
+		}
+	}
+
+	// Fallback to boolean condition
+	return &models.Condition{
+		Equals: &criteria.BooleanValue,
+	}
 }
 
 // Serialize converts the state to JSON bytes
@@ -260,12 +387,12 @@ func (d *ScoringStepData) SetData(data interface{}) error {
 
 // CriteriaStepData holds criteria configuration for one level
 type CriteriaStepData struct {
-	Level           string // mini, midi, maxi
-	Description     string
-	ComparisonType  string
-	Value           string
-	BooleanValue    bool
-	valid           bool
+	Level          string // mini, midi, maxi
+	Description    string
+	ComparisonType string
+	Value          string
+	BooleanValue   bool
+	valid          bool
 }
 
 // IsValid checks if the criteria data is valid
@@ -290,7 +417,7 @@ func (d *CriteriaStepData) SetData(data interface{}) error {
 
 // AIDEV-NOTE: Update step counts when adding new goal types or modifying flows
 // Current step counts:
-// - SimpleGoal: 4 steps (basic_info → scoring → criteria → confirmation) 
+// - SimpleGoal: 4 steps (basic_info → scoring → criteria → confirmation)
 // - ElasticGoal: 8 steps (basic_info → field_config → scoring → mini → midi → maxi → validation → confirmation)
 // - InformationalGoal: 3 steps (basic_info → field_config → confirmation)
 

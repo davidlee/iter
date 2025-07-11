@@ -15,15 +15,15 @@ type GoalWizardModel struct {
 	navigation NavigationController
 	renderer   FormRenderer
 	steps      []StepHandler
-	
+
 	// Current form state
 	currentForm *huh.Form
 	formActive  bool
-	
+
 	// Result
 	result *Result
 	done   bool
-	
+
 	// UI state
 	width  int
 	height int
@@ -34,10 +34,10 @@ func NewGoalWizardModel(goalType models.GoalType, _ []models.Goal) *GoalWizardMo
 	state := NewGoalState(goalType)
 	navigation := NewDefaultNavigationController()
 	renderer := NewDefaultFormRenderer()
-	
+
 	// Create step handlers based on goal type
 	steps := createStepHandlers(goalType)
-	
+
 	return &GoalWizardModel{
 		state:      state,
 		navigation: navigation,
@@ -59,33 +59,33 @@ func (m *GoalWizardModel) Init() tea.Cmd {
 // Update implements tea.Model
 func (m *GoalWizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	
+
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		return m, nil
-		
+
 	case NavigateBackMsg:
 		return m.handleNavigateBack()
-		
+
 	case NavigateForwardMsg:
 		return m.handleNavigateForward()
-		
+
 	case NavigateToStepMsg:
 		return m.handleNavigateToStep(msg.Step)
-		
+
 	case CancelWizardMsg:
 		return m.handleCancel()
-		
+
 	case FinishWizardMsg:
 		return m.handleFinish()
-		
+
 	case StepCompletedMsg:
 		return m.handleStepCompleted(msg.Step)
-		
+
 	case tea.KeyMsg:
 		return m.handleKeyPress(msg)
-		
+
 	default:
 		// Delegate to current step handler if form is not active
 		if !m.formActive && m.getCurrentStepHandler() != nil {
@@ -93,13 +93,13 @@ func (m *GoalWizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.state = newState
 			return m, cmd
 		}
-		
+
 		// If form is active, delegate to the form
 		if m.currentForm != nil && m.formActive {
 			form, cmd := m.currentForm.Update(msg)
 			if f, ok := form.(*huh.Form); ok {
 				m.currentForm = f
-				
+
 				// Check if form is completed
 				if m.currentForm.State == huh.StateCompleted {
 					return m.handleFormCompleted()
@@ -108,7 +108,7 @@ func (m *GoalWizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 	}
-	
+
 	return m, nil
 }
 
@@ -123,23 +123,23 @@ func (m *GoalWizardModel) View() string {
 		}
 		return "Goal created successfully!\n"
 	}
-	
+
 	// Get current step handler
 	stepHandler := m.getCurrentStepHandler()
 	if stepHandler == nil {
 		return "Error: Invalid step\n"
 	}
-	
+
 	// Render the step using the renderer
 	stepView := stepHandler.Render(m.state)
-	
+
 	// Add navigation
 	navView := m.renderer.RenderNavigation(m.navigation, m.state)
-	
+
 	// Add validation errors if any
 	errors := stepHandler.Validate(m.state)
 	errorView := m.renderer.RenderValidationErrors(errors)
-	
+
 	return stepView + "\n" + errorView + "\n" + navView
 }
 
@@ -184,11 +184,11 @@ func (m *GoalWizardModel) handleNavigateForward() (tea.Model, tea.Cmd) {
 		if stepHandler != nil && !stepHandler.CanNavigateFrom(m.state) {
 			return m, nil
 		}
-		
+
 		// Mark current step as completed
 		currentStep := m.state.GetCurrentStep()
 		m.state.MarkStepCompleted(currentStep)
-		
+
 		// Move to next step
 		m.state.SetCurrentStep(currentStep + 1)
 		return m, m.initCurrentStep()
@@ -226,7 +226,7 @@ func (m *GoalWizardModel) handleFinish() (tea.Model, tea.Cmd) {
 			}
 		}
 	}
-	
+
 	// Validate all steps
 	errors := m.state.Validate()
 	if len(errors) > 0 {
@@ -236,7 +236,7 @@ func (m *GoalWizardModel) handleFinish() (tea.Model, tea.Cmd) {
 		m.done = true
 		return m, tea.Quit
 	}
-	
+
 	// Convert state to goal
 	goal, err := m.state.ToGoal()
 	if err != nil {
@@ -246,7 +246,7 @@ func (m *GoalWizardModel) handleFinish() (tea.Model, tea.Cmd) {
 		m.done = true
 		return m, tea.Quit
 	}
-	
+
 	m.result = &Result{
 		Goal: goal,
 	}
@@ -283,7 +283,7 @@ func (m *GoalWizardModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m.handleFinish()
 		}
 	}
-	
+
 	return m, nil
 }
 
@@ -297,37 +297,34 @@ func (m *GoalWizardModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // createStepHandlers creates the appropriate step handlers for the goal type
 func createStepHandlers(goalType models.GoalType) []StepHandler {
 	var handlers []StepHandler
-	
+
 	// All goal types start with basic info
 	handlers = append(handlers, NewBasicInfoStepHandler(goalType))
-	
+
 	switch goalType {
 	case models.SimpleGoal:
-		handlers = append(handlers, 
+		handlers = append(handlers,
 			NewScoringStepHandler(goalType),
 			NewCriteriaStepHandler(goalType, "simple"),
 			NewConfirmationStepHandler(goalType),
 		)
 	case models.ElasticGoal:
 		handlers = append(handlers,
-			// TODO: Implement field config step handler for elastic goals
-			&PlaceholderStepHandler{title: "Field Configuration"},
-			NewScoringStepHandler(goalType),
-			NewCriteriaStepHandler(goalType, "mini"),
-			NewCriteriaStepHandler(goalType, "midi"),
-			NewCriteriaStepHandler(goalType, "maxi"),
-			// TODO: Implement validation step handler
-			&PlaceholderStepHandler{title: "Validation"},
-			NewConfirmationStepHandler(goalType),
+			NewFieldConfigStepHandler(goalType),      // Step 1: Field type & config
+			NewScoringStepHandler(goalType),          // Step 2: Scoring type
+			NewCriteriaStepHandler(goalType, "mini"), // Step 3: Mini criteria
+			NewCriteriaStepHandler(goalType, "midi"), // Step 4: Midi criteria
+			NewCriteriaStepHandler(goalType, "maxi"), // Step 5: Maxi criteria
+			NewValidationStepHandler(goalType),       // Step 6: Validation
+			NewConfirmationStepHandler(goalType),     // Step 7: Confirmation
 		)
 	case models.InformationalGoal:
 		handlers = append(handlers,
-			// TODO: Implement field config step handler for informational goals
-			&PlaceholderStepHandler{title: "Field Configuration"},
-			NewConfirmationStepHandler(goalType),
+			NewFieldConfigStepHandler(goalType),  // Step 1: Field config
+			NewConfirmationStepHandler(goalType), // Step 2: Confirmation
 		)
 	}
-	
+
 	return handlers
 }
 

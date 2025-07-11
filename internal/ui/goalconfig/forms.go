@@ -255,4 +255,3 @@ func isNumericField(fieldType string) bool {
 		fieldType == models.DecimalFieldType ||
 		fieldType == models.DurationFieldType
 }
-

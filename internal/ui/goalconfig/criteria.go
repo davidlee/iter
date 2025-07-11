@@ -171,7 +171,7 @@ func (cb *CriteriaBuilder) createComparisonCriteriaForm(fieldType models.FieldTy
 
 func (cb *CriteriaBuilder) createElasticComparisonForm(fieldType models.FieldType, level string, config *CriteriaConfig) (*huh.Form, *CriteriaConfig) {
 	levelTitle := strings.ToUpper(string(level[0])) + level[1:]
-	
+
 	var fields []huh.Field
 
 	fields = append(fields,
@@ -355,7 +355,7 @@ func isTimeFormat(s string) bool {
 	hour, err1 := strconv.Atoi(parts[0])
 	minute, err2 := strconv.Atoi(parts[1])
 
-	return err1 == nil && err2 == nil && 
-		hour >= 0 && hour <= 23 && 
+	return err1 == nil && err2 == nil &&
+		hour >= 0 && hour <= 23 &&
 		minute >= 0 && minute <= 59
 }

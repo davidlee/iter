@@ -135,7 +135,7 @@ func (gb *GoalBuilder) buildElasticCriteria(fieldType models.FieldType) (*models
 
 	for i, level := range levels {
 		fmt.Printf("\n=== Configuring %s level ===\n", strings.ToUpper(string(level[0]))+level[1:])
-		
+
 		criteriaForm, criteriaConfig := gb.criteriaBuilder.CreateElasticCriteriaForm(fieldType, level)
 		if err := criteriaForm.Run(); err != nil {
 			return nil, nil, nil, fmt.Errorf("failed to configure %s level: %w", level, err)

@@ -64,16 +64,16 @@ func TestElasticGoalsEndToEnd(t *testing.T) {
 			value         interface{}
 			expectedLevel models.AchievementLevel
 		}{
-			{"10m", models.AchievementNone},  // Below mini (15m)
-			{"20m", models.AchievementMini},  // Between mini (15m) and midi (30m)
-			{"45m", models.AchievementMidi},  // Between midi (30m) and maxi (60m)
+			{"10m", models.AchievementNone},   // Below mini (15m)
+			{"20m", models.AchievementMini},   // Between mini (15m) and midi (30m)
+			{"45m", models.AchievementMidi},   // Between midi (30m) and maxi (60m)
 			{"1h30m", models.AchievementMaxi}, // Above maxi (60m)
 		}
 
 		for _, tc := range testCases {
 			result, err := scoringEngine.ScoreElasticGoal(exerciseDurationGoal, tc.value)
 			require.NoError(t, err, "scoring should succeed for value %v", tc.value)
-			assert.Equal(t, tc.expectedLevel, result.AchievementLevel, 
+			assert.Equal(t, tc.expectedLevel, result.AchievementLevel,
 				"expected %s for value %v", tc.expectedLevel, tc.value)
 		}
 	})
@@ -84,9 +84,9 @@ func TestElasticGoalsEndToEnd(t *testing.T) {
 			value         interface{}
 			expectedLevel models.AchievementLevel
 		}{
-			{2.0, models.AchievementNone}, // Below mini (4 glasses)
-			{5.0, models.AchievementMini}, // Between mini (4) and midi (6)
-			{7.0, models.AchievementMidi}, // Between midi (6) and maxi (8)
+			{2.0, models.AchievementNone},  // Below mini (4 glasses)
+			{5.0, models.AchievementMini},  // Between mini (4) and midi (6)
+			{7.0, models.AchievementMidi},  // Between midi (6) and maxi (8)
 			{10.0, models.AchievementMaxi}, // Above maxi (8)
 		}
 
@@ -108,8 +108,8 @@ func TestElasticGoalsEndToEnd(t *testing.T) {
 
 		// Simulate user entries for elastic goals
 		testEntries := map[string]interface{}{
-			"exercise_duration": "45m",   // Should be midi achievement
-			"water_intake":      8.0,     // Should be maxi achievement
+			"exercise_duration": "45m", // Should be midi achievement
+			"water_intake":      8.0,   // Should be maxi achievement
 		}
 
 		// Simulate collecting entries with scoring
@@ -169,7 +169,7 @@ func TestElasticGoalsEndToEnd(t *testing.T) {
 	// Step 6: Test loading existing entries and updating
 	t.Run("load and update existing entries", func(t *testing.T) {
 		collector := ui.NewEntryCollector()
-		
+
 		// Load existing entries
 		err := collector.LoadExistingEntriesForTesting(entriesFile)
 		require.NoError(t, err)
@@ -225,10 +225,10 @@ func TestBackwardsCompatibility(t *testing.T) {
 	// Add entries for all goal types
 	collector.SetEntryForTesting("morning_exercise", true, nil, "Great workout")
 	collector.SetEntryForTesting("daily_reading", false, nil, "Too busy today")
-	
+
 	exerciseLevelPtr := models.AchievementMidi
 	collector.SetEntryForTesting("exercise_duration", "30m", &exerciseLevelPtr, "Perfect timing")
-	
+
 	waterLevelPtr := models.AchievementMaxi
 	collector.SetEntryForTesting("water_intake", 8.0, &waterLevelPtr, "Stayed hydrated")
 

@@ -32,22 +32,22 @@ type State interface {
 type StepHandler interface {
 	// Render returns the string representation of this step
 	Render(state State) string
-	
+
 	// Update handles tea messages and returns updated state and commands
 	Update(msg tea.Msg, state State) (State, tea.Cmd)
-	
+
 	// Validate checks if the current step data is valid
 	Validate(state State) []ValidationError
-	
+
 	// CanNavigateFrom returns true if user can leave this step
 	CanNavigateFrom(state State) bool
-	
+
 	// CanNavigateTo returns true if user can enter this step
 	CanNavigateTo(state State) bool
-	
+
 	// GetTitle returns the title for this step
 	GetTitle() string
-	
+
 	// GetDescription returns the description for this step
 	GetDescription() string
 }

@@ -13,7 +13,7 @@ import (
 
 // AIDEV-NOTE: Criteria step handler pattern for elastic goal mini/midi/maxi steps
 // This handler demonstrates:
-// - Conditional step skipping (shouldSkip method)  
+// - Conditional step skipping (shouldSkip method)
 // - Level-specific configuration (level field for "mini"/"midi"/"maxi")
 // - Dynamic form field generation based on goal type
 // Reuse this pattern for elastic goal criteria steps with different levels
@@ -25,7 +25,7 @@ type CriteriaStepHandler struct {
 	formComplete bool
 	goalType     models.GoalType
 	level        string // "simple", "mini", "midi", "maxi"
-	
+
 	// Form data storage
 	description    string
 	comparisonType string
@@ -47,39 +47,39 @@ func (h *CriteriaStepHandler) Render(state State) string {
 	if h.shouldSkip(state) {
 		return h.renderSkipped()
 	}
-	
+
 	if h.form == nil {
 		h.initializeForm(state)
 	}
-	
+
 	// Render the form content
 	if h.formActive {
 		return h.form.View()
 	}
-	
+
 	// Show completed state
 	if h.formComplete {
 		if stepData := state.GetStep(h.getStepIndex()); stepData != nil {
 			if data, ok := stepData.(*CriteriaStepData); ok {
 				result := fmt.Sprintf("✅ %s Criteria Completed\n\n", h.getLevelTitle())
-				
+
 				if data.Description != "" {
 					result += fmt.Sprintf("Description: %s\n", data.Description)
 				}
-				
+
 				// Show criteria details
 				if h.goalType == models.SimpleGoal {
 					result += fmt.Sprintf("Goal achieved when: %t\n", data.BooleanValue)
 				} else {
 					result += fmt.Sprintf("Comparison: %s\nValue: %s\n", data.ComparisonType, data.Value)
 				}
-				
+
 				result += "\nPress 'n' to continue to next step."
 				return result
 			}
 		}
 	}
-	
+
 	return "Loading criteria configuration form..."
 }
 
@@ -89,28 +89,28 @@ func (h *CriteriaStepHandler) Update(msg tea.Msg, state State) (State, tea.Cmd) 
 	if h.shouldSkip(state) {
 		return state, nil
 	}
-	
+
 	if h.form == nil {
 		h.initializeForm(state)
 	}
-	
+
 	if h.formActive && h.form != nil {
 		form, cmd := h.form.Update(msg)
 		if f, ok := form.(*huh.Form); ok {
 			h.form = f
-			
+
 			// Check if form is completed
 			if h.form.State == huh.StateCompleted {
 				h.formActive = false
 				h.formComplete = true
-				
+
 				// Extract data and store in state
 				h.extractFormData(state)
 			}
 		}
 		return state, cmd
 	}
-	
+
 	return state, nil
 }
 
@@ -120,9 +120,9 @@ func (h *CriteriaStepHandler) Validate(state State) []ValidationError {
 	if h.shouldSkip(state) {
 		return nil
 	}
-	
+
 	var errors []ValidationError
-	
+
 	stepData := state.GetStep(h.getStepIndex())
 	if stepData == nil {
 		errors = append(errors, ValidationError{
@@ -131,7 +131,7 @@ func (h *CriteriaStepHandler) Validate(state State) []ValidationError {
 		})
 		return errors
 	}
-	
+
 	if data, ok := stepData.(*CriteriaStepData); ok {
 		// Validate criteria data
 		if h.goalType != models.SimpleGoal {
@@ -142,7 +142,7 @@ func (h *CriteriaStepHandler) Validate(state State) []ValidationError {
 					Message: "Criteria value is required",
 				})
 			}
-			
+
 			// Validate numeric values
 			if h.isNumericComparison(data.ComparisonType) {
 				if _, err := strconv.ParseFloat(data.Value, 64); err != nil {
@@ -155,7 +155,7 @@ func (h *CriteriaStepHandler) Validate(state State) []ValidationError {
 			}
 		}
 	}
-	
+
 	return errors
 }
 
@@ -173,18 +173,18 @@ func (h *CriteriaStepHandler) CanNavigateTo(state State) bool {
 	if h.shouldSkip(state) {
 		return true
 	}
-	
+
 	// Check if scoring step is complete and automatic scoring is selected
 	scoringStepIndex := h.getScoringStepIndex()
 	scoringData := state.GetStep(scoringStepIndex)
 	if scoringData == nil {
 		return false
 	}
-	
+
 	if data, ok := scoringData.(*ScoringStepData); ok {
 		return data.ScoringType == models.AutomaticScoring
 	}
-	
+
 	return false
 }
 
@@ -206,11 +206,11 @@ func (h *CriteriaStepHandler) shouldSkip(state State) bool {
 	if scoringData == nil {
 		return false
 	}
-	
+
 	if data, ok := scoringData.(*ScoringStepData); ok {
 		return data.ScoringType == models.ManualScoring
 	}
-	
+
 	return false
 }
 
@@ -277,9 +277,9 @@ func (h *CriteriaStepHandler) initializeForm(state State) {
 		// Set defaults
 		h.booleanValue = true
 	}
-	
+
 	var fields []huh.Field
-	
+
 	// Description field
 	fields = append(fields,
 		huh.NewInput().
@@ -287,7 +287,7 @@ func (h *CriteriaStepHandler) initializeForm(state State) {
 			Description(fmt.Sprintf("Describe what %s achievement means", strings.ToLower(h.getLevelTitle()))).
 			Value(&h.description),
 	)
-	
+
 	if h.goalType == models.SimpleGoal {
 		// Simple boolean criteria
 		fields = append(fields,
@@ -297,9 +297,9 @@ func (h *CriteriaStepHandler) initializeForm(state State) {
 				Value(&h.booleanValue),
 		)
 	} else {
-		// Get field type - for now default to unsigned int for simple goals
+		// Get field type - for now default to unsigned int for elastic goals
 		fieldType := models.UnsignedIntFieldType
-		
+
 		// Comparison type selection
 		fields = append(fields,
 			huh.NewSelect[string]().
@@ -308,7 +308,7 @@ func (h *CriteriaStepHandler) initializeForm(state State) {
 				Options(h.getComparisonOptions(fieldType)...).
 				Value(&h.comparisonType),
 		)
-		
+
 		// Value input
 		fields = append(fields,
 			huh.NewInput().
@@ -318,7 +318,7 @@ func (h *CriteriaStepHandler) initializeForm(state State) {
 				Validate(h.createValueValidator(fieldType)),
 		)
 	}
-	
+
 	// Create form
 	h.form = huh.NewForm(huh.NewGroup(fields...))
 	h.formActive = true
@@ -334,7 +334,7 @@ func (h *CriteriaStepHandler) extractFormData(state State) {
 		Value:          strings.TrimSpace(h.value),
 		BooleanValue:   h.booleanValue,
 	}
-	
+
 	// Store in state
 	state.SetStep(h.getStepIndex(), stepData)
 }
@@ -371,6 +371,6 @@ func (h *CriteriaStepHandler) createValueValidator(_ string) func(string) error 
 }
 
 func (h *CriteriaStepHandler) isNumericComparison(comparisonType string) bool {
-	return comparisonType == "gt" || comparisonType == "gte" || 
-		   comparisonType == "lt" || comparisonType == "lte"
+	return comparisonType == "gt" || comparisonType == "gte" ||
+		comparisonType == "lt" || comparisonType == "lte"
 }

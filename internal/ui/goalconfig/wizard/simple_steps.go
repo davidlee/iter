@@ -23,7 +23,7 @@ type BasicInfoStepHandler struct {
 	formActive   bool
 	formComplete bool
 	goalType     models.GoalType
-	
+
 	// Form data storage
 	title       string
 	description string
@@ -41,12 +41,12 @@ func (h *BasicInfoStepHandler) Render(state State) string {
 	if h.form == nil {
 		h.initializeForm(state)
 	}
-	
+
 	// Render the form content
 	if h.formActive {
 		return h.form.View()
 	}
-	
+
 	// Show completed state
 	if h.formComplete {
 		if stepData := state.GetStep(0); stepData != nil {
@@ -57,14 +57,14 @@ Title: %s
 Description: %s
 Goal Type: %s
 
-Press 'n' to continue to next step.`, 
-					data.Title, 
-					data.Description, 
+Press 'n' to continue to next step.`,
+					data.Title,
+					data.Description,
 					data.GoalType)
 			}
 		}
 	}
-	
+
 	return "Loading basic information form..."
 }
 
@@ -73,31 +73,31 @@ func (h *BasicInfoStepHandler) Update(msg tea.Msg, state State) (State, tea.Cmd)
 	if h.form == nil {
 		h.initializeForm(state)
 	}
-	
+
 	if h.formActive && h.form != nil {
 		form, cmd := h.form.Update(msg)
 		if f, ok := form.(*huh.Form); ok {
 			h.form = f
-			
+
 			// Check if form is completed
 			if h.form.State == huh.StateCompleted {
 				h.formActive = false
 				h.formComplete = true
-				
+
 				// Extract data and store in state
 				h.extractFormData(state)
 			}
 		}
 		return state, cmd
 	}
-	
+
 	return state, nil
 }
 
 // Validate validates the basic info step data
 func (h *BasicInfoStepHandler) Validate(state State) []ValidationError {
 	var errors []ValidationError
-	
+
 	stepData := state.GetStep(0)
 	if stepData == nil {
 		errors = append(errors, ValidationError{
@@ -106,7 +106,7 @@ func (h *BasicInfoStepHandler) Validate(state State) []ValidationError {
 		})
 		return errors
 	}
-	
+
 	if data, ok := stepData.(*BasicInfoStepData); ok {
 		if strings.TrimSpace(data.Title) == "" {
 			errors = append(errors, ValidationError{
@@ -115,16 +115,16 @@ func (h *BasicInfoStepHandler) Validate(state State) []ValidationError {
 				Message: "Goal title is required",
 			})
 		}
-		
+
 		if len(data.Title) > 100 {
 			errors = append(errors, ValidationError{
 				Step:    0,
-				Field:   "title", 
+				Field:   "title",
 				Message: "Goal title must be 100 characters or less",
 			})
 		}
 	}
-	
+
 	return errors
 }
 
@@ -158,7 +158,7 @@ func (h *BasicInfoStepHandler) initializeForm(state State) {
 			h.description = data.Description
 		}
 	}
-	
+
 	// Create form
 	h.form = huh.NewForm(
 		huh.NewGroup(
@@ -182,7 +182,7 @@ func (h *BasicInfoStepHandler) initializeForm(state State) {
 				Value(&h.description),
 		),
 	)
-	
+
 	h.formActive = true
 	h.formComplete = false
 }
@@ -194,7 +194,7 @@ func (h *BasicInfoStepHandler) extractFormData(state State) {
 		Description: strings.TrimSpace(h.description),
 		GoalType:    h.goalType,
 	}
-	
+
 	// Store in state
 	state.SetStep(0, stepData)
 }
@@ -205,7 +205,7 @@ type ScoringStepHandler struct {
 	formActive   bool
 	formComplete bool
 	goalType     models.GoalType
-	
+
 	// Form data storage
 	scoringType models.ScoringType
 	direction   string
@@ -223,28 +223,28 @@ func (h *ScoringStepHandler) Render(state State) string {
 	if h.form == nil {
 		h.initializeForm(state)
 	}
-	
+
 	// Render the form content
 	if h.formActive {
 		return h.form.View()
 	}
-	
+
 	// Show completed state
 	if h.formComplete {
 		if stepData := state.GetStep(h.getStepIndex()); stepData != nil {
 			if data, ok := stepData.(*ScoringStepData); ok {
 				result := fmt.Sprintf("✅ Scoring Configuration Completed\n\nScoring Type: %s", data.ScoringType)
-				
+
 				if h.goalType == models.InformationalGoal && data.Direction != "" {
 					result += fmt.Sprintf("\nDirection: %s", data.Direction)
 				}
-				
+
 				result += "\n\nPress 'n' to continue to next step."
 				return result
 			}
 		}
 	}
-	
+
 	return "Loading scoring configuration form..."
 }
 
@@ -253,31 +253,31 @@ func (h *ScoringStepHandler) Update(msg tea.Msg, state State) (State, tea.Cmd) {
 	if h.form == nil {
 		h.initializeForm(state)
 	}
-	
+
 	if h.formActive && h.form != nil {
 		form, cmd := h.form.Update(msg)
 		if f, ok := form.(*huh.Form); ok {
 			h.form = f
-			
+
 			// Check if form is completed
 			if h.form.State == huh.StateCompleted {
 				h.formActive = false
 				h.formComplete = true
-				
+
 				// Extract data and store in state
 				h.extractFormData(state)
 			}
 		}
 		return state, cmd
 	}
-	
+
 	return state, nil
 }
 
 // Validate validates the scoring step data
 func (h *ScoringStepHandler) Validate(state State) []ValidationError {
 	var errors []ValidationError
-	
+
 	stepData := state.GetStep(h.getStepIndex())
 	if stepData == nil {
 		errors = append(errors, ValidationError{
@@ -286,7 +286,7 @@ func (h *ScoringStepHandler) Validate(state State) []ValidationError {
 		})
 		return errors
 	}
-	
+
 	// Scoring step is always valid once data is present
 	return errors
 }
@@ -345,9 +345,9 @@ func (h *ScoringStepHandler) initializeForm(state State) {
 			h.direction = data.Direction
 		}
 	}
-	
+
 	var fields []huh.Field
-	
+
 	if h.goalType == models.InformationalGoal {
 		// Informational goals only need direction
 		fields = append(fields,
@@ -374,7 +374,7 @@ func (h *ScoringStepHandler) initializeForm(state State) {
 				Value(&h.scoringType),
 		)
 	}
-	
+
 	// Create form
 	h.form = huh.NewForm(huh.NewGroup(fields...))
 	h.formActive = true
@@ -387,19 +387,19 @@ func (h *ScoringStepHandler) extractFormData(state State) {
 		ScoringType: h.scoringType,
 		Direction:   h.direction,
 	}
-	
+
 	// For informational goals, always set to manual scoring
 	if h.goalType == models.InformationalGoal {
 		stepData.ScoringType = models.ManualScoring
 	}
-	
+
 	// Store in state
 	state.SetStep(h.getStepIndex(), stepData)
 }
 
 func (h *ScoringStepHandler) validateBasicInfo(state State) []ValidationError {
 	var errors []ValidationError
-	
+
 	stepData := state.GetStep(0)
 	if stepData == nil {
 		errors = append(errors, ValidationError{
@@ -408,7 +408,7 @@ func (h *ScoringStepHandler) validateBasicInfo(state State) []ValidationError {
 		})
 		return errors
 	}
-	
+
 	if data, ok := stepData.(*BasicInfoStepData); ok {
 		if data.Title == "" {
 			errors = append(errors, ValidationError{
@@ -418,7 +418,7 @@ func (h *ScoringStepHandler) validateBasicInfo(state State) []ValidationError {
 			})
 		}
 	}
-	
+
 	return errors
 }
 
@@ -443,12 +443,12 @@ func (h *ConfirmationStepHandler) Render(state State) string {
 	if h.form == nil {
 		h.initializeForm(state)
 	}
-	
+
 	// Render the form content
 	if h.formActive {
 		return h.form.View()
 	}
-	
+
 	// Show completed state
 	if h.formComplete {
 		if h.confirmed {
@@ -456,7 +456,7 @@ func (h *ConfirmationStepHandler) Render(state State) string {
 		}
 		return "❌ Goal Creation Cancelled\n\nPress 'b' to go back or Ctrl+C to exit."
 	}
-	
+
 	return "Loading confirmation form..."
 }
 
@@ -465,24 +465,24 @@ func (h *ConfirmationStepHandler) Update(msg tea.Msg, state State) (State, tea.C
 	if h.form == nil {
 		h.initializeForm(state)
 	}
-	
+
 	if h.formActive && h.form != nil {
 		form, cmd := h.form.Update(msg)
 		if f, ok := form.(*huh.Form); ok {
 			h.form = f
-			
+
 			// Check if form is completed
 			if h.form.State == huh.StateCompleted {
 				h.formActive = false
 				h.formComplete = true
-				
+
 				// Extract confirmation choice
 				h.extractFormData(state)
 			}
 		}
 		return state, cmd
 	}
-	
+
 	return state, nil
 }
 
@@ -542,23 +542,23 @@ func (h *ConfirmationStepHandler) getStepIndex() int {
 func (h *ConfirmationStepHandler) initializeForm(state State) {
 	// Generate goal preview
 	preview := h.generateGoalPreview(state)
-	
+
 	var confirmed bool
-	
+
 	// Create confirmation form
 	h.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewNote().
 				Title("Goal Preview").
 				Description(preview),
-			
+
 			huh.NewConfirm().
 				Title("Create this goal?").
 				Description("Confirm to create the goal with the above configuration").
 				Value(&confirmed),
 		),
 	)
-	
+
 	h.formActive = true
 	h.formComplete = false
 }
@@ -570,7 +570,7 @@ func (h *ConfirmationStepHandler) extractFormData(_ State) {
 
 func (h *ConfirmationStepHandler) generateGoalPreview(state State) string {
 	var preview strings.Builder
-	
+
 	// Basic info
 	if basicData := state.GetStep(0); basicData != nil {
 		if data, ok := basicData.(*BasicInfoStepData); ok {
@@ -581,7 +581,7 @@ func (h *ConfirmationStepHandler) generateGoalPreview(state State) string {
 			preview.WriteString(fmt.Sprintf("Type: %s\n\n", data.GoalType))
 		}
 	}
-	
+
 	// Scoring configuration
 	var scoringStepIndex int
 	switch h.goalType {
@@ -592,7 +592,7 @@ func (h *ConfirmationStepHandler) generateGoalPreview(state State) string {
 	case models.InformationalGoal:
 		scoringStepIndex = 1
 	}
-	
+
 	if scoringData := state.GetStep(scoringStepIndex); scoringData != nil {
 		if data, ok := scoringData.(*ScoringStepData); ok {
 			if h.goalType == models.InformationalGoal {
@@ -602,7 +602,7 @@ func (h *ConfirmationStepHandler) generateGoalPreview(state State) string {
 			}
 		}
 	}
-	
+
 	// Criteria (if automatic scoring)
 	if h.goalType == models.SimpleGoal {
 		if criteriaData := state.GetStep(2); criteriaData != nil {
@@ -614,6 +614,6 @@ func (h *ConfirmationStepHandler) generateGoalPreview(state State) string {
 			}
 		}
 	}
-	
+
 	return preview.String()
 }

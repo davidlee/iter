@@ -201,7 +201,7 @@ func (gc *GoalConfigurator) promptForGoalTypeAndMode() (models.GoalType, bool, e
 func (gc *GoalConfigurator) runGoalWizard(goalType models.GoalType, existingGoals []models.Goal) (*models.Goal, error) {
 	// Create and run the wizard
 	wizardModel := wizard.NewGoalWizardModel(goalType, existingGoals)
-	
+
 	program := tea.NewProgram(wizardModel)
 	finalModel, err := program.Run()
 	if err != nil {
@@ -214,15 +214,15 @@ func (gc *GoalConfigurator) runGoalWizard(goalType models.GoalType, existingGoal
 		if result == nil {
 			return nil, fmt.Errorf("wizard completed without result")
 		}
-		
+
 		if result.Cancelled {
 			return nil, fmt.Errorf("wizard was cancelled")
 		}
-		
+
 		if result.Error != nil {
 			return nil, fmt.Errorf("wizard error: %w", result.Error)
 		}
-		
+
 		return result.Goal, nil
 	}
 
