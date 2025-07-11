@@ -1,0 +1,31 @@
+version: "1.0.0"
+created_date: "2024-06-15"
+goals:
+  - title: "Daily Exercise"
+    goal_type: "simple"
+    field_type:
+      type: "boolean"
+    scoring_type: "manual"
+    prompt: "Did you exercise for at least 30 minutes today?"
+
+  - title: "Morning Workout"
+    goal_type: "simple"
+    field_type:
+      type: "boolean"
+    scoring_type: "manual"
+    prompt: "Did you complete your morning workout routine?"
+
+  - title: "Steps Goal"
+    goal_type: "informational"
+    field_type:
+      type: "unsigned_int"
+      unit: "steps"
+    direction: "higher_better"
+    prompt: "How many steps did you take today?"
+
+  - title: "Gym Session"
+    goal_type: "simple"
+    field_type:
+      type: "boolean"
+    scoring_type: "manual"
+    prompt: "Did you go to the gym today?"
