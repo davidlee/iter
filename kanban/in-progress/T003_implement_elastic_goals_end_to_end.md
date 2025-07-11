@@ -73,7 +73,60 @@ This builds upon the boolean goal foundation from T001 to provide more sophistic
         - *Design:* Automatic scoring during entry creation, fallback to manual for complex cases
         - *Code/Artifacts to be created or modified:* `internal/ui/entry.go`, scoring integration
         - *Testing Strategy:* Unit tests for scoring integration, edge cases
-        - *AI Notes:* User should see what level they achieved immediately after input
+        - *AI Notes:* **COMPREHENSIVE ANALYSIS & IMPLEMENTATION PLAN**
+
+**Current System Analysis:**
+- EntryCollector only handles simple boolean goals via `parser.GetSimpleBooleanGoals()`
+- collectGoalEntry() method is hardcoded for boolean input using `huh.NewConfirm()`
+- Data storage: `map[string]bool` for entries, no achievement level support
+- No field type awareness or scoring integration
+
+**Required Changes:**
+- Support elastic goals with mini/midi/maxi achievement levels
+- Handle multiple field types: boolean, numeric, duration, time, text
+- Integrate scoring engine for automatic evaluation
+- Display achievement results with styling
+- Store both raw values and achievement levels
+
+**Design Decision: Strategy Pattern**
+Selected after evaluating 4 options (monolithic, strategy, field-type, helper decomposition).
+Strategy pattern provides: clean separation, testability, extensibility, SOLID compliance.
+
+**Implementation Plan:**
+
+**Phase 1: Handler Infrastructure**
+```go
+type GoalEntryHandler interface {
+    CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error)
+}
+type ExistingEntry struct { Value interface{}; Notes string; AchievementLevel *models.AchievementLevel }
+type EntryResult struct { Value interface{}; AchievementLevel *models.AchievementLevel; Notes string }
+func CreateGoalHandler(goal models.Goal, scoringEngine *scoring.Engine) GoalEntryHandler
+```
+
+**Phase 2: SimpleGoalHandler (Backwards Compatibility)**
+- Extract existing boolean logic into handler
+- Maintain exact same UI behavior
+- Validates new architecture works
+
+**Phase 3: ElasticGoalHandler**
+- Field type input collection (boolean: Confirm, numeric: Input+validation, duration: Input+hints, time: Input+format, text: Input)
+- Automatic scoring integration with scoring engine
+- Achievement display with lipgloss styling
+- Manual scoring fallback for errors
+
+**Phase 4: EntryCollector Integration**
+- Add scoring engine: `scoringEngine *scoring.Engine`
+- Update data: `entries map[string]interface{}`, `achievements map[string]*models.AchievementLevel`
+- Handler delegation in collectGoalEntry()
+- Support all goal types in CollectTodayEntries()
+
+**Phase 5: Testing**
+- Unit tests per handler (SimpleGoalHandler, ElasticGoalHandler, factory)
+- Integration tests (scoring, mixed goal types, error handling)
+- UI flow validation
+
+**Benefits:** Maintainable (clear separation), Simple (focused handlers), Decoupled (independent handlers), Testable (isolated components)
 
 - [ ] **4. UI Enhancements**: Update CLI interface for elastic goals
     - [ ] **4.1 Add elastic goal input handling**
