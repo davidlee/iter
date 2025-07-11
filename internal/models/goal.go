@@ -165,6 +165,24 @@ func (g *Goal) Validate() error {
 		}
 	}
 
+	// Validate scoring requirements for elastic goals
+	if g.GoalType == ElasticGoal {
+		if g.ScoringType == "" {
+			return fmt.Errorf("scoring_type is required for elastic goals")
+		}
+		if g.ScoringType == AutomaticScoring {
+			if g.MiniCriteria == nil {
+				return fmt.Errorf("mini_criteria is required for automatic scoring of elastic goals")
+			}
+			if g.MidiCriteria == nil {
+				return fmt.Errorf("midi_criteria is required for automatic scoring of elastic goals")
+			}
+			if g.MaxiCriteria == nil {
+				return fmt.Errorf("maxi_criteria is required for automatic scoring of elastic goals")
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -297,4 +315,29 @@ func contains(slice []string, item string) bool {
 		}
 	}
 	return false
+}
+
+// IsElastic returns true if this is an elastic goal.
+func (g *Goal) IsElastic() bool {
+	return g.GoalType == ElasticGoal
+}
+
+// IsSimple returns true if this is a simple goal.
+func (g *Goal) IsSimple() bool {
+	return g.GoalType == SimpleGoal
+}
+
+// IsInformational returns true if this is an informational goal.
+func (g *Goal) IsInformational() bool {
+	return g.GoalType == InformationalGoal
+}
+
+// RequiresAutomaticScoring returns true if this goal uses automatic scoring.
+func (g *Goal) RequiresAutomaticScoring() bool {
+	return g.ScoringType == AutomaticScoring
+}
+
+// RequiresManualScoring returns true if this goal uses manual scoring.
+func (g *Goal) RequiresManualScoring() bool {
+	return g.ScoringType == ManualScoring
 }

@@ -386,6 +386,212 @@ func TestIsValidID(t *testing.T) {
 	}
 }
 
+func TestGoal_ElasticValidation(t *testing.T) {
+	t.Run("valid elastic goal with automatic scoring", func(t *testing.T) {
+		goal := Goal{
+			Title:    "Daily Exercise",
+			Position: 1,
+			GoalType: ElasticGoal,
+			FieldType: FieldType{
+				Type:   DurationFieldType,
+				Format: "minutes",
+			},
+			ScoringType: AutomaticScoring,
+			MiniCriteria: &Criteria{
+				Description: "Minimum 15 minutes",
+				Condition: &Condition{
+					GreaterThanOrEqual: float64Ptr(15),
+				},
+			},
+			MidiCriteria: &Criteria{
+				Description: "Target 30 minutes",
+				Condition: &Condition{
+					GreaterThanOrEqual: float64Ptr(30),
+				},
+			},
+			MaxiCriteria: &Criteria{
+				Description: "Excellent 60+ minutes",
+				Condition: &Condition{
+					GreaterThanOrEqual: float64Ptr(60),
+				},
+			},
+		}
+
+		err := goal.Validate()
+		require.NoError(t, err)
+		assert.Equal(t, "daily_exercise", goal.ID)
+	})
+
+	t.Run("valid elastic goal with manual scoring", func(t *testing.T) {
+		goal := Goal{
+			Title:    "Reading Time",
+			Position: 1,
+			GoalType: ElasticGoal,
+			FieldType: FieldType{
+				Type:   DurationFieldType,
+				Format: "minutes",
+			},
+			ScoringType: ManualScoring,
+		}
+
+		err := goal.Validate()
+		require.NoError(t, err)
+		assert.Equal(t, "reading_time", goal.ID)
+	})
+
+	t.Run("elastic goal requires scoring type", func(t *testing.T) {
+		goal := Goal{
+			Title:    "Exercise",
+			Position: 1,
+			GoalType: ElasticGoal,
+			FieldType: FieldType{
+				Type:   DurationFieldType,
+				Format: "minutes",
+			},
+		}
+
+		err := goal.Validate()
+		assert.EqualError(t, err, "scoring_type is required for elastic goals")
+	})
+
+	t.Run("elastic goal with automatic scoring requires mini criteria", func(t *testing.T) {
+		goal := Goal{
+			Title:    "Exercise",
+			Position: 1,
+			GoalType: ElasticGoal,
+			FieldType: FieldType{
+				Type:   DurationFieldType,
+				Format: "minutes",
+			},
+			ScoringType: AutomaticScoring,
+		}
+
+		err := goal.Validate()
+		assert.EqualError(t, err, "mini_criteria is required for automatic scoring of elastic goals")
+	})
+
+	t.Run("elastic goal with automatic scoring requires midi criteria", func(t *testing.T) {
+		goal := Goal{
+			Title:    "Exercise",
+			Position: 1,
+			GoalType: ElasticGoal,
+			FieldType: FieldType{
+				Type:   DurationFieldType,
+				Format: "minutes",
+			},
+			ScoringType: AutomaticScoring,
+			MiniCriteria: &Criteria{
+				Condition: &Condition{GreaterThanOrEqual: float64Ptr(15)},
+			},
+		}
+
+		err := goal.Validate()
+		assert.EqualError(t, err, "midi_criteria is required for automatic scoring of elastic goals")
+	})
+
+	t.Run("elastic goal with automatic scoring requires maxi criteria", func(t *testing.T) {
+		goal := Goal{
+			Title:    "Exercise",
+			Position: 1,
+			GoalType: ElasticGoal,
+			FieldType: FieldType{
+				Type:   DurationFieldType,
+				Format: "minutes",
+			},
+			ScoringType: AutomaticScoring,
+			MiniCriteria: &Criteria{
+				Condition: &Condition{GreaterThanOrEqual: float64Ptr(15)},
+			},
+			MidiCriteria: &Criteria{
+				Condition: &Condition{GreaterThanOrEqual: float64Ptr(30)},
+			},
+		}
+
+		err := goal.Validate()
+		assert.EqualError(t, err, "maxi_criteria is required for automatic scoring of elastic goals")
+	})
+}
+
+func TestGoal_HelperMethods(t *testing.T) {
+	t.Run("IsElastic", func(t *testing.T) {
+		tests := []struct {
+			goalType GoalType
+			expected bool
+		}{
+			{ElasticGoal, true},
+			{SimpleGoal, false},
+			{InformationalGoal, false},
+		}
+
+		for _, tt := range tests {
+			goal := Goal{GoalType: tt.goalType}
+			assert.Equal(t, tt.expected, goal.IsElastic())
+		}
+	})
+
+	t.Run("IsSimple", func(t *testing.T) {
+		tests := []struct {
+			goalType GoalType
+			expected bool
+		}{
+			{SimpleGoal, true},
+			{ElasticGoal, false},
+			{InformationalGoal, false},
+		}
+
+		for _, tt := range tests {
+			goal := Goal{GoalType: tt.goalType}
+			assert.Equal(t, tt.expected, goal.IsSimple())
+		}
+	})
+
+	t.Run("IsInformational", func(t *testing.T) {
+		tests := []struct {
+			goalType GoalType
+			expected bool
+		}{
+			{InformationalGoal, true},
+			{SimpleGoal, false},
+			{ElasticGoal, false},
+		}
+
+		for _, tt := range tests {
+			goal := Goal{GoalType: tt.goalType}
+			assert.Equal(t, tt.expected, goal.IsInformational())
+		}
+	})
+
+	t.Run("RequiresAutomaticScoring", func(t *testing.T) {
+		tests := []struct {
+			scoringType ScoringType
+			expected    bool
+		}{
+			{AutomaticScoring, true},
+			{ManualScoring, false},
+		}
+
+		for _, tt := range tests {
+			goal := Goal{ScoringType: tt.scoringType}
+			assert.Equal(t, tt.expected, goal.RequiresAutomaticScoring())
+		}
+	})
+
+	t.Run("RequiresManualScoring", func(t *testing.T) {
+		tests := []struct {
+			scoringType ScoringType
+			expected    bool
+		}{
+			{ManualScoring, true},
+			{AutomaticScoring, false},
+		}
+
+		for _, tt := range tests {
+			goal := Goal{ScoringType: tt.scoringType}
+			assert.Equal(t, tt.expected, goal.RequiresManualScoring())
+		}
+	})
+}
+
 // Helper functions for creating pointers
 func boolPtr(b bool) *bool {
 	return &b

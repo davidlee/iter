@@ -5,5 +5,6 @@ pkgs.mkShell {
     gopls # language server
     delve # debugger
     gofumpt # strict formatter
+    golangci-lint # linter
   ];
 }
