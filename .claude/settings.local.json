@@ -20,7 +20,9 @@
       "Bash(mv:*)",
       "Bash(git rm:*)",
       "Bash(find:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:pkg.go.dev)"
     ],
     "deny": []
   }

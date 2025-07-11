@@ -21,6 +21,10 @@ The application follows a clean architecture with separation of concerns:
 `iter` will make use of the following libraries & frameworks (github.com projects):
 
 - **User Interface**: charmbracelet/bubbletea, huh, lipgloss & bubbles for tasteful CLI/TUI presentation
+  - [huh documentation](https://github.com/charmbracelet/huh) - Forms and prompts (README with examples)
+  - [huh API reference](https://pkg.go.dev/github.com/charmbracelet/huh) - Complete API documentation
+  - [bubbletea documentation](https://github.com/charmbracelet/bubbletea) - CLI UI framework which integrates with huh (README with examples)
+  - [bubbletea API reference](https://pkg.go.dev/github.com/charmbracelet/bubbletea) - complete API documentation
 - **YAML parsing**: goccy/go-yaml
 - **Markdown rendering**: charmbracelet/glow
 - **Test assertions / mocks**: stretchr/testify
@@ -103,4 +107,3 @@ See `doc/specifications/goal_structure.md` for details.
 ## Intentionality and planning
 
 - If you find while attempting implementation that the problem is more complex than anticipated, or the planned approach will require significant adaptation, STOP. Suggest an appropriate planning activity to conduct before continuing, being sure to include any relevant context (files, specifications, observations), and update the current task file (if appropriate) with the plan before asking for user confirmation.
-

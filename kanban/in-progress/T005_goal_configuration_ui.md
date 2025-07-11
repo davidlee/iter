@@ -44,6 +44,10 @@ This eliminates the need for users to manually edit YAML and reduces configurati
 - [ ] Consistent styling using existing lipgloss patterns
 - [ ] Graceful handling of file permission errors
 - [ ] Preview of goal definition before saving
+- [ ] Progress indicators for multi-step flows
+- [ ] Navigation between steps (back/forward) where appropriate
+- [ ] Real-time validation and contextual help
+- [ ] Rich, interactive experience for complex goal configuration
 
 ### Technical Requirements
 - [ ] Loosely coupled design - separate goal configuration logic from entry collection
@@ -78,56 +82,103 @@ Based on investigation of existing codebase:
 
 **Planned Implementation Approach:**
 
-### Phase 1: Command Structure & Core UI
-- [ ] **1.1 Add goal subcommand structure**
-  - Create `cmd/goal.go` with `goal` parent command
-  - Add `add`, `list`, `edit`, `remove` subcommands
-  - Follow existing cobra patterns from `cmd/entry.go`
+### Phase 1: Command Structure & Core UI ✅ **COMPLETED**
+- [x] **1.1 Add goal subcommand structure**
+  - ✅ Create `cmd/goal.go` with `goal` parent command
+  - ✅ Add `add`, `list`, `edit`, `remove` subcommands
+  - ✅ Follow existing cobra patterns from `cmd/entry.go`
 
-- [ ] **1.2 Create goal configuration UI package**
-  - Create `internal/ui/goalconfig/` package for separation of concerns
-  - Design `GoalConfigurator` struct similar to `EntryCollector`
-  - Establish form builder patterns specific to goal configuration
+- [x] **1.2 Create goal configuration UI package**
+  - ✅ Create `internal/ui/goalconfig/` package for separation of concerns
+  - ✅ Design `GoalConfigurator` struct with form builders
+  - ✅ Establish comprehensive form builder patterns (GoalFormBuilder, CriteriaBuilder, GoalBuilder)
+  - ✅ Implement complete AddGoal flow with huh forms
 
-### Phase 2: Goal Creation (iter goal add)
-- [ ] **2.1 Basic goal creation flow**
-  - Title and description input with validation
-  - Goal type selection (simple/elastic/informational)
-  - Field type selection with contextual guidance
+### Phase 2: Enhanced Goal Creation & Flow Design
 
-- [ ] **2.2 Simple goal configuration**
-  - Boolean field type setup
-  - Scoring type selection (manual/automatic)
-  - Basic criteria definition for automatic scoring
+- [ ] **2.0 Flow Analysis and Enhancement Planning**
+  - [ ] Analyze current multi-step goal creation flow (4-6 form interactions)
+  - [ ] Document logical flow with text diagrams for each goal type:
+    - [ ] Simple goal flow diagram (4 steps: basic info → scoring → criteria → confirmation)
+    - [ ] Elastic goal flow diagram (6-8 steps: basic info → field config → scoring → mini/midi/maxi criteria → validation → confirmation)
+    - [ ] Informational goal flow diagram (3 steps: basic info → field config → confirmation)
+    - [ ] Decision tree diagrams for conditional flows (manual vs automatic scoring, field type branches)
+  - [ ] Evaluate bubbletea integration opportunities vs standalone huh forms:
+    - [ ] Complexity analysis: when bubbletea adds value vs overhead
+    - [ ] User experience improvements: navigation, progress, error recovery
+    - [ ] Technical integration patterns: embedding huh in bubbletea vs standalone
+  - [ ] Design enhanced UX patterns:
+    - [ ] Progress indicator designs (Step X of Y, progress bar, breadcrumbs)
+    - [ ] Navigation patterns (back/forward buttons, step jumping, cancel/exit)
+    - [ ] Real-time validation display (inline errors, live help text, field highlighting)
+    - [ ] Goal preview formats (summary cards, YAML preview, validation status)
+  - [ ] Plan API interfaces for bubbletea-enhanced components:
+    - [ ] Wizard state management interfaces (WizardState, StepHandler, NavigationController)
+    - [ ] Form embedding patterns (HuhFormStep, FormRenderer, ValidationCollector)  
+    - [ ] Progress tracking APIs (ProgressTracker, StepValidator, StateSerializer)
+    - [ ] Error recovery mechanisms (StateSnapshot, ErrorHandler, RetryStrategy)
+  - [ ] Create detailed implementation strategy focusing on elastic goals:
+    - [ ] Complex criteria validation flow (mini ≤ midi ≤ maxi constraints)
+    - [ ] Dynamic field configuration based on field type selection
+    - [ ] Progressive disclosure patterns for complex options
+    - [ ] State persistence between steps for long flows
 
-- [ ] **2.3 Elastic goal configuration**
-  - Field type selection (numeric, duration, time, text)
-  - Unit configuration for numeric fields
-  - Mini/midi/maxi criteria definition with validation
-  - Criteria ordering validation (reuse existing logic)
+- [ ] **2.1 Bubbletea Goal Creation Wizard (Enhanced UX)**
+  - [ ] Convert multi-step goal creation to unified bubbletea application
+  - [ ] Implement progress indicators showing current step (Step X of Y)
+  - [ ] Add back/forward navigation between steps
+  - [ ] Real-time validation with contextual error display
+  - [ ] Goal preview and confirmation step before saving
+  - [ ] Enhanced error recovery without losing progress
 
-- [ ] **2.4 Informational goal configuration**
-  - Field type and unit setup
-  - Direction specification (higher_better/lower_better/neutral)
+- [ ] **2.2 Simple Goal Wizard Flow**
+  - [ ] Step 1: Basic info (title, description, goal type pre-selected)
+  - [ ] Step 2: Scoring configuration (manual/automatic)
+  - [ ] Step 3: Criteria definition (if automatic scoring)
+  - [ ] Step 4: Preview and confirmation
 
-### Phase 3: Goal Management
-- [ ] **3.1 Goal listing (iter goal list)**
-  - Load and display existing goals
-  - Formatted output with goal type, field type, scoring info
-  - Optional filtering by goal type
+- [ ] **2.3 Elastic Goal Wizard Flow (Complex)**
+  - [ ] Step 1: Basic info and field type selection
+  - [ ] Step 2: Field configuration (units, constraints)
+  - [ ] Step 3: Scoring type selection
+  - [ ] Step 4: Mini-level criteria definition
+  - [ ] Step 5: Midi-level criteria definition  
+  - [ ] Step 6: Maxi-level criteria definition
+  - [ ] Step 7: Criteria validation and preview
+  - [ ] Step 8: Final confirmation with complete goal summary
 
-- [ ] **3.2 Goal editing (iter goal edit)**
-  - Goal selection from existing goals
-  - Pre-populate forms with current values
-  - Allow modification of all goal properties
-  - Preserve goal ID for data integrity
+- [ ] **2.4 Informational Goal Wizard Flow**
+  - [ ] Step 1: Basic info and field type selection
+  - [ ] Step 2: Field configuration and direction
+  - [ ] Step 3: Preview and confirmation
 
-- [ ] **3.3 Goal removal (iter goal remove)**
-  - Goal selection interface
-  - Confirmation prompt with goal details
-  - Safe removal preserving other goals
+- [ ] **2.5 Hybrid Implementation Strategy**
+  - [ ] Keep simple huh forms for basic interactions
+  - [ ] Use bubbletea for complex multi-step flows
+  - [ ] Create reusable bubbletea components that can embed huh forms
+  - [ ] Maintain backwards compatibility with existing patterns
 
-### Phase 4: Integration & Polish
+### Phase 3: Goal Management Enhancement
+- [ ] **3.1 Enhanced Goal Listing (iter goal list)**
+  - [ ] Rich table display with goal summaries
+  - [ ] Interactive filtering and sorting
+  - [ ] Goal status indicators (manual/automatic scoring, completeness)
+  - [ ] Search functionality for large goal sets
+
+- [ ] **3.2 Enhanced Goal Editing (iter goal edit)**
+  - [ ] Interactive goal selection with preview
+  - [ ] Wizard-style editing with current values pre-populated
+  - [ ] Live preview of changes before saving
+  - [ ] Better error recovery and validation
+  - [ ] Preserve goal ID and data integrity
+
+- [ ] **3.3 Enhanced Goal Removal (iter goal remove)**
+  - [ ] Interactive goal selection with details
+  - [ ] Impact analysis (entries that reference this goal)
+  - [ ] Confirmation with goal summary
+  - [ ] Safe removal with backup options
+
+### Phase 4: Integration, Testing & Polish
 - [ ] **4.1 File operations**
   - Atomic goal additions/modifications using existing parser
   - Error handling for file permissions, disk space
@@ -150,6 +201,9 @@ Based on investigation of existing codebase:
 3. **Progressive Disclosure**: Guide users through goal creation with conditional prompts based on selections
 4. **Data Integrity**: Preserve goal IDs and use atomic file operations
 5. **Extensibility**: Design forms to easily accommodate new goal types and field types
+6. **Hybrid UI Strategy**: Use simple huh forms for basic interactions, bubbletea for complex multi-step flows
+7. **Enhanced UX**: Progress indicators, navigation, real-time validation for complex workflows
+8. **Backwards Compatibility**: Maintain existing simple form patterns while enhancing complex flows
 
 ## 4. Roadblocks
 
@@ -163,7 +217,50 @@ Based on investigation of existing codebase:
 - Focus on progressive disclosure and guided configuration experience
 
 **Technical Notes:**
+
+**Phase 1 Implementation (Completed):**
 - `huh.NewSelect()` perfect for goal type and field type selection
 - Existing validation in models package provides solid foundation
 - T004 ID persistence ensures data integrity during goal modifications
 - Cobra command structure established in `cmd/` package
+- Comprehensive form builders implemented (GoalFormBuilder, CriteriaBuilder, GoalBuilder)
+- Complete AddGoal flow with 4-6 sequential form interactions
+
+**Bubbletea Enhancement Strategy:**
+
+**Current State Analysis:**
+- Goal creation requires 4-6 separate `form.Run()` calls
+- Each form is isolated with no shared state or progress indication
+- No ability to navigate back once a form is submitted
+- Error recovery requires starting over
+- Limited dynamic behavior within forms
+
+**Enhancement Opportunities:**
+1. **Multi-step Wizards**: Goal creation flow would benefit from unified navigation
+2. **Real-time Validation**: Live field validation and dynamic help text
+3. **Rich Context**: Show goal overview alongside forms, progress indicators
+4. **Enhanced Error Recovery**: Better handling without losing progress
+
+**Implementation Strategy:**
+- **Phase 1**: Keep current huh forms for simple interactions (working implementation)
+- **Phase 2**: Enhance complex flows with bubbletea (goal creation wizard)
+- **Phase 3**: Apply bubbletea to goal management operations
+- **Hybrid Approach**: bubbletea apps can embed huh forms for best of both worlds
+
+**Key Technical Decisions:**
+- Start with goal configuration wizard as bubbletea proof-of-concept
+- Maintain huh forms for single-step interactions (confirmations, simple input)
+- Create reusable bubbletea components for wizard-style flows
+- Design APIs that support both standalone huh and embedded-in-bubbletea usage
+
+**Flow Complexity Analysis:**
+- **Simple Goals**: 4 steps → Good candidate for bubbletea wizard
+- **Elastic Goals**: 6-8 steps → High value from enhanced navigation and progress
+- **Informational Goals**: 3 steps → Moderate benefit from bubbletea
+- **Goal Management**: List/edit/remove → Enhanced interaction patterns valuable
+
+**References:**
+- [huh documentation](https://github.com/charmbracelet/huh) - Forms and prompts
+- [huh API reference](https://pkg.go.dev/github.com/charmbracelet/huh)
+- [bubbletea documentation](https://github.com/charmbracelet/bubbletea) - CLI UI framework  
+- [bubbletea API reference](https://pkg.go.dev/github.com/charmbracelet/bubbletea)
