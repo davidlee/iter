@@ -29,17 +29,16 @@ A checklist of conditions that must be met for the task to be considered complet
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
 
 - [ ] **High-Level Phase/Component 1**: (Optional description)
-    - [ ] **Detailed Sub-task 1.1:** (Description of sub-task)
-        - *Design:* (Brief notes on approach, function signatures, data structures, API endpoints, UI elements, etc. AI proposes this.)
-        - *Code/Artifacts to be created or modified:* (e.g., `user_service.go`, API documentation update)
-        - *Testing Strategy:* (Unit tests, integration tests, manual checks to be performed by user. AI proposes this.)
-        - *AI Notes:* (Internal thoughts, questions for this sub-task, recommended future changes not in scope)
+  - [ ] **Detailed Sub-task 1.1:** (Description of sub-task)
+    - *Design:* (Brief notes on approach, function signatures, data structures, API endpoints, UI elements, etc. AI proposes this.)
+    - *Code/Artifacts to be created or modified:* (e.g., `user_service.go`, API documentation update)
+    - *Testing Strategy:* (Unit tests, integration tests, manual checks to be performed by user. AI proposes this.)
+    - *AI Notes:* (Internal thoughts, questions for this sub-task, recommended future changes not in scope)
     - [ ] **Detailed Sub-task 1.2:** ...
 - [ ] **High-Level Phase/Component 2**
-    - [ ] **Detailed Sub-task 2.1:** ...
-        - *Design:* ...
-        - *Testing Strategy:* ...
-
+  - [ ] **Detailed Sub-task 2.1:** ...
+    - *Design:* ...
+    - *Testing Strategy:* ...
 
 ## 4. Roadblocks
 
