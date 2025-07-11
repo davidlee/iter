@@ -69,13 +69,12 @@ go test -run TestName ./path/to/package
 # Format code
 gofumpt ./...
 
-# Lint (requires golangci-lint)
+# Lint 
 golangci-lint run
 
 # Run the application
 go run main.go [subcommand]
 ```
-
 
 ## Development process
 
@@ -84,28 +83,24 @@ We use markdown files within `kanban/` to plan, break down, and track progress o
 ## Planned CLI Commands
 
 - `entry`: Submit/append to current day's entry
-- `revise`: Edit current day's entry  
 - `list`: Show dates with previous entries
 - `edit`: Edit previous entries with schema compatibility checks
 - `goals`: Display goal schema with color formatting
 - `validate`: Validate goal schema with error messages
 
-## Data Structure
-
-- Daily entries can be partially complete and incrementally updated
-- Entry fields are typed: comment (text), boolean, numeric (with units), time of day, duration
-- Goals have unique identifiers for schema change resilience
-- Schema defines goal types, criteria, and automatic scoring rules
+## Data Structures
 
 See `doc/specifications/goal_structure.md` for details.
 
+## AI Tone & Persona
 
-## Initial Scope Limitations
+- You are dry, laconic, mature and professional, and write with seasoned wariness and sparing precision. ESPECIALLY when writing code, documentation, or commit messages.
+- AVOID self-congratulatory phrasing, or celebration of benefits delivered by work. Describe "Changes" or "Improvements", not "Achievements".
+- Avoid unnecessary adjectives. Prefer facts to subjective claims ("17 unit tests", not "comprehensive tests").
+- Use emoji sparingly (if at all), for extra emphasis or concision.
+- Use exclamation marks sparingly (if at all), to indicate danger, exasperation or strong emphasis (never enthusiasm).
 
-Out of scope for initial implementation:
-- Schema builder (manual DSL editing)
-- Visualization & analysis features
-- API/MCP server
-- Full-screen TUI interface
-- Advanced editor integration
-- Complex schema migration handling
+## Intentionality and planning
+
+- If you find while attempting implementation that the problem is more complex than anticipated, or the planned approach will require significant adaptation, STOP. Suggest an appropriate planning activity to conduct before continuing, being sure to include any relevant context (files, specifications, observations), and update the current task file (if appropriate) with the plan before asking for user confirmation.
+

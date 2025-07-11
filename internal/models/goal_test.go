@@ -79,7 +79,6 @@ func TestGoal_Validate(t *testing.T) {
 		assert.EqualError(t, err, "goal title is required")
 	})
 
-
 	t.Run("goal type is required", func(t *testing.T) {
 		goal := Goal{
 			Title:    "Test Goal",
@@ -311,7 +310,7 @@ func TestSchema_Validate(t *testing.T) {
 					ScoringType: ManualScoring,
 				},
 				{
-					Title:       "Goal 2", 
+					Title:       "Goal 2",
 					Position:    0, // Will be auto-assigned to 2
 					GoalType:    SimpleGoal,
 					FieldType:   FieldType{Type: BooleanFieldType},
@@ -322,7 +321,7 @@ func TestSchema_Validate(t *testing.T) {
 
 		err := schema.Validate()
 		assert.NoError(t, err)
-		
+
 		// Check that positions were auto-assigned
 		assert.Equal(t, 1, schema.Goals[0].Position)
 		assert.Equal(t, 2, schema.Goals[1].Position)

@@ -247,7 +247,7 @@ func (s *Schema) Validate() error {
 	for i := range s.Goals {
 		// Auto-assign position based on array index (1-based)
 		s.Goals[i].Position = i + 1
-		
+
 		if err := s.Goals[i].Validate(); err != nil {
 			return fmt.Errorf("goal at index %d: %w", i, err)
 		}

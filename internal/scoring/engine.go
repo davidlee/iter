@@ -335,7 +335,7 @@ func (e *Engine) convertToString(value interface{}) (string, error) {
 // parseDurationToMinutes parses duration strings to minutes.
 func (e *Engine) parseDurationToMinutes(duration string) (float64, error) {
 	duration = strings.TrimSpace(duration)
-	
+
 	// Try parsing as Go duration first (e.g., "1h30m", "90m")
 	if strings.ContainsAny(duration, "hms") {
 		d, err := time.ParseDuration(duration)

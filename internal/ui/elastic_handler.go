@@ -355,7 +355,7 @@ func (h *ElasticGoalHandler) displayAchievementResult(result *scoring.ScoreResul
 	}
 
 	message := fmt.Sprintf("%s Achievement Level: %s", emoji, levelName)
-	
+
 	fmt.Println()
 	fmt.Println(style.Render(message))
 
@@ -373,7 +373,7 @@ func (h *ElasticGoalHandler) displayAchievementResult(result *scoring.ScoreResul
 			achieved = append(achieved, "Maxi")
 		}
 		details += strings.Join(achieved, ", ")
-		
+
 		detailStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Faint(true)
 		fmt.Println(detailStyle.Render(details))
 	}

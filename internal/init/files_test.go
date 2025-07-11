@@ -36,7 +36,7 @@ func TestFileInitializer_EnsureConfigFiles(t *testing.T) {
 		schema, err := goalParser.LoadFromFile(goalsFile)
 		require.NoError(t, err)
 		assert.Equal(t, "1.0.0", schema.Version)
-		assert.Len(t, schema.Goals, 2)
+		assert.Len(t, schema.Goals, 4)
 
 		// Verify entries file was created and is valid
 		assert.FileExists(t, entriesFile)
@@ -129,9 +129,9 @@ func TestFileInitializer_createSampleGoalsFile(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "1.0.0", schema.Version)
-	assert.Len(t, schema.Goals, 2)
+	assert.Len(t, schema.Goals, 4)
 
-	// Check first goal
+	// Check first goal (simple boolean)
 	goal1 := schema.Goals[0]
 	assert.Equal(t, "Morning Exercise", goal1.Title)
 	assert.Equal(t, "morning_exercise", goal1.ID)
@@ -143,7 +143,7 @@ func TestFileInitializer_createSampleGoalsFile(t *testing.T) {
 	assert.NotEmpty(t, goal1.Prompt)
 	assert.NotEmpty(t, goal1.HelpText)
 
-	// Check second goal
+	// Check second goal (simple boolean)
 	goal2 := schema.Goals[1]
 	assert.Equal(t, "Daily Reading", goal2.Title)
 	assert.Equal(t, "daily_reading", goal2.ID)
@@ -151,6 +151,31 @@ func TestFileInitializer_createSampleGoalsFile(t *testing.T) {
 	assert.Equal(t, models.SimpleGoal, goal2.GoalType)
 	assert.Equal(t, models.BooleanFieldType, goal2.FieldType.Type)
 	assert.Equal(t, models.ManualScoring, goal2.ScoringType)
+
+	// Check third goal (elastic duration)
+	goal3 := schema.Goals[2]
+	assert.Equal(t, "Exercise Duration", goal3.Title)
+	assert.Equal(t, "exercise_duration", goal3.ID)
+	assert.Equal(t, 3, goal3.Position)
+	assert.Equal(t, models.ElasticGoal, goal3.GoalType)
+	assert.Equal(t, models.DurationFieldType, goal3.FieldType.Type)
+	assert.Equal(t, models.AutomaticScoring, goal3.ScoringType)
+	assert.NotNil(t, goal3.MiniCriteria)
+	assert.NotNil(t, goal3.MidiCriteria)
+	assert.NotNil(t, goal3.MaxiCriteria)
+
+	// Check fourth goal (elastic numeric with units)
+	goal4 := schema.Goals[3]
+	assert.Equal(t, "Water Intake", goal4.Title)
+	assert.Equal(t, "water_intake", goal4.ID)
+	assert.Equal(t, 4, goal4.Position)
+	assert.Equal(t, models.ElasticGoal, goal4.GoalType)
+	assert.Equal(t, models.UnsignedIntFieldType, goal4.FieldType.Type)
+	assert.Equal(t, "glasses", goal4.FieldType.Unit)
+	assert.Equal(t, models.AutomaticScoring, goal4.ScoringType)
+	assert.NotNil(t, goal4.MiniCriteria)
+	assert.NotNil(t, goal4.MidiCriteria)
+	assert.NotNil(t, goal4.MaxiCriteria)
 }
 
 func TestFileInitializer_createEmptyEntriesFile(t *testing.T) {

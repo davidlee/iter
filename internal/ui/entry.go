@@ -19,8 +19,8 @@ type EntryCollector struct {
 	entryStorage  *storage.EntryStorage
 	scoringEngine *scoring.Engine
 	goals         []models.Goal
-	entries       map[string]interface{}                      // Stores raw values for all goal types
-	achievements  map[string]*models.AchievementLevel         // Stores achievement levels for elastic goals
+	entries       map[string]interface{}              // Stores raw values for all goal types
+	achievements  map[string]*models.AchievementLevel // Stores achievement levels for elastic goals
 	notes         map[string]string
 }
 
@@ -90,7 +90,7 @@ func (ec *EntryCollector) loadExistingEntries(entriesFile string) error {
 	for _, goalEntry := range dayEntry.Goals {
 		ec.entries[goalEntry.GoalID] = goalEntry.Value
 		ec.notes[goalEntry.GoalID] = goalEntry.Notes
-		
+
 		// Load achievement level for elastic goals
 		if goalEntry.AchievementLevel != nil {
 			ec.achievements[goalEntry.GoalID] = goalEntry.AchievementLevel
@@ -124,7 +124,7 @@ func (ec *EntryCollector) collectGoalEntry(goal models.Goal) error {
 	// Store the results in our maps
 	ec.entries[goal.ID] = result.Value
 	ec.notes[goal.ID] = result.Notes
-	
+
 	// Store achievement level if present (for elastic goals)
 	if result.AchievementLevel != nil {
 		ec.achievements[goal.ID] = result.AchievementLevel
@@ -132,7 +132,6 @@ func (ec *EntryCollector) collectGoalEntry(goal models.Goal) error {
 
 	return nil
 }
-
 
 // saveEntries saves all collected entries to the entries file.
 func (ec *EntryCollector) saveEntries(entriesFile string) error {
@@ -292,4 +291,40 @@ func (ec *EntryCollector) displayCompletion() {
 // timePtr creates a pointer to a time.Time value.
 func timePtr(t time.Time) *time.Time {
 	return &t
+}
+
+// Testing helpers - these methods are only used in tests
+
+// SetGoalsForTesting sets the goals for testing purposes.
+func (ec *EntryCollector) SetGoalsForTesting(goals []models.Goal) {
+	ec.goals = goals
+}
+
+// SetEntryForTesting sets an entry for testing purposes.
+func (ec *EntryCollector) SetEntryForTesting(goalID string, value interface{}, achievementLevel *models.AchievementLevel, notes string) {
+	ec.entries[goalID] = value
+	ec.notes[goalID] = notes
+	if achievementLevel != nil {
+		ec.achievements[goalID] = achievementLevel
+	}
+}
+
+// SaveEntriesForTesting saves entries for testing purposes.
+func (ec *EntryCollector) SaveEntriesForTesting(entriesFile string) error {
+	return ec.saveEntries(entriesFile)
+}
+
+// LoadExistingEntriesForTesting loads existing entries for testing purposes.
+func (ec *EntryCollector) LoadExistingEntriesForTesting(entriesFile string) error {
+	return ec.loadExistingEntries(entriesFile)
+}
+
+// GetEntriesForTesting returns the entries map for testing purposes.
+func (ec *EntryCollector) GetEntriesForTesting() map[string]interface{} {
+	return ec.entries
+}
+
+// GetAchievementsForTesting returns the achievements map for testing purposes.
+func (ec *EntryCollector) GetAchievementsForTesting() map[string]*models.AchievementLevel {
+	return ec.achievements
 }

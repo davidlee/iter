@@ -36,7 +36,6 @@ This document outlines the collaboration model between the User (acting as Tech 
         - security, performance, maintainability considerations (potential or already addressed)
         - considerations for future extension or improvement
 
-    - No self-congratulation or elaboration of benefits is necessary.
 
 ## Kanban System: Folders & Files
 

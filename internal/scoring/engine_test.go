@@ -16,11 +16,11 @@ func TestEngine_ScoreElasticGoal(t *testing.T) {
 		goal := createTestElasticGoal(models.UnsignedIntFieldType, 5000, 10000, 15000)
 
 		testCases := []struct {
-			value          interface{}
-			expectedLevel  models.AchievementLevel
-			expectedMini   bool
-			expectedMidi   bool
-			expectedMaxi   bool
+			value         interface{}
+			expectedLevel models.AchievementLevel
+			expectedMini  bool
+			expectedMidi  bool
+			expectedMaxi  bool
 		}{
 			{3000, models.AchievementNone, false, false, false},
 			{5000, models.AchievementMini, true, false, false},
@@ -56,7 +56,7 @@ func TestEngine_ScoreElasticGoal(t *testing.T) {
 			{30, models.AchievementMidi},
 			{"45", models.AchievementMidi},
 			{60.0, models.AchievementMaxi},
-			{"1h30m", models.AchievementMaxi}, // 90 minutes
+			{"1h30m", models.AchievementMaxi},   // 90 minutes
 			{"1:30:00", models.AchievementMaxi}, // 90 minutes
 		}
 
@@ -97,8 +97,8 @@ func TestEngine_ScoreElasticGoal(t *testing.T) {
 			expectedLevel models.AchievementLevel
 		}{
 			{"", models.AchievementNone},
-			{"short", models.AchievementMini}, // 5 chars >= 5
-			{"medium length text", models.AchievementMidi}, // 18 chars >= 15
+			{"short", models.AchievementMini},                                                       // 5 chars >= 5
+			{"medium length text", models.AchievementMidi},                                          // 18 chars >= 15
 			{"this is a very long text that exceeds the maximum threshold", models.AchievementMaxi}, // 63 chars >= 30
 		}
 
@@ -171,11 +171,11 @@ func TestEngine_ConvertValueForEvaluation(t *testing.T) {
 			value    interface{}
 			expected float64
 		}{
-			{30, 30.0},           // 30 minutes
-			{"45", 45.0},         // 45 minutes
-			{"1h", 60.0},         // 1 hour = 60 minutes
-			{"1h30m", 90.0},      // 1.5 hours = 90 minutes
-			{"2:30:00", 150.0},   // 2.5 hours = 150 minutes
+			{30, 30.0},         // 30 minutes
+			{"45", 45.0},       // 45 minutes
+			{"1h", 60.0},       // 1 hour = 60 minutes
+			{"1h30m", 90.0},    // 1.5 hours = 90 minutes
+			{"2:30:00", 150.0}, // 2.5 hours = 150 minutes
 		}
 
 		for _, tc := range testCases {
@@ -190,9 +190,9 @@ func TestEngine_ConvertValueForEvaluation(t *testing.T) {
 			value    interface{}
 			expected float64
 		}{
-			{"09:00", 540.0},    // 9 AM = 540 minutes since midnight
-			{"14:30", 870.0},    // 2:30 PM = 870 minutes since midnight
-			{"23:59", 1439.0},   // 11:59 PM = 1439 minutes since midnight
+			{"09:00", 540.0},  // 9 AM = 540 minutes since midnight
+			{"14:30", 870.0},  // 2:30 PM = 870 minutes since midnight
+			{"23:59", 1439.0}, // 11:59 PM = 1439 minutes since midnight
 		}
 
 		for _, tc := range testCases {
