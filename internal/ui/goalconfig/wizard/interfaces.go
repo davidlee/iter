@@ -1,15 +1,20 @@
 // Package wizard provides bubbletea-based wizard components for goal configuration.
+//
+// AIDEV-NOTE: Core wizard interfaces - extend here for new step types or wizard patterns
+// Key extension points:
+// - StepHandler interface: implement for new step types (elastic field config, validation steps)
+// - State interface: extend for additional wizard types beyond goal configuration
+// - FormRenderer interface: customize for different visual themes or layouts
 package wizard
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/huh"
 
 	"davidlee/iter/internal/models"
 )
 
-// WizardState represents the complete state of the goal creation wizard
-type WizardState interface {
+// State represents the complete state of the goal creation wizard
+type State interface {
 	GetStep(index int) StepData
 	SetStep(index int, data StepData)
 	Validate() []ValidationError
@@ -26,19 +31,19 @@ type WizardState interface {
 // StepHandler defines the interface for individual wizard steps
 type StepHandler interface {
 	// Render returns the string representation of this step
-	Render(state WizardState) string
+	Render(state State) string
 	
 	// Update handles tea messages and returns updated state and commands
-	Update(msg tea.Msg, state WizardState) (WizardState, tea.Cmd)
+	Update(msg tea.Msg, state State) (State, tea.Cmd)
 	
 	// Validate checks if the current step data is valid
-	Validate(state WizardState) []ValidationError
+	Validate(state State) []ValidationError
 	
 	// CanNavigateFrom returns true if user can leave this step
-	CanNavigateFrom(state WizardState) bool
+	CanNavigateFrom(state State) bool
 	
 	// CanNavigateTo returns true if user can enter this step
-	CanNavigateTo(state WizardState) bool
+	CanNavigateTo(state State) bool
 	
 	// GetTitle returns the title for this step
 	GetTitle() string
@@ -49,9 +54,9 @@ type StepHandler interface {
 
 // NavigationController manages wizard navigation
 type NavigationController interface {
-	CanGoBack(state WizardState) bool
-	CanGoForward(state WizardState) bool
-	CanGoToStep(index int, state WizardState) bool
+	CanGoBack(state State) bool
+	CanGoForward(state State) bool
+	CanGoToStep(index int, state State) bool
 	GoBack() tea.Cmd
 	GoForward() tea.Cmd
 	GoToStep(index int) tea.Cmd
@@ -59,31 +64,19 @@ type NavigationController interface {
 	Finish() tea.Cmd
 }
 
-// HuhFormStep wraps a huh form for use in bubbletea wizard
-type HuhFormStep struct {
-	form        *huh.Form
-	title       string
-	description string
-	validator   func(interface{}) []ValidationError
-	onComplete  func(result interface{}) StepData
-	isActive    bool
-	isCompleted bool
-}
-
 // FormRenderer handles rendering of forms and wizard chrome
 type FormRenderer interface {
-	RenderForm(step HuhFormStep, state WizardState) string
 	RenderProgress(current, total int, completedSteps []int) string
-	RenderNavigation(nav NavigationController, state WizardState) string
-	RenderSummary(state WizardState) string
+	RenderNavigation(nav NavigationController, state State) string
+	RenderSummary(state State) string
 	RenderValidationErrors(errors []ValidationError) string
 }
 
 // ValidationCollector manages validation across wizard steps
 type ValidationCollector interface {
-	CollectErrors(state WizardState) []ValidationError
+	CollectErrors(state State) []ValidationError
 	ValidateStep(stepIndex int, data StepData) []ValidationError
-	ValidateCrossStep(state WizardState) []ValidationError
+	ValidateCrossStep(state State) []ValidationError
 }
 
 // ProgressTracker manages step completion and progress
@@ -117,25 +110,39 @@ type ValidationError struct {
 type StepStatus int
 
 const (
+	// StepPending indicates the step hasn't been started
 	StepPending StepStatus = iota
+	// StepInProgress indicates the step is currently active
 	StepInProgress
+	// StepCompleted indicates the step has been finished
 	StepCompleted
+	// StepError indicates the step has an error
 	StepError
 )
 
-// Tea messages for wizard navigation
-type (
-	NavigateBackMsg    struct{}
-	NavigateForwardMsg struct{}
-	NavigateToStepMsg  struct{ Step int }
-	CancelWizardMsg    struct{}
-	FinishWizardMsg    struct{}
-	StepCompletedMsg   struct{ Step int }
-	ValidationErrorMsg struct{ Errors []ValidationError }
-)
+// NavigateBackMsg requests navigation to the previous step
+type NavigateBackMsg struct{}
 
-// WizardResult represents the final result of the wizard
-type WizardResult struct {
+// NavigateForwardMsg requests navigation to the next step
+type NavigateForwardMsg struct{}
+
+// NavigateToStepMsg requests navigation to a specific step
+type NavigateToStepMsg struct{ Step int }
+
+// CancelWizardMsg requests wizard cancellation
+type CancelWizardMsg struct{}
+
+// FinishWizardMsg requests wizard completion
+type FinishWizardMsg struct{}
+
+// StepCompletedMsg indicates a step has been completed
+type StepCompletedMsg struct{ Step int }
+
+// ValidationErrorMsg contains validation errors
+type ValidationErrorMsg struct{ Errors []ValidationError }
+
+// Result represents the final result of the wizard
+type Result struct {
 	Goal      *models.Goal
 	Cancelled bool
 	Error     error

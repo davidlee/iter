@@ -11,7 +11,7 @@ import (
 
 // GoalWizardModel is the main bubbletea model for the goal creation wizard
 type GoalWizardModel struct {
-	state      WizardState
+	state      State
 	navigation NavigationController
 	renderer   FormRenderer
 	steps      []StepHandler
@@ -21,7 +21,7 @@ type GoalWizardModel struct {
 	formActive  bool
 	
 	// Result
-	result *WizardResult
+	result *Result
 	done   bool
 	
 	// UI state
@@ -31,7 +31,7 @@ type GoalWizardModel struct {
 
 // NewGoalWizardModel creates a new goal wizard model
 func NewGoalWizardModel(goalType models.GoalType, _ []models.Goal) *GoalWizardModel {
-	state := NewGoalWizardState(goalType)
+	state := NewGoalState(goalType)
 	navigation := NewDefaultNavigationController()
 	renderer := NewDefaultFormRenderer()
 	
@@ -144,7 +144,7 @@ func (m *GoalWizardModel) View() string {
 }
 
 // GetResult returns the wizard result (call after wizard is done)
-func (m *GoalWizardModel) GetResult() *WizardResult {
+func (m *GoalWizardModel) GetResult() *Result {
 	return m.result
 }
 
@@ -205,7 +205,7 @@ func (m *GoalWizardModel) handleNavigateToStep(targetStep int) (tea.Model, tea.C
 }
 
 func (m *GoalWizardModel) handleCancel() (tea.Model, tea.Cmd) {
-	m.result = &WizardResult{
+	m.result = &Result{
 		Cancelled: true,
 	}
 	m.done = true
@@ -213,10 +213,24 @@ func (m *GoalWizardModel) handleCancel() (tea.Model, tea.Cmd) {
 }
 
 func (m *GoalWizardModel) handleFinish() (tea.Model, tea.Cmd) {
+	// Check if on confirmation step and confirmed
+	if m.state.GetCurrentStep() == m.state.GetTotalSteps()-1 {
+		if confirmationHandler, ok := m.getCurrentStepHandler().(*ConfirmationStepHandler); ok {
+			if !confirmationHandler.IsConfirmed() {
+				// User chose not to confirm, treat as cancellation
+				m.result = &Result{
+					Cancelled: true,
+				}
+				m.done = true
+				return m, tea.Quit
+			}
+		}
+	}
+	
 	// Validate all steps
 	errors := m.state.Validate()
 	if len(errors) > 0 {
-		m.result = &WizardResult{
+		m.result = &Result{
 			Error: fmt.Errorf("validation failed: %d errors", len(errors)),
 		}
 		m.done = true
@@ -226,14 +240,14 @@ func (m *GoalWizardModel) handleFinish() (tea.Model, tea.Cmd) {
 	// Convert state to goal
 	goal, err := m.state.ToGoal()
 	if err != nil {
-		m.result = &WizardResult{
+		m.result = &Result{
 			Error: fmt.Errorf("failed to create goal: %w", err),
 		}
 		m.done = true
 		return m, tea.Quit
 	}
 	
-	m.result = &WizardResult{
+	m.result = &Result{
 		Goal: goal,
 	}
 	m.done = true
@@ -273,95 +287,87 @@ func (m *GoalWizardModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// AIDEV-TODO: Add new goal types and step handlers here
+// To implement elastic/informational flows:
+// 1. Add case for new goal type
+// 2. Create step handlers following simple_steps.go pattern
+// 3. Use PlaceholderStepHandler for unimplemented steps
+// 4. Update total step count in state.go calculateTotalSteps()
+
 // createStepHandlers creates the appropriate step handlers for the goal type
 func createStepHandlers(goalType models.GoalType) []StepHandler {
 	var handlers []StepHandler
 	
 	// All goal types start with basic info
-	handlers = append(handlers, NewBasicInfoStepHandler())
+	handlers = append(handlers, NewBasicInfoStepHandler(goalType))
 	
 	switch goalType {
 	case models.SimpleGoal:
 		handlers = append(handlers, 
-			NewScoringStepHandler(),
-			NewCriteriaStepHandler("simple"),
-			NewConfirmationStepHandler(),
+			NewScoringStepHandler(goalType),
+			NewCriteriaStepHandler(goalType, "simple"),
+			NewConfirmationStepHandler(goalType),
 		)
 	case models.ElasticGoal:
 		handlers = append(handlers,
-			NewFieldConfigStepHandler(),
-			NewScoringStepHandler(),
-			NewCriteriaStepHandler("mini"),
-			NewCriteriaStepHandler("midi"),
-			NewCriteriaStepHandler("maxi"),
-			NewValidationStepHandler(),
-			NewConfirmationStepHandler(),
+			// TODO: Implement field config step handler for elastic goals
+			&PlaceholderStepHandler{title: "Field Configuration"},
+			NewScoringStepHandler(goalType),
+			NewCriteriaStepHandler(goalType, "mini"),
+			NewCriteriaStepHandler(goalType, "midi"),
+			NewCriteriaStepHandler(goalType, "maxi"),
+			// TODO: Implement validation step handler
+			&PlaceholderStepHandler{title: "Validation"},
+			NewConfirmationStepHandler(goalType),
 		)
 	case models.InformationalGoal:
 		handlers = append(handlers,
-			NewFieldConfigStepHandler(),
-			NewConfirmationStepHandler(),
+			// TODO: Implement field config step handler for informational goals
+			&PlaceholderStepHandler{title: "Field Configuration"},
+			NewConfirmationStepHandler(goalType),
 		)
 	}
 	
 	return handlers
 }
 
-// Placeholder step handler constructors - these would be implemented
-func NewBasicInfoStepHandler() StepHandler {
-	return &PlaceholderStepHandler{title: "Basic Information"}
-}
-
-func NewFieldConfigStepHandler() StepHandler {
-	return &PlaceholderStepHandler{title: "Field Configuration"}
-}
-
-func NewScoringStepHandler() StepHandler {
-	return &PlaceholderStepHandler{title: "Scoring Configuration"}
-}
-
-func NewCriteriaStepHandler(level string) StepHandler {
-	return &PlaceholderStepHandler{title: fmt.Sprintf("Criteria - %s", level)}
-}
-
-func NewValidationStepHandler() StepHandler {
-	return &PlaceholderStepHandler{title: "Validation"}
-}
-
-func NewConfirmationStepHandler() StepHandler {
-	return &PlaceholderStepHandler{title: "Confirmation"}
-}
-
-// PlaceholderStepHandler is a minimal implementation for testing
+// PlaceholderStepHandler is a minimal implementation for steps not yet implemented
 type PlaceholderStepHandler struct {
 	title       string
 	description string
 }
 
-func (h *PlaceholderStepHandler) Render(state WizardState) string {
-	return fmt.Sprintf("=== %s ===\n\n[Step content placeholder]", h.title)
+// Render renders a placeholder message
+func (h *PlaceholderStepHandler) Render(_ State) string {
+	return fmt.Sprintf("=== %s ===\n\n[Step implementation pending]\n\nPress 'n' to continue.", h.title)
 }
 
-func (h *PlaceholderStepHandler) Update(msg tea.Msg, state WizardState) (WizardState, tea.Cmd) {
+// Update handles messages (placeholder)
+func (h *PlaceholderStepHandler) Update(_ tea.Msg, state State) (State, tea.Cmd) {
 	return state, nil
 }
 
-func (h *PlaceholderStepHandler) Validate(state WizardState) []ValidationError {
+// Validate validates step data (placeholder)
+func (h *PlaceholderStepHandler) Validate(_ State) []ValidationError {
 	return nil
 }
 
-func (h *PlaceholderStepHandler) CanNavigateFrom(state WizardState) bool {
+// CanNavigateFrom checks if we can leave this step (placeholder)
+func (h *PlaceholderStepHandler) CanNavigateFrom(_ State) bool {
 	return true
 }
 
-func (h *PlaceholderStepHandler) CanNavigateTo(state WizardState) bool {
+// CanNavigateTo checks if we can enter this step (placeholder)
+func (h *PlaceholderStepHandler) CanNavigateTo(_ State) bool {
 	return true
 }
 
+// GetTitle returns the step title
 func (h *PlaceholderStepHandler) GetTitle() string {
 	return h.title
 }
 
+// GetDescription returns the step description
 func (h *PlaceholderStepHandler) GetDescription() string {
 	return h.description
 }

@@ -48,8 +48,9 @@ Code should be accompanied (or pre-empted) by quality, concise documentation:
 - **Architecture Decision Records (ADRs): concise decision summaries
 - **Unit Tests**: executable specifications which exercise a given code unit
 - **Integration Tests**: describes functionality which requires collaboration between related units
-- **Comments**: reveals intent where the code might not (non-idiomatic, surprising, complex, handling corner cases).  
+- **Comments**: reveals intent where the code might not (non-idiomatic, surprising, complex, handling corner cases). See the section on "Anchor Comments". 
 
+ALWAYS format and lint code before declaring work done or committing. 
 All code should be formatted, linted, and accompanied by appropriate tests. Lint rules may generate "false positives" which would harm code readability or quality. `//nolint` directives may be used sparingly, or exclusions added. These should be accompanied by concise comments with a rationale.
 
 Code should be evaluated for quality and refactored as necessary during development activities. This includes test code - poor test maintainability is often a signal that refactoring is required. 
@@ -58,27 +59,7 @@ Concise ADRs should be added when appropriate (e.g. a decision is made with scop
 
 ## Development Commands
 
-The project otherwise uses standard Go tooling:
-
-```bash
-# Build the application
-go build
-
-# Run tests
-go test ./...
-
-# Run specific test
-go test -run TestName ./path/to/package
-
-# Format code
-gofumpt ./...
-
-# Lint 
-golangci-lint run
-
-# Run the application
-go run main.go [subcommand]
-```
+The project otherwise uses standard Go tooling. See `Justfile` for typical commands.
 
 ## Development process
 
@@ -89,7 +70,8 @@ We use markdown files within `kanban/` to plan, break down, and track progress o
 - `entry`: Submit/append to current day's entry
 - `list`: Show dates with previous entries
 - `edit`: Edit previous entries with schema compatibility checks
-- `goals`: Display goal schema with color formatting
+- `goal add`: Add a goal interactively to goals.yml
+- `goal list`: List existing goals
 - `validate`: Validate goal schema with error messages
 
 ## Data Structures
@@ -107,3 +89,30 @@ See `doc/specifications/goal_structure.md` for details.
 ## Intentionality and planning
 
 - If you find while attempting implementation that the problem is more complex than anticipated, or the planned approach will require significant adaptation, STOP. Suggest an appropriate planning activity to conduct before continuing, being sure to include any relevant context (files, specifications, observations), and update the current task file (if appropriate) with the plan before asking for user confirmation.
+
+## Anchor comments
+
+Add specially formatted comments throughout the codebase, where appropriate, for yourself as inline knowledge that can be easily grepped for.
+Guidelines:
+
+    Use AIDEV-NOTE:, AIDEV-TODO:, or AIDEV-QUESTION: (all-caps prefix) for comments aimed at AI and developers.
+    Keep them concise (≤ 120 chars).
+    Important: Before scanning files, always first try to locate existing anchors AIDEV-* in relevant subdirectories.
+    Update relevant anchors when modifying associated code.
+    Do not remove AIDEV-NOTEs without explicit human instruction.
+    Make sure to add relevant anchor comments, whenever a file or piece of code is:
+        too long, or
+        too complex, or
+        very important, or
+        confusing, or
+        could have a bug unrelated to the task you are currently working on.
+
+Example:
+```
+# AIDEV-NOTE: perf-hot-path; avoid extra allocations (see ADR-24)
+async def render_feed(...):
+    ...
+   ``` 
+```
+
+## Development Workflow Principles

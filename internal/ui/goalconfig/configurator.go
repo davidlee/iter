@@ -26,6 +26,13 @@ func NewGoalConfigurator() *GoalConfigurator {
 	}
 }
 
+// AIDEV-NOTE: Main integration point for goal creation flows
+// Current implementation uses hybrid approach:
+// - Simple goals: Use bubbletea wizard for enhanced UX (4-step flow)
+// - Complex goals: Will use bubbletea wizard when elastic/informational handlers implemented
+// - Fallback: Uses huh forms for backwards compatibility
+// To add new goal types: extend wizard.createStepHandlers() and add case here
+
 // AddGoal presents an interactive UI to create a new goal
 func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
 	// Load existing schema

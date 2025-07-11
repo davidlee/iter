@@ -12,11 +12,13 @@ func NewDefaultNavigationController() *DefaultNavigationController {
 	return &DefaultNavigationController{}
 }
 
-func (n *DefaultNavigationController) CanGoBack(state WizardState) bool {
+// CanGoBack checks if navigation backward is possible
+func (n *DefaultNavigationController) CanGoBack(state State) bool {
 	return state.GetCurrentStep() > 0
 }
 
-func (n *DefaultNavigationController) CanGoForward(state WizardState) bool {
+// CanGoForward checks if navigation forward is possible
+func (n *DefaultNavigationController) CanGoForward(state State) bool {
 	currentStep := state.GetCurrentStep()
 	
 	// Can go forward if:
@@ -30,7 +32,8 @@ func (n *DefaultNavigationController) CanGoForward(state WizardState) bool {
 	return state.IsStepCompleted(currentStep) || n.canSkipStep(currentStep, state)
 }
 
-func (n *DefaultNavigationController) CanGoToStep(index int, state WizardState) bool {
+// CanGoToStep checks if navigation to a specific step is possible
+func (n *DefaultNavigationController) CanGoToStep(index int, state State) bool {
 	// Can only jump to steps that are:
 	// 1. Within valid range
 	// 2. Already completed OR the next logical step
@@ -52,30 +55,35 @@ func (n *DefaultNavigationController) CanGoToStep(index int, state WizardState) 
 	return false
 }
 
+// GoBack returns a command to navigate backward
 func (n *DefaultNavigationController) GoBack() tea.Cmd {
 	return func() tea.Msg {
 		return NavigateBackMsg{}
 	}
 }
 
+// GoForward returns a command to navigate forward
 func (n *DefaultNavigationController) GoForward() tea.Cmd {
 	return func() tea.Msg {
 		return NavigateForwardMsg{}
 	}
 }
 
+// GoToStep returns a command to navigate to a specific step
 func (n *DefaultNavigationController) GoToStep(index int) tea.Cmd {
 	return func() tea.Msg {
 		return NavigateToStepMsg{Step: index}
 	}
 }
 
+// Cancel returns a command to cancel the wizard
 func (n *DefaultNavigationController) Cancel() tea.Cmd {
 	return func() tea.Msg {
 		return CancelWizardMsg{}
 	}
 }
 
+// Finish returns a command to finish the wizard
 func (n *DefaultNavigationController) Finish() tea.Cmd {
 	return func() tea.Msg {
 		return FinishWizardMsg{}
@@ -84,7 +92,7 @@ func (n *DefaultNavigationController) Finish() tea.Cmd {
 
 // Helper methods
 
-func (n *DefaultNavigationController) canSkipStep(_ int, state WizardState) bool {
+func (n *DefaultNavigationController) canSkipStep(_ int, _ State) bool {
 	// Some steps can be skipped based on previous choices
 	// For example, criteria steps can be skipped if manual scoring is selected
 	
@@ -93,7 +101,7 @@ func (n *DefaultNavigationController) canSkipStep(_ int, state WizardState) bool
 	return false
 }
 
-func (n *DefaultNavigationController) allPreviousStepsCompleted(stepIndex int, state WizardState) bool {
+func (n *DefaultNavigationController) allPreviousStepsCompleted(stepIndex int, state State) bool {
 	for i := 0; i < stepIndex; i++ {
 		if !state.IsStepCompleted(i) && !n.canSkipStep(i, state) {
 			return false

@@ -77,38 +77,9 @@ func NewDefaultFormRenderer() *DefaultFormRenderer {
 	}
 }
 
-func (r *DefaultFormRenderer) RenderForm(step HuhFormStep, state WizardState) string {
-	var b strings.Builder
-	
-	// Render breadcrumbs
-	b.WriteString(r.renderBreadcrumbs(state))
-	b.WriteString("\n")
-	
-	// Render progress
-	b.WriteString(r.RenderProgress(
-		state.GetCurrentStep()+1, 
-		state.GetTotalSteps(), 
-		r.getCompletedStepsList(state),
-	))
-	b.WriteString("\n")
-	
-	// Render step title and description
-	b.WriteString(r.titleStyle.Render(step.title))
-	b.WriteString("\n")
-	if step.description != "" {
-		b.WriteString(r.descriptionStyle.Render(step.description))
-		b.WriteString("\n")
-	}
-	
-	// The actual form content would be rendered by the huh form
-	// This is a placeholder for form integration
-	b.WriteString("[ Form content will be rendered here ]")
-	b.WriteString("\n")
-	
-	return b.String()
-}
 
-func (r *DefaultFormRenderer) RenderProgress(current, total int, completedSteps []int) string {
+// RenderProgress renders a progress bar for the wizard
+func (r *DefaultFormRenderer) RenderProgress(current, total int, _ []int) string {
 	// Create progress bar with step indicators
 	progressText := fmt.Sprintf("Step %d of %d", current, total)
 	
@@ -138,7 +109,8 @@ func (r *DefaultFormRenderer) RenderProgress(current, total int, completedSteps 
 	return r.progressStyle.Render(progressLine)
 }
 
-func (r *DefaultFormRenderer) RenderNavigation(nav NavigationController, state WizardState) string {
+// RenderNavigation renders navigation controls
+func (r *DefaultFormRenderer) RenderNavigation(nav NavigationController, state State) string {
 	var parts []string
 	
 	// Back button
@@ -166,7 +138,8 @@ func (r *DefaultFormRenderer) RenderNavigation(nav NavigationController, state W
 	return r.navigationStyle.Render(navText)
 }
 
-func (r *DefaultFormRenderer) RenderSummary(state WizardState) string {
+// RenderSummary renders a summary of the wizard state
+func (r *DefaultFormRenderer) RenderSummary(state State) string {
 	var b strings.Builder
 	
 	b.WriteString("Goal Configuration Summary:\n\n")
@@ -202,6 +175,7 @@ func (r *DefaultFormRenderer) RenderSummary(state WizardState) string {
 	return r.summaryStyle.Render(b.String())
 }
 
+// RenderValidationErrors renders validation error messages
 func (r *DefaultFormRenderer) RenderValidationErrors(errors []ValidationError) string {
 	if len(errors) == 0 {
 		return ""
@@ -221,67 +195,3 @@ func (r *DefaultFormRenderer) RenderValidationErrors(errors []ValidationError) s
 	return r.errorStyle.Render(b.String())
 }
 
-// Helper methods
-
-func (r *DefaultFormRenderer) renderBreadcrumbs(state WizardState) string {
-	var parts []string
-	
-	stepNames := r.getStepNames(state)
-	currentStep := state.GetCurrentStep()
-	
-	for i, name := range stepNames {
-		switch {
-		case i == currentStep:
-			parts = append(parts, fmt.Sprintf("[%s]", name))
-		case state.IsStepCompleted(i):
-			parts = append(parts, fmt.Sprintf("✓ %s", name))
-		default:
-			parts = append(parts, name)
-		}
-	}
-	
-	breadcrumbs := strings.Join(parts, " → ")
-	return r.breadcrumbStyle.Render(breadcrumbs)
-}
-
-func (r *DefaultFormRenderer) getStepNames(state WizardState) []string {
-	// This would be customized based on the goal type and configuration
-	// For now, return generic step names
-	totalSteps := state.GetTotalSteps()
-	names := make([]string, totalSteps)
-	
-	for i := 0; i < totalSteps; i++ {
-		switch i {
-		case 0:
-			names[i] = "Basic Info"
-		case 1:
-			names[i] = "Field Config"
-		case 2:
-			names[i] = "Scoring"
-		case 3:
-			names[i] = "Mini Criteria"
-		case 4:
-			names[i] = "Midi Criteria"
-		case 5:
-			names[i] = "Maxi Criteria"
-		case 6:
-			names[i] = "Validation"
-		case 7:
-			names[i] = "Confirmation"
-		default:
-			names[i] = fmt.Sprintf("Step %d", i+1)
-		}
-	}
-	
-	return names
-}
-
-func (r *DefaultFormRenderer) getCompletedStepsList(state WizardState) []int {
-	var completed []int
-	for i := 0; i < state.GetTotalSteps(); i++ {
-		if state.IsStepCompleted(i) {
-			completed = append(completed, i)
-		}
-	}
-	return completed
-}
