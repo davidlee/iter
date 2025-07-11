@@ -120,7 +120,7 @@ Simple comparisons
   less_than_or_equal: number
 ```
 
-Range constraints
+Range constraints *(defined in data model but not currently implemented in scoring engine)*
 ```
   range:
     min: number
@@ -129,18 +129,11 @@ Range constraints
     max_inclusive: boolean (default: false)
 ```
 
-Periodicity (requires historical data)
-```
-  periodicity:
-    count: integer
-    operator: "at_least" | "at_most"
-    period: integer
-    unit: "days" | "weeks" | "months"
-```
+*Note: Periodicity criteria are planned for future implementation but not currently supported.*
 
 ### Time Criteria
 
-Time constraints (HH:MM format)
+Time constraints (HH:MM format) *(defined in data model but not currently implemented in scoring engine)*
 ```
   before: "HH:MM"
   after: "HH:MM"
@@ -153,13 +146,7 @@ Boolean Criteria
 
 ### Composite Criteria
 
-Logical operators
-  and:
-    - # Array of criteria (all must pass)
-  or:
-    - # Array of criteria (any must pass)
-  not:
-    # Single criteria to negate
+*Note: Logical operators (and, or, not) are defined in the data model but not currently implemented in the scoring engine. Simple conditions only are supported.*
 
 ## Schema Structure
 
