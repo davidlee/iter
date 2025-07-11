@@ -177,7 +177,6 @@ Logical operators
 ```
   title: "Goal Title" # Human-readable name
   id: "goal_id" # Optional unique identifier (auto-generated if missing)
-  position: 1 # Unique integer for display order
   description: | # Optional markdown description
     Multi-line description
     supports **markdown**
@@ -208,10 +207,17 @@ Logical operators
 - Ensure uniqueness within schema
 - Example: "Daily Exercise" → "daily_exercise"
 
+### Goal Ordering
+
+- Goal display order is determined by the sequence of goals in the YAML file
+- The first goal in the `goals` array has position 1, second has position 2, etc.
+- Reordering goals in the file changes their display order
+- No explicit position field is needed as it's inferred from array index
+
 ### Change Resilience
 
 - Entry validation matches fields by goal ID
-- Position changes don't affect historical data
+- Goal display order is determined by sequence in YAML file
 - Missing goals in entries are preserved as "orphaned"
 - Schema validation warns about orphaned fields
 
@@ -220,7 +226,7 @@ Logical operators
 ### Schema Validation
 
 1. Structure: Valid YAML matching specification
-2. Uniqueness: All goal IDs and positions must be unique
+2. Uniqueness: All goal IDs must be unique
 3. Completeness: Required fields present based on goal_type and scoring_type
 4. Consistency: Field types compatible with criteria
 5. References: All criteria reference valid field types
@@ -241,7 +247,6 @@ Logical operators
   goals:
     - title: "Daily Exercise"
       id: "daily_exercise"
-      position: 1
       description: "Track daily physical activity"
       goal_type: "elastic"
       field_type:
@@ -264,7 +269,6 @@ Logical operators
       help_text: "Include any physical activity: walking, gym, sports, etc."
 
     - title: "Morning Meditation"
-      position: 2
       goal_type: "simple"
       field_type:
         type: "boolean"
@@ -272,7 +276,6 @@ Logical operators
       prompt: "Did you meditate this morning?"
 
     - title: "Sleep Quality"
-      position: 3
       goal_type: "informational"
       field_type:
         type: "unsigned_int"
