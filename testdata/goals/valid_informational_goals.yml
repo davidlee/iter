@@ -1,0 +1,92 @@
+version: "1.0.0"
+created_date: "2024-01-01"
+goals:
+  - title: "Mood Tracking"
+    id: "mood_tracking"
+    position: 1
+    description: "Track daily mood and emotions"
+    goal_type: "informational"
+    field_type:
+      type: "boolean"
+    scoring_type: "manual"
+    direction: "neutral"
+    prompt: "Were you happy today?"
+  - title: "Daily Reflection"
+    id: "daily_reflection"
+    position: 2
+    description: "Record daily thoughts and insights"
+    goal_type: "informational"
+    field_type:
+      type: "text"
+      multiline: false
+    scoring_type: "manual"
+    direction: "neutral"
+    prompt: "What was the highlight of your day?"
+  - title: "Journal Entry"
+    id: "journal_entry"
+    position: 3
+    description: "Write detailed journal entries"
+    goal_type: "informational"
+    field_type:
+      type: "text"
+      multiline: true
+    scoring_type: "manual"
+    direction: "neutral"
+    prompt: "Write about your day in detail"
+  - title: "Push-ups Count"
+    id: "pushups_count"
+    position: 4
+    description: "Track number of push-ups completed"
+    goal_type: "informational"
+    field_type:
+      type: "unsigned_int"
+      unit: "reps"
+    scoring_type: "manual"
+    direction: "higher_better"
+    prompt: "How many push-ups did you complete?"
+  - title: "Sleep Hours"
+    id: "sleep_hours"
+    position: 5
+    description: "Track hours of sleep with healthy range"
+    goal_type: "informational"
+    field_type:
+      type: "unsigned_decimal"
+      unit: "hours"
+      min: 4.0
+      max: 12.0
+    scoring_type: "manual"
+    direction: "neutral"
+    prompt: "How many hours did you sleep last night?"
+  - title: "Temperature Reading"
+    id: "temperature_reading"
+    position: 6
+    description: "Record daily temperature (can be negative)"
+    goal_type: "informational"
+    field_type:
+      type: "decimal"
+      unit: "degrees"
+      min: -50.0
+      max: 50.0
+    scoring_type: "manual"
+    direction: "neutral"
+    prompt: "What was the temperature today?"
+  - title: "Wake Up Time"
+    id: "wake_up_time"
+    position: 7
+    description: "Track wake up time for consistency"
+    goal_type: "informational"
+    field_type:
+      type: "time"
+    scoring_type: "manual"
+    direction: "lower_better"
+    prompt: "What time did you wake up?"
+  - title: "Meditation Duration"
+    id: "meditation_duration"
+    position: 8
+    description: "Track time spent in meditation"
+    goal_type: "informational"
+    field_type:
+      type: "duration"
+    scoring_type: "manual"
+    direction: "higher_better"
+    prompt: "How long did you meditate today?"

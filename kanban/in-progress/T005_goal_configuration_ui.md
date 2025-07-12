@@ -279,15 +279,18 @@ Based on investigation of existing codebase:
 
 - [ ] **3.6 Integration and Testing**
   - [ ] Wire up InformationalGoalCreator in configurator flow (✅ **COMPLETED** in 3.3)
-  - [ ] Test all field type combinations end-to-end:
-    - [ ] Boolean informational goal
-    - [ ] Text informational goal (single-line and multiline)
-    - [ ] Numeric informational goals (int, decimal with units and direction)
-    - [ ] Time informational goal with direction preference
-    - [ ] Duration informational goal with direction preference
-  - [ ] Verify goals.yml output matches expected schema for all configurations
-  - [ ] Validate informational goals save and load correctly with parser
-  - [ ] Ensure all field configurations persist properly (units, direction, min/max)
+  - [ ] **Automated Verification Approach**:
+    - [ ] Create integration test suite for goal creation workflows
+    - [ ] Unit tests for field value input components validation logic
+    - [ ] YAML generation and schema compliance automated tests
+    - [ ] Goal persistence and loading verification tests
+    - [ ] Field configuration preservation tests (units, direction, constraints)
+    - [ ] Error handling and edge case automated testing
+  - [ ] **User Testing Checklist** (see comprehensive checklist below):
+    - [ ] Execute systematic manual testing of all goal types and field combinations
+    - [ ] Verify interactive UI flows work correctly across all scenarios
+    - [ ] Test dry-run mode and YAML output functionality
+    - [ ] Validate error handling and user experience edge cases
 
 **Implementation Strategy:**
 - Follow SimpleGoalCreator patterns for consistency and maintainability
@@ -317,7 +320,278 @@ Based on investigation of existing codebase:
 - Ready for integration with entry recording system (T007)
 - Key file: `internal/ui/goalconfig/field_value_input.go`
 
+---
 
+## Automated Verification Plan (Phase 3.6)
+
+### Integration Test Suite Implementation
+Create `internal/ui/goalconfig/integration_test.go` with the following test coverage:
+
+#### **Core Goal Creation Tests**
+```go
+// TestGoalCreationWorkflows tests goal creation without UI interaction
+func TestSimpleGoalCreation(t *testing.T)         // Manual scoring simple goals
+func TestInformationalGoalCreation(t *testing.T)  // All field types systematically
+func TestGoalValidationWorkflow(t *testing.T)     // Schema validation integration
+func TestYAMLGenerationWorkflow(t *testing.T)     // Dry-run mode functionality
+```
+
+#### **Field Type Validation Tests**
+```go
+func TestBooleanFieldValidation(t *testing.T)     // Boolean field edge cases
+func TestTextFieldValidation(t *testing.T)        // Single/multiline text
+func TestNumericFieldValidation(t *testing.T)     // All numeric types + constraints
+func TestTimeFieldValidation(t *testing.T)        // Time parsing and validation
+func TestDurationFieldValidation(t *testing.T)    // Duration format support
+```
+
+#### **YAML Output and Persistence Tests**
+```go
+func TestYAMLSchemaCompliance(t *testing.T)       // Generated YAML matches schema
+func TestGoalPersistenceRoundtrip(t *testing.T)   // Save → Load → Validate cycle
+func TestFieldConfigurationPersistence(t *testing.T) // Units, constraints, direction
+func TestMultipleGoalPersistence(t *testing.T)    // Goal ordering and position
+```
+
+#### **Error Handling Tests**
+```go
+func TestValidationErrorHandling(t *testing.T)    // All validation error scenarios
+func TestFilePermissionHandling(t *testing.T)     // Read-only file scenarios
+func TestSchemaCorruptionRecovery(t *testing.T)   // Malformed YAML handling
+```
+
+### Unit Test Suite for Field Value Inputs
+Create `internal/ui/goalconfig/field_value_input_test.go`:
+
+#### **Component-Level Tests**
+```go
+func TestBooleanInputComponent(t *testing.T)      // Boolean input behavior
+func TestTextInputComponent(t *testing.T)         // Text input validation
+func TestNumericInputComponent(t *testing.T)      // Numeric parsing + constraints
+func TestTimeInputComponent(t *testing.T)         // Time format validation
+func TestDurationInputComponent(t *testing.T)     // Duration parsing
+func TestFieldValueInputFactory(t *testing.T)     // Factory pattern
+```
+
+### Test Data and Fixtures
+Create `testdata/goals/` directory with:
+- `valid_simple_goal.yml` - Reference simple goal structure
+- `valid_informational_goals.yml` - All field type examples
+- `invalid_goals.yml` - Malformed YAML for error testing
+- `complex_configuration.yml` - Goals with all features enabled
+
+### Automated Test Execution Strategy
+```bash
+# Unit tests for all components
+go test ./internal/ui/goalconfig/...
+
+# Integration tests with temporary files
+go test -tags=integration ./internal/ui/goalconfig/...
+
+# YAML validation tests
+go test -run=TestYAML ./internal/parser/...
+
+# Full regression test suite
+make test-goal-configuration
+```
+
+### Test Coverage Requirements
+- [ ] **Minimum 90% code coverage** for goal configuration logic
+- [ ] **100% coverage** for field validation functions
+- [ ] **All field type combinations** tested programmatically
+- [ ] **All error paths** exercised with appropriate test cases
+- [ ] **YAML schema compliance** verified for all generated configurations
+
+---
+
+## User Testing Checklist for Goal Addition (Phase 3.6)
+
+### Prerequisites
+- [ ] Fresh goals.yml or backup existing configuration
+- [ ] Build latest version: `go build -o iter_test`
+- [ ] Test in isolated directory to avoid affecting real data
+
+### A. Simple Goal Testing (Manual Scoring)
+- [ ] **A1. Basic Simple Goal**
+  - [ ] Run: `./iter_test goal add`
+  - [ ] Title: "Daily Exercise"
+  - [ ] Description: "Get some physical activity"
+  - [ ] Type: Simple (Pass/Fail)
+  - [ ] Scoring: Manual
+  - [ ] Prompt: "Did you exercise today?"
+  - [ ] Verify goal saves to goals.yml correctly
+
+- [ ] **A2. Simple Goal - Default Prompt**
+  - [ ] Create goal with default prompt
+  - [ ] Verify default: "Did you accomplish this goal today?"
+
+- [ ] **A3. Simple Goal - Custom Prompt**
+  - [ ] Test with custom prompt: "Did you complete your workout?"
+  - [ ] Verify custom prompt persists
+
+### B. Informational Goal Testing (All Field Types)
+
+- [ ] **B1. Boolean Informational Goal**
+  - [ ] Title: "Mood Tracking"
+  - [ ] Type: Informational
+  - [ ] Field Type: Boolean
+  - [ ] Direction: Neutral (automatic)
+  - [ ] Prompt: "Were you happy today?"
+  - [ ] Verify YAML structure matches expected format
+
+- [ ] **B2. Text Informational Goal - Single Line**
+  - [ ] Title: "Daily Reflection"
+  - [ ] Type: Informational
+  - [ ] Field Type: Text
+  - [ ] Multiline: No
+  - [ ] Prompt: "What was the highlight of your day?"
+  - [ ] Verify text field configuration
+
+- [ ] **B3. Text Informational Goal - Multiline**
+  - [ ] Title: "Journal Entry"
+  - [ ] Type: Informational
+  - [ ] Field Type: Text
+  - [ ] Multiline: Yes
+  - [ ] Prompt: "Write about your day"
+  - [ ] Verify multiline: true in YAML
+
+- [ ] **B4. Numeric Informational Goal - Unsigned Int**
+  - [ ] Title: "Push-ups"
+  - [ ] Type: Informational
+  - [ ] Field Type: Numeric → Whole numbers
+  - [ ] Unit: "reps"
+  - [ ] Constraints: No
+  - [ ] Direction: Higher is better
+  - [ ] Prompt: "How many push-ups did you do?"
+  - [ ] Verify field_type.type: unsigned_int, unit: reps
+
+- [ ] **B5. Numeric Informational Goal - With Constraints**
+  - [ ] Title: "Sleep Hours"
+  - [ ] Type: Informational
+  - [ ] Field Type: Numeric → Positive decimals
+  - [ ] Unit: "hours"
+  - [ ] Constraints: Yes → Min: 4, Max: 12
+  - [ ] Direction: Neutral
+  - [ ] Verify min/max values in YAML
+
+- [ ] **B6. Numeric Informational Goal - Decimal with Custom Unit**
+  - [ ] Title: "Water Intake"
+  - [ ] Type: Informational
+  - [ ] Field Type: Numeric → Any numbers
+  - [ ] Unit: "liters"
+  - [ ] Direction: Higher is better
+  - [ ] Verify custom unit persistence
+
+- [ ] **B7. Time Informational Goal**
+  - [ ] Title: "Wake Up Time"
+  - [ ] Type: Informational
+  - [ ] Field Type: Time
+  - [ ] Direction: Lower is better (earlier is better)
+  - [ ] Prompt: "What time did you wake up?"
+  - [ ] Verify field_type.type: time
+
+- [ ] **B8. Duration Informational Goal**
+  - [ ] Title: "Meditation Session"
+  - [ ] Type: Informational
+  - [ ] Field Type: Duration
+  - [ ] Direction: Higher is better
+  - [ ] Prompt: "How long did you meditate?"
+  - [ ] Verify field_type.type: duration
+
+### C. YAML Output Mode Testing (Dry-Run)
+
+- [ ] **C1. Simple Goal Dry-Run**
+  - [ ] Run: `./iter_test goal add --dry-run`
+  - [ ] Create simple goal through flow
+  - [ ] Verify YAML outputs to stdout
+  - [ ] Verify status messages go to stderr
+  - [ ] Verify goals.yml is NOT modified
+
+- [ ] **C2. Informational Goal Dry-Run**
+  - [ ] Run: `./iter_test goal add --dry-run`
+  - [ ] Create informational goal (numeric with constraints)
+  - [ ] Verify complete YAML structure
+  - [ ] Check field_type configuration is complete
+
+- [ ] **C3. Dry-Run Output Redirection**
+  - [ ] Run: `./iter_test goal add --dry-run > test-goal.yml`
+  - [ ] Verify test-goal.yml contains valid YAML
+  - [ ] Verify status messages still appear on console
+  - [ ] Validate YAML with: `./iter_test goals validate test-goal.yml` (if available)
+
+- [ ] **C4. Dry-Run with Existing Goals**
+  - [ ] Create one goal normally first
+  - [ ] Run dry-run to add second goal
+  - [ ] Verify output contains both goals
+  - [ ] Verify original goals.yml unchanged
+
+### D. Error Handling and Edge Cases
+
+- [ ] **D1. Invalid Input Validation**
+  - [ ] Try empty goal title → Should show error
+  - [ ] Try title > 100 characters → Should show error
+  - [ ] For numeric fields: try non-numeric input → Should show error
+  - [ ] For time fields: try invalid format → Should show error
+
+- [ ] **D2. Constraint Validation**
+  - [ ] Numeric with min constraint: try value below minimum
+  - [ ] Numeric with max constraint: try value above maximum
+  - [ ] Verify error messages are clear and helpful
+
+- [ ] **D3. Flow Cancellation**
+  - [ ] Start goal creation, press Ctrl+C at various stages
+  - [ ] Verify no partial goals are created
+  - [ ] Verify goals.yml remains unchanged
+
+- [ ] **D4. File Permission Issues**
+  - [ ] Make goals.yml read-only: `chmod 444 goals.yml`
+  - [ ] Try normal goal creation → Should show appropriate error
+  - [ ] Try dry-run → Should still work (doesn't modify file)
+  - [ ] Restore permissions: `chmod 644 goals.yml`
+
+### E. Goal Configuration Persistence
+
+- [ ] **E1. Complex Configuration Roundtrip**
+  - [ ] Create informational goal with all features:
+    - [ ] Numeric field with unit and constraints
+    - [ ] Direction preference
+    - [ ] Custom prompt
+  - [ ] Save and verify YAML structure
+  - [ ] Load goals and verify all settings preserved
+
+- [ ] **E2. Multiple Goals**
+  - [ ] Create 3-4 different goal types
+  - [ ] Verify each goal maintains independent configuration
+  - [ ] Check goal ordering and position inference
+
+- [ ] **E3. Special Characters and Unicode**
+  - [ ] Title with special characters: "🏃‍♂️ Running"
+  - [ ] Description with unicode
+  - [ ] Verify proper YAML encoding/decoding
+
+### F. Integration with Existing System
+
+- [ ] **F1. Schema Validation**
+  - [ ] Create goals and verify schema validation passes
+  - [ ] Try loading goals with existing parser
+  - [ ] Verify no ID conflicts or validation errors
+
+- [ ] **F2. Backwards Compatibility**
+  - [ ] If existing goals.yml present, verify new goals append correctly
+  - [ ] Verify existing goal structure remains intact
+
+### Success Criteria
+- [ ] All goal types can be created through interactive UI
+- [ ] All field configurations persist correctly in YAML
+- [ ] Dry-run mode works without modifying files
+- [ ] Error handling is user-friendly and informative
+- [ ] Generated YAML is valid and parser-compatible
+- [ ] No crashes or unexpected behavior in any tested scenario
+
+### Test Environment Cleanup
+- [ ] Remove test goals.yml files
+- [ ] Remove test binaries (iter_test, etc.)
+- [ ] Document any bugs or issues found during testing
 
 ---
 
