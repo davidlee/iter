@@ -24,7 +24,7 @@ func NewGoalBuilder() *GoalBuilder {
 }
 
 // BuildGoal runs the complete interactive flow to create a new goal
-func (gb *GoalBuilder) BuildGoal(existingGoals []models.Goal) (*models.Goal, error) {
+func (gb *GoalBuilder) BuildGoal(_ []models.Goal) (*models.Goal, error) {
 	// Step 1: Basic information
 	basicForm, basicInfo := gb.formBuilder.CreateBasicInfoForm()
 	if err := basicForm.Run(); err != nil {
@@ -90,7 +90,8 @@ func (gb *GoalBuilder) BuildGoal(existingGoals []models.Goal) (*models.Goal, err
 		Title:       strings.TrimSpace(basicInfo.Title),
 		Description: strings.TrimSpace(basicInfo.Description),
 		GoalType:    basicInfo.GoalType,
-		Position:    gb.calculateNextPosition(existingGoals),
+		// AIDEV-NOTE: Position is inferred and should not be set in goal creation
+		// Position will be determined by the parser/schema based on order in goals.yml
 		FieldType: models.FieldType{
 			Type:      fieldInfo.Type,
 			Unit:      fieldInfo.Unit,
@@ -214,15 +215,6 @@ func (gb *GoalBuilder) configToCriteria(config *CriteriaConfig, fieldType models
 	return criteria, nil
 }
 
-func (gb *GoalBuilder) calculateNextPosition(existingGoals []models.Goal) int {
-	maxPosition := 0
-	for _, goal := range existingGoals {
-		if goal.Position > maxPosition {
-			maxPosition = goal.Position
-		}
-	}
-	return maxPosition + 1
-}
 
 // BuildGoalWithBasicInfo runs the goal creation flow with pre-populated basic info
 func (gb *GoalBuilder) BuildGoalWithBasicInfo(_ interface{}, existingGoals []models.Goal) (*models.Goal, error) {

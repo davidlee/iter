@@ -192,41 +192,83 @@ Based on investigation of existing codebase:
   - [x] Remove complex wizard architecture in favor of simple sequential forms
   - [x] Test end-to-end: Basic Info → Scoring Type → Custom Prompt → Save
 
-### Phase 3: Goal Management Enhancement
-- [ ] **3.1 Enhanced Goal Listing (iter goal list)**
-  - [ ] Rich table display with goal summaries
-  - [ ] Interactive filtering and sorting
-  - [ ] Goal status indicators (manual/automatic scoring, completeness)
-  - [ ] Search functionality for large goal sets
+- [x] **2.9 Prevent position field in goals.yml** ✅ **COMPLETED**
+  - [x] Remove position assignment from SimpleGoalCreator in configurator.go
+  - [x] Remove position assignment from legacy GoalBuilder in builder.go  
+  - [x] Add AIDEV-NOTE comments explaining position inference approach
+  - [x] Position now determined by parser/schema based on order in goals.yml
 
-- [ ] **3.2 Enhanced Goal Editing (iter goal edit)**
-  - [ ] Interactive goal selection with preview
-  - [ ] Wizard-style editing with current values pre-populated
-  - [ ] Live preview of changes before saving
-  - [ ] Better error recovery and validation
-  - [ ] Preserve goal ID and data integrity
+### Phase 3: Informational Goal Support
 
-- [ ] **3.3 Enhanced Goal Removal (iter goal remove)**
-  - [ ] Interactive goal selection with details
-  - [ ] Impact analysis (entries that reference this goal)
-  - [ ] Confirmation with goal summary
-  - [ ] Safe removal with backup options
+- [ ] **3.1 Fix Informational Goal Flow Routing**
+  - [ ] Update configurator.AddGoal() to route informational goals to specialized creator
+  - [ ] Informational goals should skip scoring configuration entirely (no scoring, no criteria)
+  - [ ] Create new runInformationalGoalCreator() method alongside runSimpleGoalCreator()
+  - [ ] Update goal type selection flow to handle routing correctly
 
-### Phase 4: Integration, Testing & Polish
-- [ ] **4.1 File operations**
-  - Atomic goal additions/modifications using existing parser
-  - Error handling for file permissions, disk space
-  - Backup existing goals.yml before modifications
+- [ ] **3.2 Field Type Configuration System**
+  - [ ] Create field type selector supporting all model types:
+    - [ ] Boolean (boolean) - simple true/false data
+    - [ ] Text (text) - free text input with optional multiline
+    - [ ] Numeric (unsigned_int, unsigned_decimal, decimal) - with subtype and unit selection
+    - [ ] Time (time) - time of day values
+    - [ ] Duration (duration) - time duration values
+  - [ ] Add numeric field configuration:
+    - [ ] Subtype selection: unsigned_int (default), unsigned_decimal, decimal
+    - [ ] Unit specification (default: "times", examples: "reps", "kg", "minutes", "pages")
+    - [ ] Min/Max value constraints (optional)
+  - [ ] Add direction preference for applicable field types:
+    - [ ] Numeric, Time, Duration: "higher_better" | "lower_better" | "neutral"
+    - [ ] Boolean, Text: no direction (always neutral)
 
-- [ ] **4.2 Validation integration**
-  - Leverage existing `Goal.Validate()` and `Schema.Validate()`
-  - Real-time validation during form input where possible
-  - Clear error messages for validation failures
+- [ ] **3.3 InformationalGoalCreator Implementation**
+  - [ ] Create new `InformationalGoalCreator` bubbletea model following SimpleGoalCreator patterns
+  - [ ] Flow design: Basic Info → Field Type Selection → Field Configuration → Direction Preference → Save
+  - [ ] Implement sequential huh forms with conditional groups:
+    - [ ] Group 1: Field type selection (boolean, text, numeric, time, duration)
+    - [ ] Group 2: Field configuration (conditional based on type)
+      - [ ] Numeric: subtype, unit, min/max (all optional except subtype)
+      - [ ] Text: multiline option
+      - [ ] Time/Duration: no additional config needed
+    - [ ] Group 3: Direction preference (conditional, hidden for boolean/text)
+  - [ ] Handle validation for all field types and configurations
+  - [ ] Create proper models.Goal structure for informational goals
 
-- [ ] **4.3 Testing & documentation**
-  - Unit tests for form builders and validation
-  - Integration tests for complete workflows
-  - Update CLI help text and documentation
+- [ ] **3.4 Field Value Input UI Foundation**
+  - [ ] Design reusable field input components for future entry recording:
+    - [ ] BooleanInput: checkbox/toggle with clear yes/no display
+    - [ ] TextInput: single-line and multiline text input with validation
+    - [ ] NumericInput: number input with unit display and min/max validation
+    - [ ] TimeInput: time picker or formatted input (HH:MM format)
+    - [ ] DurationInput: duration input (supports various formats like "1h 30m")
+  - [ ] Create FieldValueInput interface for type-safe field recording
+  - [ ] Plan integration points for entry recording system (T007)
+  - [ ] Document patterns for reuse in simple/elastic goal criteria definition
+
+- [ ] **3.5 Integration and Testing**
+  - [ ] Wire up InformationalGoalCreator in configurator flow
+  - [ ] Test all field type combinations end-to-end:
+    - [ ] Boolean informational goal
+    - [ ] Text informational goal (single-line and multiline)
+    - [ ] Numeric informational goals (int, decimal with units and direction)
+    - [ ] Time informational goal with direction preference
+    - [ ] Duration informational goal with direction preference
+  - [ ] Verify goals.yml output matches expected schema for all configurations
+  - [ ] Validate informational goals save and load correctly with parser
+  - [ ] Ensure all field configurations persist properly (units, direction, min/max)
+
+**Implementation Strategy:**
+- Follow SimpleGoalCreator patterns for consistency and maintainability
+- Use conditional huh form groups for dynamic UI based on field type selection
+- Leverage existing models.FieldType structure for configuration storage
+- Design field input components as foundation for entry recording system
+- Maintain idiomatic bubbletea/huh patterns established in Phase 2.8
+
+
+
+---
+
+**Next Phase:** Goal management features (list, edit, remove) moved to [T006 Goal Management UI](../backlog/T006_goal_management_ui.md)
 
 **Key Design Decisions:**
 

@@ -228,7 +228,7 @@ func (gc *GoalConfigurator) collectBasicInformation() (*BasicInfo, error) {
 
 
 // runSimpleGoalCreator runs the simplified goal creator with pre-populated basic info
-func (gc *GoalConfigurator) runSimpleGoalCreator(basicInfo *BasicInfo, existingGoals []models.Goal) (*models.Goal, error) {
+func (gc *GoalConfigurator) runSimpleGoalCreator(basicInfo *BasicInfo, _ []models.Goal) (*models.Goal, error) {
 	// Create simple goal creator with pre-populated basic info
 	creator := NewSimpleGoalCreator(basicInfo.Title, basicInfo.Description, basicInfo.GoalType)
 
@@ -254,8 +254,8 @@ func (gc *GoalConfigurator) runSimpleGoalCreator(basicInfo *BasicInfo, existingG
 			return nil, fmt.Errorf("goal creation completed without result")
 		}
 
-		// Set position based on existing goals
-		goal.Position = gc.calculateNextPosition(existingGoals)
+		// AIDEV-NOTE: Position is inferred and should not be set in goal creation
+		// Position will be determined by the parser/schema based on order in goals.yml
 
 		return goal, nil
 	}
@@ -263,13 +263,3 @@ func (gc *GoalConfigurator) runSimpleGoalCreator(basicInfo *BasicInfo, existingG
 	return nil, fmt.Errorf("unexpected creator model type")
 }
 
-// calculateNextPosition determines the next position for a new goal
-func (gc *GoalConfigurator) calculateNextPosition(existingGoals []models.Goal) int {
-	maxPosition := 0
-	for _, goal := range existingGoals {
-		if goal.Position > maxPosition {
-			maxPosition = goal.Position
-		}
-	}
-	return maxPosition + 1
-}
