@@ -60,6 +60,11 @@ parsing capabilities.
   duration:
     type: "duration"
     format: "HH:MM:SS" | "minutes" | "seconds"
+
+  # Checklist reference
+  checklist:
+    type: "checklist"
+    checklist_id: string # ID of checklist in checklists.yml
 ``` 
 
 ## Validation Rules
@@ -105,6 +110,20 @@ Data collection without success/failure scoring.
 ``` 
   goal_type: "informational"
   direction: "higher_better" | "lower_better" | "neutral" # Optional, for display
+```
+
+### Checklist Goals
+
+Checklist completion tracking with automatic or manual scoring.
+
+```
+  goal_type: "checklist"
+  field_type:
+    type: "checklist"
+    checklist_id: "checklist_identifier" # Reference to checklist in checklists.yml
+  scoring_type: "manual" | "automatic"
+  criteria: # Required if scoring_type="automatic"
+    # Checklist completion criteria (see below)
 ``` 
 
 ## Criteria Specification

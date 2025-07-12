@@ -47,6 +47,7 @@ const (
 	SimpleGoal        GoalType = "simple"        // Boolean pass/fail goals
 	ElasticGoal       GoalType = "elastic"       // Three-tier achievement goals (mini/midi/maxi)
 	InformationalGoal GoalType = "informational" // Data collection without scoring
+	ChecklistGoal     GoalType = "checklist"     // Checklist completion goals
 )
 
 // ScoringType represents how the goal is scored.
@@ -60,13 +61,14 @@ const (
 
 // FieldType represents the data type for goal values.
 type FieldType struct {
-	Type      string   `yaml:"type"`
-	Multiline *bool    `yaml:"multiline,omitempty"`
-	Default   *bool    `yaml:"default,omitempty"`
-	Unit      string   `yaml:"unit,omitempty"`
-	Min       *float64 `yaml:"min,omitempty"`
-	Max       *float64 `yaml:"max,omitempty"`
-	Format    string   `yaml:"format,omitempty"`
+	Type        string   `yaml:"type"`
+	Multiline   *bool    `yaml:"multiline,omitempty"`
+	Default     *bool    `yaml:"default,omitempty"`
+	Unit        string   `yaml:"unit,omitempty"`
+	Min         *float64 `yaml:"min,omitempty"`
+	Max         *float64 `yaml:"max,omitempty"`
+	Format      string   `yaml:"format,omitempty"`
+	ChecklistID string   `yaml:"checklist_id,omitempty"` // Reference to checklist
 }
 
 // Field type constants
@@ -78,6 +80,7 @@ const (
 	DecimalFieldType         = "decimal"
 	TimeFieldType            = "time"
 	DurationFieldType        = "duration"
+	ChecklistFieldType       = "checklist"
 )
 
 // Criteria represents goal achievement criteria.
@@ -104,6 +107,9 @@ type Condition struct {
 	// Boolean equality
 	Equals *bool `yaml:"equals,omitempty"`
 
+	// Checklist completion criteria
+	ChecklistCompletion *ChecklistCompletionCondition `yaml:"checklist_completion,omitempty"`
+
 	// Logical operators (for future extension)
 	And []Condition `yaml:"and,omitempty"`
 	Or  []Condition `yaml:"or,omitempty"`
@@ -116,6 +122,11 @@ type RangeCondition struct {
 	Max          float64 `yaml:"max"`
 	MinInclusive *bool   `yaml:"min_inclusive,omitempty"`
 	MaxInclusive *bool   `yaml:"max_inclusive,omitempty"`
+}
+
+// ChecklistCompletionCondition defines criteria for automatic scoring of checklist goals.
+type ChecklistCompletionCondition struct {
+	RequiredItems string `yaml:"required_items"` // "all" (only valid option)
 }
 
 // Validate validates a goal for correctness and consistency.
@@ -208,6 +219,22 @@ func (g *Goal) validateInternal() error {
 		}
 	}
 
+	// Validate scoring requirements for checklist goals
+	if g.GoalType == ChecklistGoal {
+		if g.ScoringType == "" {
+			return fmt.Errorf("scoring_type is required for checklist goals")
+		}
+		if g.FieldType.Type != ChecklistFieldType {
+			return fmt.Errorf("checklist goals must use checklist field type")
+		}
+		if g.FieldType.ChecklistID == "" {
+			return fmt.Errorf("checklist_id is required for checklist field type")
+		}
+		if g.ScoringType == AutomaticScoring && g.Criteria == nil {
+			return fmt.Errorf("criteria is required for automatic scoring of checklist goals")
+		}
+	}
+
 	return nil
 }
 
@@ -236,6 +263,10 @@ func (ft *FieldType) Validate() error {
 		validFormats := []string{"HH:MM:SS", "minutes", "seconds"}
 		if ft.Format != "" && !contains(validFormats, ft.Format) {
 			return fmt.Errorf("duration format must be one of: %v", validFormats)
+		}
+	case ChecklistFieldType:
+		if ft.ChecklistID == "" {
+			return fmt.Errorf("checklist_id is required for checklist field type")
 		}
 	default:
 		return fmt.Errorf("unknown field type: %s", ft.Type)
@@ -363,7 +394,7 @@ func isValidID(id string) bool {
 // isValidGoalType checks if a goal type is valid.
 func isValidGoalType(gt GoalType) bool {
 	switch gt {
-	case SimpleGoal, ElasticGoal, InformationalGoal:
+	case SimpleGoal, ElasticGoal, InformationalGoal, ChecklistGoal:
 		return true
 	default:
 		return false
@@ -403,6 +434,11 @@ func (g *Goal) RequiresAutomaticScoring() bool {
 // RequiresManualScoring returns true if this goal uses manual scoring.
 func (g *Goal) RequiresManualScoring() bool {
 	return g.ScoringType == ManualScoring
+}
+
+// IsChecklist returns true if this is a checklist goal.
+func (g *Goal) IsChecklist() bool {
+	return g.GoalType == ChecklistGoal
 }
 
 // validateElasticCriteriaOrdering validates that elastic goal criteria are properly ordered

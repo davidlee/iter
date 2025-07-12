@@ -27,10 +27,11 @@ Extend the static checklist prototype (`iter checklist`) to support configurable
 ## 3. Implementation Plan & Progress
 
 ### Phase 1: Data Model & Configuration (Priority: High)
-- [ ] 1.1: Define checklist YAML schema and data structures
-- [ ] 1.2: Create checklist parser for loading/saving `checklists.yml`
-- [ ] 1.3: Extend goal models to support checklist goal type
-- [ ] 1.4: Add checklist validation logic
+- [x] 1.1: Define checklist YAML schema and data structures
+- [x] 1.2: Create checklist parser for loading/saving `checklists.yml`
+- [x] 1.3: Extend goal models to support checklist goal type
+  - refer to [doc/specifications/goal_schema.md]; update it as required
+- [x] 1.4: Add checklist validation logic
 
 ### Phase 2: Checklist Management Commands (Priority: High)
 - [ ] 2.1: Implement `iter list add $id` command
@@ -50,7 +51,7 @@ Extend the static checklist prototype (`iter checklist`) to support configurable
 - [ ] 4.3: Add entry recording integration for checklist goals
 - [ ] 4.4: Add checklist completion summary and statistics
 
-**Overall Status**: `[backlog]`
+**Overall Status**: `[in_progress]`
 
 ## 4. Technical Design
 
@@ -65,22 +66,19 @@ checklists:
     title: "Morning Routine"
     description: "Daily morning checklist for productivity setup"
     items:
-      - type: "heading"
-        text: "clean station: physical inputs (~5m)"
-      - type: "item"
-        text: "clear desk"
-        required: true
-      - type: "item"
-        text: "clear desk inbox, loose papers, notebook"
-        required: true
-      - type: "heading"
-        text: "clean station: digital inputs (~10m)"
-      - type: "item"
-        text: "process emails (inbox)"
-        required: true
-      - type: "item"
-        text: "phone notifications"
-        required: false
+      - "# clean station: physical inputs (~5m)"
+      - "clear desk"
+      - "clear desk inbox, loose papers, notebook"
+      - "# clean station: digital inputs (~10m)"
+      - "process emails (inbox)"
+      - "phone notifications"
+      - "browsers (all devices)"
+      - "editors, apps"
+      - "review periodic notes"
+      - "log actions"
+      - "# straighten & reset (~5m)"
+      - "desk"
+      - "digital workspace"
     created_date: "2024-01-01"
     modified_date: "2024-01-01"
 ```
@@ -95,11 +93,10 @@ checklists:
     checklist_id: "morning_routine"
   scoring_type: "automatic"
   criteria:
-    description: "All required items completed"
+    description: "All items completed"
     condition:
       checklist_completion:
-        required_items: "all"  # or "percentage" with threshold
-        threshold: 100        # percentage if using percentage mode
+        required_items: "all"  # only valid option
 
 # Example checklist goal with manual scoring  
 - title: "Weekly Review"
@@ -115,28 +112,23 @@ checklists:
 #### Checklist Models
 ```go
 // Checklist represents a reusable checklist template
+// Items are stored as simple strings, with headings prefixed by "# "
 type Checklist struct {
-    ID           string           `yaml:"id"`
-    Title        string           `yaml:"title"`
-    Description  string           `yaml:"description,omitempty"`
-    Items        []ChecklistItem  `yaml:"items"`
-    CreatedDate  string           `yaml:"created_date"`
-    ModifiedDate string           `yaml:"modified_date"`
-}
-
-// ChecklistItem represents an individual item in a checklist
-type ChecklistItem struct {
-    Type     string `yaml:"type"`     // "heading" or "item"
-    Text     string `yaml:"text"`
-    Required *bool  `yaml:"required,omitempty"` // only for items, not headings
+    ID           string   `yaml:"id"`
+    Title        string   `yaml:"title"`
+    Description  string   `yaml:"description,omitempty"`
+    Items        []string `yaml:"items"`               // Simple array of strings
+    CreatedDate  string   `yaml:"created_date"`
+    ModifiedDate string   `yaml:"modified_date"`
 }
 
 // ChecklistCompletion stores completion state for entries
+// Stores item text -> completion for comprehensive historical data
 type ChecklistCompletion struct {
-    ChecklistID     string             `yaml:"checklist_id"`
-    CompletedItems  map[int]bool       `yaml:"completed_items"` // index -> completed
-    CompletionTime  string             `yaml:"completion_time,omitempty"`
-    PartialComplete bool               `yaml:"partial_complete"`
+    ChecklistID     string            `yaml:"checklist_id"`
+    CompletedItems  map[string]bool   `yaml:"completed_items"` // item text -> completed
+    CompletionTime  string            `yaml:"completion_time,omitempty"`
+    PartialComplete bool              `yaml:"partial_complete"`
 }
 
 // ChecklistSchema represents the checklists.yml file structure
@@ -172,8 +164,7 @@ type Condition struct {
 }
 
 type ChecklistCompletionCondition struct {
-    RequiredItems string  `yaml:"required_items"` // "all", "percentage"
-    Threshold     float64 `yaml:"threshold,omitempty"` // percentage threshold
+    RequiredItems string `yaml:"required_items"` // "all" (only valid option)
 }
 ```
 
@@ -277,6 +268,15 @@ iter entry                            # Extended to handle checklist entry recor
 ## Notes / Discussion Log
 
 *Initial task creation based on existing checklist prototype and TODO comments.*
+
+**Phase 1 Complete (2025-07-12):**
+- Implemented simplified checklist data structures using string arrays (matching existing UI)
+- Created comprehensive checklist models with validation in `internal/models/checklist.go`
+- Extended goal system to support checklist goals with new field type and goal type
+- Added checklist parser with full CRUD operations in `internal/parser/checklist_parser.go`
+- Simplified completion criteria to "all items complete" or manual scoring (no percentage scoring)
+- Changed completion storage to map item text to boolean for better historical data
+- Updated goal schema specification to document checklist field type and criteria
 
 ## Roadblocks
 
