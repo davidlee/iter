@@ -21,7 +21,7 @@ type Checklist struct {
 	ID           string   `yaml:"id"`
 	Title        string   `yaml:"title"`
 	Description  string   `yaml:"description,omitempty"`
-	Items        []string `yaml:"items"`                // Simple array of strings
+	Items        []string `yaml:"items"` // Simple array of strings
 	CreatedDate  string   `yaml:"created_date"`
 	ModifiedDate string   `yaml:"modified_date"`
 }
@@ -29,12 +29,11 @@ type Checklist struct {
 // ChecklistCompletion stores completion state for entry data.
 // This represents the state of a checklist at a specific point in time.
 type ChecklistCompletion struct {
-	ChecklistID     string            `yaml:"checklist_id"`
-	CompletedItems  map[string]bool   `yaml:"completed_items"`    // item text -> completed
-	CompletionTime  string            `yaml:"completion_time,omitempty"`
-	PartialComplete bool              `yaml:"partial_complete"`
+	ChecklistID     string          `yaml:"checklist_id"`
+	CompletedItems  map[string]bool `yaml:"completed_items"` // item text -> completed
+	CompletionTime  string          `yaml:"completion_time,omitempty"`
+	PartialComplete bool            `yaml:"partial_complete"`
 }
-
 
 // Validate validates a checklist schema for correctness and consistency.
 func (cs *ChecklistSchema) Validate() error {
@@ -64,6 +63,77 @@ func (cs *ChecklistSchema) Validate() error {
 			return fmt.Errorf("duplicate checklist ID: %s", cs.Checklists[i].ID)
 		}
 		ids[cs.Checklists[i].ID] = true
+	}
+
+	return nil
+}
+
+// ChecklistEntriesSchema represents the checklist_entries.yml file structure
+// for tracking daily checklist completion state.
+// AIDEV-NOTE: data-separation; templates vs instances pattern (see T007 Phase 3)
+type ChecklistEntriesSchema struct {
+	Version string                  `yaml:"version"`
+	Entries map[string]DailyEntries `yaml:"entries"` // date -> checklist entries
+}
+
+// DailyEntries holds all checklist completions for a specific date.
+type DailyEntries struct {
+	Date      string                    `yaml:"date"`
+	Completed map[string]ChecklistEntry `yaml:"completed"` // checklist_id -> completion state
+}
+
+// ChecklistEntry stores the completion state for a single checklist on a specific date.
+// AIDEV-NOTE: completion-tracking; maps item text to bool for historical accuracy
+type ChecklistEntry struct {
+	ChecklistID     string          `yaml:"checklist_id"`
+	CompletedItems  map[string]bool `yaml:"completed_items"` // item text -> completed status
+	CompletionTime  string          `yaml:"completion_time,omitempty"`
+	PartialComplete bool            `yaml:"partial_complete"`
+}
+
+// Validate validates a checklist entries schema.
+func (ces *ChecklistEntriesSchema) Validate() error {
+	if ces.Version == "" {
+		return fmt.Errorf("schema version is required")
+	}
+
+	// Validate each date entry
+	for date, dailyEntries := range ces.Entries {
+		if dailyEntries.Date != date {
+			return fmt.Errorf("date mismatch: key '%s' does not match entry date '%s'", date, dailyEntries.Date)
+		}
+
+		// Validate date format (YYYY-MM-DD)
+		if _, err := time.Parse("2006-01-02", date); err != nil {
+			return fmt.Errorf("invalid date format '%s': expected YYYY-MM-DD", date)
+		}
+
+		// Validate checklist entries for this date
+		for checklistID, entry := range dailyEntries.Completed {
+			if entry.ChecklistID != checklistID {
+				return fmt.Errorf("checklist ID mismatch: key '%s' does not match entry ID '%s'", checklistID, entry.ChecklistID)
+			}
+
+			if err := entry.Validate(); err != nil {
+				return fmt.Errorf("invalid checklist entry for '%s' on %s: %w", checklistID, date, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// Validate validates a single checklist entry.
+func (ce *ChecklistEntry) Validate() error {
+	if strings.TrimSpace(ce.ChecklistID) == "" {
+		return fmt.Errorf("checklist ID is required")
+	}
+
+	// Validate completion time if provided
+	if ce.CompletionTime != "" {
+		if _, err := time.Parse(time.RFC3339, ce.CompletionTime); err != nil {
+			return fmt.Errorf("invalid completion time format: %w", err)
+		}
 	}
 
 	return nil
@@ -175,7 +245,6 @@ func (c *Checklist) validateInternal() error {
 
 	return nil
 }
-
 
 // Validate validates a checklist completion condition.
 func (ccc *ChecklistCompletionCondition) Validate() error {

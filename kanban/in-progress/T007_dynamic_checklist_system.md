@@ -34,10 +34,26 @@ Extend the static checklist prototype (`iter checklist`) to support configurable
 - [x] 1.4: Add checklist validation logic
 
 ### Phase 2: Checklist Management Commands (Priority: High)
-- [ ] 2.1: Implement `iter list add $id` command
-- [ ] 2.2: Implement `iter list edit $id` command  
-- [ ] 2.3: Implement `iter list entry` (menu selection)
-- [ ] 2.4: Implement `iter list entry $id` (direct access)
+- [x] 2.1: Implement `iter list add $id` command
+  - Simple multiline text field UI with note about "# " prefix for headings
+  - Parse input into checklist items array and save to checklists.yml
+  - Basic validation and ID generation
+- [x] 2.2: Implement `iter list edit $id` command
+  - Load existing checklist and populate multiline text field
+  - Reuse same UI as add command with pre-filled content
+  - Update existing checklist in checklists.yml
+- [x] 2.3: Implement `iter list entry $id` (direct access)
+  - Adapt existing internal/ui/checklist.go prototype with minimal changes
+  - Load checklist by ID and populate items from checklists.yml
+  - Save completion state (item text -> boolean map) for entry recording
+- [x] 2.4: Implement `iter list entry` (menu selection)
+  - Present list of available checklist IDs/titles for selection
+  - On selection, invoke same logic as `iter list entry $id`
+  - Handle empty checklists.yml gracefully
+- [x] 2.5: Review implementation and consider refactoring opportunities
+  - Evaluate code reuse between add/edit commands
+  - Assess checklist UI integration patterns
+  - Identify any architectural improvements needed for Phase 3
 
 ### Phase 3: Goal Integration (Priority: High)
 - [ ] 3.1: Add ChecklistGoal support to goal configuration UI
@@ -45,11 +61,30 @@ Extend the static checklist prototype (`iter checklist`) to support configurable
 - [ ] 3.3: Implement manual scoring support
 - [ ] 3.4: Add checklist criteria validation
 
-### Phase 4: Enhanced UI & Experience (Priority: Medium)
-- [ ] 4.1: Add progress indicators to checklist headings (e.g., "clean station (3/5)")
-- [ ] 4.2: Implement checklist state persistence across sessions
-- [ ] 4.3: Add entry recording integration for checklist goals
-- [ ] 4.4: Add checklist completion summary and statistics
+### Phase 3: Checklist Entry Persistence & UX Refinements (Priority: High)
+- [x] 3.1: Make checklist ID optional in `iter list add` command
+  - Generate ID from title using same logic as goals
+  - Update editor UI to prompt for title first, then generate ID
+- [x] 3.2: Implement checklist_entries.yml for persistent completion tracking
+  - Create data model for daily checklist completion by date & checklist ID
+  - Add checklist entry parser for loading/saving completion state
+  - Store completion state separate from goal entries to avoid clutter
+- [x] 3.3: Update entry command to persist and restore completion state
+  - Save completion state to checklist_entries.yml on exit
+  - Restore previous completion state when re-entering same checklist on same day
+  - Handle date transitions properly (new day = fresh state)
+- [x] 3.4: Add ChecklistEntriesFile to config paths and initialization
+
+### Phase 4: Goal Integration (Priority: High)
+- [ ] 4.1: Add ChecklistGoal support to goal configuration UI
+- [ ] 4.2: Implement automatic scoring for checklist completion
+- [ ] 4.3: Implement manual scoring support
+- [ ] 4.4: Add checklist criteria validation
+
+### Phase 5: Enhanced UI & Experience (Priority: Medium)
+- [ ] 5.1: Add progress indicators to checklist headings (e.g., "clean station (3/5)")
+- [ ] 5.2: Add entry recording integration for checklist goals
+- [ ] 5.3: Add checklist completion summary and statistics
 
 **Overall Status**: `[in_progress]`
 
@@ -196,13 +231,13 @@ internal/
 
 ```bash
 # Checklist management
-iter list add morning_routine          # Create new checklist
-iter list edit morning_routine         # Edit existing checklist
+iter list add morning_routine          # Create new checklist with multiline text UI
+iter list edit morning_routine         # Edit existing checklist (reuse add UI)
 iter list rm morning_routine           # Remove checklist
 
 # Checklist completion
-iter list entry                        # Show menu of available checklists
-iter list entry morning_routine        # Complete specific checklist
+iter list entry                        # Show menu of available checklists, then enter selected
+iter list entry morning_routine        # Complete specific checklist (adapted from prototype)
 iter list show morning_routine         # Display checklist without interaction
 
 # Goal integration (through existing goal commands)
@@ -277,6 +312,28 @@ iter entry                            # Extended to handle checklist entry recor
 - Simplified completion criteria to "all items complete" or manual scoring (no percentage scoring)
 - Changed completion storage to map item text to boolean for better historical data
 - Updated goal schema specification to document checklist field type and criteria
+
+**Phase 2 Planning (2025-07-12):**
+- Detailed UI approach: multiline text field for add/edit with "# " heading instructions
+- Command sequence: 2.3 (direct entry) before 2.4 (menu selection) for logical flow
+- Prototype reuse: adapt existing internal/ui/checklist.go with minimal changes for entry commands
+- Added 2.5 review subtask to evaluate refactoring opportunities before Phase 3
+
+**Phase 2 Complete (2025-07-12):**
+- Implemented complete checklist management command suite: add, edit, entry (with/without ID)
+- Created reusable UI components in internal/ui/checklist/ package
+- Successfully adapted existing prototype with minimal changes for dynamic data
+- Added ChecklistsFile to config paths for proper file management
+- Clean architecture with good separation of concerns and code reuse
+- Ready for Phase 3 UX refinements
+
+**Phase 3 Complete (2025-07-12):**
+- Made checklist ID optional in `iter list add` command with automatic generation from title
+- Implemented comprehensive checklist_entries.yml persistence system for daily completion tracking
+- Enhanced entry command to save/restore completion state on same-day re-entry
+- Added ChecklistEntriesFile to config paths with proper initialization
+- Separation of checklist templates (checklists.yml) from completion instances (checklist_entries.yml)
+- Ready for Phase 4 goal system integration
 
 ## Roadblocks
 
