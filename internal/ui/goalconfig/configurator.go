@@ -2,6 +2,7 @@ package goalconfig
 
 import (
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
@@ -57,32 +58,32 @@ func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
 	// Display welcome message
 	gc.displayAddGoalWelcome()
 
-	// Prompt for goal type first to determine which flow to use
-	goalType, useWizard, err := gc.promptForGoalTypeAndMode()
+	// Collect basic information first (title, description, goal type)
+	basicInfo, useWizard, err := gc.collectBasicInformation()
 	if err != nil {
-		return fmt.Errorf("goal type selection failed: %w", err)
+		return fmt.Errorf("basic information collection failed: %w", err)
 	}
 
 	var newGoal *models.Goal
 
 	if useWizard {
-		// Use enhanced bubbletea wizard for complex flows
-		newGoal, err = gc.runGoalWizard(goalType, schema.Goals)
+		// Use enhanced bubbletea wizard for complex flows with pre-populated basic info
+		newGoal, err = gc.runGoalWizardWithBasicInfo(basicInfo, schema.Goals)
 		if err != nil {
 			return fmt.Errorf("goal creation wizard failed: %w", err)
 		}
 	} else {
-		// Use legacy forms for backwards compatibility
+		// Use legacy forms for backwards compatibility with pre-populated basic info
 		if gc.preferLegacy {
 			// Use original GoalBuilder for maximum backwards compatibility
-			newGoal, err = gc.goalBuilder.BuildGoal(schema.Goals)
+			newGoal, err = gc.goalBuilder.BuildGoalWithBasicInfo(basicInfo, schema.Goals)
 			if err != nil {
 				return fmt.Errorf("goal creation cancelled or failed: %w", err)
 			}
 		} else {
-			// Use hybrid approach with compatibility mode
+			// Use hybrid approach with compatibility mode and pre-populated basic info
 			compatMode := wizard.AutoSelect
-			newGoal, err = gc.legacyAdapter.CreateGoalWithMode(goalType, schema.Goals, compatMode)
+			newGoal, err = gc.legacyAdapter.CreateGoalWithBasicInfo(basicInfo, schema.Goals, compatMode)
 			if err != nil {
 				return fmt.Errorf("goal creation failed: %w", err)
 			}
@@ -175,55 +176,6 @@ func (gc *GoalConfigurator) saveSchema(schema *models.Schema, goalsFilePath stri
 	return gc.goalParser.SaveToFile(schema, goalsFilePath)
 }
 
-// promptForGoalTypeAndMode prompts for goal type and determines whether to use wizard
-func (gc *GoalConfigurator) promptForGoalTypeAndMode() (models.GoalType, bool, error) {
-	var goalType models.GoalType
-	var useEnhanced bool
-
-	// Goal type selection
-	goalTypeForm := huh.NewForm(
-		huh.NewGroup(
-			huh.NewSelect[models.GoalType]().
-				Title("Goal Type").
-				Description("Choose how this goal will be tracked and scored").
-				Options(
-					huh.NewOption("Simple (Pass/Fail)", models.SimpleGoal),
-					huh.NewOption("Elastic (Mini/Midi/Maxi levels)", models.ElasticGoal),
-					huh.NewOption("Informational (Data tracking only)", models.InformationalGoal),
-				).
-				Value(&goalType),
-		),
-	)
-
-	if err := goalTypeForm.Run(); err != nil {
-		return "", false, err
-	}
-
-	// Intelligent mode selection based on goal complexity and user preference
-	useEnhanced = gc.determineOptimalInterface(goalType)
-
-	// Allow user override for simple goals only (others benefit significantly from wizard)
-	if goalType == models.SimpleGoal {
-		var override bool
-		modeForm := huh.NewForm(
-			huh.NewGroup(
-				huh.NewConfirm().
-					Title("Use Enhanced Wizard?").
-					Description("Enhanced wizard provides progress tracking, step navigation, and live validation. Recommended for new users.").
-					Affirmative("Enhanced Wizard (Recommended)").
-					Negative("Quick Forms").
-					Value(&override),
-			),
-		)
-
-		if err := modeForm.Run(); err != nil {
-			return goalType, useEnhanced, err
-		}
-		useEnhanced = override
-	}
-
-	return goalType, useEnhanced, nil
-}
 
 // determineOptimalInterface intelligently selects the best interface for each goal type
 func (gc *GoalConfigurator) determineOptimalInterface(goalType models.GoalType) bool {
@@ -243,10 +195,103 @@ func (gc *GoalConfigurator) determineOptimalInterface(goalType models.GoalType) 
 	}
 }
 
-// runGoalWizard runs the bubbletea-based goal creation wizard
-func (gc *GoalConfigurator) runGoalWizard(goalType models.GoalType, existingGoals []models.Goal) (*models.Goal, error) {
-	// Create and run the wizard
-	wizardModel := wizard.NewGoalWizardModel(goalType, existingGoals)
+
+// BasicInfo holds the pre-collected basic information for all goals
+type BasicInfo struct {
+	Title       string
+	Description string
+	GoalType    models.GoalType
+}
+
+// collectBasicInformation collects title, description, and goal type upfront
+func (gc *GoalConfigurator) collectBasicInformation() (*BasicInfo, bool, error) {
+	var title, description string
+	var goalType models.GoalType
+
+	// Step 1: Collect Title and Description
+	basicInfoForm := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Goal Title").
+				Description("Enter a clear, descriptive title for your goal").
+				Value(&title).
+				Validate(func(s string) error {
+					s = strings.TrimSpace(s)
+					if s == "" {
+						return fmt.Errorf("goal title is required")
+					}
+					if len(s) > 100 {
+						return fmt.Errorf("goal title must be 100 characters or less")
+					}
+					return nil
+				}),
+
+			huh.NewText().
+				Title("Description (optional)").
+				Description("Provide additional context about this goal").
+				Value(&description),
+		),
+	)
+
+	if err := basicInfoForm.Run(); err != nil {
+		return nil, false, err
+	}
+
+	// Step 2: Goal type selection
+	goalTypeForm := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[models.GoalType]().
+				Title("Goal Type").
+				Description("Choose how this goal will be tracked and scored").
+				Options(
+					huh.NewOption("Simple (Pass/Fail)", models.SimpleGoal),
+					huh.NewOption("Elastic (Mini/Midi/Maxi levels)", models.ElasticGoal),
+					huh.NewOption("Informational (Data tracking only)", models.InformationalGoal),
+				).
+				Value(&goalType),
+		),
+	)
+
+	if err := goalTypeForm.Run(); err != nil {
+		return nil, false, err
+	}
+
+	// Step 3: Determine interface mode
+	useWizard := gc.determineOptimalInterface(goalType)
+
+	// Allow user override for simple goals only
+	if goalType == models.SimpleGoal {
+		var override bool
+		modeForm := huh.NewForm(
+			huh.NewGroup(
+				huh.NewConfirm().
+					Title("Use Enhanced Wizard?").
+					Description("Enhanced wizard provides progress tracking, step navigation, and live validation. Recommended for new users.").
+					Affirmative("Enhanced Wizard (Recommended)").
+					Negative("Quick Forms").
+					Value(&override),
+			),
+		)
+
+		if err := modeForm.Run(); err != nil {
+			return nil, useWizard, err
+		}
+		useWizard = override
+	}
+
+	basicInfo := &BasicInfo{
+		Title:       strings.TrimSpace(title),
+		Description: strings.TrimSpace(description),
+		GoalType:    goalType,
+	}
+
+	return basicInfo, useWizard, nil
+}
+
+// runGoalWizardWithBasicInfo runs the bubbletea wizard with pre-populated basic info
+func (gc *GoalConfigurator) runGoalWizardWithBasicInfo(basicInfo *BasicInfo, existingGoals []models.Goal) (*models.Goal, error) {
+	// Create wizard with pre-populated basic info
+	wizardModel := wizard.NewGoalWizardModelWithBasicInfo(basicInfo.GoalType, existingGoals, basicInfo.Title, basicInfo.Description)
 
 	program := tea.NewProgram(wizardModel)
 	finalModel, err := program.Run()

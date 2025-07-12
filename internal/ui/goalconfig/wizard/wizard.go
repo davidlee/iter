@@ -50,6 +50,40 @@ func NewGoalWizardModel(goalType models.GoalType, _ []models.Goal) *GoalWizardMo
 	}
 }
 
+// NewGoalWizardModelWithBasicInfo creates a new goal wizard model with pre-populated basic info
+func NewGoalWizardModelWithBasicInfo(goalType models.GoalType, _ []models.Goal, title, description string) *GoalWizardModel {
+	state := NewGoalState(goalType)
+	navigation := NewDefaultNavigationController()
+	renderer := NewDefaultFormRenderer()
+
+	// Pre-populate basic info in state
+	basicInfo := &BasicInfoStepData{
+		Title:       title,
+		Description: description,
+		GoalType:    goalType,
+		valid:       true,
+	}
+	state.SetStep(0, basicInfo)
+	state.MarkStepCompleted(0)
+
+	// Create step handlers based on goal type
+	steps := createStepHandlers(goalType)
+
+	// Start from step 1 since basic info is pre-populated
+	state.SetCurrentStep(1)
+
+	return &GoalWizardModel{
+		state:      state,
+		navigation: navigation,
+		renderer:   renderer,
+		steps:      steps,
+		formActive: false,
+		done:       false,
+		width:      80,
+		height:     24,
+	}
+}
+
 // Init implements tea.Model
 func (m *GoalWizardModel) Init() tea.Cmd {
 	// Initialize the first step

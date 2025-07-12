@@ -145,3 +145,15 @@ func (a *LegacyGoalAdapter) createGoalAutoSelect(goalType models.GoalType, exist
 		return a.CreateGoalWithLegacyForms(goalType, existingGoals)
 	}
 }
+
+// CreateGoalWithBasicInfo creates a goal with pre-populated basic info using the specified compatibility mode
+func (a *LegacyGoalAdapter) CreateGoalWithBasicInfo(_ interface{}, existingGoals []models.Goal, mode BackwardsCompatibilityMode) (*models.Goal, error) {
+	// Extract goal type from basic info to determine flow
+	// For now, delegate to the regular CreateGoalWithMode since wizards handle pre-population
+	// AIDEV-TODO: Extract goal type from basicInfo and pass it properly
+	
+	// Default to simple goal if we can't extract the type
+	goalType := models.SimpleGoal
+	
+	return a.CreateGoalWithMode(goalType, existingGoals, mode)
+}

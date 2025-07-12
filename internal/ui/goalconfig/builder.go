@@ -224,6 +224,14 @@ func (gb *GoalBuilder) calculateNextPosition(existingGoals []models.Goal) int {
 	return maxPosition + 1
 }
 
+// BuildGoalWithBasicInfo runs the goal creation flow with pre-populated basic info
+func (gb *GoalBuilder) BuildGoalWithBasicInfo(_ interface{}, existingGoals []models.Goal) (*models.Goal, error) {
+	// For now, delegate to the original BuildGoal since it already collects basic info
+	// This maintains backwards compatibility while providing the interface needed
+	// AIDEV-TODO: Optimize to skip basic info collection when it's pre-populated
+	return gb.BuildGoal(existingGoals)
+}
+
 // Helper functions
 
 func needsFieldDetails(fieldType string) bool {

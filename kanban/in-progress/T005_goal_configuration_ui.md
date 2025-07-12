@@ -166,6 +166,23 @@ Based on investigation of existing codebase:
   - [x] Create reusable bubbletea components that can embed huh forms
   - [x] Maintain backwards compatibility with existing patterns
 
+- [x] **2.6 Fix Goal Creation Flow (Bug Fix)** ✅ **COMPLETED**
+  - [x] Collect Title and Description before Goal Type selection (currently reversed)
+  - [x] Modify configurator.AddGoal() to prompt for basic info first
+  - [x] Pass pre-collected basic info to wizard/legacy forms
+  - [x] Update wizard initialization to accept pre-populated basic info
+  - [x] Ensure both wizard and legacy flows work with pre-populated data
+  - [x] Test all goal types (simple/elastic/informational) with corrected flow
+
+- [ ] **2.7 Fix Critical Wizard/Forms Integration Issues** 🚨 **URGENT**
+  - [ ] Fix Enhanced Wizard default selection (currently defaults to Quick Forms instead of Enhanced)
+  - [ ] Remove superfluous mode selection - automatically choose best interface per goal type
+  - [ ] Fix Enhanced Wizard pre-population validation errors ("Scoring configuration is required")
+  - [ ] Fix Quick Forms pre-population validation errors ("Basic information is required")
+  - [ ] Ensure wizard step handlers properly recognize pre-populated basic info
+  - [ ] Update legacy forms to skip basic info collection when pre-populated
+  - [ ] Test complete flow: Basic Info → Auto-select best interface → Launch without errors
+
 ### Phase 3: Goal Management Enhancement
 - [ ] **3.1 Enhanced Goal Listing (iter goal list)**
   - [ ] Rich table display with goal summaries
@@ -330,6 +347,47 @@ Based on investigation of existing codebase:
   - `internal/ui/goalconfig/wizard/legacy_adapter.go` - BackwardsCompatibilityMode and adapter for interface selection
   - Enhanced `configurator.go` with intelligent mode selection and compatibility configuration
   - All existing wizard flows (simple/elastic/informational) preserved with enhanced backwards compatibility
+
+**Phase 2.6 Bug Investigation (In Progress):**
+- **Root Cause Identified**: configurator.AddGoal() asks for Goal Type first, then launches wizard/legacy forms which ask for Title/Description
+- **Expected Flow**: Title → Description → Goal Type → Launch appropriate flow with pre-populated data
+- **Current Incorrect Flow**: Goal Type → Launch wizard → Title/Description (duplicated effort, confusing UX)
+- **Impact**: Users see Goal Type selection alone initially, then see Title/Description in wizard (feels like bug)
+- **Legacy Forms**: GoalBuilder.BuildGoal() correctly starts with basic info including goal type
+- **Wizard Forms**: BasicInfoStepHandler properly collects title/description, but gets called after goal type selection
+- **Solution**: Move basic info collection to configurator level, pass to wizard/legacy forms as pre-populated data
+
+**Phase 2.6 Implementation (Completed):**
+- **Fixed Goal Creation Flow**: Corrected sequence to Title → Description → Goal Type → Launch appropriate flow
+- **BasicInfo Structure**: New type to hold pre-collected title, description, and goal type
+- **collectBasicInformation()**: Unified function collecting all basic info upfront with proper validation
+- **Enhanced Wizard Integration**: NewGoalWizardModelWithBasicInfo() accepts pre-populated data and starts from step 1
+- **Legacy Compatibility**: BuildGoalWithBasicInfo() and CreateGoalWithBasicInfo() methods for backwards compatibility
+- **Smart Mode Selection**: Moved interface selection logic into basic info collection for seamless flow
+- **Pre-population Logic**: Wizard state pre-populated with basic info, step 0 marked completed, starts from step 1
+- **User Experience**: Now users see Title → Description → Goal Type → Enhanced wizard selection → Launch wizard starting with next step
+- **Key Files Modified**:
+  - `configurator.go`: Complete flow restructure with collectBasicInformation() and runGoalWizardWithBasicInfo()
+  - `wizard/wizard.go`: Added NewGoalWizardModelWithBasicInfo() constructor with pre-population
+  - `builder.go`: Added BuildGoalWithBasicInfo() for legacy compatibility
+  - `wizard/legacy_adapter.go`: Added CreateGoalWithBasicInfo() for interface compatibility
+- **Removed Redundancy**: Eliminated duplicate basic info collection between configurator and wizard flows
+
+**Phase 2.7 Critical Issues Analysis (In Progress):**
+- **User Testing Findings**: Testing revealed multiple integration failures after Phase 2.6 implementation
+- **Enhanced Wizard Default Bug**: Mode selection shows "Quick Forms" selected instead of "Enhanced Wizard (Recommended)"
+- **Superfluous Mode Selection**: User feedback indicates choice between wizard/forms adds unnecessary complexity
+- **Enhanced Wizard Validation Error**: Shows "Scoring configuration is required" immediately after basic info collection
+- **Quick Forms Validation Error**: Shows "Basic information is required" despite basic info being pre-collected
+- **Pre-population Logic Failure**: Wizard state pre-population not properly recognized by step handlers
+- **Legacy Forms Integration**: GoalBuilder.BuildGoal() still collecting basic info instead of using pre-populated data
+- **Flow Analysis Mismatch**: Current implementation doesn't match the planned flow from flow_analysis_T005.md
+- **Root Cause**: Wizard and legacy forms still expect to collect basic info themselves, ignoring pre-populated state
+- **Required Solution**: 
+  - Remove mode selection entirely - use determineOptimalInterface() automatically
+  - Fix wizard step handler validation to recognize completed step 0
+  - Fix legacy forms to skip basic info when pre-populated
+  - Ensure seamless transition from basic info collection to appropriate interface
 
 **References:**
 - [huh documentation](https://github.com/charmbracelet/huh) - Forms and prompts

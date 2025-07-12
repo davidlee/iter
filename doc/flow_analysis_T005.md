@@ -537,3 +537,69 @@ Based on this analysis, the recommended implementation approach is:
 6. **Create Rich Preview**: Side-by-side goal configuration display
 
 The elastic goal flow is the most complex and will benefit most from the enhanced UX patterns, making it an ideal proof-of-concept for the bubbletea integration.
+
+---
+
+## Phase 2.6-2.7 Implementation Update
+
+### Current Status (Post-User Testing)
+
+**Phase 2.6**: Successfully implemented basic info collection upfront (Title → Description → Goal Type).
+
+**Phase 2.7**: Critical integration issues discovered during user testing:
+
+### User Testing Results Analysis
+
+**Test Case 1: Enhanced Wizard Flow**
+- ✅ Basic info collection works correctly (Title → Description → Goal Type)
+- ❌ Mode selection defaults to "Quick Forms" instead of "Enhanced Wizard (Recommended)"
+- ❌ Enhanced wizard shows validation error: "Scoring configuration is required"
+- **Root Cause**: Wizard step handlers don't recognize pre-populated basic info
+
+**Test Case 2: Quick Forms Flow**  
+- ✅ Basic info collection works correctly
+- ❌ Legacy forms show validation error: "Basic information is required"
+- **Root Cause**: GoalBuilder.BuildGoal() still tries to collect basic info
+
+### Corrected Implementation Plan
+
+**Immediate Fixes Required:**
+
+1. **Remove Mode Selection Complexity**
+   - Eliminate user choice between Enhanced Wizard vs Quick Forms
+   - Use `determineOptimalInterface()` automatically based on goal type
+   - Simplify flow: Basic Info → Auto-select best interface → Launch
+
+2. **Fix Wizard Pre-population Logic**
+   - Ensure wizard step handlers properly validate pre-populated step 0
+   - Fix step navigation to start from appropriate step based on completion status
+   - Update validation logic to recognize completed basic info
+
+3. **Fix Legacy Forms Integration**
+   - Modify GoalBuilder to skip basic info collection when pre-populated
+   - Ensure BuildGoalWithBasicInfo() actually uses the provided basic info
+   - Maintain backwards compatibility for non-pre-populated flows
+
+### Optimal Flow (Revised)
+
+```
+1. collectBasicInformation():
+   ├─ Title (required, validated)
+   ├─ Description (optional)
+   └─ Goal Type (simple/elastic/informational)
+
+2. determineOptimalInterface() automatically:
+   ├─ Simple Goals → Enhanced Wizard (no user choice)
+   ├─ Elastic Goals → Enhanced Wizard (complexity requires it)
+   └─ Informational Goals → Enhanced Wizard (direction config needs it)
+
+3. Launch appropriate interface:
+   ├─ Enhanced Wizard: Pre-populated with basic info, start from step 1
+   └─ Legacy Forms: Skip basic info collection, use pre-populated data
+```
+
+**User Experience Goals:**
+- No confusing mode selection prompts
+- Seamless transition from basic info to appropriate interface
+- No validation errors about missing information that was already collected
+- Optimal interface automatically selected based on goal complexity
