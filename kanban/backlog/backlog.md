@@ -15,3 +15,7 @@ High-level list of future features / improvements. Break into detailed task card
   - [ ] Interactive filtering and sorting
   - [ ] Goal status indicators (manual/automatic scoring, completeness)
   - [ ] Search functionality for large goal sets
+
+## reporting 
+
+- https://github.com/NimbleMarkets/ntcharts

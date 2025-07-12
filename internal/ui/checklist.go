@@ -3,8 +3,10 @@ package ui
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	// "github.com/charmbracelet/lipgloss"
 	// "davidlee/iter/internal/models"
 )
@@ -18,9 +20,16 @@ type model struct {
 func initialModel() model {
 	return model{
 		items: []string{
-			"check email",
-			"check slack",
-			"check calendar",
+			"# process inboxes",
+			"process email inbox",
+			"review email starred",
+			"check slack saved messages",
+			"check slack notifications",
+			"check slack priority channels",
+			"review calendar",
+
+			"# plan",
+			"time block",
 		},
 		selected: make(map[int]struct{}),
 	}
@@ -44,15 +53,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		// The "up" and "e" keys move the cursor up
+		// skip over headings
 		case "up", "e":
 			if m.cursor > 0 {
-				m.cursor--
+				if strings.HasPrefix(m.items[m.cursor-1], "#") {
+					if m.cursor > 1 {
+						m.cursor -= 2
+					}
+				} else {
+					m.cursor--
+				}
 			}
 
 		// The "down" and "a" keys move the cursor down
+		// skip over headings
 		case "down", "a":
 			if m.cursor < len(m.items)-1 {
 				m.cursor++
+				if strings.HasPrefix(m.items[m.cursor], "# ") {
+					m.cursor++
+				}
 			}
 
 		// The "enter" key and the spacebar (a literal space) toggle
@@ -74,15 +94,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	// The header
-	s := "Complete checklist items:\n\n"
+	s := "Complete the checklist:\n\n"
+
+	headingStyle := lipgloss.NewStyle().Bold(true).Underline(true).Foreground(lipgloss.Color("202")) //.Padding(0).Margin(0)
+	itemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("3"))                                 //.Padding(0).Margin(0)
+	checkedStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#3C3C3C"))                        //.Padding(0).Margin(0)
+	selectedStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("201"))                           //.Padding(0).Margin(0)
 
 	// Iterate over our items
 	for i, item := range m.items {
+		isHeading := strings.HasPrefix(item, "# ")
 
 		// Is the cursor pointing at this item?
 		cursor := " " // no cursor
 		if m.cursor == i {
-			cursor = ">" // cursor!
+			if !isHeading {
+				cursor = ">" // cursor!
+			}
 		}
 
 		// Is this choice selected?
@@ -92,7 +120,27 @@ func (m model) View() string {
 		}
 
 		// Render the row
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, item)
+		if isHeading {
+			if i > 0 {
+				s += fmt.Sprintf("\n")
+			}
+			s += fmt.Sprintf("      ")
+			text := fmt.Sprintf("%s", strings.TrimLeft(item, "# "))
+			s += headingStyle.Render(text)
+			s += fmt.Sprintf("\n")
+		} else {
+			if cursor == ">" {
+				text := fmt.Sprintf("%s [%s] %s", cursor, checked, item)
+				s += selectedStyle.Render(text)
+			} else if checked == "x" {
+				text := fmt.Sprintf("%s [%s] %s", cursor, checked, item)
+				s += checkedStyle.Render(text)
+			} else {
+				text := fmt.Sprintf("%s [%s] %s", cursor, checked, item)
+				s += itemStyle.Render(text)
+			}
+			s += "\n"
+		}
 	}
 
 	// The footer
@@ -109,12 +157,3 @@ func NewChecklistScreen() {
 		os.Exit(1)
 	}
 }
-
-//
-// func UseStuff() {
-// 	var words string
-// 	var huhs := lipgloss.NewStyle()
-//   var form := huh.NewForm()
-//
-// 	return nil
-// }
