@@ -70,6 +70,7 @@ func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
 		return fmt.Errorf("basic information collection failed: %w", err)
 	}
 
+	// AIDEV-NOTE: goal-type-routing; add new goal types here with corresponding creator methods  
 	// Route to appropriate goal creator based on goal type
 	var newGoal *models.Goal
 
@@ -79,11 +80,17 @@ func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
 		if err != nil {
 			return fmt.Errorf("informational goal creation failed: %w", err)
 		}
-	case models.SimpleGoal, models.ElasticGoal:
-		// Use simplified goal creator for simple and elastic goals
+	case models.SimpleGoal:
+		// Use simple goal creator for simple goals
 		newGoal, err = gc.runSimpleGoalCreator(basicInfo, schema.Goals)
 		if err != nil {
-			return fmt.Errorf("goal creation failed: %w", err)
+			return fmt.Errorf("simple goal creation failed: %w", err)
+		}
+	case models.ElasticGoal:
+		// Use elastic goal creator for elastic goals
+		newGoal, err = gc.runElasticGoalCreator(basicInfo, schema.Goals)
+		if err != nil {
+			return fmt.Errorf("elastic goal creation failed: %w", err)
 		}
 	case models.ChecklistGoal:
 		// Use checklist goal creator for checklist goals
@@ -287,6 +294,43 @@ func (gc *GoalConfigurator) runSimpleGoalCreator(basicInfo *BasicInfo, _ []model
 	return nil, fmt.Errorf("unexpected creator model type")
 }
 
+// AIDEV-NOTE: elastic-goal-creator-integration; follows same pattern as runSimpleGoalCreator for consistency
+// runElasticGoalCreator runs the elastic goal creator with pre-populated basic info
+func (gc *GoalConfigurator) runElasticGoalCreator(basicInfo *BasicInfo, _ []models.Goal) (*models.Goal, error) {
+	// Create elastic goal creator with pre-populated basic info
+	creator := NewElasticGoalCreator(basicInfo.Title, basicInfo.Description, basicInfo.GoalType)
+
+	// Run the bubbletea program
+	program := tea.NewProgram(creator)
+	finalModel, err := program.Run()
+	if err != nil {
+		return nil, fmt.Errorf("elastic goal creator execution failed: %w", err)
+	}
+
+	// Extract result from final model
+	if creatorModel, ok := finalModel.(*ElasticGoalCreator); ok {
+		if creatorModel.IsCancelled() {
+			return nil, fmt.Errorf("elastic goal creation was cancelled")
+		}
+
+		goal, err := creatorModel.GetResult()
+		if err != nil {
+			return nil, fmt.Errorf("elastic goal creation error: %w", err)
+		}
+
+		if goal == nil {
+			return nil, fmt.Errorf("elastic goal creation completed without result")
+		}
+
+		// AIDEV-NOTE: Position is inferred and should not be set in goal creation
+		// Position will be determined by the parser/schema based on order in goals.yml
+
+		return goal, nil
+	}
+
+	return nil, fmt.Errorf("unexpected elastic creator model type")
+}
+
 // runInformationalGoalCreator runs the informational goal creator with pre-populated basic info
 func (gc *GoalConfigurator) runInformationalGoalCreator(basicInfo *BasicInfo, _ []models.Goal) (*models.Goal, error) {
 	// Create informational goal creator with pre-populated basic info
@@ -341,6 +385,7 @@ func (gc *GoalConfigurator) AddGoalWithYAMLOutput(goalsFilePath string) (string,
 		return "", fmt.Errorf("basic information collection failed: %w", err)
 	}
 
+	// AIDEV-NOTE: goal-type-routing; add new goal types here with corresponding creator methods  
 	// Route to appropriate goal creator based on goal type
 	var newGoal *models.Goal
 
@@ -350,11 +395,17 @@ func (gc *GoalConfigurator) AddGoalWithYAMLOutput(goalsFilePath string) (string,
 		if err != nil {
 			return "", fmt.Errorf("informational goal creation failed: %w", err)
 		}
-	case models.SimpleGoal, models.ElasticGoal:
-		// Use simplified goal creator for simple and elastic goals
+	case models.SimpleGoal:
+		// Use simple goal creator for simple goals
 		newGoal, err = gc.runSimpleGoalCreator(basicInfo, schema.Goals)
 		if err != nil {
-			return "", fmt.Errorf("goal creation failed: %w", err)
+			return "", fmt.Errorf("simple goal creation failed: %w", err)
+		}
+	case models.ElasticGoal:
+		// Use elastic goal creator for elastic goals
+		newGoal, err = gc.runElasticGoalCreator(basicInfo, schema.Goals)
+		if err != nil {
+			return "", fmt.Errorf("elastic goal creation failed: %w", err)
 		}
 	case models.ChecklistGoal:
 		// Use checklist goal creator for checklist goals
