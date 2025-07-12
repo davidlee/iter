@@ -8,6 +8,12 @@ context_windows: ["./*.go", Claude.md, Architecture.md] # List of glob patterns 
 
 # {{ title }}
 
+**Context (Background)**:
+*AI to complete*
+
+**Context (Significant Code Files)**:
+*AI to complete*
+
 ## 1. Goal / User Story
 
 Brief description of what needs to be achieved, why, and for whom. Why is this task important?

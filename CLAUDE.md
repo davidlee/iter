@@ -62,6 +62,9 @@ Concise ADRs should be added when appropriate (e.g. a decision is made with scop
 
 The project otherwise uses standard Go tooling. See `Justfile` for typical commands.
 
+**Important Testing Limitation:**
+The CLI UI framework (charmbracelet/huh + bubbletea) requires an interactive TTY and cannot accept piped input. Commands like `iter goal add` will fail with "could not open a new TTY" when used with pipes or redirected input. Manual testing must be done interactively, or use `--dry-run` flags when available for automation.
+
 ## Development process
 
 We use markdown files within `kanban/` to plan, break down, and track progress of work. Read and closely follow the instructions in `doc/workflow.md`.
