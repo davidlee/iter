@@ -830,20 +830,20 @@ func (m *ElasticGoalCreator) buildCriteriaFromData(tier string) (*models.Criteri
 			return nil, fmt.Errorf("invalid %s criteria value: %w", tier, err)
 		}
 		condition.GreaterThanOrEqual = &val
-		description = fmt.Sprintf("%s achievement when value >= %.1f %s", strings.Title(tier), val, unit)
+		description = fmt.Sprintf("%s achievement when value >= %.1f %s", strings.ToUpper(tier[:1])+tier[1:], val, unit)
 
 	case models.TimeFieldType:
 		// Time criteria - for elastic goals, we typically use "before" (e.g., wake up before X)
 		// But this depends on the goal direction - this is simplified
 		timeValue := strings.TrimSpace(criteriaTimeValue)
 		condition.Before = timeValue
-		description = fmt.Sprintf("%s achievement when time is before %s", strings.Title(tier), timeValue)
+		description = fmt.Sprintf("%s achievement when time is before %s", strings.ToUpper(tier[:1])+tier[1:], timeValue)
 
 	case models.DurationFieldType:
 		// Duration criteria - use greater_than_or_equal approach (similar to numeric)
 		durationValue := strings.TrimSpace(criteriaValue)
 		condition.After = durationValue // Using After field for duration >= comparison
-		description = fmt.Sprintf("%s achievement when duration >= %s", strings.Title(tier), durationValue)
+		description = fmt.Sprintf("%s achievement when duration >= %s", strings.ToUpper(tier[:1])+tier[1:], durationValue)
 
 	default:
 		return nil, fmt.Errorf("automatic scoring not supported for field type: %s", m.selectedFieldType)

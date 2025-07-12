@@ -1,44 +1,70 @@
 # Manual Testing Guide for T009/1.4
 
-## Dry-Run Testing Commands
+## Testing Strategy
 
-Test the interactive CLI to ensure all field types and scoring combinations work:
+**Automated Testing**: All business logic is comprehensively tested via headless unit and integration tests (42 tests covering all combinations).
 
-### Boolean + Manual (Quick Path)
+**Interactive UI Testing**: Manual verification of the actual CLI interface to ensure proper user experience.
+
+## Interactive CLI Testing
+
+The CLI UI framework requires interactive input. Test these scenarios manually:
+
+### 1. Boolean + Manual (Quick Path)
 ```bash
-echo -e "simple\nboolean\nmanual\nDid you exercise today?\n" | iter goal add --dry-run
+iter goal add --dry-run
 ```
+**User inputs**: simple → boolean → manual → "Did you exercise today?"
 
-### Boolean + Automatic
+### 2. Boolean + Automatic  
 ```bash
-echo -e "simple\nboolean\nautomatic\nDid you exercise today?\n" | iter goal add --dry-run
+iter goal add --dry-run
 ```
+**User inputs**: simple → boolean → automatic → "Did you exercise today?"
 
-### Numeric + Automatic with Range
+### 3. Numeric + Manual with Constraints
 ```bash
-echo -e "simple\nnumeric\nunsigned_decimal\nhours\nyes\n7\n9\nautomatic\nrange\n7.0\n9.0\nyes\nHow many hours did you sleep?\n" | iter goal add --dry-run
+iter goal add --dry-run
 ```
+**User inputs**: simple → numeric → unsigned_int → "reps" → yes → "10" → "100" → manual → "How many push-ups?"
 
-### Time + Automatic
+### 4. Numeric + Automatic with Range
 ```bash
-echo -e "simple\ntime\nautomatic\nbefore\n07:00\nWhat time did you wake up?\n" | iter goal add --dry-run
+iter goal add --dry-run
 ```
+**User inputs**: simple → numeric → unsigned_decimal → "hours" → no → automatic → range → "7.0" → "9.0" → yes → "How many hours did you sleep?"
 
-### Duration + Automatic
+### 5. Time + Automatic
 ```bash
-echo -e "simple\nduration\nautomatic\ngreater_than_or_equal\n20m\nHow long did you meditate?\n" | iter goal add --dry-run
+iter goal add --dry-run
 ```
+**User inputs**: simple → time → automatic → before → "07:00" → "What time did you wake up?"
+
+### 6. Duration + Automatic
+```bash
+iter goal add --dry-run
+```
+**User inputs**: simple → duration → automatic → greater_than_or_equal → "20m" → "How long did you meditate?"
+
+### 7. Text + Manual (Multiline)
+```bash
+iter goal add --dry-run
+```
+**User inputs**: simple → text → yes → manual → "What did you write about today?"
 
 ## Expected Results
 
-All commands should:
-1. Complete without errors
-2. Display "✅ Goal created successfully" message  
-3. Show valid YAML output
-4. Pass goal validation
+All interactive sessions should:
+1. Guide user through appropriate form steps
+2. Skip unnecessary steps (e.g., field config for time/duration)
+3. Complete without errors  
+4. Display "✅ Goal created successfully" message
+5. Show valid YAML output
+6. Pass goal validation
 
 ## Notes
 
-- TTY limitation prevents piped input testing in CI
-- These commands are for manual verification only
-- All business logic is already covered by unit + integration tests
+- **Piped input will NOT work** due to TTY requirement
+- All business logic is already validated by automated tests
+- This is purely for UX verification of the interactive interface
+- Use `--dry-run` to avoid modifying actual goal files

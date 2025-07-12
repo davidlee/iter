@@ -62,8 +62,13 @@ Concise ADRs should be added when appropriate (e.g. a decision is made with scop
 
 The project otherwise uses standard Go tooling. See `Justfile` for typical commands.
 
-**Important Testing Limitation:**
-The CLI UI framework (charmbracelet/huh + bubbletea) requires an interactive TTY and cannot accept piped input. Commands like `iter goal add` will fail with "could not open a new TTY" when used with pipes or redirected input. Manual testing must be done interactively, or use `--dry-run` flags when available for automation.
+**Testing Approach:**
+The CLI UI framework (charmbracelet/huh + bubbletea) requires an interactive TTY for the user interface and cannot accept piped input. However, comprehensive headless testing infrastructure bypasses this limitation:
+
+- **Automated Testing**: Use `NewSimpleGoalCreatorForTesting()` and `CreateGoalDirectly()` methods to test business logic without UI interaction
+- **Integration Tests**: All goal type + field type + scoring type combinations are covered by headless integration tests
+- **Interactive Testing**: Manual verification of the actual CLI interface requires an interactive terminal (no piped input)
+- **Dry-run Mode**: Available for manual CLI verification when `--dry-run` flags are supported
 
 ## Development process
 

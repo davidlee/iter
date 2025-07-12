@@ -1,3 +1,4 @@
+// Package goalconfig provides UI components for interactive goal configuration.
 package goalconfig
 
 import (
