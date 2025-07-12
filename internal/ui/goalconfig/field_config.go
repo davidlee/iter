@@ -13,32 +13,32 @@ import (
 // FieldConfig represents the complete configuration for a field type
 type FieldConfig struct {
 	Type      string
-	Subtype   string  // For numeric fields: "unsigned_int", "unsigned_decimal", "decimal"
-	Unit      string  // For numeric fields: "times", "reps", "kg", etc.
-	Multiline bool    // For text fields
+	Subtype   string   // For numeric fields: "unsigned_int", "unsigned_decimal", "decimal"
+	Unit      string   // For numeric fields: "times", "reps", "kg", etc.
+	Multiline bool     // For text fields
 	Min       *float64 // For numeric fields (optional)
 	Max       *float64 // For numeric fields (optional)
-	Direction string  // For applicable fields: "higher_better", "lower_better", "neutral"
+	Direction string   // For applicable fields: "higher_better", "lower_better", "neutral"
 }
 
 // FieldTypeSelector provides interactive field type selection and configuration
 type FieldTypeSelector struct {
-	selectedType      string
-	numericSubtype    string
-	unit              string
-	multilineText     bool
-	minValue          string
-	maxValue          string
-	direction         string
-	hasMinMax         bool
+	selectedType   string
+	numericSubtype string
+	unit           string
+	multilineText  bool
+	minValue       string
+	maxValue       string
+	direction      string
+	hasMinMax      bool
 }
 
 // NewFieldTypeSelector creates a new field type selector
 func NewFieldTypeSelector() *FieldTypeSelector {
 	return &FieldTypeSelector{
 		numericSubtype: models.UnsignedIntFieldType, // Default numeric subtype
-		unit:          "times",                      // Default unit
-		direction:     "neutral",                    // Default direction
+		unit:           "times",                     // Default unit
+		direction:      "neutral",                   // Default direction
 	}
 }
 

@@ -215,7 +215,6 @@ func (gb *GoalBuilder) configToCriteria(config *CriteriaConfig, fieldType models
 	return criteria, nil
 }
 
-
 // BuildGoalWithBasicInfo runs the goal creation flow with pre-populated basic info
 func (gb *GoalBuilder) BuildGoalWithBasicInfo(_ interface{}, existingGoals []models.Goal) (*models.Goal, error) {
 	// For now, delegate to the original BuildGoal since it already collects basic info

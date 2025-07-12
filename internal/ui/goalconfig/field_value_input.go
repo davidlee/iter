@@ -25,16 +25,16 @@ import (
 type FieldValueInput interface {
 	// CreateInputForm creates a huh form for collecting the field value
 	CreateInputForm(prompt string) *huh.Form
-	
+
 	// GetValue returns the collected value in the appropriate type
 	GetValue() interface{}
-	
+
 	// GetStringValue returns the value as a string for display/storage
 	GetStringValue() string
-	
+
 	// Validate validates the current value
 	Validate() error
-	
+
 	// GetFieldType returns the field type this input handles
 	GetFieldType() string
 }
@@ -54,7 +54,7 @@ func (bi *BooleanInput) CreateInputForm(prompt string) *huh.Form {
 	if prompt == "" {
 		prompt = "Select value"
 	}
-	
+
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewConfirm().
@@ -106,7 +106,7 @@ func (ti *TextInput) CreateInputForm(prompt string) *huh.Form {
 	if prompt == "" {
 		prompt = "Enter text value"
 	}
-	
+
 	if ti.multiline {
 		return huh.NewForm(
 			huh.NewGroup(
@@ -117,7 +117,7 @@ func (ti *TextInput) CreateInputForm(prompt string) *huh.Form {
 			),
 		)
 	}
-	
+
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -173,7 +173,7 @@ func (ni *NumericInput) CreateInputForm(prompt string) *huh.Form {
 	if prompt == "" {
 		prompt = fmt.Sprintf("Enter numeric value (%s)", ni.unit)
 	}
-	
+
 	description := fmt.Sprintf("Enter a %s value", ni.getNumericTypeDescription())
 	if ni.unit != "" && ni.unit != "times" {
 		description += fmt.Sprintf(" (in %s)", ni.unit)
@@ -181,7 +181,7 @@ func (ni *NumericInput) CreateInputForm(prompt string) *huh.Form {
 	if ni.min != nil || ni.max != nil {
 		description += ni.getConstraintsDescription()
 	}
-	
+
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -223,28 +223,28 @@ func (ni *NumericInput) validateInput(s string) error {
 	if strings.TrimSpace(s) == "" {
 		return fmt.Errorf("numeric value is required")
 	}
-	
+
 	val, err := ni.parseValue()
 	if err != nil {
 		return err
 	}
-	
+
 	floatVal := val.(float64)
-	
+
 	if ni.min != nil && floatVal < *ni.min {
 		return fmt.Errorf("value must be at least %g", *ni.min)
 	}
-	
+
 	if ni.max != nil && floatVal > *ni.max {
 		return fmt.Errorf("value must be at most %g", *ni.max)
 	}
-	
+
 	return nil
 }
 
 func (ni *NumericInput) parseValue() (interface{}, error) {
 	trimmed := strings.TrimSpace(ni.value)
-	
+
 	switch ni.numericType {
 	case models.UnsignedIntFieldType:
 		val, err := strconv.ParseUint(trimmed, 10, 64)
@@ -252,7 +252,7 @@ func (ni *NumericInput) parseValue() (interface{}, error) {
 			return nil, fmt.Errorf("invalid unsigned integer: %w", err)
 		}
 		return float64(val), nil
-		
+
 	case models.UnsignedDecimalFieldType:
 		val, err := strconv.ParseFloat(trimmed, 64)
 		if err != nil {
@@ -262,14 +262,14 @@ func (ni *NumericInput) parseValue() (interface{}, error) {
 			return nil, fmt.Errorf("value must be positive")
 		}
 		return val, nil
-		
+
 	case models.DecimalFieldType:
 		val, err := strconv.ParseFloat(trimmed, 64)
 		if err != nil {
 			return nil, fmt.Errorf("invalid decimal: %w", err)
 		}
 		return val, nil
-		
+
 	default:
 		return nil, fmt.Errorf("unknown numeric type: %s", ni.numericType)
 	}
@@ -316,7 +316,7 @@ func (ti *TimeInput) CreateInputForm(prompt string) *huh.Form {
 	if prompt == "" {
 		prompt = "Enter time of day"
 	}
-	
+
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -359,14 +359,14 @@ func (ti *TimeInput) validateTime(s string) error {
 	if strings.TrimSpace(s) == "" {
 		return fmt.Errorf("time value is required")
 	}
-	
+
 	_, err := ti.parseTime()
 	return err
 }
 
 func (ti *TimeInput) parseTime() (time.Time, error) {
 	trimmed := strings.TrimSpace(ti.value)
-	
+
 	// Try parsing as HH:MM
 	parsedTime, err := time.Parse("15:04", trimmed)
 	if err != nil {
@@ -376,7 +376,7 @@ func (ti *TimeInput) parseTime() (time.Time, error) {
 			return time.Time{}, fmt.Errorf("invalid time format, use HH:MM (e.g., 14:30)")
 		}
 	}
-	
+
 	return parsedTime, nil
 }
 
@@ -395,7 +395,7 @@ func (di *DurationInput) CreateInputForm(prompt string) *huh.Form {
 	if prompt == "" {
 		prompt = "Enter duration"
 	}
-	
+
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -438,20 +438,20 @@ func (di *DurationInput) validateDuration(s string) error {
 	if strings.TrimSpace(s) == "" {
 		return fmt.Errorf("duration value is required")
 	}
-	
+
 	_, err := di.parseDuration()
 	return err
 }
 
 func (di *DurationInput) parseDuration() (time.Duration, error) {
 	trimmed := strings.TrimSpace(di.value)
-	
+
 	// Try parsing as Go duration format first
 	duration, err := time.ParseDuration(trimmed)
 	if err == nil {
 		return duration, nil
 	}
-	
+
 	// If that fails, try to parse common formats manually
 	// This is a simplified parser for common duration formats
 	return time.ParseDuration(trimmed)
@@ -472,20 +472,20 @@ func (f *FieldValueInputFactory) CreateInput(fieldType models.FieldType) (FieldV
 	switch fieldType.Type {
 	case models.BooleanFieldType:
 		return NewBooleanInput(), nil
-		
+
 	case models.TextFieldType:
 		multiline := fieldType.Multiline != nil && *fieldType.Multiline
 		return NewTextInput(multiline), nil
-		
+
 	case models.UnsignedIntFieldType, models.UnsignedDecimalFieldType, models.DecimalFieldType:
 		return NewNumericInput(fieldType.Type, fieldType.Unit, fieldType.Min, fieldType.Max), nil
-		
+
 	case models.TimeFieldType:
 		return NewTimeInput(), nil
-		
+
 	case models.DurationFieldType:
 		return NewDurationInput(), nil
-		
+
 	default:
 		return nil, fmt.Errorf("unsupported field type: %s", fieldType.Type)
 	}

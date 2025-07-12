@@ -221,12 +221,12 @@ func (s *GoalState) addInformationalGoalConfiguration(goal *models.Goal) error {
 	if fieldConfigData == nil {
 		return fmt.Errorf("field configuration is required")
 	}
-	
+
 	fieldConfig, ok := fieldConfigData.(*FieldConfigStepData)
 	if !ok {
 		return fmt.Errorf("invalid field configuration data")
 	}
-	
+
 	// Set field type based on configuration
 	goal.FieldType = models.FieldType{
 		Type:      fieldConfig.FieldType,
@@ -235,17 +235,17 @@ func (s *GoalState) addInformationalGoalConfiguration(goal *models.Goal) error {
 		Max:       fieldConfig.Max,
 		Multiline: &fieldConfig.Multiline,
 	}
-	
+
 	// Informational goals always use manual scoring
 	goal.ScoringType = models.ManualScoring
-	
+
 	// Set direction from field configuration
 	if fieldConfig.Direction != "" {
 		goal.Direction = fieldConfig.Direction
 	} else {
 		goal.Direction = "neutral" // Default value
 	}
-	
+
 	return nil
 }
 

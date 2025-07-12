@@ -46,15 +46,15 @@ type InformationalGoalCreator struct {
 // NewInformationalGoalCreator creates a new informational goal creator with pre-populated basic info
 func NewInformationalGoalCreator(title, description string, goalType models.GoalType) *InformationalGoalCreator {
 	creator := &InformationalGoalCreator{
-		title:             title,
-		description:       description,
-		goalType:          goalType,
-		numericSubtype:    models.UnsignedIntFieldType, // Default numeric subtype
-		unit:              "times",                      // Default unit
-		direction:         "neutral",                    // Default direction
-		prompt:            "",                           // Will be set based on field type
-		currentStep:       0,
-		maxSteps:          4, // Field Type → Field Config → Direction → Prompt
+		title:          title,
+		description:    description,
+		goalType:       goalType,
+		numericSubtype: models.UnsignedIntFieldType, // Default numeric subtype
+		unit:           "times",                     // Default unit
+		direction:      "neutral",                   // Default direction
+		prompt:         "",                          // Will be set based on field type
+		currentStep:    0,
+		maxSteps:       4, // Field Type → Field Config → Direction → Prompt
 	}
 
 	// Initialize the first form
@@ -211,7 +211,7 @@ func (m *InformationalGoalCreator) createFieldConfigurationForm() *huh.Form {
 		groups = append(groups, huh.NewGroup(
 			huh.NewNote().
 				Title("Field Configuration").
-				Description(fmt.Sprintf("✅ %s fields require no additional configuration.", 
+				Description(fmt.Sprintf("✅ %s fields require no additional configuration.",
 					m.getFieldTypeDisplayName(m.selectedFieldType))),
 		))
 	}
@@ -236,7 +236,7 @@ func (m *InformationalGoalCreator) createDirectionSelectionForm() *huh.Form {
 			huh.NewGroup(
 				huh.NewNote().
 					Title("Direction Preference").
-					Description(fmt.Sprintf("✅ %s fields use neutral direction (no preference).", 
+					Description(fmt.Sprintf("✅ %s fields use neutral direction (no preference).",
 						m.getFieldTypeDisplayName(m.selectedFieldType))),
 			),
 		)
@@ -426,7 +426,7 @@ func (m *InformationalGoalCreator) createGoalFromData() (*models.Goal, error) {
 	// Informational goals have no scoring and no criteria - pure data collection
 	// Expected structure:
 	//   - title: Title
-	//     id: title 
+	//     id: title
 	//     goal_type: informational
 	//     field_type:
 	//       type: [boolean|text|unsigned_int|unsigned_decimal|decimal|time|duration]

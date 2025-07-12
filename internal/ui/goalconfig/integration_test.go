@@ -363,7 +363,7 @@ func TestYAMLGenerationWorkflow(t *testing.T) {
 
 		// Clear existing goals and add our test goal
 		schema.Goals = []models.Goal{*goal}
-		
+
 		// Test YAML generation
 		yamlOutput, err := goalParser.ToYAML(schema)
 		require.NoError(t, err)

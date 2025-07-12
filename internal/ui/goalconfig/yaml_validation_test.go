@@ -13,19 +13,19 @@ import (
 
 func TestYAMLFixtureValidation(t *testing.T) {
 	goalParser := parser.NewGoalParser()
-	
+
 	t.Run("valid simple goal fixture", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "goals", "valid_simple_goal.yml")
-		
+
 		schema, err := goalParser.LoadFromFile(fixturePath)
 		require.NoError(t, err)
 		assert.NotNil(t, schema)
-		
+
 		// Verify schema structure
 		assert.Equal(t, "1.0.0", schema.Version)
 		assert.Equal(t, "2024-01-01", schema.CreatedDate)
 		assert.Len(t, schema.Goals, 2)
-		
+
 		// Verify first goal (manual scoring)
 		goal1 := schema.Goals[0]
 		assert.Equal(t, "Daily Exercise", goal1.Title)
@@ -35,7 +35,7 @@ func TestYAMLFixtureValidation(t *testing.T) {
 		assert.Equal(t, models.ManualScoring, goal1.ScoringType)
 		assert.Equal(t, "Did you exercise today?", goal1.Prompt)
 		assert.Nil(t, goal1.Criteria)
-		
+
 		// Verify second goal (automatic scoring)
 		goal2 := schema.Goals[1]
 		assert.Equal(t, "Read for 30 Minutes", goal2.Title)
@@ -46,24 +46,24 @@ func TestYAMLFixtureValidation(t *testing.T) {
 		require.NotNil(t, goal2.Criteria.Condition.Equals)
 		assert.Equal(t, true, *goal2.Criteria.Condition.Equals)
 	})
-	
+
 	t.Run("valid informational goals fixture", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "goals", "valid_informational_goals.yml")
-		
+
 		schema, err := goalParser.LoadFromFile(fixturePath)
 		require.NoError(t, err)
 		assert.NotNil(t, schema)
-		
+
 		// Should have 8 informational goals with different field types
 		assert.Len(t, schema.Goals, 8)
-		
+
 		// Verify all goals are informational type
 		for _, goal := range schema.Goals {
 			assert.Equal(t, models.InformationalGoal, goal.GoalType)
 			assert.Equal(t, models.ManualScoring, goal.ScoringType)
 			assert.NotEmpty(t, goal.Direction)
 		}
-		
+
 		// Test specific field type examples
 		fieldTypeTests := map[string]struct {
 			goalIndex    int
@@ -124,13 +124,13 @@ func TestYAMLFixtureValidation(t *testing.T) {
 				direction:    "higher_better",
 			},
 		}
-		
+
 		for name, test := range fieldTypeTests {
 			t.Run(name, func(t *testing.T) {
 				goal := schema.Goals[test.goalIndex]
 				assert.Equal(t, test.expectedType, goal.FieldType.Type)
 				assert.Equal(t, test.direction, goal.Direction)
-				
+
 				if test.hasUnit {
 					assert.NotEmpty(t, goal.FieldType.Unit)
 				}
@@ -146,22 +146,22 @@ func TestYAMLFixtureValidation(t *testing.T) {
 			})
 		}
 	})
-	
+
 	t.Run("complex configuration fixture", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "goals", "complex_configuration.yml")
-		
+
 		schema, err := goalParser.LoadFromFile(fixturePath)
 		require.NoError(t, err)
 		assert.NotNil(t, schema)
-		
+
 		// Should have 9 goals with mixed types
 		assert.Len(t, schema.Goals, 9)
-		
+
 		// Count goal types
 		simpleCount := 0
 		elasticCount := 0
 		informationalCount := 0
-		
+
 		for _, goal := range schema.Goals {
 			switch goal.GoalType {
 			case models.SimpleGoal:
@@ -172,11 +172,11 @@ func TestYAMLFixtureValidation(t *testing.T) {
 				informationalCount++
 			}
 		}
-		
+
 		assert.Equal(t, 2, simpleCount, "Should have 2 simple goals")
 		assert.Equal(t, 2, elasticCount, "Should have 2 elastic goals")
 		assert.Equal(t, 5, informationalCount, "Should have 5 informational goals")
-		
+
 		// Verify elastic goals have all criteria
 		for _, goal := range schema.Goals {
 			if goal.GoalType == models.ElasticGoal && goal.ScoringType == models.AutomaticScoring {
@@ -185,7 +185,7 @@ func TestYAMLFixtureValidation(t *testing.T) {
 				assert.NotNil(t, goal.MaxiCriteria, "Elastic goal %s should have maxi criteria", goal.Title)
 			}
 		}
-		
+
 		// Verify all goals have help text
 		for _, goal := range schema.Goals {
 			assert.NotEmpty(t, goal.HelpText, "Goal %s should have help text", goal.Title)
@@ -195,13 +195,13 @@ func TestYAMLFixtureValidation(t *testing.T) {
 
 func TestInvalidYAMLHandling(t *testing.T) {
 	goalParser := parser.NewGoalParser()
-	
+
 	t.Run("invalid goals fixture fails validation", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "goals", "invalid_goals.yml")
-		
+
 		// The file should parse (YAML is syntactically valid) but fail validation
 		schema, err := goalParser.LoadFromFile(fixturePath)
-		
+
 		// Check if parsing fails due to malformed YAML or validation fails
 		if err != nil {
 			// YAML parsing failed (expected due to malformed syntax at end)
@@ -213,10 +213,10 @@ func TestInvalidYAMLHandling(t *testing.T) {
 			assert.Error(t, err, "Invalid schema should fail validation")
 		}
 	})
-	
+
 	t.Run("non-existent file", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "goals", "non_existent.yml")
-		
+
 		_, err := goalParser.LoadFromFile(fixturePath)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not found")
@@ -225,45 +225,45 @@ func TestInvalidYAMLHandling(t *testing.T) {
 
 func TestYAMLRoundtripConsistency(t *testing.T) {
 	goalParser := parser.NewGoalParser()
-	
+
 	fixtures := []string{
 		"valid_simple_goal.yml",
-		"valid_informational_goals.yml", 
+		"valid_informational_goals.yml",
 		"complex_configuration.yml",
 	}
-	
+
 	for _, fixture := range fixtures {
 		t.Run(fixture, func(t *testing.T) {
 			fixturePath := filepath.Join("..", "..", "..", "testdata", "goals", fixture)
-			
+
 			// Load original schema
 			originalSchema, err := goalParser.LoadFromFile(fixturePath)
 			require.NoError(t, err)
-			
+
 			// Convert to YAML
 			yamlData, err := goalParser.ToYAML(originalSchema)
 			require.NoError(t, err)
 			assert.NotEmpty(t, yamlData)
-			
+
 			// Parse the generated YAML
 			reparsedSchema, err := goalParser.ParseYAML([]byte(yamlData))
 			require.NoError(t, err)
-			
+
 			// Verify consistency
 			assert.Equal(t, originalSchema.Version, reparsedSchema.Version)
 			assert.Equal(t, originalSchema.CreatedDate, reparsedSchema.CreatedDate)
 			assert.Len(t, reparsedSchema.Goals, len(originalSchema.Goals))
-			
+
 			// Verify each goal's key properties
 			for i, originalGoal := range originalSchema.Goals {
 				reparsedGoal := reparsedSchema.Goals[i]
-				
+
 				assert.Equal(t, originalGoal.Title, reparsedGoal.Title)
 				assert.Equal(t, originalGoal.ID, reparsedGoal.ID)
 				assert.Equal(t, originalGoal.GoalType, reparsedGoal.GoalType)
 				assert.Equal(t, originalGoal.FieldType.Type, reparsedGoal.FieldType.Type)
 				assert.Equal(t, originalGoal.ScoringType, reparsedGoal.ScoringType)
-				
+
 				// Direction should be preserved for informational goals
 				if originalGoal.GoalType == models.InformationalGoal {
 					assert.Equal(t, originalGoal.Direction, reparsedGoal.Direction)
@@ -275,19 +275,19 @@ func TestYAMLRoundtripConsistency(t *testing.T) {
 
 func TestFieldTypeValidationAcrossFixtures(t *testing.T) {
 	goalParser := parser.NewGoalParser()
-	
+
 	t.Run("all field types represented", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "goals", "valid_informational_goals.yml")
-		
+
 		schema, err := goalParser.LoadFromFile(fixturePath)
 		require.NoError(t, err)
-		
+
 		// Collect all field types used
 		fieldTypes := make(map[string]bool)
 		for _, goal := range schema.Goals {
 			fieldTypes[goal.FieldType.Type] = true
 		}
-		
+
 		// Verify all major field types are represented
 		expectedTypes := []string{
 			models.BooleanFieldType,
@@ -298,32 +298,32 @@ func TestFieldTypeValidationAcrossFixtures(t *testing.T) {
 			models.TimeFieldType,
 			models.DurationFieldType,
 		}
-		
+
 		for _, expectedType := range expectedTypes {
 			assert.True(t, fieldTypes[expectedType], "Field type %s should be represented in fixtures", expectedType)
 		}
 	})
-	
+
 	t.Run("numeric constraints properly set", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "goals", "valid_informational_goals.yml")
-		
+
 		schema, err := goalParser.LoadFromFile(fixturePath)
 		require.NoError(t, err)
-		
+
 		// Find goals with constraints
 		constrainedGoals := 0
 		for _, goal := range schema.Goals {
 			if goal.FieldType.Min != nil || goal.FieldType.Max != nil {
 				constrainedGoals++
-				
+
 				// If both min and max are set, min should be less than max
 				if goal.FieldType.Min != nil && goal.FieldType.Max != nil {
-					assert.Less(t, *goal.FieldType.Min, *goal.FieldType.Max, 
+					assert.Less(t, *goal.FieldType.Min, *goal.FieldType.Max,
 						"Goal %s: min should be less than max", goal.Title)
 				}
 			}
 		}
-		
+
 		assert.Greater(t, constrainedGoals, 0, "Should have at least one goal with numeric constraints")
 	})
 }

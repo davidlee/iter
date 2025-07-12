@@ -32,7 +32,7 @@ func TestFilePermissionHandling(t *testing.T) {
 		require.NoError(t, err)
 
 		// Make goals file read-only
-		err = os.Chmod(goalsFile, 0444)
+		err = os.Chmod(goalsFile, 0o400)
 		require.NoError(t, err)
 
 		// Try to load (should work)
@@ -46,7 +46,7 @@ func TestFilePermissionHandling(t *testing.T) {
 		assert.Contains(t, err.Error(), "permission denied")
 
 		// Clean up - restore write permissions
-		_ = os.Chmod(goalsFile, 0644)
+		_ = os.Chmod(goalsFile, 0o600)
 	})
 
 	t.Run("read-only directory handling", func(t *testing.T) {
@@ -115,7 +115,7 @@ goals: "not an array"
 			errorText:   "goals",
 		},
 		{
-			name: "empty file",
+			name:        "empty file",
 			yamlContent: "",
 			expectError: true,
 			errorText:   "version", // Empty file results in validation error about missing version
@@ -125,8 +125,8 @@ goals: "not an array"
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			testFile := filepath.Join(tempDir, tc.name+".yml")
-			
-			err := os.WriteFile(testFile, []byte(tc.yamlContent), 0644)
+
+			err := os.WriteFile(testFile, []byte(tc.yamlContent), 0o600)
 			require.NoError(t, err)
 
 			schema, err := goalParser.LoadFromFile(testFile)
@@ -479,7 +479,7 @@ func TestConcurrentAccessSafety(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			go func() {
 				defer func() { done <- true }()
-				
+
 				schema, err := goalParser.LoadFromFile(goalsFile)
 				assert.NoError(t, err)
 				assert.NotNil(t, schema)
@@ -570,7 +570,7 @@ func TestMemoryAndResourceUsage(t *testing.T) {
 				},
 			},
 			MidiCriteria: &models.Criteria{
-				Description: "Good achievement", 
+				Description: "Good achievement",
 				Condition: &models.Condition{
 					GreaterThanOrEqual: &[]float64{50.0}[0],
 				},

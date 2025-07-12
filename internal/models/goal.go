@@ -153,7 +153,6 @@ func (g *Goal) ValidateAndTrackChanges() (bool, error) {
 
 // validateInternal performs the core validation logic (shared between Validate methods).
 func (g *Goal) validateInternal() error {
-
 	// Validate ID format
 	if !isValidID(g.ID) {
 		return fmt.Errorf("goal ID '%s' is invalid: must contain only letters, numbers, and underscores", g.ID)

@@ -157,7 +157,7 @@ func (m *SimpleGoalCreator) createGoalFromData() (*models.Goal, error) {
 	// AIDEV-NOTE: Create goal structure matching expected YAML format from user testing
 	// Expected structure:
 	//   - title: Title
-	//     id: title 
+	//     id: title
 	//     goal_type: simple
 	//     field_type:
 	//       type: boolean

@@ -52,7 +52,7 @@ func (a *LegacyGoalAdapter) CreateGoalWithHybridForms(goalType models.GoalType, 
 func (a *LegacyGoalAdapter) createSimpleGoalWithHybrid(existingGoals []models.Goal) (*models.Goal, error) {
 	// Use the wizard for simple goals as it provides better UX than sequential forms
 	wizardModel := NewGoalWizardModel(models.SimpleGoal, existingGoals)
-	
+
 	program := tea.NewProgram(wizardModel)
 	finalModel, err := program.Run()
 	if err != nil {
@@ -151,9 +151,9 @@ func (a *LegacyGoalAdapter) CreateGoalWithBasicInfo(_ interface{}, existingGoals
 	// Extract goal type from basic info to determine flow
 	// For now, delegate to the regular CreateGoalWithMode since wizards handle pre-population
 	// AIDEV-TODO: Extract goal type from basicInfo and pass it properly
-	
+
 	// Default to simple goal if we can't extract the type
 	goalType := models.SimpleGoal
-	
+
 	return a.CreateGoalWithMode(goalType, existingGoals, mode)
 }

@@ -16,10 +16,10 @@ import (
 
 // GoalConfigurator provides UI for managing goal configurations
 type GoalConfigurator struct {
-	goalParser     *parser.GoalParser
-	goalBuilder    *GoalBuilder
-	legacyAdapter  *wizard.LegacyGoalAdapter
-	preferLegacy   bool // Configuration option for backwards compatibility
+	goalParser    *parser.GoalParser
+	goalBuilder   *GoalBuilder
+	legacyAdapter *wizard.LegacyGoalAdapter
+	preferLegacy  bool // Configuration option for backwards compatibility
 }
 
 // NewGoalConfigurator creates a new goal configurator instance
@@ -39,7 +39,7 @@ func (gc *GoalConfigurator) WithLegacyMode(prefer bool) *GoalConfigurator {
 }
 
 // AIDEV-NOTE: Simplified goal creation using idiomatic bubbletea patterns (Phase 2.8)
-// Based on documentation review of https://github.com/charmbracelet/bubbletea and 
+// Based on documentation review of https://github.com/charmbracelet/bubbletea and
 // https://github.com/charmbracelet/huh/blob/main/examples/bubbletea/main.go
 // Replaced complex wizard architecture with simple Model-View-Update pattern
 // Flow: Basic Info Collection → Simple Goal Creator (bubbletea) → Save to file
@@ -65,7 +65,7 @@ func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
 
 	// Route to appropriate goal creator based on goal type
 	var newGoal *models.Goal
-	
+
 	switch basicInfo.GoalType {
 	case models.InformationalGoal:
 		newGoal, err = gc.runInformationalGoalCreator(basicInfo, schema.Goals)
@@ -168,9 +168,6 @@ func (gc *GoalConfigurator) saveSchema(schema *models.Schema, goalsFilePath stri
 	return gc.goalParser.SaveToFile(schema, goalsFilePath)
 }
 
-
-
-
 // BasicInfo holds the pre-collected basic information for all goals
 type BasicInfo struct {
 	Title       string
@@ -239,7 +236,6 @@ func (gc *GoalConfigurator) collectBasicInformation() (*BasicInfo, error) {
 
 	return basicInfo, nil
 }
-
 
 // runSimpleGoalCreator runs the simplified goal creator with pre-populated basic info
 func (gc *GoalConfigurator) runSimpleGoalCreator(basicInfo *BasicInfo, _ []models.Goal) (*models.Goal, error) {
@@ -333,7 +329,7 @@ func (gc *GoalConfigurator) AddGoalWithYAMLOutput(goalsFilePath string) (string,
 
 	// Route to appropriate goal creator based on goal type
 	var newGoal *models.Goal
-	
+
 	switch basicInfo.GoalType {
 	case models.InformationalGoal:
 		newGoal, err = gc.runInformationalGoalCreator(basicInfo, schema.Goals)
@@ -392,4 +388,3 @@ func (gc *GoalConfigurator) displayGoalAddedDryRun(goal *models.Goal) {
 	}
 	fmt.Fprintf(os.Stderr, "\n")
 }
-
