@@ -17,10 +17,17 @@ type model struct {
 	selected map[int]struct{}
 }
 
-// TODO: allow checklists to be saved in config data and dynamically displayed
-// - can be attached to goals as a new goal type
-// - can be automatically scored when all complete
+// TODO: allow checklists to be saved in config data and dynamically displayed:
+//
+//	iter list add $id
+//	iter list edit $id
+//	iter list entry // select from menu
+//	iter list entry $id
+//
+// - add list completion as a new goal type
+// - can be automatically scored (when all complete)
 // - or manually scored
+
 func initialModel() model {
 	newModel := model{
 		items: []string{
