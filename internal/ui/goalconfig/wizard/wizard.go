@@ -320,7 +320,7 @@ func createStepHandlers(goalType models.GoalType) []StepHandler {
 		)
 	case models.InformationalGoal:
 		handlers = append(handlers,
-			NewFieldConfigStepHandler(goalType),  // Step 1: Field config
+			NewFieldConfigStepHandler(goalType),  // Step 1: Field config & direction
 			NewConfirmationStepHandler(goalType), // Step 2: Confirmation
 		)
 	}

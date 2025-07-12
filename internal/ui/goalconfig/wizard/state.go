@@ -95,8 +95,10 @@ func (s *GoalState) ToGoal() (*models.Goal, error) {
 		}
 
 	case models.InformationalGoal:
-		// TODO: Implement informational goal configuration
-		return nil, fmt.Errorf("informational goal configuration not yet implemented")
+		// Add field type configuration from field config step
+		if err := s.addInformationalGoalConfiguration(goal); err != nil {
+			return nil, fmt.Errorf("failed to add informational goal configuration: %w", err)
+		}
 	}
 
 	return goal, nil
@@ -210,6 +212,40 @@ func (s *GoalState) addElasticGoalConfiguration(goal *models.Goal) error {
 		}
 	}
 
+	return nil
+}
+
+func (s *GoalState) addInformationalGoalConfiguration(goal *models.Goal) error {
+	// Get field configuration
+	fieldConfigData := s.GetStep(1) // field_config step
+	if fieldConfigData == nil {
+		return fmt.Errorf("field configuration is required")
+	}
+	
+	fieldConfig, ok := fieldConfigData.(*FieldConfigStepData)
+	if !ok {
+		return fmt.Errorf("invalid field configuration data")
+	}
+	
+	// Set field type based on configuration
+	goal.FieldType = models.FieldType{
+		Type:      fieldConfig.FieldType,
+		Unit:      fieldConfig.Unit,
+		Min:       fieldConfig.Min,
+		Max:       fieldConfig.Max,
+		Multiline: &fieldConfig.Multiline,
+	}
+	
+	// Informational goals always use manual scoring
+	goal.ScoringType = models.ManualScoring
+	
+	// Set direction from field configuration
+	if fieldConfig.Direction != "" {
+		goal.Direction = fieldConfig.Direction
+	} else {
+		goal.Direction = "neutral" // Default value
+	}
+	
 	return nil
 }
 
@@ -335,6 +371,7 @@ type FieldConfigStepData struct {
 	Min       *float64
 	Max       *float64
 	Multiline bool
+	Direction string // For informational goals (higher/lower/neutral)
 	valid     bool
 }
 

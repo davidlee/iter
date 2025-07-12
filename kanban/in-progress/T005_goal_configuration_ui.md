@@ -155,10 +155,10 @@ Based on investigation of existing codebase:
   - [x] Step 7: Criteria validation and cross-validation (ValidationStepHandler)
   - [x] Step 8: Final confirmation with complete goal summary (reuses ConfirmationStepHandler)
 
-- [ ] **2.4 Informational Goal Wizard Flow**
-  - [ ] Step 1: Basic info and field type selection
-  - [ ] Step 2: Field configuration and direction
-  - [ ] Step 3: Preview and confirmation
+- [x] **2.4 Informational Goal Wizard Flow** ✅ **COMPLETED**
+  - [x] Step 1: Basic info (reuses BasicInfoStepHandler)
+  - [x] Step 2: Field configuration and direction (enhanced FieldConfigStepHandler)
+  - [x] Step 3: Preview and confirmation (reuses ConfirmationStepHandler)
 
 - [ ] **2.5 Hybrid Implementation Strategy**
   - [ ] Keep simple huh forms for basic interactions
@@ -303,6 +303,19 @@ Based on investigation of existing codebase:
   - `internal/ui/goalconfig/wizard/validation_steps.go` - Cross-step validation with user choices
   - Updated `state.go` with elastic goal configuration logic and proper condition mapping
   - Enhanced wizard.go with complete elastic goal flow (8 steps vs 4 for simple goals)
+
+**Phase 2.4 Implementation (Completed):**
+- **Complete Informational Goal Flow**: Simple 3-step wizard for data collection goals
+- **Enhanced Field Configuration**: Added Direction field to FieldConfigStepData for higher/lower/neutral values
+- **Informational Goal Integration**: Complete addInformationalGoalConfiguration() with proper models mapping
+- **Wizard Auto-Selection**: Informational goals automatically use wizard for consistency
+- **Direction Support**: Full direction configuration (higher/lower/neutral) stored and applied to goal
+- **Reusable Components**: Leveraged existing BasicInfo, FieldConfig, and Confirmation handlers
+- **Key Enhancements**:
+  - Extended FieldConfigStepData with Direction field for informational goals
+  - Enhanced field_config_steps.go to store and load direction values
+  - Added complete informational goal configuration in state.go
+  - Automatic wizard selection for informational goals in configurator.go
 
 **References:**
 - [huh documentation](https://github.com/charmbracelet/huh) - Forms and prompts

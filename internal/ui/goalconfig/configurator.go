@@ -177,7 +177,8 @@ func (gc *GoalConfigurator) promptForGoalTypeAndMode() (models.GoalType, bool, e
 	}
 
 	// Mode selection - offer enhanced wizard for complex goal types
-	if goalType == models.ElasticGoal {
+	switch goalType {
+	case models.ElasticGoal:
 		modeForm := huh.NewForm(
 			huh.NewGroup(
 				huh.NewConfirm().
@@ -192,6 +193,9 @@ func (gc *GoalConfigurator) promptForGoalTypeAndMode() (models.GoalType, bool, e
 		if err := modeForm.Run(); err != nil {
 			return goalType, false, err
 		}
+	case models.InformationalGoal:
+		// Informational goals always use the wizard for consistency
+		useEnhanced = true
 	}
 
 	return goalType, useEnhanced, nil

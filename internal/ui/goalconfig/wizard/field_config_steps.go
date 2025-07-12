@@ -209,6 +209,7 @@ func (h *FieldConfigStepHandler) initializeForm(state State) {
 				h.maxValue = fmt.Sprintf("%.2f", *data.Max)
 			}
 			h.multiline = data.Multiline
+			h.direction = data.Direction
 		}
 	}
 
@@ -300,6 +301,7 @@ func (h *FieldConfigStepHandler) extractFormData(state State) {
 		Min:       minPtr,
 		Max:       maxPtr,
 		Multiline: h.multiline,
+		Direction: h.direction, // Store direction for informational goals
 		valid:     true,
 	}
 
