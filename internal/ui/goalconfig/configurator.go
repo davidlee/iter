@@ -2,6 +2,7 @@ package goalconfig
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -310,5 +311,85 @@ func (gc *GoalConfigurator) runInformationalGoalCreator(basicInfo *BasicInfo, _ 
 	}
 
 	return nil, fmt.Errorf("unexpected informational creator model type")
+}
+
+// AddGoalWithYAMLOutput creates a new goal and returns the resulting YAML without saving to file.
+// This is used for dry-run operations where the user wants to preview the generated YAML.
+func (gc *GoalConfigurator) AddGoalWithYAMLOutput(goalsFilePath string) (string, error) {
+	// Load existing schema
+	schema, err := gc.loadSchema(goalsFilePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to load existing goals: %w", err)
+	}
+
+	// Display welcome message
+	gc.displayAddGoalWelcome()
+
+	// Collect basic information first (title, description, goal type)
+	basicInfo, err := gc.collectBasicInformation()
+	if err != nil {
+		return "", fmt.Errorf("basic information collection failed: %w", err)
+	}
+
+	// Route to appropriate goal creator based on goal type
+	var newGoal *models.Goal
+	
+	switch basicInfo.GoalType {
+	case models.InformationalGoal:
+		newGoal, err = gc.runInformationalGoalCreator(basicInfo, schema.Goals)
+		if err != nil {
+			return "", fmt.Errorf("informational goal creation failed: %w", err)
+		}
+	case models.SimpleGoal, models.ElasticGoal:
+		// Use simplified goal creator for simple and elastic goals
+		newGoal, err = gc.runSimpleGoalCreator(basicInfo, schema.Goals)
+		if err != nil {
+			return "", fmt.Errorf("goal creation failed: %w", err)
+		}
+	default:
+		return "", fmt.Errorf("unsupported goal type: %s", basicInfo.GoalType)
+	}
+
+	// Validate the new goal
+	if err := newGoal.Validate(); err != nil {
+		return "", fmt.Errorf("goal validation failed: %w", err)
+	}
+
+	// Add to schema (in memory only)
+	schema.Goals = append(schema.Goals, *newGoal)
+
+	// Validate complete schema
+	if err := schema.Validate(); err != nil {
+		return "", fmt.Errorf("schema validation failed: %w", err)
+	}
+
+	// Convert to YAML string
+	yamlOutput, err := gc.goalParser.ToYAML(schema)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate YAML output: %w", err)
+	}
+
+	// Display success message (to stderr to not interfere with YAML output)
+	gc.displayGoalAddedDryRun(newGoal)
+
+	return yamlOutput, nil
+}
+
+// EditGoalWithYAMLOutput edits a goal and returns the resulting YAML without saving to file.
+// This is a placeholder implementation for T006 goal management features.
+func (gc *GoalConfigurator) EditGoalWithYAMLOutput(_ string) (string, error) {
+	return "", fmt.Errorf("goal editing not yet implemented - see T006 for goal management features")
+}
+
+// displayGoalAddedDryRun displays success message for dry-run mode (to stderr)
+func (gc *GoalConfigurator) displayGoalAddedDryRun(goal *models.Goal) {
+	// Note: Using fmt.Fprintf to stderr to not interfere with YAML output to stdout
+	fmt.Fprintf(os.Stderr, "✅ Goal created successfully (dry-run mode): %s\n", goal.Title)
+	fmt.Fprintf(os.Stderr, "Type: %s\n", goal.GoalType)
+	fmt.Fprintf(os.Stderr, "Field: %s\n", goal.FieldType.Type)
+	if goal.ScoringType != "" {
+		fmt.Fprintf(os.Stderr, "Scoring: %s\n", goal.ScoringType)
+	}
+	fmt.Fprintf(os.Stderr, "\n")
 }
 

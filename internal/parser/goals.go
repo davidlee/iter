@@ -145,6 +145,26 @@ func (gp *GoalParser) SaveToFile(schema *models.Schema, filePath string) error {
 	return nil
 }
 
+// ToYAML converts a schema to YAML string without writing to file.
+// This is useful for dry-run operations and debugging.
+func (gp *GoalParser) ToYAML(schema *models.Schema) (string, error) {
+	// Validate before converting
+	if err := schema.Validate(); err != nil {
+		return "", fmt.Errorf("cannot convert invalid schema to YAML: %w", err)
+	}
+
+	// Marshal to YAML with pretty formatting
+	data, err := yaml.MarshalWithOptions(schema,
+		yaml.Indent(2),
+		yaml.IndentSequence(true),
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal schema to YAML: %w", err)
+	}
+
+	return string(data), nil
+}
+
 // CreateSampleSchema creates a sample schema with simple boolean goals.
 // This is useful for initializing new configurations.
 func (gp *GoalParser) CreateSampleSchema() *models.Schema {
