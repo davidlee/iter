@@ -247,7 +247,20 @@ Based on investigation of existing codebase:
   - [x] Added intelligent default prompts based on field type and configuration
   - [x] Example: "How many cups did you record for coffee?" for numeric fields with unit "cups"
 
-- [ ] **3.4 Field Value Input UI Foundation**
+- [ ] **3.4 YAML Output Mode for Goal Commands**
+  - [ ] Add command-line flag support for YAML output without file modification
+  - [ ] Add `--dry-run` flag to `goal add` command (outputs generated YAML to stdout)
+  - [ ] Add `--dry-run` flag to `goal edit` command (outputs modified YAML to stdout)
+  - [ ] Add `ToYAML(schema *models.Schema) (string, error)` method to GoalParser
+  - [ ] Add `AddGoalWithYAMLOutput(goalsFilePath string) (string, error)` to GoalConfigurator
+  - [ ] Add `EditGoalWithYAMLOutput(goalsFilePath string) (string, error)` to GoalConfigurator (placeholder for T006)
+  - [ ] Modify command handlers to check dry-run flag and route appropriately
+  - [ ] Ensure YAML output goes to stdout, status messages to stderr
+  - [ ] Test that dry-run mode doesn't modify goals.yml
+  - [ ] Test that generated YAML is valid and parseable
+  - [ ] Use cases: `iter goal add --dry-run`, `iter goal add --dry-run > custom.yml`
+
+- [ ] **3.5 Field Value Input UI Foundation**
   - [ ] Design reusable field input components for future entry recording:
     - [ ] BooleanInput: checkbox/toggle with clear yes/no display
     - [ ] TextInput: single-line and multiline text input with validation
@@ -258,8 +271,8 @@ Based on investigation of existing codebase:
   - [ ] Plan integration points for entry recording system (T007)
   - [ ] Document patterns for reuse in simple/elastic goal criteria definition
 
-- [ ] **3.5 Integration and Testing**
-  - [ ] Wire up InformationalGoalCreator in configurator flow
+- [ ] **3.6 Integration and Testing**
+  - [ ] Wire up InformationalGoalCreator in configurator flow (✅ **COMPLETED** in 3.3)
   - [ ] Test all field type combinations end-to-end:
     - [ ] Boolean informational goal
     - [ ] Text informational goal (single-line and multiline)
