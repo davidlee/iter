@@ -129,6 +129,7 @@ Then, if working on a task with multiple subtasks and another subtask is defined
 2. **Task Creation (Optional - If AI assists):**
   - User: "Suggest a task for implementing X."
   - AI: Proposes a new task by drafting the full Markdown content for a new file (e.g., `kanban/backlog/new_task.md`), including basic sections (Goal, ACs) and an empty Implementation Plan.
+  - IMPORTANT: before creating a new task, AI will ALWAYS check existing task IDs using `fd 'T[0-9]{3,3}\w*.md' kanban` to ensure unique, monotonic task IDs.
   - User: Reviews, modifies, saves the file to `backlog/`, and commits or can ask AI to proceed to some changes.
 
 3. **Planning Phase (for a selected task):**
