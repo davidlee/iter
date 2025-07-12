@@ -176,11 +176,11 @@ Building on T005's successful implementation patterns:
   - [x] Design automatic criteria definition UI patterns
   - [x] Plan integration with existing FieldValueInput system
 
-- [ ] **1.2: Extend SimpleGoalCreator for Field Types**
-  - [ ] Add field type selection step to SimpleGoalCreator flow
-  - [ ] Integrate FieldTypeSelector from InformationalGoalCreator
-  - [ ] Update goal building logic to support non-Boolean fields
-  - [ ] Maintain backwards compatibility for existing Simple + Manual + Boolean flow
+- [x] **1.2: Extend SimpleGoalCreator for Field Types** ✅ **COMPLETED**
+  - [x] Add field type selection step to SimpleGoalCreator flow
+  - [x] Integrate FieldTypeSelector from InformationalGoalCreator
+  - [x] Update goal building logic to support non-Boolean fields
+  - [x] Maintain backwards compatibility for existing Simple + Manual + Boolean flow
 
 - [ ] **1.3: Add Automatic Criteria Support to SimpleGoalCreator**
   - [ ] Design criteria definition UI for different field types
@@ -298,6 +298,16 @@ Building on T005's successful implementation patterns:
 - **Text Field Limitation**: Text fields restricted to manual scoring (no automatic text evaluation)
 - **Comment Pattern**: Optional comment field for all field types including checklist goals (ChecklistGoalCreator needs enhancement)
 - **Backward Compatibility**: Existing Boolean+Manual flow preserved as quick path
+
+**T009/1.2 Implementation Details (2025-07-12):**
+- **Multi-step Conversion**: Converted SimpleGoalCreator from sequential groups to multi-step forms
+- **Field Type Support**: Added support for Boolean, Text, Numeric (3 subtypes), Time, Duration fields
+- **Dynamic Flow**: Flow adjusts based on field type - 3-4 steps depending on configuration needs
+- **Field Configuration**: Numeric fields support subtype, unit, min/max constraints; Text supports multiline
+- **Scoring Restrictions**: Text fields restricted to manual scoring only (automatic scoring prevented)
+- **Comment Integration**: Optional comment field appended to goal description (temporary solution)
+- **Comprehensive Testing**: 9 unit tests covering all field types and flow scenarios
+- **Backward Compatibility**: Boolean field type remains default, maintains existing quick path
 
 **Technical Integration Points (T009/1.1 Findings):**
 - **Existing FieldValueInput System**: Ready for reuse in criteria definition (field_value_input.go)
