@@ -55,12 +55,6 @@ Extend the static checklist prototype (`iter checklist`) to support configurable
   - Assess checklist UI integration patterns
   - Identify any architectural improvements needed for Phase 3
 
-### Phase 3: Goal Integration (Priority: High)
-- [ ] 3.1: Add ChecklistGoal support to goal configuration UI
-- [ ] 3.2: Implement automatic scoring for checklist completion
-- [ ] 3.3: Implement manual scoring support
-- [ ] 3.4: Add checklist criteria validation
-
 ### Phase 3: Checklist Entry Persistence & UX Refinements (Priority: High)
 - [x] 3.1: Make checklist ID optional in `iter list add` command
   - Generate ID from title using same logic as goals
@@ -76,7 +70,7 @@ Extend the static checklist prototype (`iter checklist`) to support configurable
 - [x] 3.4: Add ChecklistEntriesFile to config paths and initialization
 
 ### Phase 4: Goal Integration (Priority: High)
-- [ ] 4.1: Add ChecklistGoal support to goal configuration UI
+- [x] 4.1: Add ChecklistGoal support to goal configuration UI
 - [ ] 4.2: Implement automatic scoring for checklist completion
 - [ ] 4.3: Implement manual scoring support
 - [ ] 4.4: Add checklist criteria validation
@@ -334,6 +328,17 @@ iter entry                            # Extended to handle checklist entry recor
 - Added ChecklistEntriesFile to config paths with proper initialization
 - Separation of checklist templates (checklists.yml) from completion instances (checklist_entries.yml)
 - Ready for Phase 4 goal system integration
+
+**Phase 4.1 Complete (2025-07-12):**
+- Added ChecklistGoal support to goal configuration UI following existing patterns
+- Created ChecklistGoalCreator component with checklist selection and scoring configuration
+- Extended GoalConfigurator to handle ChecklistGoal type with new switch case
+- Added "Checklist (Complete checklist items)" option to goal type selection
+- Implemented automatic and manual scoring modes for checklist goals
+- Added WithChecklistsFile() method to configure checklists.yml path
+- Updated goal_add command to pass ChecklistsFile path to configurator
+- Comprehensive unit tests covering all functionality and edge cases
+- All code properly formatted and linted according to project standards
 
 ## Roadblocks
 

@@ -16,10 +16,11 @@ import (
 
 // GoalConfigurator provides UI for managing goal configurations
 type GoalConfigurator struct {
-	goalParser    *parser.GoalParser
-	goalBuilder   *GoalBuilder
-	legacyAdapter *wizard.LegacyGoalAdapter
-	preferLegacy  bool // Configuration option for backwards compatibility
+	goalParser         *parser.GoalParser
+	goalBuilder        *GoalBuilder
+	legacyAdapter      *wizard.LegacyGoalAdapter
+	preferLegacy       bool   // Configuration option for backwards compatibility
+	checklistsFilePath string // Path to checklists.yml for checklist goal creation
 }
 
 // NewGoalConfigurator creates a new goal configurator instance
@@ -30,6 +31,12 @@ func NewGoalConfigurator() *GoalConfigurator {
 		legacyAdapter: wizard.NewLegacyGoalAdapter(),
 		preferLegacy:  false, // Default to enhanced interfaces
 	}
+}
+
+// WithChecklistsFile sets the path to checklists.yml for checklist goal creation
+func (gc *GoalConfigurator) WithChecklistsFile(checklistsFilePath string) *GoalConfigurator {
+	gc.checklistsFilePath = checklistsFilePath
+	return gc
 }
 
 // WithLegacyMode configures the configurator to prefer legacy forms
@@ -77,6 +84,12 @@ func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
 		newGoal, err = gc.runSimpleGoalCreator(basicInfo, schema.Goals)
 		if err != nil {
 			return fmt.Errorf("goal creation failed: %w", err)
+		}
+	case models.ChecklistGoal:
+		// Use checklist goal creator for checklist goals
+		newGoal, err = gc.runChecklistGoalCreator(basicInfo, schema.Goals)
+		if err != nil {
+			return fmt.Errorf("checklist goal creation failed: %w", err)
 		}
 	default:
 		return fmt.Errorf("unsupported goal type: %s", basicInfo.GoalType)
@@ -219,6 +232,7 @@ func (gc *GoalConfigurator) collectBasicInformation() (*BasicInfo, error) {
 					huh.NewOption("Simple (Pass/Fail)", models.SimpleGoal),
 					huh.NewOption("Elastic (Mini/Midi/Maxi levels)", models.ElasticGoal),
 					huh.NewOption("Informational (Data tracking only)", models.InformationalGoal),
+					huh.NewOption("Checklist (Complete checklist items)", models.ChecklistGoal),
 				).
 				Value(&goalType),
 		),
@@ -342,6 +356,12 @@ func (gc *GoalConfigurator) AddGoalWithYAMLOutput(goalsFilePath string) (string,
 		if err != nil {
 			return "", fmt.Errorf("goal creation failed: %w", err)
 		}
+	case models.ChecklistGoal:
+		// Use checklist goal creator for checklist goals
+		newGoal, err = gc.runChecklistGoalCreator(basicInfo, schema.Goals)
+		if err != nil {
+			return "", fmt.Errorf("checklist goal creation failed: %w", err)
+		}
 	default:
 		return "", fmt.Errorf("unsupported goal type: %s", basicInfo.GoalType)
 	}
@@ -387,4 +407,45 @@ func (gc *GoalConfigurator) displayGoalAddedDryRun(goal *models.Goal) {
 		fmt.Fprintf(os.Stderr, "Scoring: %s\n", goal.ScoringType)
 	}
 	fmt.Fprintf(os.Stderr, "\n")
+}
+
+// runChecklistGoalCreator runs the checklist goal creator with pre-populated basic info
+func (gc *GoalConfigurator) runChecklistGoalCreator(basicInfo *BasicInfo, _ []models.Goal) (*models.Goal, error) {
+	// Validate that checklists file path is configured
+	if gc.checklistsFilePath == "" {
+		return nil, fmt.Errorf("checklists file path not configured - use WithChecklistsFile()")
+	}
+
+	// Create checklist goal creator with pre-populated basic info
+	creator := NewChecklistGoalCreator(basicInfo.Title, basicInfo.Description, basicInfo.GoalType, gc.checklistsFilePath)
+
+	// Run the bubbletea program
+	program := tea.NewProgram(creator)
+	finalModel, err := program.Run()
+	if err != nil {
+		return nil, fmt.Errorf("checklist goal creator execution failed: %w", err)
+	}
+
+	// Extract result from final model
+	if creatorModel, ok := finalModel.(*ChecklistGoalCreator); ok {
+		if creatorModel.IsCancelled() {
+			return nil, fmt.Errorf("checklist goal creation was cancelled")
+		}
+
+		goal, err := creatorModel.GetResult()
+		if err != nil {
+			return nil, fmt.Errorf("checklist goal creation error: %w", err)
+		}
+
+		if goal == nil {
+			return nil, fmt.Errorf("checklist goal creation completed without result")
+		}
+
+		// AIDEV-NOTE: Position is inferred and should not be set in goal creation
+		// Position will be determined by the parser/schema based on order in goals.yml
+
+		return goal, nil
+	}
+
+	return nil, fmt.Errorf("unexpected checklist creator model type")
 }

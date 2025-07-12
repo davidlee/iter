@@ -1,0 +1,248 @@
+package goalconfig
+
+import (
+	"fmt"
+	"strings"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
+
+	"davidlee/iter/internal/models"
+	"davidlee/iter/internal/parser"
+)
+
+// AIDEV-NOTE: Checklist goal creation following simple idiomatic bubbletea pattern
+// Extends existing creator patterns for checklist-specific configuration
+// Handles checklist selection and automatic/manual scoring setup
+
+// ChecklistGoalCreator implements a bubbletea model for creating checklist goals
+type ChecklistGoalCreator struct {
+	form     *huh.Form
+	quitting bool
+	err      error
+	result   *models.Goal
+
+	// Form data - bound directly to form fields per huh documentation
+	title       string
+	description string
+	goalType    models.GoalType
+	checklistID string
+	scoringType models.ScoringType
+	prompt      string
+
+	// Available checklists loaded from checklists.yml
+	availableChecklists []models.Checklist
+	checklistParser     *parser.ChecklistParser
+}
+
+// NewChecklistGoalCreator creates a new checklist goal creator with pre-populated basic info
+func NewChecklistGoalCreator(title, description string, goalType models.GoalType, checklistsFilePath string) *ChecklistGoalCreator {
+	creator := &ChecklistGoalCreator{
+		title:           title,
+		description:     description,
+		goalType:        goalType,
+		prompt:          "Complete your checklist items today", // Default prompt
+		checklistParser: parser.NewChecklistParser(),
+	}
+
+	// Load available checklists for selection
+	if err := creator.loadAvailableChecklists(checklistsFilePath); err != nil {
+		creator.err = fmt.Errorf("failed to load checklists: %w", err)
+		return creator
+	}
+
+	// Create the form
+	creator.createForm()
+
+	return creator
+}
+
+// loadAvailableChecklists loads checklists from checklists.yml for selection
+func (cgc *ChecklistGoalCreator) loadAvailableChecklists(checklistsFilePath string) error {
+	schema, err := cgc.checklistParser.LoadFromFile(checklistsFilePath)
+	if err != nil {
+		// If no checklists file exists, return empty list (not an error)
+		// Other parsing errors should be returned
+		cgc.availableChecklists = []models.Checklist{}
+		if strings.Contains(err.Error(), "checklists file not found") {
+			return nil // File not existing is not an error
+		}
+		return err // Other errors should be propagated
+	}
+
+	cgc.availableChecklists = schema.Checklists
+	return nil
+}
+
+// createForm creates the multi-step form for checklist goal configuration
+func (cgc *ChecklistGoalCreator) createForm() {
+	// Check if we have any checklists available
+	if len(cgc.availableChecklists) == 0 {
+		cgc.err = fmt.Errorf("no checklists found - create checklists first using 'iter list add'")
+		return
+	}
+
+	// Create checklist selection options
+	checklistOptions := make([]huh.Option[string], len(cgc.availableChecklists))
+	for i, checklist := range cgc.availableChecklists {
+		title := checklist.Title
+		if title == "" {
+			title = checklist.ID
+		}
+		description := checklist.Description
+		if description != "" {
+			title = fmt.Sprintf("%s - %s", title, description)
+		}
+		checklistOptions[i] = huh.NewOption(title, checklist.ID)
+	}
+
+	// Create sequential form following huh patterns
+	cgc.form = huh.NewForm(
+		// Step 1: Checklist selection
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Key("checklist").
+				Title("Select Checklist").
+				Description("Choose which checklist this goal will track").
+				Options(checklistOptions...).
+				Value(&cgc.checklistID),
+		),
+
+		// Step 2: Scoring type selection
+		huh.NewGroup(
+			huh.NewSelect[models.ScoringType]().
+				Key("scoring").
+				Title("Scoring Type").
+				Description("How should checklist completion be scored?").
+				Options(
+					huh.NewOption("Automatic (all items complete)", models.AutomaticScoring),
+					huh.NewOption("Manual (partial completion allowed)", models.ManualScoring),
+				).
+				Value(&cgc.scoringType),
+		),
+
+		// Step 3: Custom prompt (optional)
+		huh.NewGroup(
+			huh.NewInput().
+				Key("prompt").
+				Title("Entry Prompt (optional)").
+				Description("Customize the prompt shown during daily entry").
+				Value(&cgc.prompt).
+				Placeholder("Complete your checklist items today"),
+		),
+	)
+}
+
+// Init initializes the checklist goal creator model
+func (cgc *ChecklistGoalCreator) Init() tea.Cmd {
+	if cgc.err != nil {
+		return tea.Quit
+	}
+	return cgc.form.Init()
+}
+
+// Update handles messages and updates the model state
+func (cgc *ChecklistGoalCreator) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// Handle early exit if there was an initialization error
+	if cgc.err != nil {
+		cgc.quitting = true
+		return cgc, tea.Quit
+	}
+
+	if keyMsg, ok := msg.(tea.KeyMsg); ok {
+		switch keyMsg.String() {
+		case "ctrl+c", "esc":
+			cgc.quitting = true
+			return cgc, tea.Quit
+		}
+	}
+
+	// Let the form handle the message
+	form, cmd := cgc.form.Update(msg)
+	if f, ok := form.(*huh.Form); ok {
+		cgc.form = f
+	}
+
+	// Check if form is complete
+	if cgc.form.State == huh.StateCompleted {
+		// Build the goal from collected data
+		if err := cgc.buildResult(); err != nil {
+			cgc.err = err
+		}
+		cgc.quitting = true
+		return cgc, tea.Quit
+	}
+
+	return cgc, cmd
+}
+
+// View renders the current view
+func (cgc *ChecklistGoalCreator) View() string {
+	if cgc.err != nil {
+		return fmt.Sprintf("Error: %v\n\nPress any key to exit.", cgc.err)
+	}
+
+	if cgc.quitting {
+		if cgc.result != nil {
+			return "✅ Checklist goal configured successfully!\n"
+		}
+		return "❌ Checklist goal creation cancelled.\n"
+	}
+
+	return cgc.form.View()
+}
+
+// buildResult constructs the goal from the collected form data
+func (cgc *ChecklistGoalCreator) buildResult() error {
+	// Validate required fields
+	if cgc.checklistID == "" {
+		return fmt.Errorf("checklist selection is required")
+	}
+
+	// Clean up prompt
+	prompt := strings.TrimSpace(cgc.prompt)
+	if prompt == "" {
+		prompt = "Complete your checklist items today"
+	}
+
+	// Build the goal
+	goal := &models.Goal{
+		Title:       cgc.title,
+		Description: cgc.description,
+		GoalType:    cgc.goalType,
+		FieldType: models.FieldType{
+			Type:        models.ChecklistFieldType,
+			ChecklistID: cgc.checklistID,
+		},
+		ScoringType: cgc.scoringType,
+		Prompt:      prompt,
+	}
+
+	// Add automatic scoring criteria if selected
+	if cgc.scoringType == models.AutomaticScoring {
+		goal.Criteria = &models.Criteria{
+			Description: "All checklist items completed",
+			Condition: &models.Condition{
+				ChecklistCompletion: &models.ChecklistCompletionCondition{
+					RequiredItems: "all",
+				},
+			},
+		}
+	}
+
+	cgc.result = goal
+	return nil
+}
+
+// GetResult returns the created goal
+func (cgc *ChecklistGoalCreator) GetResult() (*models.Goal, error) {
+	if cgc.err != nil {
+		return nil, cgc.err
+	}
+	return cgc.result, nil
+}
+
+// IsCancelled returns true if goal creation was cancelled
+func (cgc *ChecklistGoalCreator) IsCancelled() bool {
+	return cgc.quitting && cgc.result == nil && cgc.err == nil
+}

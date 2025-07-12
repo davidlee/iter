@@ -24,7 +24,8 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:pkg.go.dev)",
       "Bash(just lint)",
-      "Bash(go fmt:*)"
+      "Bash(go fmt:*)",
+      "Bash(fd:*)"
     ],
     "deny": []
   }

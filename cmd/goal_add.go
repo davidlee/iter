@@ -47,7 +47,7 @@ func runGoalAdd(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Create goal configurator
-	configurator := goalconfig.NewGoalConfigurator()
+	configurator := goalconfig.NewGoalConfigurator().WithChecklistsFile(paths.ChecklistsFile)
 
 	if dryRun {
 		// Dry-run mode: output YAML to stdout
