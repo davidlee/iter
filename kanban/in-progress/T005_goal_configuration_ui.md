@@ -200,11 +200,14 @@ Based on investigation of existing codebase:
 
 ### Phase 3: Informational Goal Support
 
-- [ ] **3.1 Fix Informational Goal Flow Routing**
-  - [ ] Update configurator.AddGoal() to route informational goals to specialized creator
-  - [ ] Informational goals should skip scoring configuration entirely (no scoring, no criteria)
-  - [ ] Create new runInformationalGoalCreator() method alongside runSimpleGoalCreator()
-  - [ ] Update goal type selection flow to handle routing correctly
+- [x] **3.1 Fix Informational Goal Flow Routing** ✅ **COMPLETED**
+  - [x] Update configurator.AddGoal() to route informational goals to specialized creator
+  - [x] Informational goals now skip scoring configuration entirely (no scoring, no criteria)
+  - [x] Create new runInformationalGoalCreator() method alongside runSimpleGoalCreator()
+  - [x] Update goal type selection flow with proper routing logic
+  - [x] Added switch statement to route based on basicInfo.GoalType
+  - [x] Informational goals get placeholder implementation (boolean field, manual scoring, neutral direction)
+  - [x] Simple and Elastic goals continue using existing SimpleGoalCreator flow
 
 - [ ] **3.2 Field Type Configuration System**
   - [ ] Create field type selector supporting all model types:

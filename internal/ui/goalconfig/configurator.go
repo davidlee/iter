@@ -62,10 +62,23 @@ func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
 		return fmt.Errorf("basic information collection failed: %w", err)
 	}
 
-	// Use simplified goal creator for better UX
-	newGoal, err := gc.runSimpleGoalCreator(basicInfo, schema.Goals)
-	if err != nil {
-		return fmt.Errorf("goal creation failed: %w", err)
+	// Route to appropriate goal creator based on goal type
+	var newGoal *models.Goal
+	
+	switch basicInfo.GoalType {
+	case models.InformationalGoal:
+		newGoal, err = gc.runInformationalGoalCreator(basicInfo, schema.Goals)
+		if err != nil {
+			return fmt.Errorf("informational goal creation failed: %w", err)
+		}
+	case models.SimpleGoal, models.ElasticGoal:
+		// Use simplified goal creator for simple and elastic goals
+		newGoal, err = gc.runSimpleGoalCreator(basicInfo, schema.Goals)
+		if err != nil {
+			return fmt.Errorf("goal creation failed: %w", err)
+		}
+	default:
+		return fmt.Errorf("unsupported goal type: %s", basicInfo.GoalType)
 	}
 
 	// Validate the new goal
@@ -261,5 +274,24 @@ func (gc *GoalConfigurator) runSimpleGoalCreator(basicInfo *BasicInfo, _ []model
 	}
 
 	return nil, fmt.Errorf("unexpected creator model type")
+}
+
+// runInformationalGoalCreator runs the informational goal creator with pre-populated basic info
+func (gc *GoalConfigurator) runInformationalGoalCreator(basicInfo *BasicInfo, _ []models.Goal) (*models.Goal, error) {
+	// TODO: Implement InformationalGoalCreator for Phase 3.3
+	// For now, create a placeholder informational goal
+	
+	goal := &models.Goal{
+		Title:       basicInfo.Title,
+		Description: basicInfo.Description,
+		GoalType:    basicInfo.GoalType,
+		FieldType: models.FieldType{
+			Type: models.BooleanFieldType, // Default field type for now
+		},
+		ScoringType: models.ManualScoring, // Informational goals always use manual scoring
+		Direction:   "neutral",            // Default direction
+	}
+	
+	return goal, nil
 }
 
