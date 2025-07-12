@@ -21,11 +21,14 @@ context_windows: ["./*.go", Claude.md, workflow.md] # List of glob patterns usef
 - internal/ui/goalconfig/configurator.go - Main goal configurator with routing logic
 - internal/ui/goalconfig/simple_goal_creator.go - Simple goal creation UI (enhanced with field types + criteria)
 - internal/ui/goalconfig/simple_goal_creator_test.go - Comprehensive test suite for SimpleGoalCreator
+- internal/ui/goalconfig/simple_goal_creator_integration_test.go - Integration tests for all combinations
+- internal/ui/goalconfig/elastic_goal_creator.go - Elastic goal creation UI (three-tier criteria, 530+ lines)
 - internal/ui/goalconfig/checklist_goal_creator.go - Checklist goal creation UI (T007/4.1)
 - internal/ui/goalconfig/informational_goal_creator.go - Informational goal creation UI (working)
 - internal/ui/goalconfig/field_value_input.go - Field type configuration system
-- internal/models/goal.go - Goal data models and validation
+- internal/models/goal.go - Goal data models and validation (includes elastic goal validation)
 - internal/parser/goal_parser.go - Goal persistence and loading
+- T009_IMPLEMENTATION_STATUS.md - Pre-compact analysis and implementation status
 
 ## Notes (temp)
 
@@ -201,11 +204,11 @@ Building on T005's successful implementation patterns:
   - [x] Manual testing with dry-run mode for UI verification (see test_dry_run_manual.md)
 
 ### Phase 2: Elastic Goal Implementation
-- [ ] **2.1: Design ElasticGoalCreator Architecture**
-  - [ ] Follow SimpleGoalCreator patterns for consistency
-  - [ ] Plan multi-step flow: Basic Info → Field Type → Scoring → Criteria (mini/midi/maxi) → Confirmation
-  - [ ] Design criteria definition UI for three-tier goals
-  - [ ] Plan validation logic for mini ≤ midi ≤ maxi constraints
+- [x] **2.1: Design ElasticGoalCreator Architecture** ✅ **COMPLETED**
+  - [x] Follow SimpleGoalCreator patterns for consistency
+  - [x] Plan multi-step flow: Field Type → Field Config → Scoring → Criteria (mini/midi/maxi) → Prompt
+  - [x] Design criteria definition UI for three-tier goals
+  - [x] Plan validation logic for mini ≤ midi ≤ maxi constraints
 
 - [ ] **2.2: Implement ElasticGoalCreator Component**
   - [ ] Create ElasticGoalCreator bubbletea model
@@ -338,6 +341,16 @@ Building on T005's successful implementation patterns:
 - **Criteria Validation**: Complete testing of Boolean, Numeric (>, >=, <, <=, range), Time, Duration criteria
 - **Manual Testing Guide**: Created test_dry_run_manual.md for interactive CLI verification
 - **Test Coverage**: 42 total tests covering all aspects of enhanced SimpleGoalCreator
+
+**T009/2.1 Architecture Design (2025-07-12):**
+- **ElasticGoalCreator Structure**: Complete bubbletea model following SimpleGoalCreator patterns
+- **Multi-Step Flow**: Field Type → Field Config → Scoring → Three-Tier Criteria → Prompt (4-5 steps)
+- **Three-Tier Criteria**: Mini/Midi/Maxi achievement levels with validation (mini ≤ midi ≤ maxi)
+- **Field Type Support**: Text, Numeric (3 subtypes), Time, Duration (Boolean excluded - not meaningful for elastic)
+- **Headless Testing Ready**: `TestElasticGoalData` struct and `NewElasticGoalCreatorForTesting()` constructor
+- **Validation Strategy**: Real-time validation for criteria ordering and proper threshold definitions
+- **Reuse Patterns**: Field configuration, scoring selection, and form patterns from SimpleGoalCreator
+- **Goal Building**: Complete three-tier criteria construction with models.MiniCriteria/MidiCriteria/MaxiCriteria
 
 **Technical Integration Points (T009/1.1 Findings):**
 - **Existing FieldValueInput System**: Ready for reuse in criteria definition (field_value_input.go)
