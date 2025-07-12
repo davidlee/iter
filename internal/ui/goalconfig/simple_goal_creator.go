@@ -42,11 +42,11 @@ type SimpleGoalCreator struct {
 	comment           string
 
 	// Criteria configuration data for automatic scoring
-	criteriaType      string  // "greater_than", "less_than", "equals", "before", "after", "range"
-	criteriaValue     string  // Value for comparison
-	criteriaValue2    string  // Second value for range
-	criteriaTimeValue string  // Time value for time-based criteria
-	rangeInclusive    bool    // Whether range bounds are inclusive
+	criteriaType      string // "greater_than", "less_than", "equals", "before", "after", "range"
+	criteriaValue     string // Value for comparison
+	criteriaValue2    string // Second value for range
+	criteriaTimeValue string // Time value for time-based criteria
+	rangeInclusive    bool   // Whether range bounds are inclusive
 
 	// State tracking for multi-step flow
 	currentStep int
@@ -72,6 +72,61 @@ func NewSimpleGoalCreator(title, description string, goalType models.GoalType) *
 	creator.initializeStep()
 
 	return creator
+}
+
+// TestGoalData contains pre-configured data for headless testing
+type TestGoalData struct {
+	FieldType         string
+	NumericSubtype    string
+	Unit              string
+	MultilineText     bool
+	MinValue          string
+	MaxValue          string
+	HasMinMax         bool
+	ScoringType       models.ScoringType
+	Prompt            string
+	Comment           string
+	CriteriaType      string
+	CriteriaValue     string
+	CriteriaValue2    string
+	CriteriaTimeValue string
+	RangeInclusive    bool
+}
+
+// NewSimpleGoalCreatorForTesting creates a goal creator with pre-populated test data, bypassing UI
+func NewSimpleGoalCreatorForTesting(title, description string, goalType models.GoalType, data TestGoalData) *SimpleGoalCreator {
+	creator := &SimpleGoalCreator{
+		title:             title,
+		description:       description,
+		goalType:          goalType,
+		selectedFieldType: data.FieldType,
+		numericSubtype:    data.NumericSubtype,
+		unit:              data.Unit,
+		multilineText:     data.MultilineText,
+		minValue:          data.MinValue,
+		maxValue:          data.MaxValue,
+		hasMinMax:         data.HasMinMax,
+		scoringType:       data.ScoringType,
+		prompt:            data.Prompt,
+		comment:           data.Comment,
+		criteriaType:      data.CriteriaType,
+		criteriaValue:     data.CriteriaValue,
+		criteriaValue2:    data.CriteriaValue2,
+		criteriaTimeValue: data.CriteriaTimeValue,
+		rangeInclusive:    data.RangeInclusive,
+		// Skip UI initialization for testing
+		form:     nil,
+		quitting: false,
+		err:      nil,
+		result:   nil,
+	}
+
+	return creator
+}
+
+// CreateGoalDirectly bypasses UI flow and creates goal directly from configured data
+func (m *SimpleGoalCreator) CreateGoalDirectly() (*models.Goal, error) {
+	return m.createGoalFromData()
 }
 
 // Init implements tea.Model - called when the model is first initialized
@@ -105,7 +160,7 @@ func (m *SimpleGoalCreator) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.isCurrentStepScoringType() {
 			m.adjustFlowForScoringType()
 		}
-		
+
 		if m.currentStep < m.maxSteps-1 {
 			// Move to next step
 			m.currentStep++
@@ -161,6 +216,7 @@ func (m *SimpleGoalCreator) IsCancelled() bool {
 	return m.quitting && m.result == nil && m.err == nil
 }
 
+// AIDEV-NOTE: multi-step-flow; dynamic step routing with flow adjustment for field types and scoring
 // initializeStep initializes the form for the current step
 func (m *SimpleGoalCreator) initializeStep() {
 	switch m.currentStep {
@@ -202,19 +258,19 @@ func (m *SimpleGoalCreator) initializeStep() {
 func (m *SimpleGoalCreator) adjustFlowForFieldType() {
 	// Determine actual number of steps needed based on field type
 	steps := 1 // Field type selection (step 0)
-	
+
 	// Add field configuration step if needed
 	if m.needsFieldConfiguration() {
 		steps++ // Field configuration step
 	}
-	
+
 	steps++ // Scoring type step
-	
+
 	// Add criteria step for automatic scoring (will be determined later)
 	// For now, assume we might need it - will be adjusted in scoring step
 	steps++ // Criteria step (conditional)
 	steps++ // Prompt/comment step
-	
+
 	m.maxSteps = steps
 }
 
@@ -374,6 +430,7 @@ func (m *SimpleGoalCreator) supportsAutomaticScoring() bool {
 	}
 }
 
+// AIDEV-NOTE: criteria-dispatch; routes field types to specific criteria forms (Boolean/Numeric/Time/Duration)
 // createCriteriaDefinitionForm creates the criteria definition form for automatic scoring
 func (m *SimpleGoalCreator) createCriteriaDefinitionForm() *huh.Form {
 	switch m.selectedFieldType {
@@ -412,6 +469,7 @@ func (m *SimpleGoalCreator) createBooleanCriteriaForm() *huh.Form {
 	)
 }
 
+// AIDEV-NOTE: numeric-criteria; supports >, >=, <, <=, range with validation + inclusive/exclusive ranges
 // createNumericCriteriaForm creates criteria form for numeric fields
 func (m *SimpleGoalCreator) createNumericCriteriaForm() *huh.Form {
 	unit := m.unit
@@ -685,6 +743,7 @@ func (m *SimpleGoalCreator) createGoalFromData() (*models.Goal, error) {
 	return goal, nil
 }
 
+// AIDEV-NOTE: criteria-builder; converts form data to models.Condition with proper validation
 // buildCriteriaFromData creates criteria based on the collected criteria configuration
 func (m *SimpleGoalCreator) buildCriteriaFromData() (*models.Criteria, error) {
 	condition := &models.Condition{}
@@ -777,6 +836,7 @@ func (m *SimpleGoalCreator) buildCriteriaFromData() (*models.Criteria, error) {
 		}
 
 	case models.DurationFieldType:
+		// AIDEV-NOTE: duration-criteria-hack; reuses Before/After fields for duration comparisons (needs proper duration type support)
 		// Duration criteria - treat similar to numeric but with duration parsing
 		durationValue := strings.TrimSpace(m.criteriaValue)
 		switch m.criteriaType {
