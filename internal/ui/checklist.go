@@ -17,22 +17,54 @@ type model struct {
 	selected map[int]struct{}
 }
 
+// TODO: allow checklists to be saved in config data and dynamically displayed
+// - can be attached to goals as a new goal type
+// - can be automatically scored when all complete
+// - or manually scored
 func initialModel() model {
-	return model{
+	newModel := model{
 		items: []string{
-			"# process inboxes",
-			"process email inbox",
-			"review email starred",
-			"check slack saved messages",
-			"check slack notifications",
-			"check slack priority channels",
-			"review calendar",
+			// "# this is a heading, used to visually group checklist items"
+			// "this is a checklist item"
 
-			"# plan",
-			"time block",
+			"# clean station: physical inputs (~5m)",
+			"clear desk",
+			"clear desk inbox, loose papers, notebook",
+
+			"# clean station: digital inputs (~10m)",
+			"process emails (inbox)",
+			"phone notifications",
+			"browsers (all devices)",
+			"editors, apps",
+			"review periodic notes",
+			"log actions",
+
+			"# straighten & reset (~5m)",
+			"desk",
+			"digital workspace",
+
+			"# sharpen tools (~5m)",
+			"sweep calendar (yesterday)",
+			"categorise / prioritise actions",
+
+			"# plan the day (~10m)",
+			"list actions (scheduled, wanted)",
+			"identify immersive vs process actions",
+			"batch process actions",
+			"estimate hours free for new actions",
+			"schedule / time block",
+
+			"# gather resources",
+			"set up for action",
 		},
 		selected: make(map[int]struct{}),
 	}
+
+	// set cursor to index of first non-heading
+	for strings.HasPrefix(newModel.items[newModel.cursor], "#") {
+		newModel.cursor++
+	}
+	return newModel
 }
 
 func (m model) Init() tea.Cmd {
@@ -56,12 +88,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// skip over headings
 		case "up", "e":
 			if m.cursor > 0 {
-				if strings.HasPrefix(m.items[m.cursor-1], "#") {
-					if m.cursor > 1 {
-						m.cursor -= 2
-					}
-				} else {
+				m.cursor--
+				for m.cursor > 0 && strings.HasPrefix(m.items[m.cursor], "#") {
 					m.cursor--
+				}
+				// handle case where first (n) item(s) is a heading
+				for strings.HasPrefix(m.items[m.cursor], "#") {
+					m.cursor++
 				}
 			}
 
@@ -70,7 +103,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "a":
 			if m.cursor < len(m.items)-1 {
 				m.cursor++
-				if strings.HasPrefix(m.items[m.cursor], "# ") {
+				for m.cursor < len(m.items)-1 && strings.HasPrefix(m.items[m.cursor], "# ") {
 					m.cursor++
 				}
 			}
@@ -93,13 +126,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	// The header
-	s := "Complete the checklist:\n\n"
 
-	headingStyle := lipgloss.NewStyle().Bold(true).Underline(true).Foreground(lipgloss.Color("202")) //.Padding(0).Margin(0)
-	itemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("3"))                                 //.Padding(0).Margin(0)
-	checkedStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#3C3C3C"))                        //.Padding(0).Margin(0)
-	selectedStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("201"))                           //.Padding(0).Margin(0)
+	// Styles
+	headerStyle := lipgloss.NewStyle().Bold(true).Underline(true).Foreground(lipgloss.Color("63"))
+	headingStyle := lipgloss.NewStyle().Bold(true).Underline(true).Foreground(lipgloss.Color("202"))
+	itemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
+	checkedStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#3C3C3C"))
+	selectedStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("201"))
+
+	// The header
+	s := headerStyle.Render("Complete the checklist:") + "\n\n"
 
 	// Iterate over our items
 	for i, item := range m.items {
@@ -120,6 +156,7 @@ func (m model) View() string {
 		}
 
 		// Render the row
+		// TODO: append (12/15) to headings showing the count of checked/total items in the group
 		if isHeading {
 			if i > 0 {
 				s += fmt.Sprintf("\n")
