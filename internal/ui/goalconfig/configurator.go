@@ -278,20 +278,37 @@ func (gc *GoalConfigurator) runSimpleGoalCreator(basicInfo *BasicInfo, _ []model
 
 // runInformationalGoalCreator runs the informational goal creator with pre-populated basic info
 func (gc *GoalConfigurator) runInformationalGoalCreator(basicInfo *BasicInfo, _ []models.Goal) (*models.Goal, error) {
-	// TODO: Implement InformationalGoalCreator for Phase 3.3
-	// For now, create a placeholder informational goal
-	
-	goal := &models.Goal{
-		Title:       basicInfo.Title,
-		Description: basicInfo.Description,
-		GoalType:    basicInfo.GoalType,
-		FieldType: models.FieldType{
-			Type: models.BooleanFieldType, // Default field type for now
-		},
-		ScoringType: models.ManualScoring, // Informational goals always use manual scoring
-		Direction:   "neutral",            // Default direction
+	// Create informational goal creator with pre-populated basic info
+	creator := NewInformationalGoalCreator(basicInfo.Title, basicInfo.Description, basicInfo.GoalType)
+
+	// Run the bubbletea program
+	program := tea.NewProgram(creator)
+	finalModel, err := program.Run()
+	if err != nil {
+		return nil, fmt.Errorf("informational goal creator execution failed: %w", err)
 	}
-	
-	return goal, nil
+
+	// Extract result from final model
+	if creatorModel, ok := finalModel.(*InformationalGoalCreator); ok {
+		if creatorModel.IsCancelled() {
+			return nil, fmt.Errorf("informational goal creation was cancelled")
+		}
+
+		goal, err := creatorModel.GetResult()
+		if err != nil {
+			return nil, fmt.Errorf("informational goal creation error: %w", err)
+		}
+
+		if goal == nil {
+			return nil, fmt.Errorf("informational goal creation completed without result")
+		}
+
+		// AIDEV-NOTE: Position is inferred and should not be set in goal creation
+		// Position will be determined by the parser/schema based on order in goals.yml
+
+		return goal, nil
+	}
+
+	return nil, fmt.Errorf("unexpected informational creator model type")
 }
 

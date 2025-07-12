@@ -209,33 +209,43 @@ Based on investigation of existing codebase:
   - [x] Informational goals get placeholder implementation (boolean field, manual scoring, neutral direction)
   - [x] Simple and Elastic goals continue using existing SimpleGoalCreator flow
 
-- [ ] **3.2 Field Type Configuration System**
-  - [ ] Create field type selector supporting all model types:
-    - [ ] Boolean (boolean) - simple true/false data
-    - [ ] Text (text) - free text input with optional multiline
-    - [ ] Numeric (unsigned_int, unsigned_decimal, decimal) - with subtype and unit selection
-    - [ ] Time (time) - time of day values
-    - [ ] Duration (duration) - time duration values
-  - [ ] Add numeric field configuration:
-    - [ ] Subtype selection: unsigned_int (default), unsigned_decimal, decimal
-    - [ ] Unit specification (default: "times", examples: "reps", "kg", "minutes", "pages")
-    - [ ] Min/Max value constraints (optional)
-  - [ ] Add direction preference for applicable field types:
-    - [ ] Numeric, Time, Duration: "higher_better" | "lower_better" | "neutral"
-    - [ ] Boolean, Text: no direction (always neutral)
+- [x] **3.2 Field Type Configuration System** ✅ **COMPLETED**
+  - [x] Create field type selector supporting all model types:
+    - [x] Boolean (boolean) - simple true/false data
+    - [x] Text (text) - free text input with optional multiline
+    - [x] Numeric (unsigned_int, unsigned_decimal, decimal) - with subtype and unit selection
+    - [x] Time (time) - time of day values
+    - [x] Duration (duration) - time duration values
+  - [x] Add numeric field configuration:
+    - [x] Subtype selection: unsigned_int (default), unsigned_decimal, decimal
+    - [x] Unit specification (default: "times", examples: "reps", "kg", "minutes", "pages")
+    - [x] Min/Max value constraints (optional)
+  - [x] Add direction preference for applicable field types:
+    - [x] Numeric, Time, Duration: "higher_better" | "lower_better" | "neutral"
+    - [x] Boolean, Text: no direction (always neutral)
+  - [x] Implemented FieldTypeSelector with interactive configuration flow
+  - [x] Created FieldConfig structure for complete field type specification
+  - [x] Added validation for numeric constraints and unit configuration
 
-- [ ] **3.3 InformationalGoalCreator Implementation**
-  - [ ] Create new `InformationalGoalCreator` bubbletea model following SimpleGoalCreator patterns
-  - [ ] Flow design: Basic Info → Field Type Selection → Field Configuration → Direction Preference → Save
-  - [ ] Implement sequential huh forms with conditional groups:
-    - [ ] Group 1: Field type selection (boolean, text, numeric, time, duration)
-    - [ ] Group 2: Field configuration (conditional based on type)
-      - [ ] Numeric: subtype, unit, min/max (all optional except subtype)
-      - [ ] Text: multiline option
-      - [ ] Time/Duration: no additional config needed
-    - [ ] Group 3: Direction preference (conditional, hidden for boolean/text)
-  - [ ] Handle validation for all field types and configurations
-  - [ ] Create proper models.Goal structure for informational goals
+- [x] **3.3 InformationalGoalCreator Implementation** ✅ **COMPLETED**
+  - [x] Create new `InformationalGoalCreator` bubbletea model following SimpleGoalCreator patterns
+  - [x] Flow design: Basic Info → Field Type Selection → Field Configuration → Direction Preference → Goal Prompt → Save
+  - [x] Implement sequential huh forms with conditional groups:
+    - [x] Group 1: Field type selection (boolean, text, numeric, time, duration)
+    - [x] Group 2: Field configuration (conditional based on type)
+      - [x] Numeric: subtype, unit, min/max (all optional except subtype)
+      - [x] Text: multiline option
+      - [x] Time/Duration: no additional config needed
+    - [x] Group 3: Direction preference (conditional, hidden for boolean/text)
+    - [x] Group 4: Goal prompt (question asked during entry recording)
+  - [x] Handle validation for all field types and configurations
+  - [x] Create proper models.Goal structure for informational goals
+  - [x] Implemented multi-step bubbletea model with step progression (4 steps)
+  - [x] Added conditional form groups based on field type selection
+  - [x] Integrated with configurator routing system
+  - [x] Full support for all field types with proper validation
+  - [x] Added intelligent default prompts based on field type and configuration
+  - [x] Example: "How many cups did you record for coffee?" for numeric fields with unit "cups"
 
 - [ ] **3.4 Field Value Input UI Foundation**
   - [ ] Design reusable field input components for future entry recording:
