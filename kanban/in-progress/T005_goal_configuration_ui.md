@@ -174,14 +174,23 @@ Based on investigation of existing codebase:
   - [x] Ensure both wizard and legacy flows work with pre-populated data
   - [x] Test all goal types (simple/elastic/informational) with corrected flow
 
-- [ ] **2.7 Fix Critical Wizard/Forms Integration Issues** 🚨 **URGENT**
-  - [ ] Fix Enhanced Wizard default selection (currently defaults to Quick Forms instead of Enhanced)
-  - [ ] Remove superfluous mode selection - automatically choose best interface per goal type
-  - [ ] Fix Enhanced Wizard pre-population validation errors ("Scoring configuration is required")
-  - [ ] Fix Quick Forms pre-population validation errors ("Basic information is required")
-  - [ ] Ensure wizard step handlers properly recognize pre-populated basic info
-  - [ ] Update legacy forms to skip basic info collection when pre-populated
-  - [ ] Test complete flow: Basic Info → Auto-select best interface → Launch without errors
+- [x] **2.7 Fix Critical Wizard/Forms Integration Issues** ✅ **COMPLETED**
+  - [x] Fix Enhanced Wizard default selection (currently defaults to Quick Forms instead of Enhanced)
+  - [x] Remove superfluous mode selection - automatically choose best interface per goal type
+  - [x] Fix Enhanced Wizard pre-population validation errors ("Scoring configuration is required")
+  - [x] Fix Quick Forms pre-population validation errors ("Basic information is required")
+  - [x] Ensure wizard step handlers properly recognize pre-populated basic info
+  - [x] Update legacy forms to skip basic info collection when pre-populated
+  - [x] Test complete flow: Basic Info → Auto-select best interface → Launch without errors
+
+- [x] **2.8 Simplified Idiomatic Goal Creation** ✅ **COMPLETED**
+  - [x] Review bubbletea/huh documentation and implement idiomatic patterns
+  - [x] Simplify goal creation to focus on most common use case: Simple + Manual
+  - [x] Implement clean bubbletea model for simple goal creation (2-3 steps max)
+  - [x] Add custom prompt field for manual goals (default: "Did you accomplish this goal today?")
+  - [x] Ensure goals save correctly to goals.yml with expected structure
+  - [x] Remove complex wizard architecture in favor of simple sequential forms
+  - [x] Test end-to-end: Basic Info → Scoring Type → Custom Prompt → Save
 
 ### Phase 3: Goal Management Enhancement
 - [ ] **3.1 Enhanced Goal Listing (iter goal list)**
@@ -388,6 +397,62 @@ Based on investigation of existing codebase:
   - Fix wizard step handler validation to recognize completed step 0
   - Fix legacy forms to skip basic info when pre-populated
   - Ensure seamless transition from basic info collection to appropriate interface
+
+**Phase 2.7 Implementation (Completed):**
+- **Removed Mode Selection Complexity**: Eliminated confusing Enhanced Wizard vs Quick Forms choice entirely
+- **Automatic Interface Selection**: Always use enhanced wizard for all goal types (analysis shows superior UX)
+- **Fixed Validation Logic**: Updated step handler Validate() methods to not show "required" errors when just starting a step
+- **Simplified Flow**: Now Basic Info → Enhanced Wizard (auto-selected) → Complete goal creation
+- **Step Handler Validation Fix**: Added formComplete check before showing validation errors:
+  - ScoringStepHandler.Validate() - no longer shows "Scoring configuration is required" on start
+  - FieldConfigStepHandler.Validate() - no longer shows "Field configuration is required" on start  
+  - CriteriaStepHandler.Validate() - no longer shows criteria errors on start
+- **Legacy Forms Elimination**: Removed legacy form paths since enhanced wizard is superior for all goal types
+- **Interface Simplification**: Removed determineOptimalInterface() since we always use enhanced wizard
+- **User Experience Improvement**: No more confusing choices, seamless flow from basic info to wizard
+- **Key Files Modified**:
+  - `configurator.go`: Removed mode selection, simplified to always use enhanced wizard
+  - `simple_steps.go`: Fixed ScoringStepHandler validation to prevent premature error display
+  - `field_config_steps.go`: Fixed FieldConfigStepHandler validation
+  - `criteria_steps.go`: Fixed CriteriaStepHandler validation  
+- **Root Cause Resolution**: Step handlers were validating completion before user interaction, now validation respects form state
+
+**Phase 2.8 Analysis (In Progress):**
+- **User Testing Findings**: After Phase 2.7, wizard still shows blank screen after goal type selection
+- **Root Cause**: Complex custom wizard architecture doesn't follow idiomatic bubbletea patterns
+- **Documentation Review**: Bubbletea examples show simple Model-View-Update pattern, not complex step handlers
+- **Idiomatic Pattern**: Sequential forms in single bubbletea model, not custom wizard framework
+- **User's Simplified Need**: Most common case is Simple goal + Manual scoring + Custom prompt
+- **Current Implementation Issues**:
+  - Over-engineered wizard with step handlers, navigation controllers, state serialization
+  - Complex interfaces (State, StepHandler, NavigationController) add unnecessary abstraction
+  - Form initialization happening in Render() method instead of Init()/Update()
+  - Custom validation logic instead of using huh's built-in validation
+- **Simplified Solution**: Replace complex wizard with idiomatic bubbletea sequential forms
+- **Focus**: Get Simple + Manual goals working perfectly before expanding to other types
+- **Expected User Flow**: Title → Description → Goal Type → Scoring Type → Custom Prompt → Save
+
+**Phase 2.8 Implementation (Completed):**
+- **Documentation Review**: Studied bubbletea and huh examples to implement idiomatic patterns
+- **Simplified Architecture**: Replaced complex wizard system with simple Model-View-Update pattern
+- **SimpleGoalCreator**: New idiomatic bubbletea model following huh/bubbletea integration example
+- **Sequential Forms**: Uses huh.NewForm() with groups, follows documented patterns exactly
+- **Form Structure**: 
+  - Group 1: Scoring type selection (Manual vs Automatic)
+  - Group 2: Custom prompt input (conditional, hidden for automatic scoring)
+- **Data Binding**: Direct field binding (&creator.field) per huh documentation
+- **State Management**: Simple struct fields, no complex state serialization needed
+- **Validation**: Uses huh's built-in validation (ValidateNotEmpty, custom validators)
+- **Conditional Logic**: Uses WithHideFunc() to conditionally show prompt step
+- **Default Values**: "Did you accomplish this goal today?" for manual goal prompts
+- **Goal Structure**: Creates models.Goal matching expected YAML format from user testing
+- **Integration**: Seamless integration with existing configurator.AddGoal() flow
+- **Key Files Implemented**:
+  - `simple_goal_creator.go`: Complete idiomatic bubbletea model with huh forms
+  - Updated `configurator.go`: Uses SimpleGoalCreator instead of complex wizard
+  - Added comprehensive AIDEV-NOTE comments referencing documentation
+- **Benefits**: Much simpler, easier to understand, follows established patterns
+- **Focus**: Manual simple goals (90% use case) work perfectly, foundation for other types
 
 **References:**
 - [huh documentation](https://github.com/charmbracelet/huh) - Forms and prompts

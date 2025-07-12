@@ -280,10 +280,14 @@ func (h *ScoringStepHandler) Validate(state State) []ValidationError {
 
 	stepData := state.GetStep(h.getStepIndex())
 	if stepData == nil {
-		errors = append(errors, ValidationError{
-			Step:    h.getStepIndex(),
-			Message: "Scoring configuration is required",
-		})
+		// Only show validation error if form has been attempted (form is complete)
+		// This prevents showing "required" errors when just starting the step
+		if h.formComplete {
+			errors = append(errors, ValidationError{
+				Step:    h.getStepIndex(),
+				Message: "Scoring configuration is required",
+			})
+		}
 		return errors
 	}
 

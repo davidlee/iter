@@ -125,10 +125,14 @@ func (h *CriteriaStepHandler) Validate(state State) []ValidationError {
 
 	stepData := state.GetStep(h.getStepIndex())
 	if stepData == nil {
-		errors = append(errors, ValidationError{
-			Step:    h.getStepIndex(),
-			Message: fmt.Sprintf("%s criteria configuration is required for automatic scoring", h.getLevelTitle()),
-		})
+		// Only show validation error if form has been attempted (form is complete)
+		// This prevents showing "required" errors when just starting the step
+		if h.formComplete {
+			errors = append(errors, ValidationError{
+				Step:    h.getStepIndex(),
+				Message: fmt.Sprintf("%s criteria configuration is required for automatic scoring", h.getLevelTitle()),
+			})
+		}
 		return errors
 	}
 
