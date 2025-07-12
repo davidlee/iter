@@ -63,18 +63,36 @@ func TestSimpleGoalCreator_AutomaticScoringSupport(t *testing.T) {
 func TestSimpleGoalCreator_FlowAdjustment(t *testing.T) {
 	creator := NewSimpleGoalCreator("Test", "Test", models.SimpleGoal)
 
-	// Test flow adjustment for different field types
+	// Test flow adjustment for different field types (includes potential criteria step)
 	creator.selectedFieldType = models.BooleanFieldType
 	creator.adjustFlowForFieldType()
-	assert.Equal(t, 3, creator.maxSteps) // Field type, scoring, prompt
+	assert.Equal(t, 4, creator.maxSteps) // Field type, scoring, criteria, prompt
 
 	creator.selectedFieldType = models.TextFieldType
 	creator.adjustFlowForFieldType()
-	assert.Equal(t, 4, creator.maxSteps) // Field type, field config, scoring, prompt
+	assert.Equal(t, 5, creator.maxSteps) // Field type, field config, scoring, criteria, prompt
 
 	creator.selectedFieldType = "numeric"
 	creator.adjustFlowForFieldType()
-	assert.Equal(t, 4, creator.maxSteps) // Field type, field config, scoring, prompt
+	assert.Equal(t, 5, creator.maxSteps) // Field type, field config, scoring, criteria, prompt
+}
+
+func TestSimpleGoalCreator_ScoringTypeFlowAdjustment(t *testing.T) {
+	creator := NewSimpleGoalCreator("Test", "Test", models.SimpleGoal)
+	creator.selectedFieldType = models.BooleanFieldType
+	creator.adjustFlowForFieldType()
+	initialSteps := creator.maxSteps
+
+	// Manual scoring should reduce steps by 1 (no criteria step needed)
+	creator.scoringType = models.ManualScoring
+	creator.adjustFlowForScoringType()
+	assert.Equal(t, initialSteps-1, creator.maxSteps)
+
+	// Reset and test automatic scoring (no change)
+	creator.adjustFlowForFieldType() // Reset to initial
+	creator.scoringType = models.AutomaticScoring
+	creator.adjustFlowForScoringType()
+	assert.Equal(t, initialSteps, creator.maxSteps) // No change for automatic
 }
 
 func TestSimpleGoalCreator_FieldTypeResolution(t *testing.T) {
@@ -169,4 +187,133 @@ func TestSimpleGoalCreator_StateManagement(t *testing.T) {
 	// Test completion tracking
 	assert.NotNil(t, creator.form)
 	assert.Equal(t, 0, creator.currentStep)
+}
+
+func TestSimpleGoalCreator_AutomaticCriteria_Boolean(t *testing.T) {
+	creator := NewSimpleGoalCreator("Exercise", "Daily exercise", models.SimpleGoal)
+	creator.selectedFieldType = models.BooleanFieldType
+	creator.scoringType = models.AutomaticScoring
+	creator.criteriaType = "equals"
+	creator.criteriaValue = "true"
+	creator.prompt = "Did you exercise today?"
+
+	goal, err := creator.createGoalFromData()
+	require.NoError(t, err)
+	require.NotNil(t, goal)
+
+	assert.Equal(t, models.AutomaticScoring, goal.ScoringType)
+	require.NotNil(t, goal.Criteria)
+	assert.Equal(t, "Goal is complete when checked as true", goal.Criteria.Description)
+	require.NotNil(t, goal.Criteria.Condition)
+	require.NotNil(t, goal.Criteria.Condition.Equals)
+	assert.True(t, *goal.Criteria.Condition.Equals)
+}
+
+func TestSimpleGoalCreator_AutomaticCriteria_NumericGreaterThan(t *testing.T) {
+	creator := NewSimpleGoalCreator("Push-ups", "Daily push-ups", models.SimpleGoal)
+	creator.selectedFieldType = "numeric"
+	creator.numericSubtype = models.UnsignedIntFieldType
+	creator.unit = "reps"
+	creator.scoringType = models.AutomaticScoring
+	creator.criteriaType = "greater_than_or_equal"
+	creator.criteriaValue = "30"
+	creator.prompt = "How many push-ups did you do?"
+
+	goal, err := creator.createGoalFromData()
+	require.NoError(t, err)
+	require.NotNil(t, goal)
+
+	assert.Equal(t, models.AutomaticScoring, goal.ScoringType)
+	require.NotNil(t, goal.Criteria)
+	assert.Equal(t, "Goal achieved when value >= 30.0 reps", goal.Criteria.Description)
+	require.NotNil(t, goal.Criteria.Condition)
+	require.NotNil(t, goal.Criteria.Condition.GreaterThanOrEqual)
+	assert.Equal(t, 30.0, *goal.Criteria.Condition.GreaterThanOrEqual)
+}
+
+func TestSimpleGoalCreator_AutomaticCriteria_NumericRange(t *testing.T) {
+	creator := NewSimpleGoalCreator("Sleep", "Sleep duration", models.SimpleGoal)
+	creator.selectedFieldType = "numeric"
+	creator.numericSubtype = models.UnsignedDecimalFieldType
+	creator.unit = "hours"
+	creator.scoringType = models.AutomaticScoring
+	creator.criteriaType = "range"
+	creator.criteriaValue = "7"
+	creator.criteriaValue2 = "9"
+	creator.rangeInclusive = true
+	creator.prompt = "How many hours did you sleep?"
+
+	goal, err := creator.createGoalFromData()
+	require.NoError(t, err)
+	require.NotNil(t, goal)
+
+	assert.Equal(t, models.AutomaticScoring, goal.ScoringType)
+	require.NotNil(t, goal.Criteria)
+	assert.Equal(t, "Goal achieved when value is within 7.0 to 9.0 hours (inclusive)", goal.Criteria.Description)
+	require.NotNil(t, goal.Criteria.Condition)
+	require.NotNil(t, goal.Criteria.Condition.Range)
+	assert.Equal(t, 7.0, goal.Criteria.Condition.Range.Min)
+	assert.Equal(t, 9.0, goal.Criteria.Condition.Range.Max)
+	require.NotNil(t, goal.Criteria.Condition.Range.MinInclusive)
+	assert.True(t, *goal.Criteria.Condition.Range.MinInclusive)
+}
+
+func TestSimpleGoalCreator_AutomaticCriteria_Time(t *testing.T) {
+	creator := NewSimpleGoalCreator("Wake Up", "Early wake up", models.SimpleGoal)
+	creator.selectedFieldType = models.TimeFieldType
+	creator.scoringType = models.AutomaticScoring
+	creator.criteriaType = "before"
+	creator.criteriaTimeValue = "07:00"
+	creator.prompt = "What time did you wake up?"
+
+	goal, err := creator.createGoalFromData()
+	require.NoError(t, err)
+	require.NotNil(t, goal)
+
+	assert.Equal(t, models.AutomaticScoring, goal.ScoringType)
+	require.NotNil(t, goal.Criteria)
+	assert.Equal(t, "Goal achieved when time is before 07:00", goal.Criteria.Description)
+	require.NotNil(t, goal.Criteria.Condition)
+	assert.Equal(t, "07:00", goal.Criteria.Condition.Before)
+}
+
+func TestSimpleGoalCreator_AutomaticCriteria_Duration(t *testing.T) {
+	creator := NewSimpleGoalCreator("Meditation", "Daily meditation", models.SimpleGoal)
+	creator.selectedFieldType = models.DurationFieldType
+	creator.scoringType = models.AutomaticScoring
+	creator.criteriaType = "greater_than_or_equal"
+	creator.criteriaValue = "20m"
+	creator.prompt = "How long did you meditate?"
+
+	goal, err := creator.createGoalFromData()
+	require.NoError(t, err)
+	require.NotNil(t, goal)
+
+	assert.Equal(t, models.AutomaticScoring, goal.ScoringType)
+	require.NotNil(t, goal.Criteria)
+	assert.Equal(t, "Goal achieved when duration >= 20m", goal.Criteria.Description)
+	require.NotNil(t, goal.Criteria.Condition)
+	assert.Equal(t, "20m", goal.Criteria.Condition.After)
+}
+
+func TestSimpleGoalCreator_CriteriaBuilding_InvalidValues(t *testing.T) {
+	creator := NewSimpleGoalCreator("Test", "Test", models.SimpleGoal)
+	creator.selectedFieldType = "numeric"
+	creator.scoringType = models.AutomaticScoring
+	creator.criteriaType = "greater_than"
+	creator.criteriaValue = "not_a_number"
+
+	_, err := creator.buildCriteriaFromData()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid criteria value")
+}
+
+func TestSimpleGoalCreator_CriteriaBuilding_UnsupportedFieldType(t *testing.T) {
+	creator := NewSimpleGoalCreator("Test", "Test", models.SimpleGoal)
+	creator.selectedFieldType = "unsupported_type"
+	creator.scoringType = models.AutomaticScoring
+
+	_, err := creator.buildCriteriaFromData()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "automatic scoring not supported for field type")
 }

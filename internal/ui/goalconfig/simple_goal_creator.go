@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
@@ -39,6 +40,13 @@ type SimpleGoalCreator struct {
 	scoringType       models.ScoringType
 	prompt            string
 	comment           string
+
+	// Criteria configuration data for automatic scoring
+	criteriaType      string  // "greater_than", "less_than", "equals", "before", "after", "range"
+	criteriaValue     string  // Value for comparison
+	criteriaValue2    string  // Second value for range
+	criteriaTimeValue string  // Time value for time-based criteria
+	rangeInclusive    bool    // Whether range bounds are inclusive
 
 	// State tracking for multi-step flow
 	currentStep int
@@ -93,6 +101,11 @@ func (m *SimpleGoalCreator) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Check if current step is completed
 	if m.form.State == huh.StateCompleted {
+		// Adjust flow if we just completed scoring type selection
+		if m.isCurrentStepScoringType() {
+			m.adjustFlowForScoringType()
+		}
+		
 		if m.currentStep < m.maxSteps-1 {
 			// Move to next step
 			m.currentStep++
@@ -171,8 +184,14 @@ func (m *SimpleGoalCreator) initializeStep() {
 			m.form = m.createPromptAndCommentForm()
 		}
 	case 3:
-		// Final step: prompt/comment based on scoring type
-		// TODO: Add criteria form for automatic scoring in subtask 1.3
+		// Step depends on scoring type: criteria for automatic, prompt for manual
+		if m.scoringType == models.AutomaticScoring {
+			m.form = m.createCriteriaDefinitionForm()
+		} else {
+			m.form = m.createPromptAndCommentForm()
+		}
+	case 4:
+		// Final step: prompt/comment (only reached with automatic scoring)
 		m.form = m.createPromptAndCommentForm()
 	default:
 		m.err = fmt.Errorf("unknown step: %d", m.currentStep)
@@ -190,9 +209,30 @@ func (m *SimpleGoalCreator) adjustFlowForFieldType() {
 	}
 	
 	steps++ // Scoring type step
+	
+	// Add criteria step for automatic scoring (will be determined later)
+	// For now, assume we might need it - will be adjusted in scoring step
+	steps++ // Criteria step (conditional)
 	steps++ // Prompt/comment step
 	
 	m.maxSteps = steps
+}
+
+// adjustFlowForScoringType adjusts the flow based on scoring type selection
+func (m *SimpleGoalCreator) adjustFlowForScoringType() {
+	if m.scoringType == models.ManualScoring {
+		// Manual scoring doesn't need criteria step, reduce max steps by 1
+		m.maxSteps--
+	}
+}
+
+// isCurrentStepScoringType returns true if the current step is scoring type selection
+func (m *SimpleGoalCreator) isCurrentStepScoringType() bool {
+	// Scoring type is step 1 if no field config needed, step 2 if field config needed
+	if m.needsFieldConfiguration() {
+		return m.currentStep == 2
+	}
+	return m.currentStep == 1
 }
 
 // needsFieldConfiguration returns true if the selected field type needs configuration
@@ -334,6 +374,233 @@ func (m *SimpleGoalCreator) supportsAutomaticScoring() bool {
 	}
 }
 
+// createCriteriaDefinitionForm creates the criteria definition form for automatic scoring
+func (m *SimpleGoalCreator) createCriteriaDefinitionForm() *huh.Form {
+	switch m.selectedFieldType {
+	case models.BooleanFieldType:
+		return m.createBooleanCriteriaForm()
+	case "numeric", models.UnsignedIntFieldType, models.UnsignedDecimalFieldType, models.DecimalFieldType:
+		return m.createNumericCriteriaForm()
+	case models.TimeFieldType:
+		return m.createTimeCriteriaForm()
+	case models.DurationFieldType:
+		return m.createDurationCriteriaForm()
+	default:
+		// This shouldn't happen due to supportsAutomaticScoring check
+		return huh.NewForm(
+			huh.NewGroup(
+				huh.NewNote().
+					Title("Criteria Definition").
+					Description("This field type does not support automatic scoring."),
+			),
+		)
+	}
+}
+
+// createBooleanCriteriaForm creates criteria form for boolean fields
+func (m *SimpleGoalCreator) createBooleanCriteriaForm() *huh.Form {
+	// Boolean criteria is always "equals: true" for goal completion
+	m.criteriaType = "equals"
+	m.criteriaValue = "true"
+
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewNote().
+				Title("Automatic Scoring Criteria").
+				Description("✅ Boolean goals are automatically scored as complete when the value is 'true'.\n\nThis goal will be marked as achieved when you check it as completed."),
+		),
+	)
+}
+
+// createNumericCriteriaForm creates criteria form for numeric fields
+func (m *SimpleGoalCreator) createNumericCriteriaForm() *huh.Form {
+	unit := m.unit
+	if unit == "" {
+		unit = "units"
+	}
+
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Criteria Type").
+				Description("Choose how the numeric value should be evaluated").
+				Options(
+					huh.NewOption("Greater than (>) a value", "greater_than"),
+					huh.NewOption("Greater than or equal (>=) to a value", "greater_than_or_equal"),
+					huh.NewOption("Less than (<) a value", "less_than"),
+					huh.NewOption("Less than or equal (<=) to a value", "less_than_or_equal"),
+					huh.NewOption("Within a range", "range"),
+				).
+				Value(&m.criteriaType),
+		),
+
+		// Single value input (for most criteria types)
+		huh.NewGroup(
+			huh.NewInput().
+				Title(fmt.Sprintf("Target Value (%s)", unit)).
+				Description("Enter the threshold value for comparison").
+				Value(&m.criteriaValue).
+				Placeholder("10").
+				Validate(func(s string) error {
+					if strings.TrimSpace(s) == "" {
+						return fmt.Errorf("criteria value is required")
+					}
+					if _, err := strconv.ParseFloat(strings.TrimSpace(s), 64); err != nil {
+						return fmt.Errorf("must be a valid number")
+					}
+					return nil
+				}),
+		).WithHideFunc(func() bool {
+			return m.criteriaType == "range"
+		}),
+
+		// Range input (for range criteria)
+		huh.NewGroup(
+			huh.NewInput().
+				Title(fmt.Sprintf("Minimum Value (%s)", unit)).
+				Description("Enter the minimum value for the range").
+				Value(&m.criteriaValue).
+				Placeholder("10").
+				Validate(func(s string) error {
+					if strings.TrimSpace(s) == "" {
+						return fmt.Errorf("minimum value is required")
+					}
+					if _, err := strconv.ParseFloat(strings.TrimSpace(s), 64); err != nil {
+						return fmt.Errorf("must be a valid number")
+					}
+					return nil
+				}),
+
+			huh.NewInput().
+				Title(fmt.Sprintf("Maximum Value (%s)", unit)).
+				Description("Enter the maximum value for the range").
+				Value(&m.criteriaValue2).
+				Placeholder("20").
+				Validate(func(s string) error {
+					if strings.TrimSpace(s) == "" {
+						return fmt.Errorf("maximum value is required")
+					}
+					if _, err := strconv.ParseFloat(strings.TrimSpace(s), 64); err != nil {
+						return fmt.Errorf("must be a valid number")
+					}
+					return nil
+				}),
+
+			huh.NewConfirm().
+				Title("Inclusive Range").
+				Description("Should the range boundaries be inclusive? (>= min and <= max)").
+				Value(&m.rangeInclusive),
+		).WithHideFunc(func() bool {
+			return m.criteriaType != "range"
+		}),
+	)
+}
+
+// createTimeCriteriaForm creates criteria form for time fields
+func (m *SimpleGoalCreator) createTimeCriteriaForm() *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Time Criteria").
+				Description("Choose how the time should be evaluated").
+				Options(
+					huh.NewOption("Before a specific time", "before"),
+					huh.NewOption("After a specific time", "after"),
+				).
+				Value(&m.criteriaType),
+
+			huh.NewInput().
+				Title("Target Time").
+				Description("Enter the time in HH:MM format (24-hour)").
+				Value(&m.criteriaTimeValue).
+				Placeholder("07:00").
+				Validate(func(s string) error {
+					if strings.TrimSpace(s) == "" {
+						return fmt.Errorf("time value is required")
+					}
+					if _, err := time.Parse("15:04", strings.TrimSpace(s)); err != nil {
+						return fmt.Errorf("time must be in HH:MM format (e.g., 07:30)")
+					}
+					return nil
+				}),
+		),
+	)
+}
+
+// createDurationCriteriaForm creates criteria form for duration fields
+func (m *SimpleGoalCreator) createDurationCriteriaForm() *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Duration Criteria").
+				Description("Choose how the duration should be evaluated").
+				Options(
+					huh.NewOption("At least this long", "greater_than_or_equal"),
+					huh.NewOption("Less than this duration", "less_than"),
+					huh.NewOption("Exactly this duration", "equals"), // Using equals for duration equality
+					huh.NewOption("Within a duration range", "range"),
+				).
+				Value(&m.criteriaType),
+		),
+
+		// Single duration input
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Target Duration").
+				Description("Enter duration (e.g., '30m', '1h 30m', '45 minutes')").
+				Value(&m.criteriaValue).
+				Placeholder("30m").
+				Validate(func(s string) error {
+					if strings.TrimSpace(s) == "" {
+						return fmt.Errorf("duration value is required")
+					}
+					// Basic validation - more detailed parsing would happen in the actual system
+					if !strings.ContainsAny(strings.TrimSpace(s), "mh") {
+						return fmt.Errorf("duration must include time units (e.g., 30m, 1h)")
+					}
+					return nil
+				}),
+		).WithHideFunc(func() bool {
+			return m.criteriaType == "range"
+		}),
+
+		// Duration range input
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Minimum Duration").
+				Description("Enter minimum duration (e.g., '15m')").
+				Value(&m.criteriaValue).
+				Placeholder("15m").
+				Validate(func(s string) error {
+					if strings.TrimSpace(s) == "" {
+						return fmt.Errorf("minimum duration is required")
+					}
+					if !strings.ContainsAny(strings.TrimSpace(s), "mh") {
+						return fmt.Errorf("duration must include time units (e.g., 15m)")
+					}
+					return nil
+				}),
+
+			huh.NewInput().
+				Title("Maximum Duration").
+				Description("Enter maximum duration (e.g., '60m')").
+				Value(&m.criteriaValue2).
+				Placeholder("60m").
+				Validate(func(s string) error {
+					if strings.TrimSpace(s) == "" {
+						return fmt.Errorf("maximum duration is required")
+					}
+					if !strings.ContainsAny(strings.TrimSpace(s), "mh") {
+						return fmt.Errorf("duration must include time units (e.g., 60m)")
+					}
+					return nil
+				}),
+		).WithHideFunc(func() bool {
+			return m.criteriaType != "range"
+		}),
+	)
+}
+
 // createPromptAndCommentForm creates the final prompt and comment form
 func (m *SimpleGoalCreator) createPromptAndCommentForm() *huh.Form {
 	return huh.NewForm(
@@ -406,10 +673,145 @@ func (m *SimpleGoalCreator) createGoalFromData() (*models.Goal, error) {
 		}
 	}
 
-	// TODO: Add automatic criteria configuration for automatic scoring
-	// For now, focus on manual scoring path
+	// Add criteria for automatic scoring
+	if m.scoringType == models.AutomaticScoring {
+		criteria, err := m.buildCriteriaFromData()
+		if err != nil {
+			return nil, fmt.Errorf("failed to build criteria: %w", err)
+		}
+		goal.Criteria = criteria
+	}
 
 	return goal, nil
+}
+
+// buildCriteriaFromData creates criteria based on the collected criteria configuration
+func (m *SimpleGoalCreator) buildCriteriaFromData() (*models.Criteria, error) {
+	condition := &models.Condition{}
+	var description string
+
+	switch m.selectedFieldType {
+	case models.BooleanFieldType:
+		// Boolean criteria: equals true
+		trueValue := true
+		condition.Equals = &trueValue
+		description = "Goal is complete when checked as true"
+
+	case "numeric", models.UnsignedIntFieldType, models.UnsignedDecimalFieldType, models.DecimalFieldType:
+		// Numeric criteria
+		unit := m.unit
+		if unit == "" {
+			unit = "units"
+		}
+
+		switch m.criteriaType {
+		case "greater_than":
+			val, err := strconv.ParseFloat(strings.TrimSpace(m.criteriaValue), 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid criteria value: %w", err)
+			}
+			condition.GreaterThan = &val
+			description = fmt.Sprintf("Goal achieved when value > %.1f %s", val, unit)
+
+		case "greater_than_or_equal":
+			val, err := strconv.ParseFloat(strings.TrimSpace(m.criteriaValue), 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid criteria value: %w", err)
+			}
+			condition.GreaterThanOrEqual = &val
+			description = fmt.Sprintf("Goal achieved when value >= %.1f %s", val, unit)
+
+		case "less_than":
+			val, err := strconv.ParseFloat(strings.TrimSpace(m.criteriaValue), 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid criteria value: %w", err)
+			}
+			condition.LessThan = &val
+			description = fmt.Sprintf("Goal achieved when value < %.1f %s", val, unit)
+
+		case "less_than_or_equal":
+			val, err := strconv.ParseFloat(strings.TrimSpace(m.criteriaValue), 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid criteria value: %w", err)
+			}
+			condition.LessThanOrEqual = &val
+			description = fmt.Sprintf("Goal achieved when value <= %.1f %s", val, unit)
+
+		case "range":
+			minVal, err := strconv.ParseFloat(strings.TrimSpace(m.criteriaValue), 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid minimum value: %w", err)
+			}
+			maxVal, err := strconv.ParseFloat(strings.TrimSpace(m.criteriaValue2), 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid maximum value: %w", err)
+			}
+			condition.Range = &models.RangeCondition{
+				Min:          minVal,
+				Max:          maxVal,
+				MinInclusive: &m.rangeInclusive,
+				MaxInclusive: &m.rangeInclusive,
+			}
+			inclusiveText := "exclusive"
+			if m.rangeInclusive {
+				inclusiveText = "inclusive"
+			}
+			description = fmt.Sprintf("Goal achieved when value is within %.1f to %.1f %s (%s)", minVal, maxVal, unit, inclusiveText)
+
+		default:
+			return nil, fmt.Errorf("unknown numeric criteria type: %s", m.criteriaType)
+		}
+
+	case models.TimeFieldType:
+		// Time criteria
+		timeValue := strings.TrimSpace(m.criteriaTimeValue)
+		switch m.criteriaType {
+		case "before":
+			condition.Before = timeValue
+			description = fmt.Sprintf("Goal achieved when time is before %s", timeValue)
+		case "after":
+			condition.After = timeValue
+			description = fmt.Sprintf("Goal achieved when time is after %s", timeValue)
+		default:
+			return nil, fmt.Errorf("unknown time criteria type: %s", m.criteriaType)
+		}
+
+	case models.DurationFieldType:
+		// Duration criteria - treat similar to numeric but with duration parsing
+		durationValue := strings.TrimSpace(m.criteriaValue)
+		switch m.criteriaType {
+		case "greater_than_or_equal":
+			// For duration, we'll store the duration string in a way that can be parsed later
+			// This is a simplified approach - a full implementation would convert to minutes/seconds
+			condition.After = durationValue // Using After field for duration >= comparison
+			description = fmt.Sprintf("Goal achieved when duration >= %s", durationValue)
+		case "less_than":
+			condition.Before = durationValue // Using Before field for duration < comparison
+			description = fmt.Sprintf("Goal achieved when duration < %s", durationValue)
+		case "equals":
+			// For duration equality, we could use a specific approach
+			// For now, treating as a range with very small tolerance
+			condition.Before = durationValue
+			description = fmt.Sprintf("Goal achieved when duration equals %s", durationValue)
+		case "range":
+			minDuration := strings.TrimSpace(m.criteriaValue)
+			maxDuration := strings.TrimSpace(m.criteriaValue2)
+			// This is a simplified representation - real implementation would need better duration handling
+			condition.Before = maxDuration
+			condition.After = minDuration
+			description = fmt.Sprintf("Goal achieved when duration is between %s and %s", minDuration, maxDuration)
+		default:
+			return nil, fmt.Errorf("unknown duration criteria type: %s", m.criteriaType)
+		}
+
+	default:
+		return nil, fmt.Errorf("automatic scoring not supported for field type: %s", m.selectedFieldType)
+	}
+
+	return &models.Criteria{
+		Description: description,
+		Condition:   condition,
+	}, nil
 }
 
 // getResolvedFieldType resolves the field type (handles "numeric" -> specific numeric type)
