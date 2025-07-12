@@ -58,8 +58,8 @@ func (h *SimpleGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEnt
 		}
 	}
 
-	// Create the completion question
-	var completed bool
+	// Create the completion question - initialize with existing value
+	completed := currentValue
 	prompt := goal.Prompt
 	if prompt == "" {
 		prompt = fmt.Sprintf("Did you complete: %s?", goal.Title)
