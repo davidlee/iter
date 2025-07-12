@@ -25,6 +25,7 @@ The application follows a clean architecture with separation of concerns:
   - [huh API reference](https://pkg.go.dev/github.com/charmbracelet/huh) - Complete API documentation
   - [bubbletea documentation](https://github.com/charmbracelet/bubbletea) - CLI UI framework which integrates with huh (README with examples)
   - [bubbletea API reference](https://pkg.go.dev/github.com/charmbracelet/bubbletea) - complete API documentation
+  - [bubbletea with huh reference example](https://github.com/charmbracelet/huh/blob/main/examples/bubbletea/main.go) - idiomatic example of huh + bubbletea
 - **YAML parsing**: goccy/go-yaml
 - **Markdown rendering**: charmbracelet/glow
 - **Test assertions / mocks**: stretchr/testify
