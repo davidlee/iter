@@ -68,6 +68,22 @@ Tasks often have relationships with each other that should be explicitly documen
 - AI will place generated content in "6. Code Snippets & Artifacts" or as otherwise specified.
 - AI may edit task files in place, in which case it will always print the complete, verbatim content of the changed file to the user.
 
+## Commit Checklist
+
+When asked to commit work on a task or subtask, follow the following checklist:
+- Review the work completed since last commit (e.g. the current subtask), and
+  - [ ] add any relevant notes to the Notes section of the task file, especially noting any unexpected issues encountered, human feedback, refactoring done, or key decisions made.
+  - [ ] review files touched and important decisions / changes made, and add any Anchor Comments (per CLAUDE.md) as appropriate to aid future work.
+  - [ ] format the code
+  - [ ] lint the code and address any issues
+  - [ ] stage and prepare a commit for all changes in the working directory
+  - [ ] confirm with user before issuing commit command
+
+Then, if working on a task with multiple subtasks and another subtask is defined:
+  - [ ] evaluate the detail captured in the subtask
+  - [ ] if it seems sufficiently clear, appropriate, and detailed, print it and suggest proceeding
+  - [ ] if it looks like it could be improved, insert a new subtask to better plan the work.
+
 ### Git Workflow & Commit Conventions
 
 - **Commit Conventions:**

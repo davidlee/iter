@@ -3,10 +3,10 @@ build:
   go build -o iter .
 
 test:
-  go test ./..
+  go test ./...
 
 format:
-  gofumpt ./..
+  gofumpt -l -w .
 
 lint:
   golangci-lint run
