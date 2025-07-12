@@ -14,24 +14,37 @@ import (
 
 // GoalConfigurator provides UI for managing goal configurations
 type GoalConfigurator struct {
-	goalParser  *parser.GoalParser
-	goalBuilder *GoalBuilder
+	goalParser     *parser.GoalParser
+	goalBuilder    *GoalBuilder
+	legacyAdapter  *wizard.LegacyGoalAdapter
+	preferLegacy   bool // Configuration option for backwards compatibility
 }
 
 // NewGoalConfigurator creates a new goal configurator instance
 func NewGoalConfigurator() *GoalConfigurator {
 	return &GoalConfigurator{
-		goalParser:  parser.NewGoalParser(),
-		goalBuilder: NewGoalBuilder(),
+		goalParser:    parser.NewGoalParser(),
+		goalBuilder:   NewGoalBuilder(),
+		legacyAdapter: wizard.NewLegacyGoalAdapter(),
+		preferLegacy:  false, // Default to enhanced interfaces
 	}
 }
 
+// WithLegacyMode configures the configurator to prefer legacy forms
+func (gc *GoalConfigurator) WithLegacyMode(prefer bool) *GoalConfigurator {
+	gc.preferLegacy = prefer
+	return gc
+}
+
 // AIDEV-NOTE: Main integration point for goal creation flows
-// Current implementation uses hybrid approach:
-// - Simple goals: Use bubbletea wizard for enhanced UX (4-step flow)
-// - Complex goals: Will use bubbletea wizard when elastic/informational handlers implemented
-// - Fallback: Uses huh forms for backwards compatibility
-// To add new goal types: extend wizard.createStepHandlers() and add case here
+// Hybrid Implementation Strategy (Phase 2.5 Complete):
+// - Intelligent Interface Selection: determineOptimalInterface() chooses best UI for goal complexity
+// - Enhanced Wizards: Full bubbletea wizards for complex multi-step flows (elastic, informational)
+// - Legacy Compatibility: LegacyGoalAdapter provides backwards compatibility with original huh forms
+// - User Choice: Simple goals allow user override between wizard and quick forms
+// - Hybrid Forms: HybridFormModel enables embedding huh forms within bubbletea for best of both worlds
+// - Configuration: WithLegacyMode() allows preferring legacy forms for conservative users
+// To add new goal types: extend wizard step handlers and add case in determineOptimalInterface()
 
 // AddGoal presents an interactive UI to create a new goal
 func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
@@ -59,10 +72,20 @@ func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
 			return fmt.Errorf("goal creation wizard failed: %w", err)
 		}
 	} else {
-		// Use existing huh forms for simple flows
-		newGoal, err = gc.goalBuilder.BuildGoal(schema.Goals)
-		if err != nil {
-			return fmt.Errorf("goal creation cancelled or failed: %w", err)
+		// Use legacy forms for backwards compatibility
+		if gc.preferLegacy {
+			// Use original GoalBuilder for maximum backwards compatibility
+			newGoal, err = gc.goalBuilder.BuildGoal(schema.Goals)
+			if err != nil {
+				return fmt.Errorf("goal creation cancelled or failed: %w", err)
+			}
+		} else {
+			// Use hybrid approach with compatibility mode
+			compatMode := wizard.AutoSelect
+			newGoal, err = gc.legacyAdapter.CreateGoalWithMode(goalType, schema.Goals, compatMode)
+			if err != nil {
+				return fmt.Errorf("goal creation failed: %w", err)
+			}
 		}
 	}
 
@@ -176,29 +199,48 @@ func (gc *GoalConfigurator) promptForGoalTypeAndMode() (models.GoalType, bool, e
 		return "", false, err
 	}
 
-	// Mode selection - offer enhanced wizard for complex goal types
-	switch goalType {
-	case models.ElasticGoal:
+	// Intelligent mode selection based on goal complexity and user preference
+	useEnhanced = gc.determineOptimalInterface(goalType)
+
+	// Allow user override for simple goals only (others benefit significantly from wizard)
+	if goalType == models.SimpleGoal {
+		var override bool
 		modeForm := huh.NewForm(
 			huh.NewGroup(
 				huh.NewConfirm().
 					Title("Use Enhanced Wizard?").
-					Description("Enhanced wizard provides progress tracking, navigation, and better error recovery for complex elastic goals.").
-					Affirmative("Enhanced Wizard").
-					Negative("Simple Forms").
-					Value(&useEnhanced),
+					Description("Enhanced wizard provides progress tracking, step navigation, and live validation. Recommended for new users.").
+					Affirmative("Enhanced Wizard (Recommended)").
+					Negative("Quick Forms").
+					Value(&override),
 			),
 		)
 
 		if err := modeForm.Run(); err != nil {
-			return goalType, false, err
+			return goalType, useEnhanced, err
 		}
-	case models.InformationalGoal:
-		// Informational goals always use the wizard for consistency
-		useEnhanced = true
+		useEnhanced = override
 	}
 
 	return goalType, useEnhanced, nil
+}
+
+// determineOptimalInterface intelligently selects the best interface for each goal type
+func (gc *GoalConfigurator) determineOptimalInterface(goalType models.GoalType) bool {
+	switch goalType {
+	case models.SimpleGoal:
+		// Simple goals: default to enhanced wizard for better UX, but allow fallback
+		return true
+	case models.ElasticGoal:
+		// Elastic goals: always use wizard due to complexity (6-8 steps with validation)
+		return true
+	case models.InformationalGoal:
+		// Informational goals: always use wizard for consistency and direction configuration
+		return true
+	default:
+		// Unknown goal types: fallback to enhanced wizard
+		return true
+	}
 }
 
 // runGoalWizard runs the bubbletea-based goal creation wizard

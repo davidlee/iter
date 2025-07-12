@@ -160,11 +160,11 @@ Based on investigation of existing codebase:
   - [x] Step 2: Field configuration and direction (enhanced FieldConfigStepHandler)
   - [x] Step 3: Preview and confirmation (reuses ConfirmationStepHandler)
 
-- [ ] **2.5 Hybrid Implementation Strategy**
-  - [ ] Keep simple huh forms for basic interactions
-  - [ ] Use bubbletea for complex multi-step flows
-  - [ ] Create reusable bubbletea components that can embed huh forms
-  - [ ] Maintain backwards compatibility with existing patterns
+- [x] **2.5 Hybrid Implementation Strategy** ✅ **COMPLETED**
+  - [x] Keep simple huh forms for basic interactions
+  - [x] Use bubbletea for complex multi-step flows  
+  - [x] Create reusable bubbletea components that can embed huh forms
+  - [x] Maintain backwards compatibility with existing patterns
 
 ### Phase 3: Goal Management Enhancement
 - [ ] **3.1 Enhanced Goal Listing (iter goal list)**
@@ -316,6 +316,20 @@ Based on investigation of existing codebase:
   - Enhanced field_config_steps.go to store and load direction values
   - Added complete informational goal configuration in state.go
   - Automatic wizard selection for informational goals in configurator.go
+
+**Phase 2.5 Implementation (Completed):**
+- **Hybrid Implementation Strategy**: Complete backwards compatibility with intelligent interface selection
+- **LegacyGoalAdapter**: Provides compatibility layer between wizard and legacy forms without import cycles
+- **HybridFormModel**: Reusable component for embedding huh forms within bubbletea applications with progress tracking
+- **Intelligent Selection**: determineOptimalInterface() automatically chooses best UI based on goal complexity
+- **User Override**: Simple goals allow user choice between Enhanced Wizard (recommended) and Quick Forms
+- **Configuration Options**: WithLegacyMode() enables preferring legacy forms for conservative deployments
+- **Import Cycle Resolution**: Avoided circular dependencies by keeping legacy adapter focused on wizard integration
+- **Key Files Implemented**:
+  - `internal/ui/goalconfig/wizard/hybrid_forms.go` - HybridFormModel and HybridFormRunner for embedding huh in bubbletea
+  - `internal/ui/goalconfig/wizard/legacy_adapter.go` - BackwardsCompatibilityMode and adapter for interface selection
+  - Enhanced `configurator.go` with intelligent mode selection and compatibility configuration
+  - All existing wizard flows (simple/elastic/informational) preserved with enhanced backwards compatibility
 
 **References:**
 - [huh documentation](https://github.com/charmbracelet/huh) - Forms and prompts
