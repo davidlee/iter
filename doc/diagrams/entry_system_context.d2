@@ -1,47 +1,93 @@
 direction: right
 
 title: {
-  label: Entry Collection System Context
+  label: Entry Collection System - Context Level
   near: top-center
   style.font-size: 20
   style.bold: true
 }
 
 user: {
-  label: User
+  label: |md
+    **User**
+    
+    [Person]
+    
+    Records daily habit entries
+  |
   shape: person
-  style.fill: "#dbeafe"
+  style.fill: "#08427b"
+  style.font-color: white
 }
 
 entry_system: {
-  label: Entry Collection System
-  tooltip: Interactive CLI for habit data collection
-  style.fill: "#dcfce7"
-  style.stroke: "#16a34a"
-  style.stroke-width: 2
+  label: |md
+    **Entry Collection System**
+    
+    [Software System]
+    
+    Interactive CLI for habit data collection with immediate scoring feedback
+  |
+  style.fill: "#1168bd"
+  style.font-color: white
 }
 
 goals_file: {
-  label: Goals Schema
-  tooltip: YAML goal definitions from T009
-  shape: cylinder
-  style.fill: "#fef3c7"
+  label: |md
+    **Goals Schema**
+    
+    [External System]
+    
+    YAML goal definitions from T009
+  |
+  style.fill: "#999999"
+  style.font-color: white
 }
 
 entries_file: {
-  label: Entry Storage
-  tooltip: Daily entry persistence
-  shape: cylinder
-  style.fill: "#fef3c7"
+  label: |md
+    **Entry Storage**
+    
+    [External System]
+    
+    Daily entry persistence
+  |
+  style.fill: "#999999"
+  style.font-color: white
 }
 
 scoring_engine: {
-  label: Scoring Engine
-  tooltip: Automatic goal evaluation
-  style.fill: "#e0e7ff"
+  label: |md
+    **Scoring Engine**
+    
+    [External System]
+    
+    Automatic goal evaluation
+  |
+  style.fill: "#999999"
+  style.font-color: white
 }
 
-user -> entry_system: Records entries via CLI
-entry_system -> goals_file: Loads goal definitions
-entry_system -> entries_file: Saves/loads daily entries
-entry_system -> scoring_engine: Evaluates automatic goals
+user -> entry_system: |md
+  Records entries via CLI
+  
+  [Terminal]
+|
+
+entry_system -> goals_file: |md
+  Loads goal definitions
+  
+  [File I/O]
+|
+
+entry_system -> entries_file: |md
+  Saves/loads daily entries
+  
+  [File I/O]
+|
+
+entry_system -> scoring_engine: |md
+  Evaluates automatic goals
+  
+  [Function calls]
+|

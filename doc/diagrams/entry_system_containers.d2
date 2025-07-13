@@ -1,79 +1,154 @@
 direction: down
 
 title: {
-  label: Entry Collection System Components
+  label: Entry Collection System - Container Level
   near: top-center
   style.font-size: 20
   style.bold: true
 }
 
 entry_collector: {
-  label: EntryCollector
-  tooltip: Main orchestrator - Coordinates goal loading, entry collection, and persistence
-  style.fill: "#dcfce7"
-  style.stroke: "#16a34a"
-  style.stroke-width: 2
+  label: |md
+    **EntryCollector**
+    
+    [Container: Go Module]
+    
+    Main orchestrator that coordinates goal loading, entry collection, and persistence
+  |
+  style.fill: "#1168bd"
+  style.font-color: white
 }
 
 field_input_factory: {
-  label: FieldInputFactory
-  tooltip: Input widget creation - Creates field-type-specific input components
-  style.fill: "#dbeafe"
-  style.stroke: "#2563eb"
-  style.stroke-width: 2
+  label: |md
+    **FieldInputFactory**
+    
+    [Container: Go Module]
+    
+    Creates field-type-specific input components using bubbletea + huh patterns
+  |
+  style.fill: "#1168bd"
+  style.font-color: white
 }
 
 goal_entry_handlers: {
-  label: Goal Entry Handlers
-  tooltip: Goal-type-specific collection - Handles Simple, Elastic, Informational, Checklist goals
-  style.fill: "#fde68a"
-  style.stroke: "#d97706"
-  style.stroke-width: 2
+  label: |md
+    **Goal Entry Handlers**
+    
+    [Container: Go Module]
+    
+    Handles goal-type-specific collection for Simple, Elastic, Informational, Checklist goals
+  |
+  style.fill: "#1168bd"
+  style.font-color: white
 }
 
 scoring_integration: {
-  label: Scoring Integration
-  tooltip: Immediate feedback - Real-time achievement calculation
-  style.fill: "#fce7f3"
-  style.stroke: "#db2777"
-  style.stroke-width: 2
+  label: |md
+    **Scoring Integration**
+    
+    [Container: Go Module]
+    
+    Provides immediate feedback with real-time achievement calculation
+  |
+  style.fill: "#1168bd"
+  style.font-color: white
 }
 
 goal_schema: {
-  label: Goal Schema
-  tooltip: YAML - Goal definitions with field types and criteria
+  label: |md
+    **Goal Schema**
+    
+    [External Data Store: YAML]
+    
+    Goal definitions with field types and criteria from T009
+  |
   shape: cylinder
-  style.fill: "#f3f4f6"
+  style.fill: "#999999"
+  style.font-color: white
 }
 
 entry_storage: {
-  label: Entry Storage
-  tooltip: YAML - Daily entry persistence
+  label: |md
+    **Entry Storage**
+    
+    [External Data Store: YAML]
+    
+    Daily entry persistence with versioned data
+  |
   shape: cylinder
-  style.fill: "#f3f4f6"
+  style.fill: "#999999"
+  style.font-color: white
 }
 
 scoring_engine: {
-  label: Scoring Engine
-  tooltip: Achievement evaluation
-  style.fill: "#e0e7ff"
-  style.stroke: "#6366f1"
+  label: |md
+    **Scoring Engine**
+    
+    [External System]
+    
+    Achievement evaluation against goal criteria
+  |
+  style.fill: "#999999"
+  style.font-color: white
 }
 
 bubbletea_huh: {
-  label: Bubbletea + Huh
-  tooltip: Interactive CLI framework
-  style.fill: "#f0fdf4"
-  style.stroke: "#22c55e"
+  label: |md
+    **Bubbletea + Huh**
+    
+    [External System]
+    
+    Interactive CLI framework for forms and user interface
+  |
+  style.fill: "#999999"
+  style.font-color: white
 }
 
-entry_collector -> field_input_factory: Creates input widgets
-entry_collector -> goal_entry_handlers: Delegates goal-specific collection
-goal_entry_handlers -> scoring_integration: Requests immediate scoring
-scoring_integration -> scoring_engine: Evaluates criteria
+entry_collector -> field_input_factory: |md
+  Creates input widgets
+  
+  [Function calls]
+|
 
-entry_collector -> goal_schema: Loads goal definitions
-entry_collector -> entry_storage: Persists collected entries
+entry_collector -> goal_entry_handlers: |md
+  Delegates goal-specific collection
+  
+  [Function calls]
+|
 
-field_input_factory -> bubbletea_huh: Creates interactive forms
-goal_entry_handlers -> bubbletea_huh: Displays achievement feedback
+goal_entry_handlers -> scoring_integration: |md
+  Requests immediate scoring
+  
+  [Function calls]
+|
+
+scoring_integration -> scoring_engine: |md
+  Evaluates criteria
+  
+  [Function calls]
+|
+
+entry_collector -> goal_schema: |md
+  Loads goal definitions
+  
+  [File I/O]
+|
+
+entry_collector -> entry_storage: |md
+  Persists collected entries
+  
+  [File I/O]
+|
+
+field_input_factory -> bubbletea_huh: |md
+  Creates interactive forms
+  
+  [Library calls]
+|
+
+goal_entry_handlers -> bubbletea_huh: |md
+  Displays achievement feedback
+  
+  [Library calls]
+|

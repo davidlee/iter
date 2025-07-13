@@ -26,7 +26,8 @@
       "Bash(just lint)",
       "Bash(go fmt:*)",
       "Bash(fd:*)",
-      "Bash(d2:*)"
+      "Bash(d2:*)",
+      "WebFetch(domain:d2lang.com)"
     ],
     "deny": []
   }

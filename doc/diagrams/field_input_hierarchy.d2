@@ -1,133 +1,175 @@
 direction: down
 
 title: {
-  label: Field Input Component Hierarchy
+  label: Field Input Component System - Component Level
   near: top-center
   style.font-size: 20
   style.bold: true
 }
 
 interface: {
-  label: FieldValueInput Interface
-  style.fill: "#e1f5fe"
-  style.stroke: "#0277bd"
-  style.stroke-width: 2
+  label: |md
+    **FieldValueInput**
+    
+    [Component: Interface]
+    
+    Standard input component interface for field type abstraction
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
 }
 
 factory: {
-  label: FieldValueInputFactory
-  style.fill: "#f3e5f5"
-  style.stroke: "#7b1fa2"
-  style.stroke-width: 2
+  label: |md
+    **FieldValueInputFactory**
+    
+    [Component: Factory]
+    
+    Creates field-type-specific input components using factory pattern
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
 }
 
 # Input Components
 boolean_input: {
-  label: BooleanInput
-  style.fill: "#fff3e0"
-  style.stroke: "#ef6c00"
+  label: |md
+    **BooleanInput**
+    
+    [Component: Implementation]
+    
+    Yes/No confirmation using huh.NewConfirm()
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
 }
 
 text_input: {
-  label: TextInput
-  style.fill: "#fff3e0"
-  style.stroke: "#ef6c00"
+  label: |md
+    **TextInput**
+    
+    [Component: Implementation]
+    
+    Single/multi-line text using huh.NewInput/NewText()
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
 }
 
 numeric_input: {
-  label: NumericInput
-  style.fill: "#fff3e0"
-  style.stroke: "#ef6c00"
+  label: |md
+    **NumericInput**
+    
+    [Component: Implementation]
+    
+    Number input with validation and unit display
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
 }
 
 time_input: {
-  label: TimeInput
-  style.fill: "#fff3e0"
-  style.stroke: "#ef6c00"
+  label: |md
+    **TimeInput**
+    
+    [Component: Implementation]
+    
+    HH:MM time input with validation
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
 }
 
 duration_input: {
-  label: DurationInput
-  style.fill: "#fff3e0"
-  style.stroke: "#ef6c00"
+  label: |md
+    **DurationInput**
+    
+    [Component: Implementation]
+    
+    Flexible duration parsing (1h 30m, 45m)
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
 }
 
 checklist_input: {
-  label: ChecklistInput
-  style.fill: "#ffebee"
-  style.stroke: "#c62828"
-  style.stroke-dash: 5
-}
-
-# Huh Widget Details
-boolean_widget: {
-  label: "huh.NewConfirm()\nYes/No selection"
-  style.fill: "#f1f8e9"
-  style.font-size: 12
-}
-
-text_widget: {
-  label: "huh.NewInput() (single)\nhuh.NewText() (multi)"
-  style.fill: "#f1f8e9"
-  style.font-size: 12
-}
-
-numeric_widget: {
-  label: "huh.NewInput()\n+ validation + units"
-  style.fill: "#f1f8e9"
-  style.font-size: 12
-}
-
-time_widget: {
-  label: "huh.NewInput()\n+ HH:MM validation"
-  style.fill: "#f1f8e9"
-  style.font-size: 12
-}
-
-duration_widget: {
-  label: "huh.NewInput()\n+ duration parsing"
-  style.fill: "#f1f8e9"
-  style.font-size: 12
-}
-
-checklist_widget: {
-  label: "huh.NewMultiSelect()\n+ completion tracking"
-  style.fill: "#ffebee"
-  style.font-size: 12
+  label: |md
+    **ChecklistInput**
+    
+    [Component: Needs Implementation]
+    
+    Multi-select checklist completion tracking
+  |
+  style.fill: "#ffaaaa"
+  style.font-color: white
   style.stroke-dash: 5
 }
 
 # Relationships
-interface -> factory: implements
+interface -> factory: |md
+  Implemented by
+  
+  [Interface]
+|
 
-factory -> boolean_input: creates
-factory -> text_input: creates
-factory -> numeric_input: creates
-factory -> time_input: creates
-factory -> duration_input: creates
-factory -> checklist_input: creates {style.stroke-dash: 5}
+factory -> boolean_input: |md
+  Creates
+  
+  [Factory method]
+|
 
-boolean_input -> boolean_widget: uses
-text_input -> text_widget: uses
-numeric_input -> numeric_widget: uses
-time_input -> time_widget: uses
-duration_input -> duration_widget: uses
-checklist_input -> checklist_widget: uses {style.stroke-dash: 5}
+factory -> text_input: |md
+  Creates
+  
+  [Factory method]
+|
+
+factory -> numeric_input: |md
+  Creates
+  
+  [Factory method]
+|
+
+factory -> time_input: |md
+  Creates
+  
+  [Factory method]
+|
+
+factory -> duration_input: |md
+  Creates
+  
+  [Factory method]
+|
+
+factory -> checklist_input: |md
+  Creates
+  
+  [Factory method]
+| {
+  style.stroke-dash: 5
+}
 
 # Legend
 legend: {
   near: bottom-right
   
-  existing: {
-    label: "Existing Component"
-    style.fill: "#fff3e0"
-    style.stroke: "#ef6c00"
+  existing: |md
+    **Existing Component**
+    
+    Ready for use
+  | {
+    style.fill: "#85bbf0"
+    style.font-color: white
   }
   
-  needs_impl: {
-    label: "Needs Implementation"
-    style.fill: "#ffebee"
-    style.stroke: "#c62828"
+  needs_impl: |md
+    **Needs Implementation**
+    
+    To be developed
+  | {
+    style.fill: "#ffaaaa"
+    style.font-color: white
     style.stroke-dash: 5
   }
 }
