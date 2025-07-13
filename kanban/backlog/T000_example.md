@@ -2,8 +2,8 @@
 title: "Descriptive Task Title"
 type: ["feature"] # feature | fix | documentation | testing | refactor | chore
 tags: ["parser"] # optional
-related_tasks: ["depends-on:task123", "blocks:task456", "related-to:task789"] # Optional with relationship type
-context_windows: ["./*.go", Claude.md, Architecture.md] # List of glob patterns useful to build the context window required for this task
+related_tasks: ["depends-on:T123", "blocks:T456", "related-to:T789"] # Optional with relationship type
+context_windows: ["./*.go", Claude.md, "doc/workflow.md", "doc/**/*.md"] # List of glob patterns useful to build the context window required for this task
 ---
 
 # {{ title }}
@@ -25,8 +25,15 @@ A checklist of conditions that must be met for the task to be considered complet
 - [ ] Criterion 1
 - [ ] Criterion 2
 
----
-## 3. Implementation Plan & Progress
+## 3. Architecture
+
+*AI to complete when changes are architecturally significant, or when asked, prior to implementation plan.*
+
+*A description of the proposed technical design, key decisions, alternatives considered, and consequences of trade-offs.*
+
+*Strong preference for appropriate diagrams (e.g. C4; sequence; dependency graph) in github supported mermaid or ASCII format.*
+
+## 4. Implementation Plan & Progress
 
 **Overall Status:** `Not Started` | `In Progress` | `Completed` | `Blocked`
 *AI updates this based on sub-task progress or user instruction*
@@ -46,17 +53,17 @@ A checklist of conditions that must be met for the task to be considered complet
     - *Design:* ...
     - *Testing Strategy:* ...
 
-## 4. Roadblocks
+## 5. Roadblocks
 
 *(Timestamped list of any impediments. AI adds here when a sub-task is marked `[blocked]`)*
 - `YYYY-MM-DD HH:MM - [Sub-task ID/Name]:` Description of roadblock.
 
-## 5. Notes / Discussion Log
+## 6. Notes / Discussion Log
 
 *(Timestamped notes, decisions, clarifications from User or AI during the task's lifecycle)*
+*(May include generated code blocks, references to files, or verbatim terminal output / chains of thought where relevant to understanding; verbosity is acceptable here, we're logging.)*
+
 - `YYYY-MM-DD HH:MM - User:` ...
 - `YYYY-MM-DD HH:MM - AI:` ...
 
-## 6. Code Snippets & Artifacts 
 
-*(AI will place larger generated code blocks or references to files here if planned / directed. User will then move these to actual project files.)*

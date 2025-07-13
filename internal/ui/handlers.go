@@ -28,6 +28,7 @@ type EntryResult struct {
 	Notes            string                   // Any notes collected from the user
 }
 
+// AIDEV-NOTE: handler-factory-pattern; current implementation creates goal-specific handlers but needs bubbletea integration (see T010)
 // CreateGoalHandler creates the appropriate handler for a given goal type.
 // Returns a handler that can collect entries for the specific goal type.
 func CreateGoalHandler(goal models.Goal, scoringEngine *scoring.Engine) GoalEntryHandler {
@@ -38,6 +39,9 @@ func CreateGoalHandler(goal models.Goal, scoringEngine *scoring.Engine) GoalEntr
 		return NewElasticGoalHandler(scoringEngine)
 	case models.InformationalGoal:
 		return NewInformationalGoalHandler()
+	case models.ChecklistGoal:
+		// AIDEV-TODO: add ChecklistGoalHandler for checklist goals (T010 implementation)
+		return NewSimpleGoalHandler() // Temporary fallback
 	default:
 		// Fallback to simple goal handler for unknown types
 		return NewSimpleGoalHandler()

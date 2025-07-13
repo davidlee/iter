@@ -24,6 +24,7 @@ func NewElasticGoalHandler(scoringEngine *scoring.Engine) *ElasticGoalHandler {
 	}
 }
 
+// AIDEV-NOTE: elastic-goal-entry-handler; current bubbletea+huh implementation pattern for field type adaptation (reference for T010)
 // CollectEntry collects an entry for an elastic goal including automatic scoring and achievement display.
 func (h *ElasticGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error) {
 	// Prepare the form title with goal information

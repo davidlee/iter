@@ -100,6 +100,7 @@ func (ec *EntryCollector) loadExistingEntries(entriesFile string) error {
 	return nil
 }
 
+// AIDEV-NOTE: goal-entry-collection-placeholder; current implementation uses handler pattern but needs bubbletea+huh UI integration
 // collectGoalEntry collects the entry for a single goal using the appropriate handler.
 func (ec *EntryCollector) collectGoalEntry(goal models.Goal) error {
 	// Create existing entry data from our maps
@@ -112,6 +113,7 @@ func (ec *EntryCollector) collectGoalEntry(goal models.Goal) error {
 		}
 	}
 
+	// AIDEV-TODO: replace handler pattern with bubbletea+huh UI components (see T010 field input system)
 	// Create the appropriate handler for this goal type
 	handler := CreateGoalHandler(goal, ec.scoringEngine)
 
