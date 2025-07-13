@@ -39,6 +39,38 @@ func NewSimpleGoalCollectionFlow(factory *EntryFieldInputFactory, scoringEngine 
 	}
 }
 
+// NewSimpleGoalCollectionFlowForTesting creates a flow for testing that bypasses user interaction
+func NewSimpleGoalCollectionFlowForTesting(factory *EntryFieldInputFactory, scoringEngine *scoring.Engine) *SimpleGoalCollectionFlow {
+	return &SimpleGoalCollectionFlow{
+		factory:       factory,
+		scoringEngine: scoringEngine,
+	}
+}
+
+// CollectEntryDirectly bypasses UI interaction and creates entry directly from provided value
+func (f *SimpleGoalCollectionFlow) CollectEntryDirectly(goal models.Goal, value interface{}, notes string, _ *ExistingEntry) (*EntryResult, error) {
+	// Handle scoring based on goal configuration
+	var achievementLevel *models.AchievementLevel
+	if goal.ScoringType == models.AutomaticScoring {
+		// Automatic scoring for criteria-based simple goals
+		level, err := f.performAutomaticScoring(goal, value)
+		if err != nil {
+			return nil, fmt.Errorf("automatic scoring failed: %w", err)
+		}
+		achievementLevel = level
+	} else {
+		// Manual scoring - simple goals default to pass/fail based on primary field
+		level := f.determineManualAchievement(goal, value)
+		achievementLevel = level
+	}
+
+	return &EntryResult{
+		Value:            value,
+		AchievementLevel: achievementLevel,
+		Notes:            notes,
+	}, nil
+}
+
 // CollectEntry collects entry for simple goals with pass/fail logic
 func (f *SimpleGoalCollectionFlow) CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error) {
 	// Simple goals have primary pass/fail determination
@@ -79,9 +111,7 @@ func (f *SimpleGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exis
 
 		// Update input display with scoring feedback
 		if input.CanShowScoring() {
-			if err := input.UpdateScoringDisplay(achievementLevel); err != nil {
-				// Non-fatal error - continue without scoring display
-			}
+			_ = input.UpdateScoringDisplay(achievementLevel) // Non-fatal error - continue without scoring display
 		}
 	} else {
 		// Manual scoring - simple goals default to pass/fail based on primary field
@@ -190,9 +220,7 @@ func (f *ElasticGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exi
 
 	// Update input display with achievement feedback
 	if input.CanShowScoring() && achievementLevel != nil {
-		if err := input.UpdateScoringDisplay(achievementLevel); err != nil {
-			// Non-fatal error - continue without scoring display
-		}
+		_ = input.UpdateScoringDisplay(achievementLevel) // Non-fatal error - continue without scoring display
 	}
 
 	// Display achievement result
@@ -386,9 +414,7 @@ func (f *ChecklistGoalCollectionFlow) CollectEntry(goal models.Goal, existing *E
 
 	// Update input display with scoring feedback
 	if input.CanShowScoring() && achievementLevel != nil {
-		if err := input.UpdateScoringDisplay(achievementLevel); err != nil {
-			// Non-fatal error - continue without scoring display
-		}
+		_ = input.UpdateScoringDisplay(achievementLevel) // Non-fatal error - continue without scoring display
 	}
 
 	// Display completion progress feedback

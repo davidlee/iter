@@ -198,8 +198,8 @@ func TestTextEntryInput(t *testing.T) {
 }
 
 func TestNumericEntryInput(t *testing.T) {
-	min := 0.0
-	max := 100.0
+	minVal := 0.0
+	maxVal := 100.0
 	config := EntryFieldInputConfig{
 		Goal: models.Goal{
 			Title:  "Test Numeric Goal",
@@ -208,8 +208,8 @@ func TestNumericEntryInput(t *testing.T) {
 		FieldType: models.FieldType{
 			Type: models.UnsignedIntFieldType,
 			Unit: "points",
-			Min:  &min,
-			Max:  &max,
+			Min:  &minVal,
+			Max:  &maxVal,
 		},
 		ExistingEntry: nil,
 		ShowScoring:   false,

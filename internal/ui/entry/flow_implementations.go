@@ -50,10 +50,9 @@ func (f *SimpleGoalCollectionFlow) determineManualAchievement(goal models.Goal, 
 			if boolVal {
 				level := models.AchievementMini
 				return &level
-			} else {
-				level := models.AchievementNone
-				return &level
 			}
+			level := models.AchievementNone
+			return &level
 		}
 	case models.TextFieldType:
 		// Text fields require manual scoring (per T009 design decisions)
@@ -75,8 +74,8 @@ func (f *SimpleGoalCollectionFlow) determineManualAchievement(goal models.Goal, 
 	return &level
 }
 
-func (f *SimpleGoalCollectionFlow) collectOptionalNotes(goal models.Goal, value interface{}, existing *ExistingEntry) (string, error) {
-	return collectStandardOptionalNotes(goal, value, existing)
+func (f *SimpleGoalCollectionFlow) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {
+	return collectStandardOptionalNotes(existing)
 }
 
 // Elastic Goal Flow Implementations
@@ -153,7 +152,7 @@ func (f *ElasticGoalCollectionFlow) collectManualAchievementLevel(goal models.Go
 	return &level, nil
 }
 
-func (f *ElasticGoalCollectionFlow) displayAchievementResult(goal models.Goal, value interface{}, level *models.AchievementLevel) {
+func (f *ElasticGoalCollectionFlow) displayAchievementResult(goal models.Goal, _ interface{}, level *models.AchievementLevel) {
 	if level == nil {
 		return
 	}
@@ -195,13 +194,13 @@ func (f *ElasticGoalCollectionFlow) displayAchievementResult(goal models.Goal, v
 	fmt.Println()
 }
 
-func (f *ElasticGoalCollectionFlow) collectOptionalNotes(goal models.Goal, value interface{}, existing *ExistingEntry) (string, error) {
-	return collectStandardOptionalNotes(goal, value, existing)
+func (f *ElasticGoalCollectionFlow) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {
+	return collectStandardOptionalNotes(existing)
 }
 
 // Informational Goal Flow Implementations
 
-func (f *InformationalGoalCollectionFlow) displayInformationalContext(goal models.Goal) {
+func (f *InformationalGoalCollectionFlow) displayInformationalContext(_ models.Goal) {
 	infoStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("14")). // Bright cyan
 		Faint(true).
@@ -211,7 +210,7 @@ func (f *InformationalGoalCollectionFlow) displayInformationalContext(goal model
 	fmt.Println(infoStyle.Render(contextMsg))
 }
 
-func (f *InformationalGoalCollectionFlow) displayDirectionFeedback(goal models.Goal, value interface{}) {
+func (f *InformationalGoalCollectionFlow) displayDirectionFeedback(_ models.Goal, value interface{}) {
 	// Display direction-aware feedback based on goal configuration
 	// This would integrate with goal.Direction field if available
 	feedbackStyle := lipgloss.NewStyle().
@@ -222,13 +221,13 @@ func (f *InformationalGoalCollectionFlow) displayDirectionFeedback(goal models.G
 	fmt.Println(feedbackStyle.Render(feedback))
 }
 
-func (f *InformationalGoalCollectionFlow) collectOptionalNotes(goal models.Goal, value interface{}, existing *ExistingEntry) (string, error) {
-	return collectStandardOptionalNotes(goal, value, existing)
+func (f *InformationalGoalCollectionFlow) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {
+	return collectStandardOptionalNotes(existing)
 }
 
 // Checklist Goal Flow Implementations
 
-func (f *ChecklistGoalCollectionFlow) displayChecklistContext(goal models.Goal, existing *ExistingEntry) {
+func (f *ChecklistGoalCollectionFlow) displayChecklistContext(_ models.Goal, existing *ExistingEntry) {
 	contextStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("13")). // Bright magenta
 		Faint(true).
@@ -248,7 +247,7 @@ func (f *ChecklistGoalCollectionFlow) displayChecklistContext(goal models.Goal, 
 	fmt.Println(contextStyle.Render(contextMsg))
 }
 
-func (f *ChecklistGoalCollectionFlow) performChecklistScoring(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
+func (f *ChecklistGoalCollectionFlow) performChecklistScoring(_ models.Goal, value interface{}) (*models.AchievementLevel, error) {
 	if f.scoringEngine == nil {
 		return nil, fmt.Errorf("scoring engine not available")
 	}
@@ -322,7 +321,7 @@ func (f *ChecklistGoalCollectionFlow) collectManualAchievementLevel(goal models.
 	return &level, nil
 }
 
-func (f *ChecklistGoalCollectionFlow) displayCompletionProgress(goal models.Goal, value interface{}, level *models.AchievementLevel) {
+func (f *ChecklistGoalCollectionFlow) displayCompletionProgress(_ models.Goal, value interface{}, level *models.AchievementLevel) {
 	if items, ok := value.([]string); ok {
 		completed := len(items)
 		total := len([]string{"Item 1", "Item 2", "Item 3"}) // TODO: Get actual total from checklist definition
@@ -353,13 +352,13 @@ func (f *ChecklistGoalCollectionFlow) displayCompletionProgress(goal models.Goal
 	}
 }
 
-func (f *ChecklistGoalCollectionFlow) collectOptionalNotes(goal models.Goal, value interface{}, existing *ExistingEntry) (string, error) {
-	return collectStandardOptionalNotes(goal, value, existing)
+func (f *ChecklistGoalCollectionFlow) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {
+	return collectStandardOptionalNotes(existing)
 }
 
 // Common Helper Functions
 
-func collectStandardOptionalNotes(goal models.Goal, value interface{}, existing *ExistingEntry) (string, error) {
+func collectStandardOptionalNotes(existing *ExistingEntry) (string, error) {
 	// Get existing notes
 	var existingNotes string
 	if existing != nil {

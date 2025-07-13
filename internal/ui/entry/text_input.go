@@ -166,7 +166,7 @@ func (ti *TextEntryInput) CanShowScoring() bool {
 }
 
 // UpdateScoringDisplay is a no-op for text inputs (manual scoring only)
-func (ti *TextEntryInput) UpdateScoringDisplay(level *models.AchievementLevel) error {
+func (ti *TextEntryInput) UpdateScoringDisplay(_ *models.AchievementLevel) error {
 	// Text fields don't support automatic scoring
 	return nil
 }

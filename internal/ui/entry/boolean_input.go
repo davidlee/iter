@@ -1,3 +1,4 @@
+// Package entry provides field-type-aware input collection for goal entry recording.
 package entry
 
 import (

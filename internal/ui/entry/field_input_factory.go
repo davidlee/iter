@@ -95,6 +95,6 @@ func (w *scoringAwareWrapper) CanShowScoring() bool {
 }
 
 // UpdateScoringDisplay is a no-op for wrapped inputs
-func (w *scoringAwareWrapper) UpdateScoringDisplay(level *models.AchievementLevel) error {
+func (w *scoringAwareWrapper) UpdateScoringDisplay(_ *models.AchievementLevel) error {
 	return nil // No-op for inputs that don't support scoring
 }
