@@ -380,19 +380,19 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
   - Build successful across all packages
   - Future-compatible design ready for UI phase implementation
 
-- [ ] **1.2: Update Entry Storage & Persistence**
-  - [ ] Handle EntryStatus + timestamp serialization/deserialization
-  - [ ] Migration strategy for existing entries (CompletedAt → CreatedAt conversion)
-  - [ ] Entry validation updates for status + value combinations
-  - [ ] Prevent invalid states (skipped + value, failed without value)
-  - [ ] Testing with mixed old/new entry formats
+- [x] **1.2: Update Entry Storage & Persistence** ✅ COMPLETED (commit: 464f2b6)
+  - [x] Handle EntryStatus + timestamp serialization/deserialization - Working with strict YAML parsing
+  - [x] Migration strategy for existing entries (CompletedAt → CreatedAt conversion) - User data migrated successfully
+  - [x] Entry validation updates for status + value combinations - All validation updated for EntryStatus enum
+  - [x] Prevent invalid states (skipped + value, failed without value) - Type safety enforced
+  - [x] Testing with mixed old/new entry formats - All tests passing, user data loads correctly
 
 #### Phase 2: UI Components Enhancement
-- [ ] **2.1: Boolean Goal Skip Integration**
-  - [ ] Extend boolean input to three-option select ("Yes / No / Skip")
-  - [ ] Update SimpleGoalCollectionFlow for EntryStatus handling
-  - [ ] Skip sets Status=EntrySkipped, Value=nil, AchievementLevel=nil
-  - [ ] Skip bypasses note collection but preserves existing notes
+- [x] **2.1: Boolean Goal Skip Integration** ✅ COMPLETED (commit: TBD)
+  - [x] Extend boolean input to three-option select ("Yes / No / Skip") - Implemented BooleanOption enum with three-way selection
+  - [x] Update SimpleGoalCollectionFlow for EntryStatus handling - Status-aware processing with skip detection
+  - [x] Skip sets Status=EntrySkipped, Value=nil, AchievementLevel=nil - Proper skip state management
+  - [x] Skip bypasses note collection but preserves existing notes - Notes preserved without new prompts for skipped entries
 
 - [ ] **2.2: Shortcut-Based Skip for Input Fields**
   - [ ] Add "s" shortcut to numeric input components (sets EntrySkipped status)
@@ -483,7 +483,7 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 
 ## 7. Notes & Next Steps
 
-**Current Status**: Phase 1.1 Complete - Data Model Foundation Implemented
+**Current Status**: Phase 2.1 Complete - Boolean Goal Skip Integration Implemented
 **Dependencies**: T010 completion provides foundation for skip functionality
 **Implementation Approach**: Extend existing system without architectural changes
 **Compatibility**: Future-compatible with planned flexible habit frequencies and enhanced analytics
@@ -500,8 +500,20 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 - All quality checks passing (tests, linter, build)
 - Ready for Phase 2: UI Components Enhancement
 
+**Phase 2.1 Completion Notes (2025-07-13):**
+- **Three-Option Boolean Select**: Replaced huh.NewConfirm() with huh.NewSelect() for "Yes/No/Skip" selection
+- **BooleanOption Enum**: Added type-safe option handling (BooleanYes/BooleanNo/BooleanSkip)
+- **Status Integration**: BooleanEntryInput.GetStatus() maps options to EntryStatus correctly
+- **EntryResult Enhancement**: Added Status field to EntryResult for proper skip propagation
+- **SimpleGoalCollectionFlow Updates**: Status-aware processing, skip bypasses scoring and note prompts
+- **EntryCollector Integration**: Added statuses map, proper EntryResult→GoalEntry conversion
+- **Comprehensive Testing**: Updated all existing tests, added skip functionality test coverage
+- **All Collection Flows Updated**: Elastic, Informational, Checklist flows include Status field
+- **Quality Assurance**: All tests passing, linter clean (0 issues), integration tests updated
+
 **Technical Foundation:**
 - Data model extension with backward compatibility ✅ 
-- UI enhancement using existing component patterns (Next: Phase 2)
+- Boolean goal skip integration complete ✅
+- Other input field skip patterns ready for Phase 2.2 implementation
 - Analytics integration with existing completion tracking (Next: Phase 4)
 - Testing strategy following established T010 patterns ✅

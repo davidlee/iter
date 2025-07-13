@@ -70,6 +70,7 @@ func (f *SimpleGoalCollectionFlow) CollectEntryDirectly(goal models.Goal, value 
 		Value:            value,
 		AchievementLevel: achievementLevel,
 		Notes:            notes,
+		Status:           models.EntryCompleted, // Testing method defaults to completed
 	}, nil
 }
 
@@ -101,36 +102,76 @@ func (f *SimpleGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exis
 	// Get the collected value
 	value := input.GetValue()
 
-	// Handle scoring based on goal configuration
-	var achievementLevel *models.AchievementLevel
-	if goal.ScoringType == models.AutomaticScoring {
-		// Automatic scoring for criteria-based simple goals
-		level, err := f.performAutomaticScoring(goal, value)
-		if err != nil {
-			return nil, fmt.Errorf("automatic scoring failed: %w", err)
-		}
-		achievementLevel = level
-
-		// Update input display with scoring feedback
-		if input.CanShowScoring() {
-			_ = input.UpdateScoringDisplay(achievementLevel) // Non-fatal error - continue without scoring display
-		}
+	// AIDEV-NOTE: T012/2.1-skip-integration; status-aware processing with skip detection for Boolean inputs
+	// Determine entry status - check if input supports skip functionality
+	var status = models.EntryCompleted // Default status
+	if boolInput, ok := input.(*BooleanEntryInput); ok {
+		status = boolInput.GetStatus()
+	} else if value == nil {
+		status = models.EntrySkipped
 	} else {
-		// Manual scoring - simple goals default to pass/fail based on primary field
-		level := f.determineManualAchievement(goal, value)
-		achievementLevel = level
+		// For non-boolean inputs, determine status based on value
+		switch goal.FieldType.Type {
+		case models.BooleanFieldType:
+			if boolVal, isBool := value.(bool); isBool {
+				if boolVal {
+					status = models.EntryCompleted
+				} else {
+					status = models.EntryFailed
+				}
+			}
+		default:
+			// Other field types default to completed if value exists
+			if value != nil {
+				status = models.EntryCompleted
+			} else {
+				status = models.EntrySkipped
+			}
+		}
 	}
 
-	// Collect optional notes
-	notes, err := f.collectOptionalNotes(goal, value, existing)
-	if err != nil {
-		return nil, fmt.Errorf("failed to collect notes: %w", err)
+	// Handle scoring based on goal configuration (skip scoring for skipped entries)
+	var achievementLevel *models.AchievementLevel
+	if status != models.EntrySkipped {
+		if goal.ScoringType == models.AutomaticScoring {
+			// Automatic scoring for criteria-based simple goals
+			level, err := f.performAutomaticScoring(goal, value)
+			if err != nil {
+				return nil, fmt.Errorf("automatic scoring failed: %w", err)
+			}
+			achievementLevel = level
+
+			// Update input display with scoring feedback
+			if input.CanShowScoring() {
+				_ = input.UpdateScoringDisplay(achievementLevel) // Non-fatal error - continue without scoring display
+			}
+		} else {
+			// Manual scoring - simple goals default to pass/fail based on primary field
+			level := f.determineManualAchievement(goal, value)
+			achievementLevel = level
+		}
+	}
+
+	// Collect optional notes (skip note prompts for skipped entries but preserve existing notes)
+	var notes string
+	if status == models.EntrySkipped {
+		// For skipped entries, preserve existing notes but don't prompt for new ones
+		if existing != nil {
+			notes = existing.Notes
+		}
+	} else {
+		collectedNotes, err := f.collectOptionalNotes(goal, value, existing)
+		if err != nil {
+			return nil, fmt.Errorf("failed to collect notes: %w", err)
+		}
+		notes = collectedNotes
 	}
 
 	return &EntryResult{
 		Value:            value,
 		AchievementLevel: achievementLevel,
 		Notes:            notes,
+		Status:           status,
 	}, nil
 }
 
@@ -246,6 +287,7 @@ func (f *ElasticGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exi
 		Value:            value,
 		AchievementLevel: achievementLevel,
 		Notes:            notes,
+		Status:           models.EntryCompleted, // Elastic goals default to completed (skip functionality in Phase 2.2)
 	}, nil
 }
 
@@ -270,6 +312,7 @@ func (f *ElasticGoalCollectionFlow) CollectEntryDirectly(goal models.Goal, value
 		Value:            value,
 		AchievementLevel: achievementLevel,
 		Notes:            notes,
+		Status:           models.EntryCompleted, // Testing method defaults to completed
 	}, nil
 }
 
@@ -410,6 +453,7 @@ func (f *InformationalGoalCollectionFlow) CollectEntry(goal models.Goal, existin
 		Value:            value,
 		AchievementLevel: nil, // No achievement level for informational goals
 		Notes:            notes,
+		Status:           models.EntryCompleted, // Informational goals default to completed (skip functionality in Phase 2.2)
 	}, nil
 }
 
@@ -420,6 +464,7 @@ func (f *InformationalGoalCollectionFlow) CollectEntryDirectly(_ models.Goal, va
 		Value:            value,
 		AchievementLevel: nil, // Informational goals never have achievement levels
 		Notes:            notes,
+		Status:           models.EntryCompleted, // Testing method defaults to completed
 	}, nil
 }
 
@@ -531,6 +576,7 @@ func (f *ChecklistGoalCollectionFlow) CollectEntry(goal models.Goal, existing *E
 		Value:            value,
 		AchievementLevel: achievementLevel,
 		Notes:            notes,
+		Status:           models.EntryCompleted, // Testing method defaults to completed
 	}, nil
 }
 

@@ -132,6 +132,8 @@ func TestEntryCollector_saveEntries(t *testing.T) {
 		collector.entries["exercise"] = false
 		collector.notes["meditation"] = "Peaceful session"
 		collector.notes["exercise"] = ""
+		collector.statuses["meditation"] = models.EntryCompleted
+		collector.statuses["exercise"] = models.EntryFailed
 
 		// Save entries
 		err := collector.saveEntries(entriesFile)
@@ -175,6 +177,7 @@ func TestEntryCollector_saveEntries(t *testing.T) {
 		collector := NewEntryCollector()
 		collector.goals = goals
 		collector.entries["meditation"] = true
+		collector.statuses["meditation"] = models.EntryCompleted
 		// exercise not in entries map (not processed)
 
 		err := collector.saveEntries(entriesFile)
@@ -348,6 +351,8 @@ func TestEntryCollector_Integration(t *testing.T) {
 		collector.entries["exercise"] = false
 		collector.notes["meditation"] = "Great start to the day"
 		collector.notes["exercise"] = "Will try tomorrow"
+		collector.statuses["meditation"] = models.EntryCompleted
+		collector.statuses["exercise"] = models.EntryFailed
 
 		// Test save functionality
 		err = collector.saveEntries(entriesFile)

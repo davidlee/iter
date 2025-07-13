@@ -10,12 +10,22 @@ import (
 	"davidlee/iter/internal/models"
 )
 
-// AIDEV-NOTE: entry-boolean-input; implements EntryFieldInput for Boolean fields with scoring feedback
-// Provides yes/no confirmation with clear completion indication and optional achievement display
+// AIDEV-NOTE: entry-boolean-input; implements EntryFieldInput for Boolean fields with three-option skip support
+// T012/2.1-complete: Three-way selection (Yes/No/Skip) with EntryStatus integration for skip functionality
+
+// BooleanOption represents the three possible boolean entry options
+type BooleanOption string
+
+// Boolean entry options for three-way selection
+const (
+	BooleanYes  BooleanOption = "yes"
+	BooleanNo   BooleanOption = "no"
+	BooleanSkip BooleanOption = "skip"
+)
 
 // BooleanEntryInput handles boolean field value input for entry collection
 type BooleanEntryInput struct {
-	value         bool
+	option        BooleanOption
 	goal          models.Goal
 	fieldType     models.FieldType
 	existingEntry *ExistingEntry
@@ -31,19 +41,24 @@ func NewBooleanEntryInput(config EntryFieldInputConfig) *BooleanEntryInput {
 		fieldType:     config.FieldType,
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
+		option:        BooleanYes, // Default to Yes
 	}
 
 	// Set existing value if available
 	if config.ExistingEntry != nil && config.ExistingEntry.Value != nil {
 		if boolVal, ok := config.ExistingEntry.Value.(bool); ok {
-			input.value = boolVal
+			if boolVal {
+				input.option = BooleanYes
+			} else {
+				input.option = BooleanNo
+			}
 		}
 	}
 
 	return input
 }
 
-// CreateInputForm creates a boolean input form with clear yes/no display
+// CreateInputForm creates a three-option select form (Yes/No/Skip)
 func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	// Prepare styling
 	titleStyle := lipgloss.NewStyle().
@@ -61,9 +76,14 @@ func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 
 	// Show existing value in prompt if available
 	if bi.existingEntry != nil && bi.existingEntry.Value != nil {
-		status := "❌ No"
-		if bi.value {
+		var status string
+		switch bi.option {
+		case BooleanYes:
 			status = "✅ Yes"
+		case BooleanNo:
+			status = "❌ No"
+		case BooleanSkip:
+			status = "⏭️ Skip"
 		}
 		prompt = fmt.Sprintf("%s (currently: %s)", prompt, status)
 	}
@@ -77,15 +97,18 @@ func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 		description = descStyle.Render(goal.Description)
 	}
 
-	// Create the form
+	// Create the form with three-option select
 	bi.form = huh.NewForm(
 		huh.NewGroup(
-			huh.NewConfirm().
+			huh.NewSelect[BooleanOption]().
 				Title(prompt).
 				Description(description).
-				Value(&bi.value).
-				Affirmative("Yes").
-				Negative("No"),
+				Options(
+					huh.NewOption("✅ Yes - Completed", BooleanYes),
+					huh.NewOption("❌ No - Not completed", BooleanNo),
+					huh.NewOption("⏭️ Skip - Unable to complete", BooleanSkip),
+				).
+				Value(&bi.option),
 		).Title(title),
 	)
 
@@ -97,17 +120,46 @@ func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	return bi.form
 }
 
-// GetValue returns the boolean value
+// GetValue returns the boolean value (nil for skip)
 func (bi *BooleanEntryInput) GetValue() interface{} {
-	return bi.value
+	switch bi.option {
+	case BooleanYes:
+		return true
+	case BooleanNo:
+		return false
+	case BooleanSkip:
+		return nil // Skip has no value
+	default:
+		return false
+	}
 }
 
-// GetStringValue returns the boolean as a string
+// GetStringValue returns the option as a string
 func (bi *BooleanEntryInput) GetStringValue() string {
-	if bi.value {
-		return "true"
+	switch bi.option {
+	case BooleanYes:
+		return "yes"
+	case BooleanNo:
+		return "no"
+	case BooleanSkip:
+		return "skip"
+	default:
+		return "no"
 	}
-	return "false"
+}
+
+// GetStatus returns the EntryStatus based on the selected option
+func (bi *BooleanEntryInput) GetStatus() models.EntryStatus {
+	switch bi.option {
+	case BooleanYes:
+		return models.EntryCompleted
+	case BooleanNo:
+		return models.EntryFailed
+	case BooleanSkip:
+		return models.EntrySkipped
+	default:
+		return models.EntryFailed
+	}
 }
 
 // Validate validates the boolean value (always valid)
@@ -123,8 +175,16 @@ func (bi *BooleanEntryInput) GetFieldType() string {
 
 // SetExistingValue sets an existing value for editing scenarios
 func (bi *BooleanEntryInput) SetExistingValue(value interface{}) error {
+	if value == nil {
+		bi.option = BooleanSkip
+		return nil
+	}
 	if boolVal, ok := value.(bool); ok {
-		bi.value = boolVal
+		if boolVal {
+			bi.option = BooleanYes
+		} else {
+			bi.option = BooleanNo
+		}
 		return nil
 	}
 	return fmt.Errorf("invalid boolean value type: %T", value)
@@ -154,13 +214,17 @@ func (bi *BooleanEntryInput) UpdateScoringDisplay(level *models.AchievementLevel
 			Bold(true)
 
 		feedback := ""
-		switch *level {
-		case models.AchievementMini:
-			feedback = "✅ Goal Completed!"
-		case models.AchievementNone:
+		switch bi.option {
+		case BooleanYes:
+			if *level == models.AchievementMini {
+				feedback = "✅ Goal Completed!"
+			} else {
+				feedback = fmt.Sprintf("✅ Achievement: %v", *level)
+			}
+		case BooleanNo:
 			feedback = "❌ Goal Not Completed"
-		default:
-			feedback = fmt.Sprintf("Achievement: %v", *level)
+		case BooleanSkip:
+			feedback = "⏭️ Goal Skipped"
 		}
 
 		// Update form with achievement feedback

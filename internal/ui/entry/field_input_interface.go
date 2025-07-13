@@ -10,6 +10,7 @@ import (
 // Extends patterns from goalconfig.FieldValueInput but specialized for entry collection with scoring
 
 // EntryFieldInput provides field-type-aware input collection for entry recording
+//
 //revive:disable-next-line:exported
 type EntryFieldInput interface {
 	// CreateInputForm creates a huh form for collecting the field value during entry
@@ -46,6 +47,7 @@ type ScoringAwareInput interface {
 }
 
 // EntryFieldInputConfig holds configuration for field input creation
+//
 //revive:disable-next-line:exported
 type EntryFieldInputConfig struct {
 	Goal           models.Goal
@@ -63,9 +65,11 @@ type ExistingEntry struct {
 }
 
 // EntryResult represents the complete result of collecting an entry for a goal
+// AIDEV-NOTE: T012/2.1-enhanced; added Status field for skip functionality integration
 //revive:disable-next-line:exported
 type EntryResult struct {
 	Value            interface{}              // The collected value (any type based on field type)
 	AchievementLevel *models.AchievementLevel // Achievement level for elastic goals (nil for simple goals)
 	Notes            string                   // Any notes collected from the user
+	Status           models.EntryStatus       // Entry completion status (completed/skipped/failed)
 }

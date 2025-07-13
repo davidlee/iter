@@ -142,13 +142,63 @@ func TestBooleanEntryInput(t *testing.T) {
 		t.Errorf("GetValue() = %v, want true", value)
 	}
 
-	if strValue := input.GetStringValue(); strValue != "true" {
-		t.Errorf("GetStringValue() = %v, want 'true'", strValue)
+	if strValue := input.GetStringValue(); strValue != "yes" {
+		t.Errorf("GetStringValue() = %v, want 'yes'", strValue)
 	}
 
 	// Test invalid value type
 	if err := input.SetExistingValue("invalid"); err == nil {
 		t.Errorf("SetExistingValue('invalid') expected error, got nil")
+	}
+}
+
+func TestBooleanEntryInputSkipFunctionality(t *testing.T) {
+	config := EntryFieldInputConfig{
+		Goal: models.Goal{
+			Title:  "Test Boolean Goal",
+			Prompt: "Did you complete this?",
+		},
+		FieldType: models.FieldType{
+			Type: models.BooleanFieldType,
+		},
+		ExistingEntry: nil,
+		ShowScoring:   false,
+	}
+
+	input := NewBooleanEntryInput(config)
+
+	// Test skip option
+	if err := input.SetExistingValue(nil); err != nil {
+		t.Errorf("SetExistingValue(nil) unexpected error: %v", err)
+	}
+
+	if value := input.GetValue(); value != nil {
+		t.Errorf("GetValue() for skip = %v, want nil", value)
+	}
+
+	if strValue := input.GetStringValue(); strValue != "skip" {
+		t.Errorf("GetStringValue() for skip = %v, want 'skip'", strValue)
+	}
+
+	if status := input.GetStatus(); status != models.EntrySkipped {
+		t.Errorf("GetStatus() for skip = %v, want EntrySkipped", status)
+	}
+
+	// Test No option
+	if err := input.SetExistingValue(false); err != nil {
+		t.Errorf("SetExistingValue(false) unexpected error: %v", err)
+	}
+
+	if value := input.GetValue(); value != false {
+		t.Errorf("GetValue() for false = %v, want false", value)
+	}
+
+	if strValue := input.GetStringValue(); strValue != "no" {
+		t.Errorf("GetStringValue() for false = %v, want 'no'", strValue)
+	}
+
+	if status := input.GetStatus(); status != models.EntryFailed {
+		t.Errorf("GetStatus() for false = %v, want EntryFailed", status)
 	}
 }
 

@@ -26,6 +26,7 @@ type EntryCollector struct {
 	entries       map[string]interface{}              // Stores raw values for all goal types
 	achievements  map[string]*models.AchievementLevel // Stores achievement levels for elastic goals
 	notes         map[string]string
+	statuses      map[string]models.EntryStatus // T012/2.1-enhanced: Stores entry completion status for skip functionality
 }
 
 // NewEntryCollector creates a new entry collector instance.
@@ -42,6 +43,7 @@ func NewEntryCollector() *EntryCollector {
 		entries:       make(map[string]interface{}),
 		achievements:  make(map[string]*models.AchievementLevel),
 		notes:         make(map[string]string),
+		statuses:      make(map[string]models.EntryStatus),
 	}
 }
 
@@ -137,6 +139,7 @@ func (ec *EntryCollector) collectGoalEntry(goal models.Goal) error {
 	// Store the results in our maps
 	ec.entries[goal.ID] = result.Value
 	ec.notes[goal.ID] = result.Notes
+	ec.statuses[goal.ID] = result.Status
 
 	// Store achievement level if present (for elastic goals)
 	if result.AchievementLevel != nil {
@@ -163,7 +166,7 @@ func (ec *EntryCollector) saveEntries(entriesFile string) error {
 			Value:            value,
 			AchievementLevel: ec.achievements[goal.ID], // Will be nil for simple/informational goals
 			Notes:            ec.notes[goal.ID],
-			Status:           models.EntryCompleted, // Default to completed for now
+			Status:           ec.statuses[goal.ID], // Use collected status
 		}
 		goalEntry.MarkCreated()
 
@@ -320,6 +323,20 @@ func (ec *EntryCollector) SetEntryForTesting(goalID string, value interface{}, a
 	ec.notes[goalID] = notes
 	if achievementLevel != nil {
 		ec.achievements[goalID] = achievementLevel
+	}
+
+	// Determine status based on value and achievement level
+	if value == nil {
+		ec.statuses[goalID] = models.EntrySkipped
+	} else if boolVal, ok := value.(bool); ok {
+		if boolVal {
+			ec.statuses[goalID] = models.EntryCompleted
+		} else {
+			ec.statuses[goalID] = models.EntryFailed
+		}
+	} else {
+		// Non-boolean values default to completed
+		ec.statuses[goalID] = models.EntryCompleted
 	}
 }
 
