@@ -14,6 +14,9 @@ import (
 )
 
 // EntryCollector handles the interactive collection of today's habit entries.
+// AIDEV-NOTE: T010-entry-system-status; Phase 2 (field inputs) and T010/3.1 (simple goals) complete
+// Remaining: T010/3.2 (elastic goals), T010/3.3 (informational goals), T010/4.x (integration phases)
+// Architecture: goal collection flows in internal/ui/entry/ package with field input component integration
 type EntryCollector struct {
 	goalParser    *parser.GoalParser
 	entryStorage  *storage.EntryStorage

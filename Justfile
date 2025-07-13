@@ -13,3 +13,9 @@ lint:
 
 run:
   go run . # [subcommand]
+
+wip:
+  glow kanban/in-progress
+
+plans:
+  glow kanban/backlog

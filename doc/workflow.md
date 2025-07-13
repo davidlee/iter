@@ -10,14 +10,14 @@ This document outlines the collaboration model between the User (acting as Tech 
   - Create initial task Markdown files or request AI to draft them.
   - Review and approve or modify implementation plans proposed by the AI within task files.
   - Review agent's work
-  - Answer agent's questions and resolves roadblocks.
+  - Answer agent's questions and resolve roadblocks.
 
 - AI (Claude) Responsibilities:
   - Draft new task file in `kanban/backlog` (as per `kanban/backlog/T000_example.md`) on request
   - Refine selected tasks by proposing detailed "Implementation Plan & Progress" sections within the task's Markdown file. This includes sub-tasks, design considerations (e.g., function signatures, data models), and testing strategies.
   - Work only on tasks selected by the User.
-  - Generates code, documentation, tests, or other artifacts as per the agreed sub-tasks.
-  - Updates the status of sub-tasks (`[ ]`, `[WIP]`, `[X]` (done), `[blocked]`) within the task's Markdown file.
+  - Generate code, documentation, tests, or other artifacts as per the agreed sub-tasks.
+  - Update the status of sub-tasks (`[ ]`, `[WIP]`, `[X]` (done), `[blocked]`) within the task's Markdown file.
   - Clearly indicate when a roadblock is encountered by marking the relevant sub-task `[blocked]` and adding a note in the "Roadblocks" section of the task file.
   - Create git commit messages according to the convention specified below.
   - Update task files with commit ids.
@@ -58,29 +58,32 @@ Tasks often have relationships with each other that should be explicitly documen
 
 - Visualizing Dependencies:
   - Use a simple text diagram in the task file when complex dependencies exist
-  - Example: task001 --> task002 --> task003
+  - Example: T001 --> T002 --> T003
 
 ## AI Interaction with Task Markdown:
 
 - When planning, AI will propose content for "3. Implementation Plan & Progress".
 - When working, AI will update sub-task statuses (`[ ]`, `[WIP]`, `[x]`, `[blocked]`) in section 3.
-- AI will add entries to "4. Roadblocks" and "5. Notes / Discussion Log" as needed.
-- AI will place generated content in "6. Code Snippets & Artifacts" or as otherwise specified.
-- AI may edit task files in place, in which case it will always print the complete, verbatim content of the changed file to the user.
+- AI will add entries to "4. Roadblocks" and "5. Notes / Discussion Log".
+- AI may edit task files in place, in which case it will always print the verbatim content of the changes and surrounding context to the user.
 
 ## Commit Checklist
 
-When asked to commit work on a task or subtask, follow the following checklist:
+When asked to "commit" or when work is complete on a task or subtask, follow the following checklist:
 - Review the work completed since last commit (e.g. the current subtask), and
   - [ ] add any relevant notes to the Notes section of the task file, especially noting any unexpected issues encountered, human feedback, refactoring done, or key decisions made.
   - [ ] review files touched and important decisions / changes made, and add any Anchor Comments (per CLAUDE.md) as appropriate to aid future work.
   - [ ] format the code
   - [ ] lint the code and address any issues
   - [ ] stage and prepare a commit for all changes in the working directory
-  - [ ] confirm with user before issuing commit command
+  - [ ] determine if the task requires or warrants user verification (manual testing or code review), and either
+    - [ ] confirm with user before issuing commit command, or
+    - [ ] commit, display committed message and commit hash, and check for acceptance.
+  - [ ] add commit SHA to the task file for future reference.
+  - [ ] note the next logical subtask to proceed with, if any
 
 Then, if working on a task with multiple subtasks and another subtask is defined:
-  - [ ] evaluate the detail captured in the subtask
+  - [ ] evaluate the detail captured in the next subtask
   - [ ] if it seems sufficiently clear, appropriate, and detailed, print it and suggest proceeding
   - [ ] if it looks like it could be improved, insert a new subtask to better plan the work.
 

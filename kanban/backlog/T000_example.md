@@ -14,6 +14,9 @@ context_windows: ["./*.go", Claude.md, "doc/workflow.md", "doc/**/*.md"] # List 
 **Context (Significant Code Files)**:
 *AI to complete*
 
+**Git Commit Hashes:
+*AI to update after commit or checking commit history*
+
 ## 1. Goal / User Story
 
 Brief description of what needs to be achieved, why, and for whom. Why is this task important?
@@ -65,5 +68,4 @@ A checklist of conditions that must be met for the task to be considered complet
 
 - `YYYY-MM-DD HH:MM - User:` ...
 - `YYYY-MM-DD HH:MM - AI:` ...
-
 
