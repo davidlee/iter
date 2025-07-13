@@ -46,10 +46,11 @@ type ScoringAwareInput interface {
 
 // EntryFieldInputConfig holds configuration for field input creation
 type EntryFieldInputConfig struct {
-	Goal          models.Goal
-	FieldType     models.FieldType
-	ExistingEntry *ExistingEntry
-	ShowScoring   bool // Whether to show immediate scoring feedback
+	Goal           models.Goal
+	FieldType      models.FieldType
+	ExistingEntry  *ExistingEntry
+	ShowScoring    bool   // Whether to show immediate scoring feedback
+	ChecklistsPath string // Path to checklists.yml file (for checklist fields)
 }
 
 // ExistingEntry represents existing data for editing scenarios

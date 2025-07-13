@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"davidlee/iter/internal/models"
+	"davidlee/iter/internal/parser"
 )
 
 // AIDEV-NOTE: entry-checklist-input; implements EntryFieldInput for Checklist fields with progress tracking
@@ -15,31 +16,47 @@ import (
 
 // ChecklistEntryInput handles checklist field value input for entry collection
 type ChecklistEntryInput struct {
-	selectedItems  []string
-	availableItems []string
-	goal           models.Goal
-	fieldType      models.FieldType
-	existingEntry  *ExistingEntry
-	showScoring    bool
-	validationErr  error
-	form           *huh.Form
+	selectedItems   []string
+	availableItems  []string
+	checklistID     string
+	checklistParser *parser.ChecklistParser
+	goal            models.Goal
+	fieldType       models.FieldType
+	existingEntry   *ExistingEntry
+	showScoring     bool
+	validationErr   error
+	form            *huh.Form
+	checklistsPath  string
 }
 
 // NewChecklistEntryInput creates a new checklist entry input component
 func NewChecklistEntryInput(config EntryFieldInputConfig) *ChecklistEntryInput {
-	input := &ChecklistEntryInput{
-		goal:          config.Goal,
-		fieldType:     config.FieldType,
-		existingEntry: config.ExistingEntry,
-		showScoring:   config.ShowScoring,
+	// Set default checklists path if not provided
+	checklistsPath := config.ChecklistsPath
+	if checklistsPath == "" {
+		checklistsPath = "checklists.yml"
 	}
 
-	// Extract checklist items from field type configuration
-	// ChecklistFieldType uses ChecklistID to reference external checklist definitions
-	// For now, use placeholder items until checklist system integration
-	if config.FieldType.Type == models.ChecklistFieldType {
-		// TODO: Load actual checklist items from ChecklistID
-		input.availableItems = []string{"Item 1", "Item 2", "Item 3"} // Placeholder
+	input := &ChecklistEntryInput{
+		goal:            config.Goal,
+		fieldType:       config.FieldType,
+		existingEntry:   config.ExistingEntry,
+		showScoring:     config.ShowScoring,
+		checklistParser: parser.NewChecklistParser(),
+		checklistsPath:  checklistsPath,
+	}
+
+	// Extract checklist ID from field type configuration
+	if config.FieldType.Type == models.ChecklistFieldType && config.FieldType.ChecklistID != "" {
+		input.checklistID = config.FieldType.ChecklistID
+		// Load actual checklist items from ChecklistID
+		if err := input.loadChecklistItems(); err != nil {
+			// Fall back to placeholder items if loading fails
+			input.availableItems = []string{"Loading failed - checklist not found"}
+		}
+	} else {
+		// Use placeholder items for testing or when no ChecklistID is provided
+		input.availableItems = []string{"Item 1", "Item 2", "Item 3"}
 	}
 
 	// Set existing selected items if available
@@ -186,6 +203,37 @@ func (ci *ChecklistEntryInput) GetCompletionProgress() (completed, total int) {
 }
 
 // Private methods
+
+// loadChecklistItems loads the actual checklist items from the ChecklistID reference
+func (ci *ChecklistEntryInput) loadChecklistItems() error {
+	// Load checklist schema from file
+	schema, err := ci.checklistParser.LoadFromFile(ci.checklistsPath)
+	if err != nil {
+		return fmt.Errorf("failed to load checklists: %w", err)
+	}
+
+	// Find the checklist by ID
+	checklist, err := ci.checklistParser.GetChecklistByID(schema, ci.checklistID)
+	if err != nil {
+		return fmt.Errorf("checklist not found: %w", err)
+	}
+
+	// Extract items, filtering out headings (items starting with "# ")
+	var items []string
+	for _, item := range checklist.Items {
+		// Skip heading items (they are for visual organization, not selectable)
+		if !strings.HasPrefix(item, "# ") {
+			items = append(items, item)
+		}
+	}
+
+	if len(items) == 0 {
+		return fmt.Errorf("checklist '%s' has no selectable items", ci.checklistID)
+	}
+
+	ci.availableItems = items
+	return nil
+}
 
 func (ci *ChecklistEntryInput) buildDescription(goal models.Goal) string {
 	var descParts []string
