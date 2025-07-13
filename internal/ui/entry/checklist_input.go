@@ -13,11 +13,13 @@ import (
 
 // AIDEV-NOTE: entry-checklist-input; implements EntryFieldInput for Checklist fields with progress tracking
 // Provides multi-select checklist completion with progress feedback and scoring integration
+// T012/2.3: Submit/Skip button interface with ActionSubmit/ActionSkip pattern
 
 // ChecklistEntryInput handles checklist field value input for entry collection
 type ChecklistEntryInput struct {
 	selectedItems   []string
 	availableItems  []string
+	action          InputAction
 	checklistID     string
 	checklistParser *parser.ChecklistParser
 	goal            models.Goal
@@ -44,6 +46,7 @@ func NewChecklistEntryInput(config EntryFieldInputConfig) *ChecklistEntryInput {
 		showScoring:     config.ShowScoring,
 		checklistParser: parser.NewChecklistParser(),
 		checklistsPath:  checklistsPath,
+		action:          ActionSubmit, // Default to submit
 	}
 
 	// Extract checklist ID from field type configuration
@@ -101,7 +104,7 @@ func (ci *ChecklistEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 		options[i] = huh.NewOption(item, item)
 	}
 
-	// Create the form
+	// Create the form with multi-select and action selection
 	ci.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewMultiSelect[string]().
@@ -110,6 +113,13 @@ func (ci *ChecklistEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 				Options(options...).
 				Value(&ci.selectedItems).
 				Validate(ci.validateSelection),
+			huh.NewSelect[InputAction]().
+				Title("Action").
+				Options(
+					huh.NewOption("✅ Submit Checklist", ActionSubmit),
+					huh.NewOption("⏭️ Skip Goal", ActionSkip),
+				).
+				Value(&ci.action),
 		).Title(title),
 	)
 
@@ -121,21 +131,32 @@ func (ci *ChecklistEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	return ci.form
 }
 
-// GetValue returns the selected checklist items
+// GetValue returns the selected checklist items (nil for skipped)
 func (ci *ChecklistEntryInput) GetValue() interface{} {
+	if ci.action == ActionSkip {
+		return nil
+	}
 	return ci.selectedItems
 }
 
 // GetStringValue returns the selected items as a comma-separated string
 func (ci *ChecklistEntryInput) GetStringValue() string {
+	if ci.action == ActionSkip {
+		return "skip"
+	}
 	return strings.Join(ci.selectedItems, ", ")
 }
 
-// GetStatus returns the entry completion status (skip functionality not yet implemented for checklists)
+// GetStatus returns the entry completion status based on action and validation
 func (ci *ChecklistEntryInput) GetStatus() models.EntryStatus {
-	// TODO: Implement skip functionality in Phase 2.3 (currently blocked by T007)
-	// For now, checklist entries are always completed when submitted
-	return models.EntryCompleted
+	switch ci.action {
+	case ActionSkip:
+		return models.EntrySkipped
+	case ActionSubmit:
+		return models.EntryCompleted
+	default:
+		return models.EntryCompleted
+	}
 }
 
 // Validate validates the checklist selection

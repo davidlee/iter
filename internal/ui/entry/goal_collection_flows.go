@@ -568,43 +568,63 @@ func (f *ChecklistGoalCollectionFlow) CollectEntry(goal models.Goal, existing *E
 	// Get the collected checklist selections
 	value := input.GetValue()
 
-	// Handle scoring based on completion percentage
+	// AIDEV-NOTE: T012/2.3-skip-integration; status-aware processing with skip detection for Checklist inputs
+	// Determine entry status - check if input supports skip functionality
+	var status = models.EntryCompleted // Default status
+	if checklistInput, ok := input.(*ChecklistEntryInput); ok {
+		status = checklistInput.GetStatus()
+	} else if value == nil {
+		status = models.EntrySkipped
+	}
+
+	// Handle scoring based on completion percentage (skip scoring for skipped entries)
 	var achievementLevel *models.AchievementLevel
-	if goal.ScoringType == models.AutomaticScoring {
-		// Automatic scoring based on checklist completion criteria
-		level, err := f.performChecklistScoring(goal, value)
-		if err != nil {
-			return nil, fmt.Errorf("checklist scoring failed: %w", err)
+	if status != models.EntrySkipped {
+		if goal.ScoringType == models.AutomaticScoring {
+			// Automatic scoring based on checklist completion criteria
+			level, err := f.performChecklistScoring(goal, value)
+			if err != nil {
+				return nil, fmt.Errorf("checklist scoring failed: %w", err)
+			}
+			achievementLevel = level
+		} else {
+			// Manual scoring with achievement level selection
+			level, err := f.collectManualAchievementLevel(goal, value)
+			if err != nil {
+				return nil, fmt.Errorf("manual achievement selection failed: %w", err)
+			}
+			achievementLevel = level
 		}
-		achievementLevel = level
+
+		// Update input display with scoring feedback
+		if input.CanShowScoring() && achievementLevel != nil {
+			_ = input.UpdateScoringDisplay(achievementLevel) // Non-fatal error - continue without scoring display
+		}
+
+		// Display completion progress feedback
+		f.displayCompletionProgress(goal, value, achievementLevel)
+	}
+
+	// Collect optional notes (skip note prompts for skipped entries but preserve existing notes)
+	var notes string
+	if status == models.EntrySkipped {
+		// For skipped entries, preserve existing notes but don't prompt for new ones
+		if existing != nil {
+			notes = existing.Notes
+		}
 	} else {
-		// Manual scoring with achievement level selection
-		level, err := f.collectManualAchievementLevel(goal, value)
+		collectedNotes, err := f.collectOptionalNotes(goal, value, existing)
 		if err != nil {
-			return nil, fmt.Errorf("manual achievement selection failed: %w", err)
+			return nil, fmt.Errorf("failed to collect notes: %w", err)
 		}
-		achievementLevel = level
-	}
-
-	// Update input display with scoring feedback
-	if input.CanShowScoring() && achievementLevel != nil {
-		_ = input.UpdateScoringDisplay(achievementLevel) // Non-fatal error - continue without scoring display
-	}
-
-	// Display completion progress feedback
-	f.displayCompletionProgress(goal, value, achievementLevel)
-
-	// Collect optional notes
-	notes, err := f.collectOptionalNotes(goal, value, existing)
-	if err != nil {
-		return nil, fmt.Errorf("failed to collect notes: %w", err)
+		notes = collectedNotes
 	}
 
 	return &EntryResult{
 		Value:            value,
 		AchievementLevel: achievementLevel,
 		Notes:            notes,
-		Status:           models.EntryCompleted, // Testing method defaults to completed
+		Status:           status,
 	}, nil
 }
 
