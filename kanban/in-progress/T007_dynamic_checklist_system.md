@@ -75,12 +75,37 @@ Extend the static checklist prototype (`iter checklist`) to support configurable
 - [ ] 4.3: Implement manual scoring support
 - [ ] 4.4: Add checklist criteria validation
 
+**Phase 4 Critical Status Analysis:**
+- **4.1 Complete**: ChecklistGoal can be created via goal configuration UI
+- **4.2-4.4 INCOMPLETE**: ChecklistGoalCollectionFlow exists but has limitations:
+  - **Hardcoded Placeholders**: Uses "TODO: Get actual total from checklist definition"
+  - **Missing Scoring Integration**: performChecklistScoring() uses simplified percentage logic
+  - **Missing Criteria Validation**: No validation of checklist completion criteria
+  - **Incomplete Achievement Logic**: Manual scoring uses placeholder total item counts
+- **Integration Gap**: Flow exists but not fully connected to checklist system from Phases 1-3
+- **Dependency Impact**: **T012 Phase 2.3 blocked** until these components are complete
+
+**Required for T012 Skip Integration:**
+- Complete actual checklist item loading in ChecklistGoalCollectionFlow
+- Implement proper automatic scoring based on checklist completion criteria
+- Add manual scoring support with real checklist data
+- Integrate checklist criteria validation for proper achievement levels
+
 ### Phase 5: Enhanced UI & Experience (Priority: Medium)
 - [ ] 5.1: Add progress indicators to checklist headings (e.g., "clean station (3/5)")
 - [ ] 5.2: Add entry recording integration for checklist goals
 - [ ] 5.3: Add checklist completion summary and statistics
 
+**Phase 5.2 Critical Gap Analysis:**
+- **Current State**: ChecklistGoalCollectionFlow uses hardcoded placeholder data
+- **Missing Integration**: Flow doesn't connect to actual checklist definitions from checklists.yml
+- **Entry Recording Impact**: ChecklistGoal entries may not persist properly to entries.yml
+- **T012 Dependency**: Skip functionality requires complete entry recording integration
+- **Required Work**: Connect ChecklistGoalCollectionFlow to ChecklistParser and actual checklist data loading
+
 **Overall Status**: `[in_progress]`
+
+**Critical Integration Status**: Phase 4.2-4.4 and Phase 5.2 incomplete - **T012 Phase 2.3 blocked**
 
 ## 4. Technical Design
 
@@ -342,4 +367,8 @@ iter entry                            # Extended to handle checklist entry recor
 
 ## Roadblocks
 
-*None identified at planning stage.*
+**T012 Dependency (Current):**
+- **T012 Phase 2.3 (Checklist Goal Skip Integration) is blocked** by incomplete T007 Phase 4.2-4.4 and 5.2
+- ChecklistGoalCollectionFlow exists but uses hardcoded placeholders instead of actual checklist data
+- Skip functionality cannot be implemented until scoring integration and entry recording are complete
+- **Priority**: Complete T007 Phase 4.2-4.4 and 5.2 before attempting T012 Phase 2.3
