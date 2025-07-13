@@ -360,6 +360,13 @@ func NewInformationalGoalCollectionFlow(factory *EntryFieldInputFactory) *Inform
 	}
 }
 
+// NewInformationalGoalCollectionFlowForTesting creates a flow for testing that bypasses user interaction
+func NewInformationalGoalCollectionFlowForTesting(factory *EntryFieldInputFactory) *InformationalGoalCollectionFlow {
+	return &InformationalGoalCollectionFlow{
+		factory: factory,
+	}
+}
+
 // CollectEntry collects entry for informational goals without scoring
 func (f *InformationalGoalCollectionFlow) CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error) {
 	// Informational goals collect data without pass/fail evaluation
@@ -402,6 +409,16 @@ func (f *InformationalGoalCollectionFlow) CollectEntry(goal models.Goal, existin
 	return &EntryResult{
 		Value:            value,
 		AchievementLevel: nil, // No achievement level for informational goals
+		Notes:            notes,
+	}, nil
+}
+
+// CollectEntryDirectly bypasses UI interaction and creates entry directly from provided value
+func (f *InformationalGoalCollectionFlow) CollectEntryDirectly(_ models.Goal, value interface{}, notes string, _ *ExistingEntry) (*EntryResult, error) {
+	// Informational goals simply record data without any scoring or evaluation
+	return &EntryResult{
+		Value:            value,
+		AchievementLevel: nil, // Informational goals never have achievement levels
 		Notes:            notes,
 	}, nil
 }
