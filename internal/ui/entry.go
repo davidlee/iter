@@ -11,16 +11,17 @@ import (
 	"davidlee/iter/internal/parser"
 	"davidlee/iter/internal/scoring"
 	"davidlee/iter/internal/storage"
+	"davidlee/iter/internal/ui/entry"
 )
 
 // EntryCollector handles the interactive collection of today's habit entries.
-// AIDEV-NOTE: T010-entry-system-status; Phase 2 (field inputs) and T010/3.1 (simple goals) complete
-// Remaining: T010/3.2 (elastic goals), T010/3.3 (informational goals), T010/4.x (integration phases)
-// Architecture: goal collection flows in internal/ui/entry/ package with field input component integration
+// AIDEV-NOTE: T010-entry-system-complete; All goal collection flows with field input components and scoring integration
+// Architecture: Uses goal collection flows from internal/ui/entry/ package with complete scoring engine integration
 type EntryCollector struct {
 	goalParser    *parser.GoalParser
 	entryStorage  *storage.EntryStorage
 	scoringEngine *scoring.Engine
+	flowFactory   *entry.GoalCollectionFlowFactory
 	goals         []models.Goal
 	entries       map[string]interface{}              // Stores raw values for all goal types
 	achievements  map[string]*models.AchievementLevel // Stores achievement levels for elastic goals
@@ -29,10 +30,15 @@ type EntryCollector struct {
 
 // NewEntryCollector creates a new entry collector instance.
 func NewEntryCollector() *EntryCollector {
+	scoringEngine := scoring.NewEngine()
+	fieldInputFactory := entry.NewEntryFieldInputFactory()
+	flowFactory := entry.NewGoalCollectionFlowFactory(fieldInputFactory, scoringEngine)
+
 	return &EntryCollector{
 		goalParser:    parser.NewGoalParser(),
 		entryStorage:  storage.NewEntryStorage(),
-		scoringEngine: scoring.NewEngine(),
+		scoringEngine: scoringEngine,
+		flowFactory:   flowFactory,
 		entries:       make(map[string]interface{}),
 		achievements:  make(map[string]*models.AchievementLevel),
 		notes:         make(map[string]string),
@@ -103,25 +109,27 @@ func (ec *EntryCollector) loadExistingEntries(entriesFile string) error {
 	return nil
 }
 
-// AIDEV-NOTE: goal-entry-collection-placeholder; current implementation uses handler pattern but needs bubbletea+huh UI integration
-// collectGoalEntry collects the entry for a single goal using the appropriate handler.
+// AIDEV-NOTE: T010/4.1-scoring-integration-complete; uses goal collection flows with full scoring engine integration
+// collectGoalEntry collects the entry for a single goal using the appropriate collection flow.
 func (ec *EntryCollector) collectGoalEntry(goal models.Goal) error {
 	// Create existing entry data from our maps
-	var existing *ExistingEntry
+	var existing *entry.ExistingEntry
 	if value, hasValue := ec.entries[goal.ID]; hasValue {
-		existing = &ExistingEntry{
+		existing = &entry.ExistingEntry{
 			Value:            value,
 			Notes:            ec.notes[goal.ID],
 			AchievementLevel: ec.achievements[goal.ID],
 		}
 	}
 
-	// AIDEV-TODO: replace handler pattern with bubbletea+huh UI components (see T010 field input system)
-	// Create the appropriate handler for this goal type
-	handler := CreateGoalHandler(goal, ec.scoringEngine)
+	// Create the appropriate collection flow for this goal type
+	flow, err := ec.flowFactory.CreateFlow(string(goal.GoalType))
+	if err != nil {
+		return fmt.Errorf("failed to create collection flow for goal %s: %w", goal.ID, err)
+	}
 
-	// Use the handler to collect the entry
-	result, err := handler.CollectEntry(goal, existing)
+	// Use the flow to collect the entry with full scoring integration
+	result, err := flow.CollectEntry(goal, existing)
 	if err != nil {
 		return fmt.Errorf("failed to collect entry for goal %s: %w", goal.ID, err)
 	}
