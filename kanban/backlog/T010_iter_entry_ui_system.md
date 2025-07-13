@@ -145,34 +145,65 @@ C4Container
 
 ## Field Input Component System
 
+### Interface and Factory Pattern
+
 ```mermaid
 C4Component
-    title Field Input Component Architecture
+    title Field Input Factory and Interface
 
     Component(field_input_interface, "FieldValueInput", "Interface", "Standard input component interface")
     Component(input_factory, "FieldValueInputFactory", "Factory", "Creates field-type-specific inputs")
     
-    Component(boolean_input, "BooleanInput", "Component", "Yes/No confirmation with huh.NewConfirm()")
-    Component(text_input, "TextInput", "Component", "Single/multi-line text with huh.NewInput/NewText()")
-    Component(numeric_input, "NumericInput", "Component", "Number input with unit display and validation")
-    Component(time_input, "TimeInput", "Component", "HH:MM time input with validation")
-    Component(duration_input, "DurationInput", "Component", "Flexible duration parsing (1h 30m, 45m)")
-    Component(checklist_input, "ChecklistInput", "Component", "Multi-select checklist completion")
+    Rel(input_factory, field_input_interface, "Creates components implementing")
+```
+
+### Input Component Hierarchy
+
+```mermaid
+flowchart TD
+    A[FieldValueInput Interface] --> B[FieldValueInputFactory]
     
-    Rel(input_factory, field_input_interface, "Implements")
-    Rel(boolean_input, field_input_interface, "Implements")
-    Rel(text_input, field_input_interface, "Implements")
-    Rel(numeric_input, field_input_interface, "Implements")
-    Rel(time_input, field_input_interface, "Implements")
-    Rel(duration_input, field_input_interface, "Implements")
-    Rel(checklist_input, field_input_interface, "Implements")
+    B --> C[BooleanInput]
+    B --> D[TextInput] 
+    B --> E[NumericInput]
+    B --> F[TimeInput]
+    B --> G[DurationInput]
+    B --> H[ChecklistInput]
     
-    Rel(input_factory, boolean_input, "Creates")
-    Rel(input_factory, text_input, "Creates")
-    Rel(input_factory, numeric_input, "Creates")
-    Rel(input_factory, time_input, "Creates")
-    Rel(input_factory, duration_input, "Creates")
-    Rel(input_factory, checklist_input, "Creates")
+    C --> C1["huh.NewConfirm()<br/>Yes/No selection"]
+    D --> D1["huh.NewInput() (single)<br/>huh.NewText() (multi)"]
+    E --> E1["huh.NewInput()<br/>+ validation + units"]
+    F --> F1["huh.NewInput()<br/>+ HH:MM validation"]
+    G --> G1["huh.NewInput()<br/>+ duration parsing"]
+    H --> H1["huh.NewMultiSelect()<br/>+ completion tracking"]
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#fff3e0
+    style D fill:#fff3e0
+    style E fill:#fff3e0
+    style F fill:#fff3e0
+    style G fill:#fff3e0
+    style H fill:#ffebee
+```
+
+### Component Creation Flow
+
+```mermaid
+sequenceDiagram
+    participant EH as Entry Handler
+    participant FF as FieldFactory
+    participant FI as Field Input
+    participant HF as Huh Forms
+    
+    EH->>FF: CreateInput(fieldType)
+    FF->>FF: Determine input type
+    FF->>FI: New{Type}Input()
+    FI->>EH: Return input component
+    EH->>FI: CreateInputForm(prompt)
+    FI->>HF: Create huh form
+    HF->>FI: Return configured form
+    FI->>EH: Return ready form
 ```
 
 ## Goal Type Collection Flow
