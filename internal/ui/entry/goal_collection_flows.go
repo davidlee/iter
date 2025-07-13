@@ -249,46 +249,55 @@ func (f *ElasticGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exi
 		return nil, fmt.Errorf("input form failed: %w", err)
 	}
 
-	// Get the collected value
+	// Get the collected value and status
 	value := input.GetValue()
+	status := input.GetStatus()
 
-	// Perform scoring (elastic goals require achievement level determination)
+	// Skip processing if entry was skipped
 	var achievementLevel *models.AchievementLevel
-	if goal.ScoringType == models.AutomaticScoring {
-		// Automatic scoring with three-tier criteria
-		level, err := f.performElasticScoring(goal, value)
-		if err != nil {
-			return nil, fmt.Errorf("elastic scoring failed: %w", err)
+	var notes string
+	if status != models.EntrySkipped {
+		// Perform scoring (elastic goals require achievement level determination)
+		if goal.ScoringType == models.AutomaticScoring {
+			// Automatic scoring with three-tier criteria
+			level, err := f.performElasticScoring(goal, value)
+			if err != nil {
+				return nil, fmt.Errorf("elastic scoring failed: %w", err)
+			}
+			achievementLevel = level
+		} else {
+			// Manual scoring with achievement level selection
+			level, err := f.collectManualAchievementLevel(goal, value)
+			if err != nil {
+				return nil, fmt.Errorf("manual achievement selection failed: %w", err)
+			}
+			achievementLevel = level
 		}
-		achievementLevel = level
-	} else {
-		// Manual scoring with achievement level selection
-		level, err := f.collectManualAchievementLevel(goal, value)
-		if err != nil {
-			return nil, fmt.Errorf("manual achievement selection failed: %w", err)
+
+		// Update input display with achievement feedback
+		if input.CanShowScoring() && achievementLevel != nil {
+			_ = input.UpdateScoringDisplay(achievementLevel) // Non-fatal error - continue without scoring display
 		}
-		achievementLevel = level
-	}
 
-	// Update input display with achievement feedback
-	if input.CanShowScoring() && achievementLevel != nil {
-		_ = input.UpdateScoringDisplay(achievementLevel) // Non-fatal error - continue without scoring display
-	}
+		// Display achievement result
+		f.displayAchievementResult(goal, value, achievementLevel)
 
-	// Display achievement result
-	f.displayAchievementResult(goal, value, achievementLevel)
-
-	// Collect optional notes
-	notes, err := f.collectOptionalNotes(goal, value, existing)
-	if err != nil {
-		return nil, fmt.Errorf("failed to collect notes: %w", err)
+		// Collect optional notes
+		var err error
+		notes, err = f.collectOptionalNotes(goal, value, existing)
+		if err != nil {
+			return nil, fmt.Errorf("failed to collect notes: %w", err)
+		}
+	} else if existing != nil {
+		// For skipped entries, preserve existing notes but don't collect new ones
+		notes = existing.Notes
 	}
 
 	return &EntryResult{
 		Value:            value,
 		AchievementLevel: achievementLevel,
 		Notes:            notes,
-		Status:           models.EntryCompleted, // Elastic goals default to completed (skip functionality in Phase 2.2)
+		Status:           status,
 	}, nil
 }
 
@@ -438,23 +447,32 @@ func (f *InformationalGoalCollectionFlow) CollectEntry(goal models.Goal, existin
 		return nil, fmt.Errorf("input form failed: %w", err)
 	}
 
-	// Get the collected value
+	// Get the collected value and status
 	value := input.GetValue()
+	status := input.GetStatus()
 
-	// Display direction-aware feedback if configured
-	f.displayDirectionFeedback(goal, value)
+	// Skip processing if entry was skipped
+	var notes string
+	if status != models.EntrySkipped {
+		// Display direction-aware feedback if configured
+		f.displayDirectionFeedback(goal, value)
 
-	// Collect optional notes
-	notes, err := f.collectOptionalNotes(goal, value, existing)
-	if err != nil {
-		return nil, fmt.Errorf("failed to collect notes: %w", err)
+		// Collect optional notes
+		var err error
+		notes, err = f.collectOptionalNotes(goal, value, existing)
+		if err != nil {
+			return nil, fmt.Errorf("failed to collect notes: %w", err)
+		}
+	} else if existing != nil {
+		// For skipped entries, preserve existing notes but don't collect new ones
+		notes = existing.Notes
 	}
 
 	return &EntryResult{
 		Value:            value,
 		AchievementLevel: nil, // No achievement level for informational goals
 		Notes:            notes,
-		Status:           models.EntryCompleted, // Informational goals default to completed (skip functionality in Phase 2.2)
+		Status:           status,
 	}, nil
 }
 

@@ -101,6 +101,7 @@ func (ec *EntryCollector) loadExistingEntries(entriesFile string) error {
 	for _, goalEntry := range dayEntry.Goals {
 		ec.entries[goalEntry.GoalID] = goalEntry.Value
 		ec.notes[goalEntry.GoalID] = goalEntry.Notes
+		ec.statuses[goalEntry.GoalID] = goalEntry.Status
 
 		// Load achievement level for elastic goals
 		if goalEntry.AchievementLevel != nil {
