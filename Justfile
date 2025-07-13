@@ -19,3 +19,6 @@ wip:
 
 plans:
   glow kanban/backlog
+
+claude-logs:
+  uvx claude-code-log --open-browser

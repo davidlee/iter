@@ -165,7 +165,8 @@ func (m CompletionModel) View() string {
 			s += "      "
 			text := strings.TrimLeft(item, "# ")
 			
-			// Add progress indicator to heading
+			// Add progress indicator to heading  
+			// AIDEV-NOTE: heading-progress-display; injects "(completed/total)" into section headings
 			completed, total := m.getSectionProgress(i)
 			if total > 0 {
 				text = fmt.Sprintf("%s (%d/%d)", text, completed, total)
@@ -197,6 +198,7 @@ func (m CompletionModel) View() string {
 		progressPercent = float64(completedCount) / float64(totalItems)
 	}
 	
+	// AIDEV-NOTE: bubbles-progress-bar; visual gradient progress bar with percentage display (commit 04973be)
 	s += "\n" + m.progress.ViewAs(progressPercent) + "\n"
 	s += fmt.Sprintf("Completed: %d/%d items (%.0f%%)", completedCount, totalItems, progressPercent*100)
 	s += "\nPress q to quit.\n"
@@ -227,6 +229,7 @@ func (m CompletionModel) getTotalItemCount() int {
 
 // getSectionProgress returns completion progress for a heading section.
 // Returns (completed, total) for items between the current heading and next heading (or end).
+// AIDEV-NOTE: section-progress-calc; parses checklist items into sections for heading progress indicators
 func (m CompletionModel) getSectionProgress(headingIndex int) (int, int) {
 	if headingIndex < 0 || headingIndex >= len(m.items) || !strings.HasPrefix(m.items[headingIndex], "# ") {
 		return 0, 0
