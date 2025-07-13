@@ -31,6 +31,7 @@ linters-settings:
       - name: exported
         severity: warning
         disabled: false
+        arguments: ["disableStutteringCheck"]
       - name: var-naming
         severity: warning
         disabled: false

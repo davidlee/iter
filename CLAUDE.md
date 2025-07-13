@@ -52,7 +52,7 @@ Code should be accompanied (or pre-empted) by quality, concise documentation:
 - **Comments**: reveals intent where the code might not (non-idiomatic, surprising, complex, handling corner cases). See the section on "Anchor Comments". 
 
 ALWAYS format and lint code before declaring work done or committing. 
-All code should be formatted, linted, and accompanied by appropriate tests. Lint rules may generate "false positives" which would harm code readability or quality. `//nolint` directives may be used sparingly, or exclusions added. These should be accompanied by concise comments with a rationale.
+All code should be formatted, linted, and accompanied by appropriate tests. Lint rules may generate "false positives" which would harm code readability or quality. Use targeted [revive comment directives](https://github.com/mgechev/revive?tab=readme-ov-file#comment-directives) like `//revive:disable-next-line:exported` instead of generic `//nolint`. Provide concise rationale for any lint suppressions.
 
 Code should be evaluated for quality and refactored as necessary during development activities. This includes test code - poor test maintainability is often a signal that refactoring is required. 
 

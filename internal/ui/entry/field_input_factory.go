@@ -10,6 +10,7 @@ import (
 // Extends goalconfig.FieldValueInputFactory patterns for entry-specific needs with immediate feedback
 
 // EntryFieldInputFactory creates appropriate field input components for entry collection
+//revive:disable-next-line:exported
 type EntryFieldInputFactory struct{}
 
 // NewEntryFieldInputFactory creates a new entry field input factory

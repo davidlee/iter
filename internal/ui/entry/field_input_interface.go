@@ -10,6 +10,7 @@ import (
 // Extends patterns from goalconfig.FieldValueInput but specialized for entry collection with scoring
 
 // EntryFieldInput provides field-type-aware input collection for entry recording
+//revive:disable-next-line:exported
 type EntryFieldInput interface {
 	// CreateInputForm creates a huh form for collecting the field value during entry
 	CreateInputForm(goal models.Goal) *huh.Form
@@ -45,6 +46,7 @@ type ScoringAwareInput interface {
 }
 
 // EntryFieldInputConfig holds configuration for field input creation
+//revive:disable-next-line:exported
 type EntryFieldInputConfig struct {
 	Goal           models.Goal
 	FieldType      models.FieldType
@@ -61,6 +63,7 @@ type ExistingEntry struct {
 }
 
 // EntryResult represents the complete result of collecting an entry for a goal
+//revive:disable-next-line:exported
 type EntryResult struct {
 	Value            interface{}              // The collected value (any type based on field type)
 	AchievementLevel *models.AchievementLevel // Achievement level for elastic goals (nil for simple goals)
