@@ -449,19 +449,29 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 - **Scoring Logic**: Skip-aware scoring (bypass for EntrySkipped), status-aware notes handling implemented
 - **Quality Gates**: All tests passing ✓, Linter clean ✓, Pattern consistency maintained ✓
 
-#### Phase 3: Collection Flow Integration
-- [ ] **3.1: Goal Collection Flow Updates**
-  - [ ] Integrate EntryStatus handling in all goal collection flows
-  - [ ] Status-based result processing and storage (completed/skipped/failed)
-  - [ ] Maintain existing flow structure with status-aware result creation
-  - [ ] Error handling for invalid status transitions
+#### Phase 3: Collection Flow Integration ✅ **READY FOR IMPLEMENTATION**
+- [ ] **3.1: Goal Collection Flow Updates** (⚠️ 2 flows need updates)
+  - [x] SimpleGoalCollectionFlow - ✅ COMPLETE (Phase 2.1 - fully status-aware)
+  - [x] ChecklistGoalCollectionFlow - ✅ COMPLETE (Phase 2.3 - fully status-aware)
+  - [ ] ElasticGoalCollectionFlow - Update line 291 hardcoded `Status: models.EntryCompleted`
+  - [ ] InformationalGoalCollectionFlow - Update line 457 hardcoded `Status: models.EntryCompleted`
+  - [ ] Apply SimpleGoalCollectionFlow status-aware pattern (proven approach)
 
-- [ ] **3.2: Entry Result Processing**
-  - [ ] Update EntryResult to include EntryStatus field
-  - [ ] Status-based data validation (skipped=no value, completed/failed=has value)
-  - [ ] Timestamp management during entry creation and updates
-  - [ ] Status-aware achievement level processing (null for skipped, calculated for others)
-  - [ ] Notes preservation during skip operations with proper timestamp updates
+- [ ] **3.2: Entry Result Processing** (⚠️ 1 critical loading fix needed)
+  - [x] EntryResult Status field - ✅ COMPLETE (Phase 2.1 - field exists and working)
+  - [x] Status-based data validation - ✅ COMPLETE (robust validation implemented)
+  - [x] Timestamp management - ✅ COMPLETE (CreatedAt/UpdatedAt working)
+  - [x] Status-aware achievement level processing - ✅ COMPLETE (null for skipped working)
+  - [x] Notes preservation - ✅ COMPLETE (skip note handling working)
+  - [ ] Fix EntryCollector.loadExistingEntries() - Add missing status loading (line ~103)
+
+**Phase 3 Pre-Flight Check Results (2025-07-13):**
+- **Scope Reduction**: Most work already complete from Phases 2.1-2.3
+- **Required Changes**: Only 2 collection flows + 1 loading fix needed
+- **Pattern Established**: SimpleGoalCollectionFlow provides proven status-aware approach
+- **Dependencies**: ✅ All input types support GetStatus(), EntryResult has Status field, storage ready
+- **Implementation Estimate**: 2-3 hours (low complexity, established patterns)
+- **Critical Discovery**: EntryCollector missing status loading in loadExistingEntries() method
 
 #### Phase 4: Visual Feedback & Analytics
 - [ ] **4.1: Completion Summary Enhancements**
@@ -491,6 +501,44 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
   - [ ] API documentation for status helper methods
   - [ ] Future enhancement notes (UI improvements, granular checklist skipping)
   - [ ] Integration design for flexible habit frequencies with EntryStatus
+
+**Phase 3 Implementation Guide:**
+
+**Files to Modify:**
+1. `internal/ui/entry/goal_collection_flows.go` - ElasticGoalCollectionFlow.CollectEntry() (line 291)
+2. `internal/ui/entry/goal_collection_flows.go` - InformationalGoalCollectionFlow.CollectEntry() (line 457)  
+3. `internal/ui/entry.go` - EntryCollector.loadExistingEntries() (line ~103)
+
+**Pattern to Apply (from SimpleGoalCollectionFlow lines 107-176):**
+```go
+// Replace hardcoded Status: models.EntryCompleted with:
+var status = models.EntryCompleted
+if value == nil {
+    status = models.EntrySkipped
+} else {
+    status = input.GetStatus()
+}
+
+// Add skip-aware scoring:
+if status != models.EntrySkipped {
+    // Perform existing scoring logic
+}
+
+// Add skip-aware notes:
+if status == models.EntrySkipped {
+    if existing != nil { notes = existing.Notes }
+} else {
+    notes, err := f.collectOptionalNotes(goal, value, existing)
+}
+
+return &EntryResult{..., Status: status}
+```
+
+**Critical Fix Pattern:**
+```go
+// EntryCollector.loadExistingEntries() - add missing line:
+ec.statuses[goalEntry.GoalID] = goalEntry.Status
+```
 
 **Technical Implementation Notes:**
 - **Superior Design**: EntryStatus enum provides cleaner code with single source of truth for entry state
@@ -556,6 +604,7 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 - **Quality Assurance**: All tests passing, linter clean (0 issues), integration tests updated
 
 **Recent Commit History:**
+- `f7bcbaf` - feat(entry)[T012/2.3]: implement checklist goal skip integration with ActionSubmit/ActionSkip pattern
 - `7d74d40` - feat(entry)[T012/2.2]: implement Submit/Skip button interface for all input field types  
 - `63d9bdf` - docs(tasks)[T012]: add commit history and next steps for completed work
 - `5976cab` - docs(tasks)[T012/T007]: document phase 2.3 dependency analysis and integration blockers
@@ -566,9 +615,11 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 - `8070a8c` - feat(tasks): create T012 habit skip functionality with EntryStatus enum design
 
 **Next Logical Steps:**
+- **Phase 2.1**: ✅ **COMPLETE** - Boolean goal skip functionality with three-option selection
 - **Phase 2.2**: ✅ **COMPLETE** - Submit/Skip button interface implemented for all input field types
-- **Phase 2.3**: ✅ **READY** - T007 dependencies resolved, ChecklistGoalCollectionFlow ready for skip integration
-- **Recommendation**: Proceed with Phase 2.3 checklist skip implementation, then Phase 3-4 (collection flow integration and analytics)
+- **Phase 2.3**: ✅ **COMPLETE** - Checklist goal skip integration with ActionSubmit/ActionSkip pattern
+- **Phase 2 Status**: ✅ **COMPLETE** - All UI Components Enhancement phases finished
+- **Recommendation**: Proceed with Phase 3-4 (collection flow integration and visual feedback/analytics)
 
 **Phase 2.2 Completion Notes (2025-07-13):**
 - **Submit/Skip Button Interface**: Two-field form pattern (input + action selector) with TAB navigation implemented
@@ -588,6 +639,16 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 - **Integration Ready**: ChecklistGoalCollectionFlow uses real data, proper scoring, comprehensive error handling
 - **Quality Gates**: 540+ lines test coverage, all tests passing, linter clean
 - **Dependency Impact**: T012 Phase 2.3 fully unblocked - ready for skip functionality implementation
+
+**Phase 2.3 Completion Notes (2025-07-13):**
+- **Checklist Skip Integration**: ActionSubmit/ActionSkip pattern successfully extended to checklist goals
+- **Two-Field Form Pattern**: Multi-select checklist + action selector following established UI consistency
+- **Status-Aware Processing**: ChecklistGoalCollectionFlow now uses input.GetStatus() instead of hardcoded EntryCompleted
+- **Skip-Aware Logic**: Scoring bypassed for skipped entries, notes preservation implemented
+- **Quality Assurance**: All tests passing, linter clean (0 issues), build successful
+- **Implementation Time**: ~1.5 hours (faster than estimated due to proven patterns)
+- **Pattern Consistency**: All input field types (boolean, numeric, time, duration, text, checklist) now support unified skip functionality
+- **Commit**: `f7bcbaf` - feat(entry)[T012/2.3]: implement checklist goal skip integration with ActionSubmit/ActionSkip pattern
 
 **Technical Foundation:**
 - Data model extension with backward compatibility ✅ 
