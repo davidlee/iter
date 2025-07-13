@@ -233,6 +233,53 @@ func (g *Goal) validateInternal() error {
 		if g.ScoringType == AutomaticScoring && g.Criteria == nil {
 			return fmt.Errorf("criteria is required for automatic scoring of checklist goals")
 		}
+
+		// Validate checklist criteria if present
+		if g.Criteria != nil {
+			if err := g.validateChecklistCriteria(g.Criteria); err != nil {
+				return fmt.Errorf("invalid checklist criteria for goal '%s': %w", g.Title, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// validateChecklistCriteria validates checklist-specific criteria
+func (g *Goal) validateChecklistCriteria(criteria *Criteria) error {
+	if criteria == nil {
+		return nil
+	}
+
+	if criteria.Condition == nil {
+		return fmt.Errorf("criteria condition is required")
+	}
+
+	// Validate checklist completion condition
+	if criteria.Condition.ChecklistCompletion != nil {
+		if err := criteria.Condition.ChecklistCompletion.Validate(); err != nil {
+			return fmt.Errorf("invalid checklist completion condition: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// ValidateWithChecklistContext validates a goal with checklist context from checklists.yml
+// This method provides enhanced validation that includes cross-reference checks
+func (g *Goal) ValidateWithChecklistContext(checklistsExist func(string) bool) error {
+	// First perform standard validation
+	if err := g.Validate(); err != nil {
+		return err
+	}
+
+	// Additional validation for checklist goals with context
+	if g.GoalType == ChecklistGoal {
+		if g.FieldType.ChecklistID != "" {
+			if !checklistsExist(g.FieldType.ChecklistID) {
+				return fmt.Errorf("checklist goal '%s' references non-existent checklist '%s'", g.Title, g.FieldType.ChecklistID)
+			}
+		}
 	}
 
 	return nil

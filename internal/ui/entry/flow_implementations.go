@@ -353,16 +353,18 @@ func (f *ChecklistGoalCollectionFlow) collectManualAchievementLevel(goal models.
 
 		// Load actual checklist data to get total item count
 		checklist, err := f.loadChecklistData(goal)
-		var total int
 		if err != nil {
-			// Fallback to item count if checklist loading fails
-			total = 3 // Default fallback
+			// Better error handling - show error context to user
+			completionInfo = fmt.Sprintf("(%d items selected, checklist data unavailable: %s)", completed, err.Error())
 		} else {
-			total = checklist.GetTotalItemCount()
+			total := checklist.GetTotalItemCount()
+			if total == 0 {
+				completionInfo = "(empty checklist)"
+			} else {
+				percentage := float64(completed) / float64(total) * 100
+				completionInfo = fmt.Sprintf("(%d/%d items = %.0f%% complete)", completed, total, percentage)
+			}
 		}
-
-		percentage := float64(completed) / float64(total) * 100
-		completionInfo = fmt.Sprintf("(%d/%d items = %.0f%% complete)", completed, total, percentage)
 	}
 
 	form := huh.NewForm(

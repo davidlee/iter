@@ -608,6 +608,74 @@ func (f *ChecklistGoalCollectionFlow) CollectEntry(goal models.Goal, existing *E
 	}, nil
 }
 
+// CollectEntryDirectly provides headless entry collection for testing
+func (f *ChecklistGoalCollectionFlow) CollectEntryDirectly(goal models.Goal, value interface{}, notes string, _ *ExistingEntry) (*EntryResult, error) {
+	// Handle scoring based on goal configuration
+	var achievementLevel *models.AchievementLevel
+	if goal.ScoringType == models.AutomaticScoring {
+		// Automatic scoring with checklist criteria
+		level, err := f.performChecklistScoring(goal, value)
+		if err != nil {
+			return nil, fmt.Errorf("checklist scoring failed: %w", err)
+		}
+		achievementLevel = level
+	} else {
+		// For testing, determine achievement level based on checklist completion
+		level := f.determineTestingAchievementLevel(goal, value)
+		achievementLevel = level
+	}
+
+	return &EntryResult{
+		Value:            value,
+		AchievementLevel: achievementLevel,
+		Notes:            notes,
+		Status:           models.EntryCompleted, // Testing method defaults to completed
+	}, nil
+}
+
+// determineTestingAchievementLevel provides simplified achievement determination for testing
+func (f *ChecklistGoalCollectionFlow) determineTestingAchievementLevel(goal models.Goal, value interface{}) *models.AchievementLevel {
+	// For testing, determine based on checklist completion
+	if items, ok := value.([]string); ok {
+		// Load actual checklist data to get total item count
+		checklist, err := f.loadChecklistData(goal)
+		if err != nil {
+			// For testing, treat failure as none achievement
+			level := models.AchievementNone
+			return &level
+		}
+
+		completed := len(items)
+		total := checklist.GetTotalItemCount()
+
+		if total == 0 {
+			level := models.AchievementNone
+			return &level
+		}
+
+		percentage := float64(completed) / float64(total)
+
+		switch {
+		case percentage >= 1.0:
+			level := models.AchievementMaxi
+			return &level
+		case percentage >= 0.75:
+			level := models.AchievementMidi
+			return &level
+		case percentage >= 0.5:
+			level := models.AchievementMini
+			return &level
+		default:
+			level := models.AchievementNone
+			return &level
+		}
+	}
+
+	// Default to None for invalid value types
+	level := models.AchievementNone
+	return &level
+}
+
 // GetFlowType returns the goal type
 func (f *ChecklistGoalCollectionFlow) GetFlowType() string {
 	return string(models.ChecklistGoal)
