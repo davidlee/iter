@@ -8,6 +8,12 @@ context_windows: ["cmd/entry.go", "internal/ui/**/*.go", "internal/storage/**/*.
 
 # Fix Boolean Field Defaults in Entry Form
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `fab7543` - fix(ui)[T008/2.1]: initialize boolean form fields with existing values
+
 ## 1. Goal / User Story
 
 When using `iter entry` to record habit data, form controls should default to previously written data to minimize friction during daily entry. Currently, boolean fields incorrectly default to "No" even when previous data shows "Yes", while numeric fields correctly preserve previous values.

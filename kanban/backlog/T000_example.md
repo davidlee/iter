@@ -14,7 +14,19 @@ context_windows: ["./*.go", Claude.md, "doc/workflow.md", "doc/**/*.md"] # List 
 **Context (Significant Code Files)**:
 *AI to complete*
 
-**Git Commit Hashes:
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+<!-- Example format:
+- `abc1234` - feat(component)[T000/1.1]: implement feature X for subtask 1.1
+- `def5678` - fix(component)[T000/1.2]: fix bug Y in subtask 1.2
+- `ghi9012` - docs(tasks)[T000]: add task documentation
+
+For tasks without commits yet, use:
+*No commits yet - task is in backlog*
+-->
+
 *AI to update after commit or checking commit history*
 
 ## 1. Goal / User Story

@@ -8,6 +8,24 @@ context_windows: ["internal/ui/entry*.go", "internal/ui/entry/*.go", "internal/u
 
 # Iter Entry: Goal Data Collection UI System
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `c577c4c` - feat(entry)[T010/4.1]: integrate goal collection flows with complete scoring engine
+- `9b86d7d` - feat(goalconfig)[T010/3.3]: implement direction-aware feedback for informational goals
+- `d0df56f` - feat(goalconfig)[T010/3.3]: implement InformationalGoalCollectionFlow with comprehensive testing
+- `ab70682` - feat(entry)[T010/3.2]: implement elastic goal collection with three-tier achievement system
+- `aa234eb` - feat(entry)[T010/3.1]: implement simple goal collection with comprehensive scoring
+- `3d7be81` - feat(entry)[T010/2.3]: integrate checklist input system with dynamic loading
+- `fa7ecc5` - feat(entry)[T010/2.1]: implement core field input components with scoring integration
+- `74ef4eb` - feat(entry)[T010/1.3] goal specific entry flows
+- `2688da9` - docs(architecture)[T010/1.1]: revise D2 diagrams with proper C4 styling and conventions
+- `5ca9ccf` - Update T010_iter_entry_ui_system.md
+- `0131fc7` - docs(architecture)[T010/1.1]: add comprehensive C4 architecture diagrams with D2 tooling
+- `c1e3642` - docs(architecture):[T009/1.1] improve diagram legibility
+- `ad5f2dd` - architecture(entry):[T010/1.1] entry system plan & diagrams
+
 **Context (Background)**:
 - CLAUDE.md (CLI patterns, bubbletea + huh framework usage)
 - doc/workflow.md (task workflow, stopping conditions)

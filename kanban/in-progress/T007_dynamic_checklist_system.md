@@ -9,6 +9,17 @@ related_tasks: ["T005"]
 
 # T007: Dynamic Checklist System with Goal Integration
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `1cb8efb` - feat(checklists): [T007/4.3] checklist goal entry with automatic scoring
+- `d11d4e8` - feat(checklists): [T007/4.2] Checklist goal collection flow with automatic scoring
+- `d2ed8ef` - feat(checklists): [T007/4.1] checklist goal support
+- `9b9e0b4` - feat(checklist)[T007/2,3]: dynamic checklist system with persistence
+- `cd51479` - feat(checklist)[T007/1]: implement checklist data models and parsers
+- `29e1396` - T007 - add task for checklist features
+
 ## 1. Goal
 
 Extend the static checklist prototype (`iter checklist`) to support configurable checklists stored in `checklists.yml` and integrated with the goal system. Enable checklists to be used as goal types with automatic or manual scoring based on completion criteria.

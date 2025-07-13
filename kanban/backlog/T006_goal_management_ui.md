@@ -8,6 +8,12 @@ context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./inter
 
 # Goal Management UI
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+*No commits yet - task is in backlog*
+
 ## 1. Goal / User Story
 
 As a user, I want to manage my existing goals through an interactive CLI interface, so that I can view, edit, and remove goals without needing to manually edit YAML files.

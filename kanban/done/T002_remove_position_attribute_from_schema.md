@@ -8,6 +8,13 @@ context_windows: ["doc/specifications/*.md", "CLAUDE.md", "brief.md"]
 
 # Remove position attribute from goals schema - infer from file order
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `06e2e86` - fix: complete T002 position field removal implementation
+- `d9810fa` - refactor: [T002] (complete) - remove position attribute from goal schema
+
 ## 1. Goal / User Story
 
 As a developer maintaining the goal schema specification, I want to remove the explicit `position` attribute from individual goals and instead infer the display order from the sequence of goals in the YAML file. This simplifies the schema by eliminating redundant positional data that can be automatically determined.

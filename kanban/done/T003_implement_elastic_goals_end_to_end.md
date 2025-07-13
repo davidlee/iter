@@ -8,6 +8,19 @@ context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./inter
 
 # Implement Elastic Goals End-to-End (Mini/Midi/Maxi)
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `ca91451` - feat: [T003] complete elastic goals end-to-end implementation
+- `e271e73` - feat: [T003] Complete subtask 3.2 - integrate scoring with entry collection
+- `28dc9a7` - plan:[T003] Comprehensive analysis and implementation plan for UI scoring integration
+- `8cc398f` - feat:[T003] Subtask 3.1 - Comprehensive elastic goal scoring engine
+- `f01e5b3` - feat:[T003] Subtask 2.1 & 2.2 - Elastic goal YAML parsing and criteria validation
+- `4f3c384` - feat: [T003/1.1] (complete) - update Goal model for elastic criteria validation
+- `9dde3bf` - feat: [T003/1.2] (complete) - update Entry model for achievement levels
+- `bea0ff6` - feat: [T003] create task for elastic goals implementation
+
 ## 1. Goal / User Story
 
 As a user, I want to track elastic goals with mini/midi/maxi achievement levels so that I can set ambitious targets while still celebrating partial progress. This allows for more nuanced habit tracking where I can define minimum, target, and stretch goals for activities like exercise duration, reading time, or other measurable habits.

@@ -8,6 +8,18 @@ context_windows: ["./*.go", Claude.md, workflow.md] # List of glob patterns usef
 
 # Goal Management: Complex Goal Types (UI)
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `c0930b0` - feat(goalconfig)[T009/2.3]: integrate ElasticGoalCreator with configurator routing
+- `493a51c` - test(goalconfig)[T009/2.2]: implement comprehensive ElasticGoalCreator test suite
+- `2df1abe` - feat(goalconfig)[T009/2.1]: design ElasticGoalCreator architecture
+- `d3960f2` - test(goalconfig)[T009/1.4]: add comprehensive testing for enhanced SimpleGoalCreator
+- `a6d76f8` - feat(goalconfig)[T009/1.3]: add automatic criteria support to SimpleGoalCreator
+- `7ca86f3` - feat(goalconfig)[T009/1.2]: extend SimpleGoalCreator with field type support
+- `5128c42` - docs(T009)[T009/1.1]: analyze Simple goal requirements and create task card
+
 **Context (Background)**:
 - CLAUDE.md
 - doc/workflow.md

@@ -8,6 +8,18 @@ context_windows: ["internal/models/entry.go", "internal/models/goal.go", "intern
 
 # Habit Skip Functionality
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `63d9bdf` - docs(tasks)[T012]: add commit history and next steps for completed work
+- `5976cab` - docs(tasks)[T012/T007]: document phase 2.3 dependency analysis and integration blockers
+- `db22a13` - style(entry)[T012]: clean up formatting and code organization post-skip integration
+- `d145e43` - feat(entry)[T012/2.1]: implement boolean goal skip functionality with three-option selection
+- `464f2b6` - feat(storage)[T012/1.2]: implement EntryStatus storage layer with backward compatibility
+- `61471c0` - feat(goalconfig)[T012/1.1]: implement EntryStatus enum and timestamp improvements for skip functionality
+- `8070a8c` - feat(tasks): create T012 habit skip functionality with EntryStatus enum design
+
 **Context (Background)**:
 - T010: Complete entry system with goal collection flows and scoring integration
 - User feedback: Need ability to skip habits when circumstances prevent completion
@@ -526,9 +538,13 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 - **Quality Assurance**: All tests passing, linter clean (0 issues), integration tests updated
 
 **Recent Commit History:**
-- **Phase 2.1 Implementation**: commit d145e43 - Boolean goal skip functionality with three-option selection
-- **Code Organization**: commit db22a13 - Code formatting and cleanup post-skip integration
-- **Dependency Analysis**: commit 5976cab - Document T007 dependency analysis and integration blockers
+- `63d9bdf` - docs(tasks)[T012]: add commit history and next steps for completed work
+- `5976cab` - docs(tasks)[T012/T007]: document phase 2.3 dependency analysis and integration blockers
+- `db22a13` - style(entry)[T012]: clean up formatting and code organization post-skip integration
+- `d145e43` - feat(entry)[T012/2.1]: implement boolean goal skip functionality with three-option selection
+- `464f2b6` - feat(storage)[T012/1.2]: implement EntryStatus storage layer with backward compatibility
+- `61471c0` - feat(goalconfig)[T012/1.1]: implement EntryStatus enum and timestamp improvements for skip functionality
+- `8070a8c` - feat(tasks): create T012 habit skip functionality with EntryStatus enum design
 
 **Next Logical Steps:**
 - **Phase 2.2**: Ready for implementation - Shortcut-based skip for input fields (numeric, time, duration, text)

@@ -8,6 +8,22 @@ context_windows: ["./CLAUDE.md", "./go.mod", "./doc/specifications/goal_structur
 
 # Minimal End-to-End Release with Simple Boolean Goals
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `f8ace1f` - feat: [T001] (complete) - minimal end-to-end release with simple boolean goals
+- `881e5ce` - feat:[T001/5.3] (complete) - empty file initialization
+- `b645353` - feat: [T001] Subtask 5.1: Entry UI
+- `a688042` - feat: [T001] Sub-task 4.2: entry storage
+- `92081b2` - [T001] Sub-task 4.1: implemented comprehensive entry data structures
+- `9bd0888` - [T001] Sub-task 3.2 is complete - implemented comprehensive YAML parsing functionality
+- `057f07c` - [T001] Subtask 3.2: Go structs for goal schema
+- `2209593` - [T001] Subtask 2.2 - config file paths & cli flags
+- `3099962` - [T001] Subtask 2.1 completed - Implemented XDG Base Directory specification support
+- `d1ad102` - [T0001] Subtask 1.2 completed - Setup .golangci.yml with staticcheck, revive, gosec, errcheck, govet, gocritic, nilnil, nilerr, ineffassign, unused, misspell
+- `78be34a` - [T0001] Subtask 1.1 completed - Added dependencies (bubbletea, huh, lipgloss, bubbles, goccy/go-yaml, testify)
+
 ## 1. Goal / User Story
 
 As a user, I want to track simple boolean habits (did/didn't do) using a CLI tool so that I can start building a habit tracking routine with minimal friction. This epic establishes the core foundation for the iter habit tracker by implementing the essential components needed for a working MVP.

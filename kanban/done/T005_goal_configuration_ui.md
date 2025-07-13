@@ -8,6 +8,30 @@ context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./inter
 
 # Goal Configuration UI
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `db04203` - feat: [T005] Complete Goal Configuration UI - moved to done
+- `c703076` - feat: [T005] Phase 3.6 - Complete automated verification and testing suite
+- `5f677b9` - feat: [T005/3.5] implement field value input UI foundation
+- `d0b0fb2` - feat: [T005/3.4] implement YAML output mode for goal commands
+- `e6f8528` - feat: [T005/3.4] add YAML output mode subtask for goal commands
+- `aab04d1` - feat: [T005/3.2-3.3] implement comprehensive informational goal creation system
+- `f8ce700` - feat: [T005/3.1] implement informational goal flow routing
+- `8a90fab` - feat: [T005/2.9] remove position field assignment from goal creation
+- `a15dc21` - feat(ui): [T005/2.8] implement simplified idiomatic goal creation with bubbletea
+- `9eaf212` - docs: [T005/2.7] analyze user testing results and plan critical integration fixes
+- `d6f9046` - feat(ui): [T005/2.5] complete Hybrid Implementation Strategy with backwards compatibility
+- `2dc93b1` - feat(ui): [T005/2.4] complete Informational Goal Wizard Flow
+- `2b759a3` - feat(ui): [T005/2.3] complete Elastic Goal Wizard Flow
+- `58e00c9` - feat(ui): [T005/2.2] complete Simple Goal Wizard Flow
+- `05b4e97` - feat: [T005] Phase 2.1 - Bubbletea goal creation wizard foundation
+- `0af8aa4` - feat: [T005] Phase 2.0 - Comprehensive flow analysis and enhancement planning
+- `5aeafca` - docs: [T005] Revise task with bubbletea enhancement strategy
+- `aa4d217` - feat: [T005] Phase 1.2 - Create goal configuration UI package
+- `2804d29` - feat: [T005] Phase 1.1 - Add goal subcommand structure
+
 ## 1. Goal / User Story
 
 As a user, I want to configure my goals through an interactive CLI interface rather than manually editing YAML files, so that I can easily add, modify, and manage my goals without needing to understand the YAML schema syntax.

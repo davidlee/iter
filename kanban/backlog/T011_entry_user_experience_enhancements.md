@@ -8,6 +8,12 @@ context_windows: ["internal/ui/entry.go", "internal/ui/entry/*.go", "internal/mo
 
 # Entry User Experience Enhancements
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+*No commits yet - task is in backlog*
+
 **Context (Background)**:
 - T010: Complete entry system with goal collection flows and scoring integration
 - Core entry functionality complete with field-type aware data collection

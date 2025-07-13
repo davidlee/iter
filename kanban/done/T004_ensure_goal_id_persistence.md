@@ -8,6 +8,12 @@ context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./inter
 
 # Ensure Goal ID Persistence in goals.yml
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `54f5824` - feat: [T004] implement goal ID persistence in goals.yml
+
 ## 1. Goal / User Story
 
 As a user, I want goal IDs to be automatically added to my goals.yml file when missing, so that changing goal titles doesn't break the connection between my historical entries and current goals.

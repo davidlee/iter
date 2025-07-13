@@ -8,6 +8,13 @@ context_windows: ["./CLAUDE.md", "./internal/models/*_test.go", "./doc/specifica
 
 # Improve Testing Strategy for Backwards Compatibility and Integration
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+- `2af5c60` - feat: [T004/1.1] (complete) - backwards compatibility test framework
+- `c97eb4e` - feat: [T004] create comprehensive testing strategy improvement task
+
 ## 1. Goal / User Story
 
 As a developer maintaining the iter codebase, I want comprehensive testing that validates backwards compatibility and real-world integration so that changes don't break existing user data or create inconsistencies between documentation and code. This addresses the failure where T002 documentation changes weren't synchronized with validation code, causing user data to fail validation.
