@@ -101,7 +101,7 @@ func TestElasticGoalsEndToEnd(t *testing.T) {
 	// Step 4: Test entry collection and storage simulation
 	t.Run("entry collection and storage", func(t *testing.T) {
 		// Create entry collector
-		collector := ui.NewEntryCollector()
+		collector := ui.NewEntryCollector("checklists.yml")
 
 		// Load goals manually (since we can't interact with UI in tests)
 		collector.SetGoalsForTesting(schema.Goals)
@@ -168,7 +168,7 @@ func TestElasticGoalsEndToEnd(t *testing.T) {
 
 	// Step 6: Test loading existing entries and updating
 	t.Run("load and update existing entries", func(t *testing.T) {
-		collector := ui.NewEntryCollector()
+		collector := ui.NewEntryCollector("checklists.yml")
 
 		// Load existing entries
 		err := collector.LoadExistingEntriesForTesting(entriesFile)
@@ -219,7 +219,7 @@ func TestBackwardsCompatibility(t *testing.T) {
 	assert.Equal(t, 2, elasticGoals, "should have 2 elastic goals")
 
 	// Test that all goals can be processed
-	collector := ui.NewEntryCollector()
+	collector := ui.NewEntryCollector("checklists.yml")
 	collector.SetGoalsForTesting(schema.Goals)
 
 	// Add entries for all goal types

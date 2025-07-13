@@ -36,6 +36,6 @@ func runEntry(_ *cobra.Command, _ []string) error {
 	}
 
 	// Create entry collector and run interactive UI
-	collector := ui.NewEntryCollector()
+	collector := ui.NewEntryCollector(paths.ChecklistsFile)
 	return collector.CollectTodayEntries(paths.GoalsFile, paths.EntriesFile)
 }

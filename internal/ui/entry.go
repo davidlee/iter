@@ -30,10 +30,10 @@ type EntryCollector struct {
 }
 
 // NewEntryCollector creates a new entry collector instance.
-func NewEntryCollector() *EntryCollector {
+func NewEntryCollector(checklistsPath string) *EntryCollector {
 	scoringEngine := scoring.NewEngine()
 	fieldInputFactory := entry.NewEntryFieldInputFactory()
-	flowFactory := entry.NewGoalCollectionFlowFactory(fieldInputFactory, scoringEngine)
+	flowFactory := entry.NewGoalCollectionFlowFactory(fieldInputFactory, scoringEngine, checklistsPath)
 
 	return &EntryCollector{
 		goalParser:    parser.NewGoalParser(),

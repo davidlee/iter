@@ -14,13 +14,15 @@ import (
 type GoalCollectionFlowFactory struct {
 	fieldInputFactory *EntryFieldInputFactory
 	scoringEngine     *scoring.Engine
+	checklistsPath    string
 }
 
 // NewGoalCollectionFlowFactory creates a new goal collection flow factory
-func NewGoalCollectionFlowFactory(fieldInputFactory *EntryFieldInputFactory, scoringEngine *scoring.Engine) *GoalCollectionFlowFactory {
+func NewGoalCollectionFlowFactory(fieldInputFactory *EntryFieldInputFactory, scoringEngine *scoring.Engine, checklistsPath string) *GoalCollectionFlowFactory {
 	return &GoalCollectionFlowFactory{
 		fieldInputFactory: fieldInputFactory,
 		scoringEngine:     scoringEngine,
+		checklistsPath:    checklistsPath,
 	}
 }
 
@@ -37,7 +39,7 @@ func (f *GoalCollectionFlowFactory) CreateFlow(goalType string) (GoalCollectionF
 		return NewInformationalGoalCollectionFlow(f.fieldInputFactory), nil
 
 	case string(models.ChecklistGoal):
-		return NewChecklistGoalCollectionFlow(f.fieldInputFactory, f.scoringEngine), nil
+		return NewChecklistGoalCollectionFlow(f.fieldInputFactory, f.scoringEngine, f.checklistsPath), nil
 
 	default:
 		return nil, fmt.Errorf("unsupported goal type: %s", goalType)

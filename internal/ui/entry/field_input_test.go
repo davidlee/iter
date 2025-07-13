@@ -323,7 +323,7 @@ func TestScoringAwareInput(t *testing.T) {
 
 func TestGoalCollectionFlowFactory(t *testing.T) {
 	fieldInputFactory := NewEntryFieldInputFactory()
-	factory := NewGoalCollectionFlowFactory(fieldInputFactory, nil)
+	factory := NewGoalCollectionFlowFactory(fieldInputFactory, nil, "checklists.yml")
 
 	tests := []struct {
 		name     string

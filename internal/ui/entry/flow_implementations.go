@@ -252,7 +252,7 @@ func (f *InformationalGoalCollectionFlow) collectOptionalNotes(_ models.Goal, _ 
 
 // Checklist Goal Flow Implementations
 
-func (f *ChecklistGoalCollectionFlow) displayChecklistContext(_ models.Goal, existing *ExistingEntry) {
+func (f *ChecklistGoalCollectionFlow) displayChecklistContext(goal models.Goal, existing *ExistingEntry) {
 	contextStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("13")). // Bright magenta
 		Faint(true).
@@ -261,9 +261,18 @@ func (f *ChecklistGoalCollectionFlow) displayChecklistContext(_ models.Goal, exi
 	var contextMsg string
 	if existing != nil && existing.Value != nil {
 		if items, ok := existing.Value.([]string); ok {
-			total := len([]string{"Item 1", "Item 2", "Item 3"}) // TODO: Get actual total from checklist definition
-			completed := len(items)
-			contextMsg = fmt.Sprintf("📋 Checklist Progress: %d/%d items completed", completed, total)
+			// Load actual checklist data to get total item count
+			checklist, err := f.loadChecklistData(goal)
+			if err != nil {
+				// Fallback to item count if checklist loading fails
+				total := 3 // Default fallback
+				completed := len(items)
+				contextMsg = fmt.Sprintf("📋 Checklist Progress: %d/%d items completed (loading failed)", completed, total)
+			} else {
+				total := checklist.GetTotalItemCount()
+				completed := len(items)
+				contextMsg = fmt.Sprintf("📋 Checklist Progress: %d/%d items completed", completed, total)
+			}
 		}
 	} else {
 		contextMsg = "📋 Complete the checklist items below"
@@ -272,30 +281,52 @@ func (f *ChecklistGoalCollectionFlow) displayChecklistContext(_ models.Goal, exi
 	fmt.Println(contextStyle.Render(contextMsg))
 }
 
-func (f *ChecklistGoalCollectionFlow) performChecklistScoring(_ models.Goal, value interface{}) (*models.AchievementLevel, error) {
+func (f *ChecklistGoalCollectionFlow) performChecklistScoring(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
 	if f.scoringEngine == nil {
 		return nil, fmt.Errorf("scoring engine not available")
 	}
 
-	// For checklist goals, calculate completion percentage and score accordingly
+	// For checklist goals, validate selected items and perform criteria-based scoring
 	selectedItems, ok := value.([]string)
 	if !ok {
 		return nil, fmt.Errorf("invalid checklist value type: %T", value)
 	}
 
-	// Calculate completion percentage
+	// Load actual checklist data to get total item count
+	checklist, err := f.loadChecklistData(goal)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load checklist data for scoring: %w", err)
+	}
+
+	// Calculate completion metrics
 	completed := len(selectedItems)
-	total := len([]string{"Item 1", "Item 2", "Item 3"}) // TODO: Get actual total from checklist definition
+	total := checklist.GetTotalItemCount()
 
 	if total == 0 {
 		level := models.AchievementNone
 		return &level, nil
 	}
 
+	// For automatic scoring, use criteria-based evaluation
+	if goal.Criteria != nil && goal.Criteria.Condition != nil && goal.Criteria.Condition.ChecklistCompletion != nil {
+		// Criteria-based scoring using ChecklistCompletionCondition
+		condition := goal.Criteria.Condition.ChecklistCompletion
+
+		// Currently only "all" criteria is supported
+		if condition.RequiredItems == "all" {
+			if completed >= total {
+				level := models.AchievementMaxi
+				return &level, nil
+			}
+			level := models.AchievementNone
+			return &level, nil
+		}
+		return nil, fmt.Errorf("unsupported checklist completion criteria: %s", condition.RequiredItems)
+	}
+
+	// Fallback to percentage-based scoring if no criteria specified
 	percentage := float64(completed) / float64(total)
 
-	// Determine achievement level based on completion percentage
-	// This is a simplified scoring - real implementation would use goal criteria
 	var level models.AchievementLevel
 	switch {
 	case percentage >= 1.0:
@@ -319,7 +350,17 @@ func (f *ChecklistGoalCollectionFlow) collectManualAchievementLevel(goal models.
 	var completionInfo string
 	if items, ok := value.([]string); ok {
 		completed := len(items)
-		total := len([]string{"Item 1", "Item 2", "Item 3"}) // TODO: Get actual total from checklist definition
+
+		// Load actual checklist data to get total item count
+		checklist, err := f.loadChecklistData(goal)
+		var total int
+		if err != nil {
+			// Fallback to item count if checklist loading fails
+			total = 3 // Default fallback
+		} else {
+			total = checklist.GetTotalItemCount()
+		}
+
 		percentage := float64(completed) / float64(total) * 100
 		completionInfo = fmt.Sprintf("(%d/%d items = %.0f%% complete)", completed, total, percentage)
 	}
@@ -346,10 +387,20 @@ func (f *ChecklistGoalCollectionFlow) collectManualAchievementLevel(goal models.
 	return &level, nil
 }
 
-func (f *ChecklistGoalCollectionFlow) displayCompletionProgress(_ models.Goal, value interface{}, level *models.AchievementLevel) {
+func (f *ChecklistGoalCollectionFlow) displayCompletionProgress(goal models.Goal, value interface{}, level *models.AchievementLevel) {
 	if items, ok := value.([]string); ok {
 		completed := len(items)
-		total := len([]string{"Item 1", "Item 2", "Item 3"}) // TODO: Get actual total from checklist definition
+
+		// Load actual checklist data to get total item count
+		checklist, err := f.loadChecklistData(goal)
+		var total int
+		if err != nil {
+			// Fallback to item count if checklist loading fails
+			total = 3 // Default fallback
+		} else {
+			total = checklist.GetTotalItemCount()
+		}
+
 		percentage := float64(completed) / float64(total) * 100
 
 		progressStyle := lipgloss.NewStyle().

@@ -13,20 +13,15 @@ import (
 func TestGoalConfigurator_ElasticGoalIntegration(t *testing.T) {
 	// Test that configurator properly routes to ElasticGoalCreator
 	configurator := NewGoalConfigurator()
+	assert.NotNil(t, configurator)
 
-	// Create basic info for an elastic goal
+	// Test that ElasticGoalCreator can be created with proper basic info
 	basicInfo := &BasicInfo{
 		Title:       "Test Elastic Goal",
 		Description: "Test elastic goal integration",
 		GoalType:    models.ElasticGoal,
 	}
 
-	// Mock empty goals list
-	existingGoals := []models.Goal{}
-
-	// Call runElasticGoalCreator with test data to verify it works
-	// We can't test the full bubbletea interaction, but we can test that the method exists
-	// and has the correct signature by attempting to call it
 	creator := NewElasticGoalCreator(basicInfo.Title, basicInfo.Description, basicInfo.GoalType)
 	assert.NotNil(t, creator, "ElasticGoalCreator should be created successfully")
 
@@ -35,13 +30,38 @@ func TestGoalConfigurator_ElasticGoalIntegration(t *testing.T) {
 	assert.Equal(t, basicInfo.Description, creator.description)
 	assert.Equal(t, models.ElasticGoal, creator.goalType)
 
-	// Verify routing method exists and has correct signature by checking it compiles
-	// The actual UI interaction can't be tested without TTY, but the method should exist
-	_, err := configurator.runElasticGoalCreator(basicInfo, existingGoals)
-	// This will fail due to TTY requirement, but that's expected - we just want to verify the method exists
-	assert.Error(t, err, "Should error due to TTY requirement, but method should exist")
-	// In non-TTY environments, bubbletea programs fail to execute due to TTY requirement
-	assert.Contains(t, err.Error(), "elastic goal creator execution failed", "Should be the expected error from bubbletea execution")
+	// Test headless goal creation (the proper way to test without TTY)
+	testData := TestElasticGoalData{
+		FieldType:     models.TextFieldType,
+		ScoringType:   models.ManualScoring,
+		MultilineText: true,
+		Prompt:        "How was your test goal today?",
+		Comment:       "Test elastic goal creation",
+	}
+
+	headlessCreator := NewElasticGoalCreatorForTesting(basicInfo.Title, basicInfo.Description, basicInfo.GoalType, testData)
+	require.NotNil(t, headlessCreator)
+
+	// Create goal directly (bypassing UI)
+	goal, err := headlessCreator.CreateGoalDirectly()
+	require.NoError(t, err)
+	require.NotNil(t, goal)
+
+	// Verify the goal is properly structured
+	assert.Equal(t, basicInfo.Title, goal.Title)
+	assert.Equal(t, basicInfo.Description+"\n\nComment: Test elastic goal creation", goal.Description)
+	assert.Equal(t, models.ElasticGoal, goal.GoalType)
+	assert.Equal(t, models.TextFieldType, goal.FieldType.Type)
+	assert.Equal(t, models.ManualScoring, goal.ScoringType)
+
+	// For manual scoring, elastic goals should not have criteria
+	assert.Nil(t, goal.MiniCriteria)
+	assert.Nil(t, goal.MidiCriteria)
+	assert.Nil(t, goal.MaxiCriteria)
+
+	// Validate goal passes schema validation
+	err = goal.Validate()
+	assert.NoError(t, err, "Generated elastic goal should pass validation")
 }
 
 // TestGoalConfigurator_ElasticGoalCreatorCreation tests that NewElasticGoalCreator works correctly

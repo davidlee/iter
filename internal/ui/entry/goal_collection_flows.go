@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"davidlee/iter/internal/models"
+	"davidlee/iter/internal/parser"
 	"davidlee/iter/internal/scoring"
 )
 
@@ -495,16 +496,42 @@ func (f *InformationalGoalCollectionFlow) GetExpectedFieldTypes() []string {
 
 // ChecklistGoalCollectionFlow handles interactive checklist completion with progress feedback
 type ChecklistGoalCollectionFlow struct {
-	factory       *EntryFieldInputFactory
-	scoringEngine *scoring.Engine
+	factory         *EntryFieldInputFactory
+	scoringEngine   *scoring.Engine
+	checklistParser *parser.ChecklistParser
+	checklistsPath  string
 }
 
 // NewChecklistGoalCollectionFlow creates a new checklist goal collection flow
-func NewChecklistGoalCollectionFlow(factory *EntryFieldInputFactory, scoringEngine *scoring.Engine) *ChecklistGoalCollectionFlow {
+func NewChecklistGoalCollectionFlow(factory *EntryFieldInputFactory, scoringEngine *scoring.Engine, checklistsPath string) *ChecklistGoalCollectionFlow {
 	return &ChecklistGoalCollectionFlow{
-		factory:       factory,
-		scoringEngine: scoringEngine,
+		factory:         factory,
+		scoringEngine:   scoringEngine,
+		checklistParser: parser.NewChecklistParser(),
+		checklistsPath:  checklistsPath,
 	}
+}
+
+// loadChecklistData loads the actual checklist data from the file based on the goal's ChecklistID
+func (f *ChecklistGoalCollectionFlow) loadChecklistData(goal models.Goal) (*models.Checklist, error) {
+	// Validate that the goal has a ChecklistID
+	if goal.FieldType.ChecklistID == "" {
+		return nil, fmt.Errorf("goal field type missing checklist_id")
+	}
+
+	// Load checklist schema from file
+	schema, err := f.checklistParser.LoadFromFile(f.checklistsPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load checklists from %s: %w", f.checklistsPath, err)
+	}
+
+	// Find the checklist by ID
+	checklist, err := f.checklistParser.GetChecklistByID(schema, goal.FieldType.ChecklistID)
+	if err != nil {
+		return nil, fmt.Errorf("checklist with ID '%s' not found: %w", goal.FieldType.ChecklistID, err)
+	}
+
+	return checklist, nil
 }
 
 // CollectEntry collects entry for checklist goals with progress tracking
@@ -516,10 +543,11 @@ func (f *ChecklistGoalCollectionFlow) CollectEntry(goal models.Goal, existing *E
 
 	// Create field input configuration
 	config := EntryFieldInputConfig{
-		Goal:          goal,
-		FieldType:     goal.FieldType,
-		ExistingEntry: existing,
-		ShowScoring:   goal.ScoringType == models.AutomaticScoring,
+		Goal:           goal,
+		FieldType:      goal.FieldType,
+		ExistingEntry:  existing,
+		ShowScoring:    goal.ScoringType == models.AutomaticScoring,
+		ChecklistsPath: f.checklistsPath,
 	}
 
 	// Create checklist input component

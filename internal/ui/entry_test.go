@@ -14,12 +14,23 @@ import (
 )
 
 func TestNewEntryCollector(t *testing.T) {
-	collector := NewEntryCollector()
-	require.NotNil(t, collector)
+	collector := NewEntryCollector("checklists.yml")
+
+	// Test basic initialization
+	assert.NotNil(t, collector)
 	assert.NotNil(t, collector.goalParser)
 	assert.NotNil(t, collector.entryStorage)
+	assert.NotNil(t, collector.scoringEngine)
+	assert.NotNil(t, collector.flowFactory)
 	assert.NotNil(t, collector.entries)
+	assert.NotNil(t, collector.achievements)
 	assert.NotNil(t, collector.notes)
+	assert.NotNil(t, collector.statuses)
+	assert.Equal(t, 0, len(collector.goals))
+	assert.Equal(t, 0, len(collector.entries))
+	assert.Equal(t, 0, len(collector.achievements))
+	assert.Equal(t, 0, len(collector.notes))
+	assert.Equal(t, 0, len(collector.statuses))
 }
 
 func TestEntryCollector_loadExistingEntries(t *testing.T) {
@@ -57,7 +68,7 @@ func TestEntryCollector_loadExistingEntries(t *testing.T) {
 		require.NoError(t, err)
 
 		// Load existing entries
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 		err = collector.loadExistingEntries(entriesFile)
 		require.NoError(t, err)
 
@@ -88,7 +99,7 @@ func TestEntryCollector_loadExistingEntries(t *testing.T) {
 		require.NoError(t, err)
 
 		// Load existing entries
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 		err = collector.loadExistingEntries(entriesFile)
 		require.NoError(t, err)
 
@@ -98,7 +109,7 @@ func TestEntryCollector_loadExistingEntries(t *testing.T) {
 	})
 
 	t.Run("file does not exist", func(t *testing.T) {
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 		err := collector.loadExistingEntries("/nonexistent/entries.yml")
 		require.NoError(t, err)
 
@@ -126,7 +137,7 @@ func TestEntryCollector_saveEntries(t *testing.T) {
 		}
 
 		// Setup collector with test data
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 		collector.goals = goals
 		collector.entries["meditation"] = true
 		collector.entries["exercise"] = false
@@ -174,7 +185,7 @@ func TestEntryCollector_saveEntries(t *testing.T) {
 			{ID: "exercise", Title: "Daily Exercise"},
 		}
 
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 		collector.goals = goals
 		collector.entries["meditation"] = true
 		collector.statuses["meditation"] = models.EntryCompleted
@@ -196,7 +207,7 @@ func TestEntryCollector_saveEntries(t *testing.T) {
 
 func TestEntryCollector_displayWelcome(t *testing.T) {
 	// Create collector with test goals
-	collector := NewEntryCollector()
+	collector := NewEntryCollector("checklists.yml")
 	collector.goals = []models.Goal{
 		{ID: "meditation", Title: "Morning Meditation"},
 		{ID: "exercise", Title: "Daily Exercise"},
@@ -212,7 +223,7 @@ func TestEntryCollector_displayWelcome(t *testing.T) {
 
 func TestEntryCollector_displayCompletion(t *testing.T) {
 	t.Run("perfect completion", func(t *testing.T) {
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 		collector.goals = []models.Goal{
 			{ID: "meditation", Title: "Morning Meditation", GoalType: models.SimpleGoal},
 			{ID: "exercise", Title: "Daily Exercise", GoalType: models.SimpleGoal},
@@ -230,7 +241,7 @@ func TestEntryCollector_displayCompletion(t *testing.T) {
 	})
 
 	t.Run("partial completion", func(t *testing.T) {
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 		collector.goals = []models.Goal{
 			{ID: "meditation", Title: "Morning Meditation", GoalType: models.SimpleGoal},
 			{ID: "exercise", Title: "Daily Exercise", GoalType: models.SimpleGoal},
@@ -245,7 +256,7 @@ func TestEntryCollector_displayCompletion(t *testing.T) {
 	})
 
 	t.Run("no completion", func(t *testing.T) {
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 		collector.goals = []models.Goal{
 			{ID: "meditation", Title: "Morning Meditation", GoalType: models.SimpleGoal},
 			{ID: "exercise", Title: "Daily Exercise", GoalType: models.SimpleGoal},
@@ -270,7 +281,7 @@ func TestEntryCollector_timePtr(t *testing.T) {
 
 func TestEntryCollector_CollectTodayEntries_ErrorCases(t *testing.T) {
 	t.Run("goals file not found", func(t *testing.T) {
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 
 		err := collector.CollectTodayEntries("/nonexistent/goals.yml", "/tmp/entries.yml")
 		assert.Error(t, err)
@@ -292,7 +303,7 @@ func TestEntryCollector_CollectTodayEntries_ErrorCases(t *testing.T) {
 		err := goalParser.SaveToFile(schema, goalsFile)
 		require.NoError(t, err)
 
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 		err = collector.CollectTodayEntries(goalsFile, entriesFile)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "no goals found")
@@ -337,7 +348,7 @@ func TestEntryCollector_Integration(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test that collector can load goals successfully
-		collector := NewEntryCollector()
+		collector := NewEntryCollector("checklists.yml")
 
 		// Load goals manually to test without UI interaction
 		loadedSchema, err := collector.goalParser.LoadFromFile(goalsFile)
