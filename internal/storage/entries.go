@@ -295,10 +295,10 @@ func (es *EntryStorage) CreateSampleEntryLog() *models.EntryLog {
 	// Add a sample day entry
 	meditation := models.CreateBooleanGoalEntry("morning_meditation", true)
 	meditation.Notes = "Had a peaceful 10-minute session"
-	
+
 	exercise := models.CreateBooleanGoalEntry("daily_exercise", false)
 	exercise.Notes = "Planned to go to gym but got busy with work"
-	
+
 	sampleDay := models.DayEntry{
 		Date: "2024-01-01",
 		Goals: []models.GoalEntry{
