@@ -98,150 +98,19 @@ The `iter entry` system provides field-type-aware data collection for all goal t
 
 ## Core Architecture Components
 
-```mermaid
-C4Context
-    title Entry Collection System Context
-
-    Person(user, "User", "Records daily habit entries")
-    System(entry_system, "Entry Collection System", "Interactive CLI for habit data collection")
-    System_Ext(goals_file, "Goals Schema", "YAML goal definitions from T009")
-    System_Ext(entries_file, "Entry Storage", "Daily entry persistence")
-    System_Ext(scoring_engine, "Scoring Engine", "Automatic goal evaluation")
-
-    Rel(user, entry_system, "Records entries via CLI")
-    Rel(entry_system, goals_file, "Loads goal definitions")
-    Rel(entry_system, entries_file, "Saves/loads daily entries")
-    Rel(entry_system, scoring_engine, "Evaluates automatic goals")
-```
+![Entry Collection System Context](doc/diagrams/entry_system_context.svg)
 
 ## Component Architecture
 
-```mermaid
-C4Container
-    title Entry Collection System Components
-
-    Container(entry_collector, "EntryCollector", "Main orchestrator", "Coordinates goal loading, entry collection, and persistence")
-    Container(field_input_factory, "FieldInputFactory", "Input widget creation", "Creates field-type-specific input components")
-    Container(goal_entry_handlers, "Goal Entry Handlers", "Goal-type-specific collection", "Handles Simple, Elastic, Informational, Checklist goals")
-    Container(scoring_integration, "Scoring Integration", "Immediate feedback", "Real-time achievement calculation")
-    
-    ContainerDb(goal_schema, "Goal Schema", "YAML", "Goal definitions with field types and criteria")
-    ContainerDb(entry_storage, "Entry Storage", "YAML", "Daily entry persistence")
-    
-    System_Ext(scoring_engine, "Scoring Engine", "Achievement evaluation")
-    System_Ext(bubbletea_huh, "Bubbletea + Huh", "Interactive CLI framework")
-
-    Rel(entry_collector, field_input_factory, "Creates input widgets")
-    Rel(entry_collector, goal_entry_handlers, "Delegates goal-specific collection")
-    Rel(goal_entry_handlers, scoring_integration, "Requests immediate scoring")
-    Rel(scoring_integration, scoring_engine, "Evaluates criteria")
-    
-    Rel(entry_collector, goal_schema, "Loads goal definitions")
-    Rel(entry_collector, entry_storage, "Persists collected entries")
-    
-    Rel(field_input_factory, bubbletea_huh, "Creates interactive forms")
-    Rel(goal_entry_handlers, bubbletea_huh, "Displays achievement feedback")
-```
+![Entry Collection System Components](doc/diagrams/entry_system_containers.svg)
 
 ## Field Input Component System
 
-### Interface and Factory Pattern
-
-```mermaid
-C4Component
-    title Field Input Factory and Interface
-
-    Component(field_input_interface, "FieldValueInput", "Interface", "Standard input component interface")
-    Component(input_factory, "FieldValueInputFactory", "Factory", "Creates field-type-specific inputs")
-    
-    Rel(input_factory, field_input_interface, "Creates components implementing")
-```
-
-### Input Component Hierarchy
-
-```mermaid
-flowchart TD
-    A[FieldValueInput Interface] --> B[FieldValueInputFactory]
-    
-    B --> C[BooleanInput]
-    B --> D[TextInput] 
-    B --> E[NumericInput]
-    B --> F[TimeInput]
-    B --> G[DurationInput]
-    B --> H[ChecklistInput]
-    
-    C --> C1["huh.NewConfirm()<br/>Yes/No selection"]
-    D --> D1["huh.NewInput() (single)<br/>huh.NewText() (multi)"]
-    E --> E1["huh.NewInput()<br/>+ validation + units"]
-    F --> F1["huh.NewInput()<br/>+ HH:MM validation"]
-    G --> G1["huh.NewInput()<br/>+ duration parsing"]
-    H --> H1["huh.NewMultiSelect()<br/>+ completion tracking"]
-    
-    style A fill:#e1f5fe
-    style B fill:#f3e5f5
-    style C fill:#fff3e0
-    style D fill:#fff3e0
-    style E fill:#fff3e0
-    style F fill:#fff3e0
-    style G fill:#fff3e0
-    style H fill:#ffebee
-```
-
-### Component Creation Flow
-
-```mermaid
-sequenceDiagram
-    participant EH as Entry Handler
-    participant FF as FieldFactory
-    participant FI as Field Input
-    participant HF as Huh Forms
-    
-    EH->>FF: CreateInput(fieldType)
-    FF->>FF: Determine input type
-    FF->>FI: New{Type}Input()
-    FI->>EH: Return input component
-    EH->>FI: CreateInputForm(prompt)
-    FI->>HF: Create huh form
-    HF->>FI: Return configured form
-    FI->>EH: Return ready form
-```
+![Field Input Component Hierarchy](doc/diagrams/field_input_hierarchy.svg)
 
 ## Goal Type Collection Flow
 
-```mermaid
-flowchart TD
-    A[Load Goal Schema] --> B[For Each Goal]
-    B --> C{Goal Type?}
-    
-    C -->|Simple| D[Simple Goal Handler]
-    C -->|Elastic| E[Elastic Goal Handler] 
-    C -->|Informational| F[Informational Goal Handler]
-    C -->|Checklist| G[Checklist Goal Handler]
-    
-    D --> H[Create Field Input Widget]
-    E --> H
-    F --> H
-    G --> I[Create Checklist Interface]
-    
-    H --> J[Collect User Input]
-    I --> J
-    
-    J --> K{Automatic Scoring?}
-    K -->|Yes| L[Score Against Criteria]
-    K -->|No| M[Manual Entry Only]
-    
-    L --> N[Display Achievement Level]
-    M --> O[Confirm Completion]
-    
-    N --> P[Store Entry Result]
-    O --> P
-    
-    P --> Q{More Goals?}
-    Q -->|Yes| B
-    Q -->|No| R[Save All Entries]
-    
-    R --> S[Display Summary]
-```
+![Goal Collection Flow](doc/diagrams/goal_collection_flow.svg)
 
 ## Field Type to Input Widget Mapping
 
@@ -257,32 +126,7 @@ flowchart TD
 
 ## Scoring Integration Architecture
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant EH as Entry Handler
-    participant FI as Field Input
-    participant SE as Scoring Engine
-    participant UI as User Interface
-    
-    U->>EH: Input goal data
-    EH->>FI: Create field input widget
-    FI->>U: Display input form
-    U->>FI: Enter value
-    FI->>EH: Return validated value
-    
-    alt Automatic Scoring Goal
-        EH->>SE: Score value against criteria
-        SE->>EH: Return achievement level
-        EH->>UI: Display immediate feedback
-        UI->>U: Show achievement (Mini/Midi/Maxi)
-    else Manual Scoring Goal
-        EH->>UI: Display completion confirmation
-        UI->>U: Show entry recorded
-    end
-    
-    EH->>EH: Store entry result
-```
+The scoring integration provides immediate feedback during entry collection. For automatic scoring goals, the system evaluates user input against defined criteria and displays achievement levels (Mini/Midi/Maxi for elastic goals, Pass/Fail for simple goals) in real-time. Manual scoring goals collect data without evaluation, allowing subjective assessment by the user.
 
 ## Existing Foundation Integration
 

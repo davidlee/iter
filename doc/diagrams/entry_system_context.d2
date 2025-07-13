@@ -1,0 +1,47 @@
+direction: right
+
+title: {
+  label: Entry Collection System Context
+  near: top-center
+  style.font-size: 20
+  style.bold: true
+}
+
+user: {
+  label: User
+  shape: person
+  style.fill: "#dbeafe"
+}
+
+entry_system: {
+  label: Entry Collection System
+  tooltip: Interactive CLI for habit data collection
+  style.fill: "#dcfce7"
+  style.stroke: "#16a34a"
+  style.stroke-width: 2
+}
+
+goals_file: {
+  label: Goals Schema
+  tooltip: YAML goal definitions from T009
+  shape: cylinder
+  style.fill: "#fef3c7"
+}
+
+entries_file: {
+  label: Entry Storage
+  tooltip: Daily entry persistence
+  shape: cylinder
+  style.fill: "#fef3c7"
+}
+
+scoring_engine: {
+  label: Scoring Engine
+  tooltip: Automatic goal evaluation
+  style.fill: "#e0e7ff"
+}
+
+user -> entry_system: Records entries via CLI
+entry_system -> goals_file: Loads goal definitions
+entry_system -> entries_file: Saves/loads daily entries
+entry_system -> scoring_engine: Evaluates automatic goals

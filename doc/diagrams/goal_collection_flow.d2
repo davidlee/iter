@@ -1,0 +1,146 @@
+direction: down
+
+title: {
+  label: Goal Type Collection Flow
+  near: top-center
+  style.font-size: 20
+  style.bold: true
+}
+
+start: {
+  label: Load Goal Schema
+  shape: oval
+  style.fill: "#dcfce7"
+}
+
+for_each: {
+  label: For Each Goal
+  style.fill: "#dbeafe"
+}
+
+goal_type_decision: {
+  label: Goal Type?
+  shape: diamond
+  style.fill: "#fef3c7"
+}
+
+# Goal Type Handlers
+simple_handler: {
+  label: Simple Goal Handler
+  style.fill: "#fde68a"
+}
+
+elastic_handler: {
+  label: Elastic Goal Handler
+  style.fill: "#fed7aa"
+}
+
+info_handler: {
+  label: Informational Goal Handler
+  style.fill: "#e0e7ff"
+}
+
+checklist_handler: {
+  label: Checklist Goal Handler
+  style.fill: "#fce7f3"
+}
+
+# Input Creation
+create_field_input: {
+  label: Create Field Input Widget
+  style.fill: "#dcfce7"
+}
+
+create_checklist: {
+  label: Create Checklist Interface
+  style.fill: "#fce7f3"
+}
+
+collect_input: {
+  label: Collect User Input
+  style.fill: "#dbeafe"
+}
+
+# Scoring Decision
+scoring_decision: {
+  label: Automatic Scoring?
+  shape: diamond
+  style.fill: "#fef3c7"
+}
+
+score_criteria: {
+  label: Score Against Criteria
+  style.fill: "#fed7aa"
+}
+
+manual_entry: {
+  label: Manual Entry Only
+  style.fill: "#e0e7ff"
+}
+
+display_achievement: {
+  label: Display Achievement Level
+  style.fill: "#dcfce7"
+}
+
+confirm_completion: {
+  label: Confirm Completion
+  style.fill: "#e0e7ff"
+}
+
+store_entry: {
+  label: Store Entry Result
+  style.fill: "#f3e8ff"
+}
+
+more_goals: {
+  label: More Goals?
+  shape: diamond
+  style.fill: "#fef3c7"
+}
+
+save_entries: {
+  label: Save All Entries
+  style.fill: "#dcfce7"
+}
+
+display_summary: {
+  label: Display Summary
+  shape: oval
+  style.fill: "#dcfce7"
+}
+
+# Flow connections
+start -> for_each
+for_each -> goal_type_decision
+
+goal_type_decision -> simple_handler: Simple
+goal_type_decision -> elastic_handler: Elastic
+goal_type_decision -> info_handler: Informational
+goal_type_decision -> checklist_handler: Checklist
+
+simple_handler -> create_field_input
+elastic_handler -> create_field_input
+info_handler -> create_field_input
+checklist_handler -> create_checklist
+
+create_field_input -> collect_input
+create_checklist -> collect_input
+
+collect_input -> scoring_decision
+
+scoring_decision -> score_criteria: Yes
+scoring_decision -> manual_entry: No
+
+score_criteria -> display_achievement
+manual_entry -> confirm_completion
+
+display_achievement -> store_entry
+confirm_completion -> store_entry
+
+store_entry -> more_goals
+
+more_goals -> for_each: Yes
+more_goals -> save_entries: No
+
+save_entries -> display_summary

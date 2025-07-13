@@ -1,0 +1,133 @@
+direction: down
+
+title: {
+  label: Field Input Component Hierarchy
+  near: top-center
+  style.font-size: 20
+  style.bold: true
+}
+
+interface: {
+  label: FieldValueInput Interface
+  style.fill: "#e1f5fe"
+  style.stroke: "#0277bd"
+  style.stroke-width: 2
+}
+
+factory: {
+  label: FieldValueInputFactory
+  style.fill: "#f3e5f5"
+  style.stroke: "#7b1fa2"
+  style.stroke-width: 2
+}
+
+# Input Components
+boolean_input: {
+  label: BooleanInput
+  style.fill: "#fff3e0"
+  style.stroke: "#ef6c00"
+}
+
+text_input: {
+  label: TextInput
+  style.fill: "#fff3e0"
+  style.stroke: "#ef6c00"
+}
+
+numeric_input: {
+  label: NumericInput
+  style.fill: "#fff3e0"
+  style.stroke: "#ef6c00"
+}
+
+time_input: {
+  label: TimeInput
+  style.fill: "#fff3e0"
+  style.stroke: "#ef6c00"
+}
+
+duration_input: {
+  label: DurationInput
+  style.fill: "#fff3e0"
+  style.stroke: "#ef6c00"
+}
+
+checklist_input: {
+  label: ChecklistInput
+  style.fill: "#ffebee"
+  style.stroke: "#c62828"
+  style.stroke-dash: 5
+}
+
+# Huh Widget Details
+boolean_widget: {
+  label: "huh.NewConfirm()\nYes/No selection"
+  style.fill: "#f1f8e9"
+  style.font-size: 12
+}
+
+text_widget: {
+  label: "huh.NewInput() (single)\nhuh.NewText() (multi)"
+  style.fill: "#f1f8e9"
+  style.font-size: 12
+}
+
+numeric_widget: {
+  label: "huh.NewInput()\n+ validation + units"
+  style.fill: "#f1f8e9"
+  style.font-size: 12
+}
+
+time_widget: {
+  label: "huh.NewInput()\n+ HH:MM validation"
+  style.fill: "#f1f8e9"
+  style.font-size: 12
+}
+
+duration_widget: {
+  label: "huh.NewInput()\n+ duration parsing"
+  style.fill: "#f1f8e9"
+  style.font-size: 12
+}
+
+checklist_widget: {
+  label: "huh.NewMultiSelect()\n+ completion tracking"
+  style.fill: "#ffebee"
+  style.font-size: 12
+  style.stroke-dash: 5
+}
+
+# Relationships
+interface -> factory: implements
+
+factory -> boolean_input: creates
+factory -> text_input: creates
+factory -> numeric_input: creates
+factory -> time_input: creates
+factory -> duration_input: creates
+factory -> checklist_input: creates {style.stroke-dash: 5}
+
+boolean_input -> boolean_widget: uses
+text_input -> text_widget: uses
+numeric_input -> numeric_widget: uses
+time_input -> time_widget: uses
+duration_input -> duration_widget: uses
+checklist_input -> checklist_widget: uses {style.stroke-dash: 5}
+
+# Legend
+legend: {
+  near: bottom-right
+  
+  existing: {
+    label: "Existing Component"
+    style.fill: "#fff3e0"
+    style.stroke: "#ef6c00"
+  }
+  
+  needs_impl: {
+    label: "Needs Implementation"
+    style.fill: "#ffebee"
+    style.stroke: "#c62828"
+    style.stroke-dash: 5
+  }
+}

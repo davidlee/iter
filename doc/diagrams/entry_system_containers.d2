@@ -1,0 +1,79 @@
+direction: down
+
+title: {
+  label: Entry Collection System Components
+  near: top-center
+  style.font-size: 20
+  style.bold: true
+}
+
+entry_collector: {
+  label: EntryCollector
+  tooltip: Main orchestrator - Coordinates goal loading, entry collection, and persistence
+  style.fill: "#dcfce7"
+  style.stroke: "#16a34a"
+  style.stroke-width: 2
+}
+
+field_input_factory: {
+  label: FieldInputFactory
+  tooltip: Input widget creation - Creates field-type-specific input components
+  style.fill: "#dbeafe"
+  style.stroke: "#2563eb"
+  style.stroke-width: 2
+}
+
+goal_entry_handlers: {
+  label: Goal Entry Handlers
+  tooltip: Goal-type-specific collection - Handles Simple, Elastic, Informational, Checklist goals
+  style.fill: "#fde68a"
+  style.stroke: "#d97706"
+  style.stroke-width: 2
+}
+
+scoring_integration: {
+  label: Scoring Integration
+  tooltip: Immediate feedback - Real-time achievement calculation
+  style.fill: "#fce7f3"
+  style.stroke: "#db2777"
+  style.stroke-width: 2
+}
+
+goal_schema: {
+  label: Goal Schema
+  tooltip: YAML - Goal definitions with field types and criteria
+  shape: cylinder
+  style.fill: "#f3f4f6"
+}
+
+entry_storage: {
+  label: Entry Storage
+  tooltip: YAML - Daily entry persistence
+  shape: cylinder
+  style.fill: "#f3f4f6"
+}
+
+scoring_engine: {
+  label: Scoring Engine
+  tooltip: Achievement evaluation
+  style.fill: "#e0e7ff"
+  style.stroke: "#6366f1"
+}
+
+bubbletea_huh: {
+  label: Bubbletea + Huh
+  tooltip: Interactive CLI framework
+  style.fill: "#f0fdf4"
+  style.stroke: "#22c55e"
+}
+
+entry_collector -> field_input_factory: Creates input widgets
+entry_collector -> goal_entry_handlers: Delegates goal-specific collection
+goal_entry_handlers -> scoring_integration: Requests immediate scoring
+scoring_integration -> scoring_engine: Evaluates criteria
+
+entry_collector -> goal_schema: Loads goal definitions
+entry_collector -> entry_storage: Persists collected entries
+
+field_input_factory -> bubbletea_huh: Creates interactive forms
+goal_entry_handlers -> bubbletea_huh: Displays achievement feedback
