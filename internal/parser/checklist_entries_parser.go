@@ -21,6 +21,7 @@ func NewChecklistEntriesParser() *ChecklistEntriesParser {
 
 // LoadFromFile loads checklist entries from a YAML file.
 func (cep *ChecklistEntriesParser) LoadFromFile(filePath string) (*models.ChecklistEntriesSchema, error) {
+	//nolint:gosec // File path is controlled by application configuration
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
@@ -49,6 +50,7 @@ func (cep *ChecklistEntriesParser) SaveToFile(schema *models.ChecklistEntriesSch
 		return fmt.Errorf("failed to marshal YAML: %w", err)
 	}
 
+	//nolint:gosec // File permissions 0o644 appropriate for configuration files
 	if err := os.WriteFile(filePath, data, 0o644); err != nil {
 		return fmt.Errorf("failed to write file: %w", err)
 	}

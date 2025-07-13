@@ -1,3 +1,4 @@
+// Package checklist provides UI components for checklist interactions
 package checklist
 
 import (
@@ -63,9 +64,8 @@ func (m CompletionModel) Init() tea.Cmd {
 
 // Update implements the bubbletea.Model interface.
 func (m CompletionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
+	if keyMsg, ok := msg.(tea.KeyMsg); ok {
+		switch keyMsg.String() {
 		// Exit keys
 		case "ctrl+c", "q":
 			return m, tea.Quit
@@ -108,7 +108,7 @@ func (m CompletionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
-
+	
 	return m, nil
 }
 
@@ -162,11 +162,12 @@ func (m CompletionModel) View() string {
 			s += "\n"
 		} else {
 			text := fmt.Sprintf("%s [%s] %s", cursor, checked, item)
-			if cursor == ">" {
+			switch {
+			case cursor == ">":
 				s += selectedStyle.Render(text)
-			} else if checked == "x" {
+			case checked == "x":
 				s += checkedStyle.Render(text)
-			} else {
+			default:
 				s += itemStyle.Render(text)
 			}
 			s += "\n"

@@ -138,11 +138,12 @@ func runListEntry(_ *cobra.Command, args []string) error {
 
 	fmt.Printf("\n✓ Checklist '%s' completed: %d/%d items\n", targetChecklist.ID, completedCount, totalItems)
 
-	if completedCount == totalItems {
+	switch {
+	case completedCount == totalItems:
 		fmt.Println("🎉 All items completed!")
-	} else if completedCount > 0 {
+	case completedCount > 0:
 		fmt.Printf("📝 Partial completion (%d%% done)\n", (completedCount*100)/totalItems)
-	} else {
+	default:
 		fmt.Println("📋 No items completed")
 	}
 

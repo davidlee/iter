@@ -28,9 +28,9 @@ type EntryResult struct {
 	Notes            string                   // Any notes collected from the user
 }
 
-// AIDEV-NOTE: handler-factory-pattern; current implementation creates goal-specific handlers but needs bubbletea integration (see T010)
 // CreateGoalHandler creates the appropriate handler for a given goal type.
 // Returns a handler that can collect entries for the specific goal type.
+// AIDEV-NOTE: handler-factory-pattern; current implementation creates goal-specific handlers but needs bubbletea integration (see T010)
 func CreateGoalHandler(goal models.Goal, scoringEngine *scoring.Engine) GoalEntryHandler {
 	switch goal.GoalType {
 	case models.SimpleGoal:

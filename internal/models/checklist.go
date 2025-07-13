@@ -315,7 +315,7 @@ func (cc *ChecklistCompletion) GetCompletedTotalCount() int {
 }
 
 // IsComplete checks if the checklist completion meets the specified condition.
-func (cc *ChecklistCompletion) IsComplete(checklist *Checklist, condition *ChecklistCompletionCondition) bool {
+func (cc *ChecklistCompletion) IsComplete(checklist *Checklist, _ *ChecklistCompletionCondition) bool {
 	// Only "all" criteria is supported - all items must be completed
 	totalItems := checklist.GetTotalItemCount()
 	completedItems := cc.GetCompletedItemCount(checklist)

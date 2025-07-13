@@ -108,10 +108,8 @@ func (e *Editor) Run() (*models.Checklist, error) {
 	}
 
 	// For edit mode, preserve original creation date if available
-	if e.config.IsEdit {
-		// The ModifiedDate will be updated, but CreatedDate should be preserved
-		// This will be handled by the calling code that has access to the original checklist
-	}
+	// Note: The ModifiedDate will be updated, but CreatedDate should be preserved
+	// This will be handled by the calling code that has access to the original checklist
 
 	return checklist, nil
 }
@@ -151,7 +149,7 @@ func ValidateChecklistID(id string) error {
 	// Use the same validation as goal IDs
 	trimmed := strings.TrimSpace(id)
 	for _, char := range trimmed {
-		if !((char >= 'a' && char <= 'z') || (char >= '0' && char <= '9') || char == '_') {
+		if (char < 'a' || char > 'z') && (char < '0' || char > '9') && char != '_' {
 			return fmt.Errorf("checklist ID must contain only lowercase letters, numbers, and underscores")
 		}
 	}
