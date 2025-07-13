@@ -98,19 +98,19 @@ The `iter entry` system provides field-type-aware data collection for all goal t
 
 ## Core Architecture Components
 
-![Entry Collection System Context](doc/diagrams/entry_system_context.svg)
+![Entry Collection System Context](/doc/diagrams/entry_system_context.svg)
 
 ## Component Architecture
 
-![Entry Collection System Components](doc/diagrams/entry_system_containers.svg)
+![Entry Collection System Components](/doc/diagrams/entry_system_containers.svg)
 
 ## Field Input Component System
 
-![Field Input Component Hierarchy](doc/diagrams/field_input_hierarchy.svg)
+![Field Input Component Hierarchy](/doc/diagrams/field_input_hierarchy.svg)
 
 ## Goal Type Collection Flow
 
-![Goal Collection Flow](doc/diagrams/goal_collection_flow.svg)
+![Goal Collection Flow](/doc/diagrams/goal_collection_flow.svg)
 
 ## Field Type to Input Widget Mapping
 
