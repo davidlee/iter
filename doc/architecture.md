@@ -3,58 +3,67 @@
 ## Table of Contents
 
 1. [References](#references)
-2. [High-Level Architecture Summary](#high-level-architecture-summary)
-   - 2.1 [Core Components](#21-core-components)
-   - 2.2 [Data Flow Architecture](#22-data-flow-architecture)
-   - 2.3 [Key Architectural Decisions](#23-key-architectural-decisions)
-3. [Data Architecture](#1-data-architecture)
-   - 3.1 [YAML Schema Structure](#11-yaml-schema-structure)
-   - 3.2 [Goal Types and Field Types](#12-goal-types-and-field-types)
-   - 3.3 [Entry Storage and Historical Preservation](#13-entry-storage-and-historical-preservation)
-   - 3.4 [Specialized Storage: Checklist System](#14-specialized-storage-checklist-system)
-4. [Component Architecture](#2-component-architecture)
-   - 4.1 [Package Organization](#21-package-organization)
-   - 4.2 [Parser Layer Architecture](#22-parser-layer-architecture)
-   - 4.3 [Models Layer: Data Structures and Validation](#23-models-layer-data-structures-and-validation)
-   - 4.4 [Storage Layer: Atomic Operations](#24-storage-layer-atomic-operations)
-   - 4.5 [Scoring Engine Architecture](#25-scoring-engine-architecture)
-5. [User Interface Architecture](#3-user-interface-architecture)
-   - 5.1 [Hybrid UI Strategy](#31-hybrid-ui-strategy)
-   - 5.2 [Form Generation and Field Type Adaptation](#32-form-generation-and-field-type-adaptation)
-   - 5.3 [Navigation and Progress Tracking](#33-navigation-and-progress-tracking)
-   - 5.4 [Error Handling and Validation Feedback](#34-error-handling-and-validation-feedback)
-6. [Integration Patterns](#4-integration-patterns)
-   - 6.1 [CLI Command Structure and Routing](#41-cli-command-structure-and-routing)
-   - 6.2 [Configuration Management](#42-configuration-management)
-   - 6.3 [File Initialization and Sample Data](#43-file-initialization-and-sample-data)
-   - 6.4 [Testing Strategies](#44-testing-strategies)
-7. [Extension Points](#5-extension-points)
-   - 7.1 [Adding New Goal Types](#51-adding-new-goal-types)
-   - 7.2 [Field Type Extensions](#52-field-type-extensions)
-   - 7.3 [Scoring Criteria Extensions](#53-scoring-criteria-extensions)
-   - 7.4 [Storage Format Evolution](#54-storage-format-evolution)
+2. [Architectural Diagrams](#architectural-diagrams)
+3. [High-Level Architecture Summary](#high-level-architecture-summary)
+   - 3.1 [Core Components](#31-core-components)
+   - 3.2 [Data Flow Architecture](#32-data-flow-architecture)
+   - 3.3 [Key Architectural Decisions](#33-key-architectural-decisions)
+4. [Data Architecture](#4-data-architecture)
+   - 4.1 [YAML Schema Structure](#41-yaml-schema-structure)
+   - 4.2 [Goal Types and Field Types](#42-goal-types-and-field-types)
+   - 4.3 [Entry Storage and Historical Preservation](#43-entry-storage-and-historical-preservation)
+   - 4.4 [Specialized Storage: Checklist System](#44-specialized-storage-checklist-system)
+5. [Component Architecture](#5-component-architecture)
+   - 5.1 [Package Organization](#51-package-organization)
+   - 5.2 [Parser Layer Architecture](#52-parser-layer-architecture)
+   - 5.3 [Models Layer: Data Structures and Validation](#53-models-layer-data-structures-and-validation)
+   - 5.4 [Storage Layer: Atomic Operations](#54-storage-layer-atomic-operations)
+   - 5.5 [Scoring Engine Architecture](#55-scoring-engine-architecture)
+6. [User Interface Architecture](#6-user-interface-architecture)
+   - 6.1 [Hybrid UI Strategy](#61-hybrid-ui-strategy)
+   - 6.2 [Entry Collection System](#62-entry-collection-system)
+   - 6.3 [Form Generation and Field Type Adaptation](#63-form-generation-and-field-type-adaptation)
+   - 6.4 [Navigation and Progress Tracking](#64-navigation-and-progress-tracking)
+   - 6.5 [Error Handling and Validation Feedback](#65-error-handling-and-validation-feedback)
+7. [Integration Patterns](#7-integration-patterns)
+   - 7.1 [CLI Command Structure and Routing](#71-cli-command-structure-and-routing)
+   - 7.2 [Configuration Management](#72-configuration-management)
+   - 7.3 [File Initialization and Sample Data](#73-file-initialization-and-sample-data)
+   - 7.4 [Testing Strategies](#74-testing-strategies)
+8. [Extension Points](#8-extension-points)
+   - 8.1 [Adding New Goal Types](#81-adding-new-goal-types)
+   - 8.2 [Field Type Extensions](#82-field-type-extensions)
+   - 8.3 [Scoring Criteria Extensions](#83-scoring-criteria-extensions)
+   - 8.4 [Storage Format Evolution](#84-storage-format-evolution)
 
 ## References
 
 This section provides context on the key documentation files that inform the architecture:
 
 - **[CLAUDE.md](./CLAUDE.md)** - Primary development guide with design principles, dependencies, and standards. Essential for understanding the clean architecture approach and charmbracelet UI framework usage.
-
 - **[initial_brief.md](./initial_brief.md)** - Original project vision and requirements. Defines core goals: low-friction entry, flexibility, resilience to schema changes, and text-based interoperability.
-
 - **[goal_schema.md](./doc/specifications/goal_schema.md)** - Complete specification of the YAML-based goal configuration format. Critical for understanding data structures and validation rules.
-
 - **[T001_minimal_end_to_end_release.md](./T001_minimal_end_to_end_release.md)** - Foundation implementation covering project setup, configuration management, goal parsing, entry collection, and CLI interface. Shows the core architectural decisions.
-
 - **[T003_implement_elastic_goals_end_to_end.md](./T003_implement_elastic_goals_end_to_end.md)** - Elastic goals with mini/midi/maxi achievement levels. Demonstrates the scoring engine architecture and strategy pattern for goal handlers.
-
 - **[T005_goal_configuration_ui.md](./T005_goal_configuration_ui.md)** - Interactive goal creation system with bubbletea wizards and huh forms. Shows the hybrid UI approach for simple vs complex interactions.
-
 - **[T007_dynamic_checklist_system.md](./T007_dynamic_checklist_system.md)** - Checklist goals with dynamic item management. Illustrates separation between templates (checklists.yml) and instances (checklist_entries.yml).
-
-- **[T010_iter_entry_ui_system.md](./T010_iter_entry_ui_system.md)** - Comprehensive entry collection system with field-type awareness and goal-type adaptation. Shows the strategy pattern for entry handlers and immediate scoring feedback.
-
+- **[T010_iter_entry_ui_system.md](./T010_iter_entry_ui_system.md)** - Comprehensive entry collection system with field-type awareness and goal-type adaptation. Shows the strategy pattern for entry handlers and immediate scoring feedback. **Contains architectural diagrams referenced throughout this document.**
 - **[flow_analysis_T005.md](./flow_analysis_T005.md)** - Detailed UX flow analysis for goal configuration. Documents the evolution from simple huh forms to enhanced bubbletea wizards.
+## Architectural Diagrams
+
+The following diagrams are available in the [diagrams](./diagrams) directory and provide visual representation of the system architecture:
+
+### System Context and Containers
+- **[entry_system_context.d2](./diagrams/entry_system_context.d2)** ([SVG](./diagrams/entry_system_context.svg)) - High-level system context showing how the entry system fits within the broader iter application
+- **[entry_system_containers.d2](./diagrams/entry_system_containers.d2)** ([SVG](./diagrams/entry_system_containers.svg)) - Container-level view of the entry collection system architecture
+
+### Component Architecture Diagrams  
+- **[field_input_hierarchy.d2](./diagrams/field_input_hierarchy.d2)** ([SVG](./diagrams/field_input_hierarchy.svg)) - Field input component hierarchy and relationships
+
+### Process Flow Diagrams
+- **[goal_collection_flow.d2](./diagrams/goal_collection_flow.d2)** ([SVG](./diagrams/goal_collection_flow.svg)) - Goal-based entry collection process flow
+
+These diagrams complement the textual architecture descriptions and provide visual reference for developers implementing and extending the system.
 
 ## High-Level Architecture Summary
 
@@ -70,59 +79,37 @@ This section provides context on the key documentation files that inform the arc
 
 ### Data Flow Architecture
 
+```mermaid
+graph LR
+    A[goals.yml] --> B[Parser]
+    B --> C[Validation]
+    C --> D[UI Generation]
+    D --> E[Entry Collection]
+    E --> F[Scoring]
+    F --> G[entries.yml]
+    
+    H[checklists.yml] --> I[ChecklistParser]
+    I --> J[checklist_entries.yml]
+    
+    style A fill:#e1f5fe
+    style G fill:#e8f5e8
+    style H fill:#fff3e0
+    style J fill:#fff3e0
 ```
-goals.yml (schema) → Parser → Validation → UI Generation → Entry Collection → Scoring → entries.yml (data)
-                                     ↓
-                             checklists.yml → checklist_entries.yml (specialized storage)
-```
+
+*See [entry_system_context.svg](./diagrams/entry_system_context.svg) for detailed system context diagram.*
 
 ### Key Architectural Decisions
 
 - **Text-First Storage**: YAML files as primary storage for version control compatibility and user transparency
-- **Strategy Pattern**: Goal type and field type handlers for extensible entry collection
-- **Hybrid UI**: Simple huh forms for basic interactions, bubbletea wizards for complex multi-step flows
+- **Strategy Pattern**: Goal type and field type handlers for extensible entry collection (*detailed in [goal_collection_flow.svg](./diagrams/goal_collection_flow.svg)*)
+- **Hybrid UI**: Simple huh forms for basic interactions, bubbletea wizards for complex multi-step flows (*see [entry_system_containers.svg](./diagrams/entry_system_containers.svg)*)
 - **Separation of Concerns**: Clear boundaries between schema definition, entry collection, scoring, and storage
 - **Resilience Design**: Historical entries preserved through schema changes via stable goal IDs
 
-## Proposed Detailed Sections
+## Data Architecture
 
-I propose organizing the detailed architecture documentation into these sections:
-
-### 1. **Data Architecture**
-   - YAML schema structure and validation
-   - Goal types (simple, elastic, informational, checklist) and field types
-   - Entry storage patterns and historical data preservation
-   - ID generation and persistence strategies
-
-### 2. **Component Architecture** 
-   - Package organization and dependency relationships
-   - Parser layer (goal schema, checklist management)
-   - Models layer (data structures and validation)
-   - Storage layer (atomic operations, backup strategies)
-   - UI layer (form generation, wizard flows)
-   - Scoring engine (criteria evaluation, achievement calculation)
-
-### 3. **User Interface Architecture**
-   - Hybrid UI strategy (huh vs bubbletea decision matrix)
-   - Form generation patterns and field type adaptation
-   - Navigation and progress tracking in multi-step flows
-   - Error handling and validation feedback
-
-### 4. **Integration Patterns**
-   - CLI command structure and routing
-   - Configuration management (XDG compliance, override flags)
-   - File initialization and sample data generation
-   - Testing strategies (headless testing, integration patterns)
-
-### 5. **Extension Points**
-   - Adding new goal types and field types
-   - Scoring criteria extensions
-   - UI component reuse patterns
-   - Storage format evolution strategies
-
-## 1. Data Architecture
-
-### 1.1 YAML Schema Structure
+### YAML Schema Structure
 
 The iter application uses a declarative YAML-based schema for goal definitions, designed for human readability and version control compatibility:
 
@@ -149,7 +136,7 @@ goals:
 4. Automatic ID generation and persistence for missing IDs
 5. Cross-goal uniqueness validation
 
-### 1.2 Goal Types and Field Types
+### Goal Types and Field Types
 
 **Goal Types:**
 - **Simple**: Binary pass/fail goals with boolean or single-value fields
@@ -165,7 +152,9 @@ goals:
 - `duration` - Flexible duration parsing (30m, 1h30m, 90m)
 - `checklist` - References to external checklist definitions
 
-### 1.3 Entry Storage and Historical Preservation
+*Field type adaptation patterns are detailed in [field_input_hierarchy.svg](./diagrams/field_input_hierarchy.svg).*
+
+### Entry Storage and Historical Preservation
 
 **Entry Data Structure:**
 ```yaml
@@ -185,7 +174,7 @@ entries:
 - **Scoring Context**: Achievement levels reflect criteria active on entry date
 - **Atomic Operations**: File writes use temporary files with atomic moves
 
-### 1.4 Specialized Storage: Checklist System
+### Specialized Storage: Checklist System
 
 **Template/Instance Separation:**
 - `checklists.yml` - Reusable checklist templates with items and metadata
@@ -212,9 +201,9 @@ entries:
       completion_time: "2024-01-15T08:15:00Z"
 ```
 
-## 2. Component Architecture
+## Component Architecture
 
-### 2.1 Package Organization
+### Package Organization
 
 ```
 iter/
@@ -227,12 +216,16 @@ iter/
 │   ├── scoring/           # Criteria evaluation engine
 │   ├── ui/                # User interface components
 │   │   ├── goalconfig/    # Goal creation wizards and forms
+│   │   ├── entry/         # Entry collection system (T010)
 │   │   └── checklist/     # Checklist management UI
 │   └── init/              # File initialization and samples
 └── doc/                   # Specifications and documentation
+    └── diagrams/          # D2 architecture diagrams
 ```
 
-### 2.2 Parser Layer Architecture
+*Detailed component relationships are shown in [entry_system_containers.svg](./diagrams/entry_system_containers.svg).*
+
+### Parser Layer Architecture
 
 **GoalParser** (`internal/parser/goals.go`):
 - YAML marshaling/unmarshaling with goccy/go-yaml
@@ -245,7 +238,7 @@ iter/
 - Entry state persistence separate from templates
 - Heading item filtering (prefixed with "# ")
 
-### 2.3 Models Layer: Data Structures and Validation
+### Models Layer: Data Structures and Validation
 
 **Core Models** (`internal/models/`):
 ```go
@@ -271,7 +264,7 @@ type GoalEntry struct {
 - **Cross-field validation**: Criteria ordering (mini ≤ midi ≤ maxi), goal type compatibility
 - **Schema-level validation**: ID uniqueness, version compatibility
 
-### 2.4 Storage Layer: Atomic Operations
+### Storage Layer: Atomic Operations
 
 **EntryStorage** (`internal/storage/entries.go`):
 - **Thread-safe operations**: Mutex protection for concurrent access
@@ -287,7 +280,7 @@ writeToFile(tempFile, data)
 os.Rename(tempFile, targetFile)  // Atomic on most filesystems
 ```
 
-### 2.5 Scoring Engine Architecture
+### Scoring Engine Architecture
 
 **ScoringEngine** (`internal/scoring/engine.go`):
 ```go
@@ -307,9 +300,11 @@ func (e *Engine) ScoreElasticGoal(goal models.Goal, value interface{})
 3. **Achievement Calculation**: Determine highest achieved level (none/mini/midi/maxi)
 4. **Error Handling**: Graceful fallback for incompatible value types
 
-## 3. User Interface Architecture
+*The complete entry collection process flow is visualized in [goal_collection_flow.svg](./diagrams/goal_collection_flow.svg).*
 
-### 3.1 Hybrid UI Strategy
+## User Interface Architecture
+
+### Hybrid UI Strategy
 
 **Decision Matrix for UI Framework Selection:**
 
@@ -319,6 +314,9 @@ func (e *Engine) ScoreElasticGoal(goal models.Goal, value interface{})
 | Basic input collection | huh.NewInput() | Built-in validation, single-step |
 | Complex multi-step flows | bubbletea + huh | Navigation, progress, state management |
 | Configuration wizards | bubbletea model | Enhanced UX with back/forward navigation |
+| Entry collection flows | bubbletea + strategies | Dynamic goal-type adaptation (T010) |
+
+*The UI framework decision process and entry collection architecture are detailed in [entry_system_containers.svg](./diagrams/entry_system_containers.svg).*
 
 **Integration Pattern - Embedding huh in bubbletea:**
 ```go
@@ -336,15 +334,39 @@ func (m FormStepModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 ```
 
-### 3.2 Form Generation and Field Type Adaptation
+### Entry Collection System
 
-**FieldValueInputFactory** (`internal/ui/goalconfig/field_value_input.go`):
+**Architecture from T010 Implementation:**
+
+The entry collection system implements a strategy pattern to handle different goal types with specialized UI flows. Each goal type has its own handler that provides appropriate input methods and immediate scoring feedback.
+
+```go
+type GoalEntryHandler interface {
+    CollectEntry(goal Goal, existing *ExistingEntry) (*EntryResult, error)
+    GetPromptText(goal Goal) string
+    ValidateInput(goal Goal, input interface{}) error
+    FormatPreview(goal Goal, input interface{}) string
+}
+```
+
+**Goal-Type Specific Handlers:**
+- **SimpleGoalHandler**: Binary completion with confirmation prompts
+- **ElasticGoalHandler**: Numeric input with real-time achievement level feedback
+- **InformationalGoalHandler**: Data collection without scoring constraints  
+- **ChecklistGoalHandler**: Interactive item selection with completion tracking
+
+*The entry collection flow and goal-based routing are documented in [goal_collection_flow.svg](./diagrams/goal_collection_flow.svg).*
+
+### Form Generation and Field Type Adaptation
+
+**FieldValueInputFactory** (`internal/ui/entry/field_value_input.go`):
 ```go
 type FieldValueInput interface {
     Render() string
     GetValue() interface{}
     SetExistingValue(value interface{}) error
     Validate() error
+    GetPreview() string  // Added in T010 for immediate feedback
 }
 
 func CreateFieldInput(fieldType models.FieldType) FieldValueInput {
@@ -364,7 +386,9 @@ func CreateFieldInput(fieldType models.FieldType) FieldValueInput {
 - **Time**: `huh.NewInput()` with HH:MM format validation
 - **Text**: `huh.NewInput()` or `huh.NewText()` based on multiline configuration
 
-### 3.3 Navigation and Progress Tracking
+*Field input factory patterns are visualized in [field_input_hierarchy.svg](./diagrams/field_input_hierarchy.svg).*
+
+### Navigation and Progress Tracking
 
 **Wizard State Management:**
 ```go
@@ -387,24 +411,27 @@ type StepHandler interface {
 - Step counters: "Step 3 of 6" 
 - Breadcrumb navigation with completed step checkmarks
 - Real-time validation status with contextual error display
-- Achievement level preview for elastic goals
+- Achievement level preview for elastic goals (T010 enhancement)
 
-### 3.4 Error Handling and Validation Feedback
+*Navigation patterns and component structure are documented in [entry_system_containers.svg](./diagrams/entry_system_containers.svg).*
+
+### Error Handling and Validation Feedback
 
 **Validation Framework:**
 - **Real-time validation**: As-you-type feedback for format errors
 - **Cross-step validation**: Criteria ordering checks (mini ≤ midi ≤ maxi)
 - **Contextual help**: Dynamic help text based on field type and current input
 - **Recovery mechanisms**: State preservation during validation failures
+- **Immediate scoring feedback**: Show achievement levels as user enters values (T010)
 
-## 4. Integration Patterns
+## Integration Patterns
 
-### 4.1 CLI Command Structure and Routing
+### CLI Command Structure and Routing
 
 **Cobra-based Command Hierarchy:**
 ```
 iter
-├── entry                    # Entry collection
+├── entry                    # Entry collection (enhanced in T010)
 ├── goal                     # Goal management
 │   ├── add [--dry-run]     # Interactive goal creation
 │   ├── list                # Goal display
@@ -422,7 +449,7 @@ iter
 - **Error Propagation**: Consistent error handling with user-friendly messages
 - **Configuration**: XDG-compliant paths with `--config-dir` override support
 
-### 4.2 Configuration Management
+### Configuration Management
 
 **XDG Base Directory Compliance:**
 ```go
@@ -440,7 +467,7 @@ type Paths struct {
 - Environment variables: `XDG_CONFIG_HOME` support
 - Graceful fallback to sensible defaults
 
-### 4.3 File Initialization and Sample Data
+### File Initialization and Sample Data
 
 **FileInitializer** (`internal/init/files.go`):
 - **Sample Goals**: "Morning Exercise" (simple), "Daily Reading" (elastic)
@@ -448,7 +475,7 @@ type Paths struct {
 - **User Guidance**: Comments and examples in generated files
 - **Atomic Creation**: Check-and-create pattern to avoid overwrites
 
-### 4.4 Testing Strategies
+### Testing Strategies
 
 **Headless Testing Architecture:**
 ```go
@@ -463,37 +490,39 @@ func (c *SimpleGoalCreator) CreateGoalDirectly(data SimpleGoalData) (*Goal, erro
 **Testing Pyramid:**
 - **Unit Tests**: Individual component behavior, validation logic
 - **Integration Tests**: Component collaboration, file I/O, scoring engine
+- **UI Component Tests**: Entry collection flows with mocked dependencies (T010)
 - **Compatibility Tests**: Real user data patterns, schema evolution
 - **Manual UI Testing**: Interactive terminal verification (limited automation)
 
-## 5. Extension Points
+## Extension Points
 
-### 5.1 Adding New Goal Types
+### Adding New Goal Types
 
 **Goal Type Extension Pattern:**
 1. **Model Extension**: Add new goal type constant and validation rules
 2. **Parser Support**: YAML structure definition and parsing logic
-3. **UI Handler**: Implement `GoalEntryHandler` interface for entry collection
+3. **UI Handler**: Implement `GoalEntryHandler` interface for entry collection (*see strategy pattern in [goal_collection_flow.svg](./diagrams/goal_collection_flow.svg)*)
 4. **Scoring Integration**: Extend scoring engine for new criteria types
 5. **Configuration UI**: Add goal creation wizard or form components
 
-**Example - Checklist Goal Addition:**
+**Example - Custom Goal Addition:**
 ```go
 // 1. Model extension
-const ChecklistGoal GoalType = "checklist"
+const CustomGoal GoalType = "custom"
 
 // 2. UI handler implementation  
-type ChecklistGoalHandler struct {
-    checklistParser *parser.ChecklistParser
-    scoringEngine   *scoring.Engine
+type CustomGoalHandler struct {
+    scoringEngine *scoring.Engine
+    validator     *validation.Engine
 }
 
-func (h *ChecklistGoalHandler) CollectEntry(goal Goal, existing *ExistingEntry) (*EntryResult, error) {
-    // Checklist-specific entry collection logic
+func (h *CustomGoalHandler) CollectEntry(goal Goal, existing *ExistingEntry) (*EntryResult, error) {
+    // Custom goal-specific entry collection logic
+    // Implement FieldValueInput interface for custom input types
 }
 ```
 
-### 5.2 Field Type Extensions
+### Field Type Extensions
 
 **Field Type Addition Process:**
 1. **Model Definition**: Add field type constant and validation
@@ -502,7 +531,9 @@ func (h *ChecklistGoalHandler) CollectEntry(goal Goal, existing *ExistingEntry) 
 4. **Scoring Support**: Extend criteria evaluation for new type
 5. **UI Integration**: Form generation and validation patterns
 
-### 5.3 Scoring Criteria Extensions
+*Field extension patterns follow the hierarchy design shown in [field_input_hierarchy.svg](./diagrams/field_input_hierarchy.svg).*
+
+### Scoring Criteria Extensions
 
 **Criteria Extension Architecture:**
 ```go
@@ -522,7 +553,7 @@ type Condition struct {
 - Validation rules for new criteria structures
 - UI components for criteria configuration
 
-### 5.4 Storage Format Evolution
+### Storage Format Evolution
 
 **Migration Strategy:**
 - **Version Headers**: Track schema version in all YAML files
@@ -541,3 +572,19 @@ func MigrateSchema(fromVersion, toVersion string, data []byte) ([]byte, error) {
     }
 }
 ```
+
+## Diagram Integration Notes
+
+The architectural diagrams referenced throughout this document provide visual representations of:
+
+1. **System Context**: How the entry system integrates with the broader iter application ecosystem
+2. **Container Architecture**: The internal structure of the entry collection system and its components
+3. **Component Hierarchy**: Field input component relationships and inheritance patterns
+4. **Process Flow**: How goal-based entry collection routes through different handlers and validation steps
+
+These diagrams complement the textual descriptions and serve as implementation guides for developers working on the system. They are particularly valuable for understanding the component relationships in the UI layer and the process flow implications of architectural decisions.
+
+For the most current versions of these diagrams, refer to the [diagrams](./diagrams) directory.
+
+
+
