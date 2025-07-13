@@ -29,13 +29,25 @@ const (
 	AchievementMaxi AchievementLevel = "maxi" // Maximum achievement level
 )
 
+// EntryStatus represents the completion status of a goal entry.
+type EntryStatus string
+
+// Entry status values define the state of goal completion.
+const (
+	EntryCompleted EntryStatus = "completed" // Goal successfully completed
+	EntrySkipped   EntryStatus = "skipped"   // Goal skipped due to circumstances
+	EntryFailed    EntryStatus = "failed"    // Goal attempted but not achieved
+)
+
 // GoalEntry represents the completion data for a single goal on a specific day.
 type GoalEntry struct {
 	GoalID           string            `yaml:"goal_id"`
-	Value            interface{}       `yaml:"value"`
+	Value            interface{}       `yaml:"value,omitempty"`              // nil for skipped entries
 	AchievementLevel *AchievementLevel `yaml:"achievement_level,omitempty"` // For elastic goals
-	CompletedAt      *time.Time        `yaml:"completed_at,omitempty"`
 	Notes            string            `yaml:"notes,omitempty"`
+	CreatedAt        time.Time         `yaml:"created_at"`                   // Entry creation time
+	UpdatedAt        *time.Time        `yaml:"updated_at,omitempty"`         // Last modification time (nil if never updated)
+	Status           EntryStatus       `yaml:"status"`                       // Entry completion status
 }
 
 // BooleanEntry is a convenience type for boolean goal entries.
@@ -101,6 +113,51 @@ func (de *DayEntry) Validate() error {
 	return nil
 }
 
+// IsSkipped returns true if this goal entry was skipped.
+func (ge *GoalEntry) IsSkipped() bool {
+	return ge.Status == EntrySkipped
+}
+
+// IsCompleted returns true if this goal entry was completed successfully.
+func (ge *GoalEntry) IsCompleted() bool {
+	return ge.Status == EntryCompleted
+}
+
+// HasFailure returns true if this goal entry failed.
+func (ge *GoalEntry) HasFailure() bool {
+	return ge.Status == EntryFailed
+}
+
+// IsFinalized returns true if this goal entry has been processed (has status).
+func (ge *GoalEntry) IsFinalized() bool {
+	return ge.Status != ""
+}
+
+// RequiresValue returns true if this goal entry should have a value.
+func (ge *GoalEntry) RequiresValue() bool {
+	return ge.Status != EntrySkipped
+}
+
+// MarkCreated sets the CreatedAt timestamp to the current time.
+func (ge *GoalEntry) MarkCreated() {
+	ge.CreatedAt = time.Now()
+}
+
+// MarkUpdated sets the UpdatedAt timestamp to the current time.
+func (ge *GoalEntry) MarkUpdated() {
+	now := time.Now()
+	ge.UpdatedAt = &now
+}
+
+// GetLastModified returns the most recent modification time.
+// Returns UpdatedAt if set, otherwise CreatedAt.
+func (ge *GoalEntry) GetLastModified() time.Time {
+	if ge.UpdatedAt != nil {
+		return *ge.UpdatedAt
+	}
+	return ge.CreatedAt
+}
+
 // Validate validates a goal entry for correctness.
 func (ge *GoalEntry) Validate() error {
 	// Goal ID is required
@@ -108,9 +165,33 @@ func (ge *GoalEntry) Validate() error {
 		return fmt.Errorf("goal ID is required")
 	}
 
-	// Value is required (can be false for booleans, but not nil)
-	if ge.Value == nil {
-		return fmt.Errorf("goal value is required")
+	// Status is required
+	if ge.Status == "" {
+		return fmt.Errorf("entry status is required")
+	}
+
+	// Validate status value
+	if !isValidEntryStatus(ge.Status) {
+		return fmt.Errorf("invalid entry status: %s", ge.Status)
+	}
+
+	// Status-based validation
+	switch ge.Status {
+	case EntrySkipped:
+		// Skipped entries should not have values or achievement levels
+		if ge.Value != nil {
+			return fmt.Errorf("skipped entries cannot have values")
+		}
+		if ge.AchievementLevel != nil {
+			return fmt.Errorf("skipped entries cannot have achievement levels")
+		}
+	case EntryCompleted, EntryFailed:
+		// Completed and failed entries must have values
+		if ge.Value == nil {
+			return fmt.Errorf("completed and failed entries must have values")
+		}
+	default:
+		return fmt.Errorf("unknown entry status: %s", ge.Status)
 	}
 
 	// Validate achievement level if present
@@ -118,6 +199,11 @@ func (ge *GoalEntry) Validate() error {
 		if !isValidAchievementLevel(*ge.AchievementLevel) {
 			return fmt.Errorf("invalid achievement level: %s", *ge.AchievementLevel)
 		}
+	}
+
+	// Validate timestamps
+	if ge.CreatedAt.IsZero() {
+		return fmt.Errorf("created_at timestamp is required")
 	}
 
 	return nil
@@ -269,27 +355,54 @@ func CreateTodayEntry() DayEntry {
 
 // CreateBooleanGoalEntry creates a new goal entry for a boolean goal.
 func CreateBooleanGoalEntry(goalID string, completed bool) GoalEntry {
-	return GoalEntry{
+	entry := GoalEntry{
 		GoalID: goalID,
 		Value:  completed,
 	}
+	if completed {
+		entry.Status = EntryCompleted
+	} else {
+		entry.Status = EntryFailed
+	}
+	entry.MarkCreated()
+	return entry
 }
 
 // CreateElasticGoalEntry creates a new goal entry for an elastic goal with achievement level.
 func CreateElasticGoalEntry(goalID string, value interface{}, level AchievementLevel) GoalEntry {
-	return GoalEntry{
+	entry := GoalEntry{
 		GoalID:           goalID,
 		Value:            value,
 		AchievementLevel: &level,
 	}
+	if level == AchievementNone {
+		entry.Status = EntryFailed
+	} else {
+		entry.Status = EntryCompleted
+	}
+	entry.MarkCreated()
+	return entry
 }
 
 // CreateValueOnlyGoalEntry creates a new goal entry with just a value (no achievement level).
 func CreateValueOnlyGoalEntry(goalID string, value interface{}) GoalEntry {
-	return GoalEntry{
+	entry := GoalEntry{
 		GoalID: goalID,
 		Value:  value,
+		Status: EntryCompleted,
 	}
+	entry.MarkCreated()
+	return entry
+}
+
+// CreateSkippedGoalEntry creates a new goal entry that was skipped.
+func CreateSkippedGoalEntry(goalID string) GoalEntry {
+	entry := GoalEntry{
+		GoalID: goalID,
+		Status: EntrySkipped,
+	}
+	entry.MarkCreated()
+	return entry
 }
 
 // IsToday checks if this day entry is for today's date.
@@ -348,6 +461,16 @@ func (el *EntryLog) GetEntriesForDateRange(startDate, endDate string) ([]DayEntr
 func isValidAchievementLevel(level AchievementLevel) bool {
 	switch level {
 	case AchievementNone, AchievementMini, AchievementMidi, AchievementMaxi:
+		return true
+	default:
+		return false
+	}
+}
+
+// isValidEntryStatus checks if an entry status is valid.
+func isValidEntryStatus(status EntryStatus) bool {
+	switch status {
+	case EntryCompleted, EntrySkipped, EntryFailed:
 		return true
 	default:
 		return false

@@ -350,12 +350,35 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 ### Sub-tasks:
 
 #### Phase 1: Data Model Foundation
-- [ ] **1.1: Implement Entry Status Enum + Timestamp Improvements**
-  - [ ] Add `EntryStatus` enum (completed, skipped, failed)
-  - [ ] Replace `CompletedAt` with `CreatedAt` + `UpdatedAt` fields
-  - [ ] Implement status-based helper methods (IsSkipped, IsCompleted, HasFailure, RequiresValue)
-  - [ ] Update GoalEntry validation for status-based logic
-  - [ ] Timestamp management methods (MarkCreated, MarkUpdated, GetLastModified)
+- [x] **1.1: Implement Entry Status Enum + Timestamp Improvements** ✅ COMPLETED
+  - [x] Add `EntryStatus` enum (completed, skipped, failed) - Added to `internal/models/entry.go:32-40`
+  - [x] Replace `CompletedAt` with `CreatedAt` + `UpdatedAt` fields - Updated GoalEntry struct with clean timestamp semantics
+  - [x] Implement status-based helper methods (IsSkipped, IsCompleted, HasFailure, RequiresValue) - Added at `internal/models/entry.go:116-139`
+  - [x] Update GoalEntry validation for status-based logic - Enhanced validation prevents invalid state combinations
+  - [x] Timestamp management methods (MarkCreated, MarkUpdated, GetLastModified) - Added at `internal/models/entry.go:141-159`
+
+  **Implementation Details for 1.1:**
+  - **EntryStatus enum** provides single source of truth for entry state (completed/skipped/failed)
+  - **Timestamp refactor** replaces confusing `CompletedAt` with clear `CreatedAt` (required) + `UpdatedAt` (optional) semantics
+  - **Status-based validation** prevents impossible states (skipped + value, failed without value) with type safety
+  - **Factory functions updated** - Enhanced existing factory methods + added `CreateSkippedGoalEntry()` for skipped entries
+  - **Helper methods** enable clean business logic with readable status-based switch statements
+  - **Comprehensive testing** - All existing tests updated, new skip functionality tests added
+  - **Storage layer compatibility** - Updated UI entry creation and storage sample data generation
+  
+  **Files Modified:**
+  - `internal/models/entry.go` - Core data model changes
+  - `internal/models/entry_test.go` - Updated all tests + added new skip tests
+  - `internal/ui/entry.go` - Updated entry creation to use new structure
+  - `internal/ui/entry_test.go` - Fixed test entry creation
+  - `internal/storage/entries.go` - Updated CreateSampleEntryLog method
+  - `internal/storage/entries_test.go` - Fixed all storage tests + YAML test data
+  
+  **Quality Assurance:**
+  - All tests passing (models, UI, storage packages)
+  - Linter clean (0 issues)
+  - Build successful across all packages
+  - Future-compatible design ready for UI phase implementation
 
 - [ ] **1.2: Update Entry Storage & Persistence**
   - [ ] Handle EntryStatus + timestamp serialization/deserialization
@@ -460,13 +483,25 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 
 ## 7. Notes & Next Steps
 
-**Current Status**: Design complete, ready for implementation
+**Current Status**: Phase 1.1 Complete - Data Model Foundation Implemented
 **Dependencies**: T010 completion provides foundation for skip functionality
 **Implementation Approach**: Extend existing system without architectural changes
 **Compatibility**: Future-compatible with planned flexible habit frequencies and enhanced analytics
 
+**Phase 1.1 Completion Notes (2025-07-13):**
+- Successfully implemented EntryStatus enum (completed/skipped/failed) providing single source of truth
+- Replaced confusing CompletedAt timestamp with clear CreatedAt/UpdatedAt semantics
+- Added comprehensive status-based helper methods enabling clean business logic
+- Enhanced validation prevents impossible state combinations (type safety)
+- Updated all factory functions with automatic timestamp management
+- Fixed all existing tests across models, UI, and storage packages
+- Updated YAML test data to include new required fields
+- Added comprehensive tests for skip functionality
+- All quality checks passing (tests, linter, build)
+- Ready for Phase 2: UI Components Enhancement
+
 **Technical Foundation:**
-- Data model extension with backward compatibility
-- UI enhancement using existing component patterns
-- Analytics integration with existing completion tracking
-- Testing strategy following established T010 patterns
+- Data model extension with backward compatibility ✅ 
+- UI enhancement using existing component patterns (Next: Phase 2)
+- Analytics integration with existing completion tracking (Next: Phase 4)
+- Testing strategy following established T010 patterns ✅

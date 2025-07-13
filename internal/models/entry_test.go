@@ -17,8 +17,10 @@ func TestEntryLog_Validate(t *testing.T) {
 					Date: "2024-01-01",
 					Goals: []GoalEntry{
 						{
-							GoalID: "morning_meditation",
-							Value:  true,
+							GoalID:    "morning_meditation",
+							Value:     true,
+							Status:    EntryCompleted,
+							CreatedAt: time.Now(),
 						},
 					},
 				},
@@ -71,12 +73,16 @@ func TestDayEntry_Validate(t *testing.T) {
 			Date: "2024-01-01",
 			Goals: []GoalEntry{
 				{
-					GoalID: "meditation",
-					Value:  true,
+					GoalID:    "meditation",
+					Value:     true,
+					Status:    EntryCompleted,
+					CreatedAt: time.Now(),
 				},
 				{
-					GoalID: "exercise",
-					Value:  false,
+					GoalID:    "exercise",
+					Value:     false,
+					Status:    EntryFailed,
+					CreatedAt: time.Now(),
 				},
 			},
 		}
@@ -108,8 +114,8 @@ func TestDayEntry_Validate(t *testing.T) {
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
 			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: true},
-				{GoalID: "meditation", Value: false}, // Duplicate
+				{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
+				{GoalID: "meditation", Value: false, Status: EntryFailed, CreatedAt: time.Now()}, // Duplicate
 			},
 		}
 
@@ -134,8 +140,10 @@ func TestDayEntry_Validate(t *testing.T) {
 func TestGoalEntry_Validate(t *testing.T) {
 	t.Run("valid boolean goal entry", func(t *testing.T) {
 		goalEntry := GoalEntry{
-			GoalID: "meditation",
-			Value:  true,
+			GoalID:    "meditation",
+			Value:     true,
+			Status:    EntryCompleted,
+			CreatedAt: time.Now(),
 		}
 
 		err := goalEntry.Validate()
@@ -144,9 +152,11 @@ func TestGoalEntry_Validate(t *testing.T) {
 
 	t.Run("valid goal entry with notes", func(t *testing.T) {
 		goalEntry := GoalEntry{
-			GoalID: "exercise",
-			Value:  false,
-			Notes:  "Was feeling sick today",
+			GoalID:    "exercise",
+			Value:     false,
+			Status:    EntryFailed,
+			CreatedAt: time.Now(),
+			Notes:     "Was feeling sick today",
 		}
 
 		err := goalEntry.Validate()
@@ -155,7 +165,9 @@ func TestGoalEntry_Validate(t *testing.T) {
 
 	t.Run("goal ID is required", func(t *testing.T) {
 		goalEntry := GoalEntry{
-			Value: true,
+			Value:     true,
+			Status:    EntryCompleted,
+			CreatedAt: time.Now(),
 		}
 
 		err := goalEntry.Validate()
@@ -164,22 +176,26 @@ func TestGoalEntry_Validate(t *testing.T) {
 
 	t.Run("whitespace-only goal ID is invalid", func(t *testing.T) {
 		goalEntry := GoalEntry{
-			GoalID: "   ",
-			Value:  true,
+			GoalID:    "   ",
+			Value:     true,
+			Status:    EntryCompleted,
+			CreatedAt: time.Now(),
 		}
 
 		err := goalEntry.Validate()
 		assert.EqualError(t, err, "goal ID is required")
 	})
 
-	t.Run("value is required", func(t *testing.T) {
+	t.Run("value is required for completed/failed entries", func(t *testing.T) {
 		goalEntry := GoalEntry{
-			GoalID: "meditation",
+			GoalID:    "meditation",
+			Status:    EntryCompleted,
+			CreatedAt: time.Now(),
 			// Value is nil
 		}
 
 		err := goalEntry.Validate()
-		assert.EqualError(t, err, "goal value is required")
+		assert.EqualError(t, err, "completed and failed entries must have values")
 	})
 }
 
@@ -212,7 +228,7 @@ func TestEntryLog_AddDayEntry(t *testing.T) {
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
 			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: true},
+				{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
 			},
 		}
 
@@ -259,7 +275,7 @@ func TestEntryLog_UpdateDayEntry(t *testing.T) {
 				{
 					Date: "2024-01-01",
 					Goals: []GoalEntry{
-						{GoalID: "meditation", Value: false},
+						{GoalID: "meditation", Value: false, Status: EntryFailed, CreatedAt: time.Now()},
 					},
 				},
 			},
@@ -268,8 +284,8 @@ func TestEntryLog_UpdateDayEntry(t *testing.T) {
 		updatedEntry := DayEntry{
 			Date: "2024-01-01",
 			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: true},
-				{GoalID: "exercise", Value: true},
+				{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
+				{GoalID: "exercise", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
 			},
 		}
 
@@ -285,7 +301,7 @@ func TestEntryLog_UpdateDayEntry(t *testing.T) {
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
 			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: true},
+				{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
 			},
 		}
 
@@ -299,8 +315,8 @@ func TestDayEntry_GetGoalEntry(t *testing.T) {
 	dayEntry := DayEntry{
 		Date: "2024-01-01",
 		Goals: []GoalEntry{
-			{GoalID: "meditation", Value: true},
-			{GoalID: "exercise", Value: false},
+			{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
+			{GoalID: "exercise", Value: false, Status: EntryFailed, CreatedAt: time.Now()},
 		},
 	}
 
@@ -327,8 +343,10 @@ func TestDayEntry_AddGoalEntry(t *testing.T) {
 		}
 
 		goalEntry := GoalEntry{
-			GoalID: "meditation",
-			Value:  true,
+			GoalID:    "meditation",
+			Value:     true,
+			Status:    EntryCompleted,
+			CreatedAt: time.Now(),
 		}
 
 		err := dayEntry.AddGoalEntry(goalEntry)
@@ -341,13 +359,15 @@ func TestDayEntry_AddGoalEntry(t *testing.T) {
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
 			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: true},
+				{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
 			},
 		}
 
 		goalEntry := GoalEntry{
-			GoalID: "meditation",
-			Value:  false,
+			GoalID:    "meditation",
+			Value:     false,
+			Status:    EntryFailed,
+			CreatedAt: time.Now(),
 		}
 
 		err := dayEntry.AddGoalEntry(goalEntry)
@@ -360,14 +380,16 @@ func TestDayEntry_UpdateGoalEntry(t *testing.T) {
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
 			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: false},
+				{GoalID: "meditation", Value: false, Status: EntryFailed, CreatedAt: time.Now()},
 			},
 		}
 
 		updatedGoal := GoalEntry{
-			GoalID: "meditation",
-			Value:  true,
-			Notes:  "Had a great session",
+			GoalID:    "meditation",
+			Value:     true,
+			Notes:     "Had a great session",
+			Status:    EntryCompleted,
+			CreatedAt: time.Now(),
 		}
 
 		err := dayEntry.UpdateGoalEntry(updatedGoal)
@@ -384,8 +406,10 @@ func TestDayEntry_UpdateGoalEntry(t *testing.T) {
 		}
 
 		goalEntry := GoalEntry{
-			GoalID: "meditation",
-			Value:  true,
+			GoalID:    "meditation",
+			Value:     true,
+			Status:    EntryCompleted,
+			CreatedAt: time.Now(),
 		}
 
 		err := dayEntry.UpdateGoalEntry(goalEntry)
@@ -397,8 +421,10 @@ func TestDayEntry_UpdateGoalEntry(t *testing.T) {
 func TestGoalEntry_BooleanValue(t *testing.T) {
 	t.Run("get boolean value", func(t *testing.T) {
 		goalEntry := GoalEntry{
-			GoalID: "meditation",
-			Value:  true,
+			GoalID:    "meditation",
+			Value:     true,
+			Status:    EntryCompleted,
+			CreatedAt: time.Now(),
 		}
 
 		value, ok := goalEntry.GetBooleanValue()
@@ -419,8 +445,10 @@ func TestGoalEntry_BooleanValue(t *testing.T) {
 
 	t.Run("set boolean value", func(t *testing.T) {
 		goalEntry := GoalEntry{
-			GoalID: "meditation",
-			Value:  false,
+			GoalID:    "meditation",
+			Value:     false,
+			Status:    EntryFailed,
+			CreatedAt: time.Now(),
 		}
 
 		goalEntry.SetBooleanValue(true)
@@ -547,8 +575,10 @@ func TestEntryLog_GetEntriesForDateRange(t *testing.T) {
 func TestGoalEntry_AchievementLevel(t *testing.T) {
 	t.Run("GetAchievementLevel with no level set", func(t *testing.T) {
 		entry := GoalEntry{
-			GoalID: "test_goal",
-			Value:  30,
+			GoalID:    "test_goal",
+			Value:     30,
+			Status:    EntryCompleted,
+			CreatedAt: time.Now(),
 		}
 
 		level, ok := entry.GetAchievementLevel()
@@ -559,8 +589,10 @@ func TestGoalEntry_AchievementLevel(t *testing.T) {
 
 	t.Run("SetAchievementLevel and GetAchievementLevel", func(t *testing.T) {
 		entry := GoalEntry{
-			GoalID: "test_goal",
-			Value:  30,
+			GoalID:    "test_goal",
+			Value:     30,
+			Status:    EntryCompleted,
+			CreatedAt: time.Now(),
 		}
 
 		entry.SetAchievementLevel(AchievementMidi)
@@ -577,6 +609,8 @@ func TestGoalEntry_AchievementLevel(t *testing.T) {
 			GoalID:           "test_goal",
 			Value:            30,
 			AchievementLevel: &level,
+			Status:           EntryCompleted,
+			CreatedAt:        time.Now(),
 		}
 
 		assert.True(t, entry.HasAchievementLevel())
@@ -603,6 +637,8 @@ func TestGoalEntry_AchievementLevel(t *testing.T) {
 				GoalID:           "test_goal",
 				Value:            30,
 				AchievementLevel: &level,
+				Status:           EntryCompleted,
+				CreatedAt:        time.Now(),
 			}
 
 			err := entry.Validate()
@@ -616,6 +652,8 @@ func TestGoalEntry_AchievementLevel(t *testing.T) {
 			GoalID:           "test_goal",
 			Value:            30,
 			AchievementLevel: &invalidLevel,
+			Status:           EntryCompleted,
+			CreatedAt:        time.Now(),
 		}
 
 		err := entry.Validate()
@@ -644,6 +682,85 @@ func TestCreateValueOnlyGoalEntry(t *testing.T) {
 		assert.Equal(t, "reading", entry.GoalID)
 		assert.Equal(t, "30 minutes", entry.Value)
 		assert.False(t, entry.HasAchievementLevel())
+	})
+}
+
+func TestCreateSkippedGoalEntry(t *testing.T) {
+	t.Run("create skipped goal entry", func(t *testing.T) {
+		entry := CreateSkippedGoalEntry("meditation")
+
+		assert.Equal(t, "meditation", entry.GoalID)
+		assert.Nil(t, entry.Value)
+		assert.Nil(t, entry.AchievementLevel)
+		assert.Equal(t, EntrySkipped, entry.Status)
+		assert.False(t, entry.CreatedAt.IsZero())
+		assert.True(t, entry.IsSkipped())
+		assert.False(t, entry.RequiresValue())
+
+		// Validate the skipped entry
+		err := entry.Validate()
+		assert.NoError(t, err)
+	})
+}
+
+func TestGoalEntry_StatusHelperMethods(t *testing.T) {
+	t.Run("completed entry", func(t *testing.T) {
+		entry := CreateBooleanGoalEntry("meditation", true)
+
+		assert.True(t, entry.IsCompleted())
+		assert.False(t, entry.IsSkipped())
+		assert.False(t, entry.HasFailure())
+		assert.True(t, entry.IsFinalized())
+		assert.True(t, entry.RequiresValue())
+	})
+
+	t.Run("failed entry", func(t *testing.T) {
+		entry := CreateBooleanGoalEntry("exercise", false)
+
+		assert.False(t, entry.IsCompleted())
+		assert.False(t, entry.IsSkipped())
+		assert.True(t, entry.HasFailure())
+		assert.True(t, entry.IsFinalized())
+		assert.True(t, entry.RequiresValue())
+	})
+
+	t.Run("skipped entry", func(t *testing.T) {
+		entry := CreateSkippedGoalEntry("reading")
+
+		assert.False(t, entry.IsCompleted())
+		assert.True(t, entry.IsSkipped())
+		assert.False(t, entry.HasFailure())
+		assert.True(t, entry.IsFinalized())
+		assert.False(t, entry.RequiresValue())
+	})
+}
+
+func TestGoalEntry_TimestampMethods(t *testing.T) {
+	t.Run("mark created and updated", func(t *testing.T) {
+		entry := GoalEntry{
+			GoalID: "test",
+			Value:  true,
+			Status: EntryCompleted,
+		}
+
+		// Test MarkCreated
+		entry.MarkCreated()
+		assert.False(t, entry.CreatedAt.IsZero())
+		assert.Nil(t, entry.UpdatedAt)
+
+		originalCreated := entry.CreatedAt
+		lastModified := entry.GetLastModified()
+		assert.Equal(t, originalCreated, lastModified)
+
+		// Test MarkUpdated
+		time.Sleep(1 * time.Millisecond) // Ensure different timestamp
+		entry.MarkUpdated()
+		assert.NotNil(t, entry.UpdatedAt)
+		assert.True(t, entry.UpdatedAt.After(originalCreated))
+
+		// GetLastModified should now return UpdatedAt
+		lastModified = entry.GetLastModified()
+		assert.Equal(t, *entry.UpdatedAt, lastModified)
 	})
 }
 

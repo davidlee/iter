@@ -23,9 +23,13 @@ entries:
     goals:
       - goal_id: "morning_meditation"
         value: true
+        status: "completed"
+        created_at: "2024-01-01T10:00:00Z"
         notes: "Great session today"
       - goal_id: "daily_exercise"
         value: false
+        status: "failed"
+        created_at: "2024-01-01T18:00:00Z"
 `
 
 		entryLog, err := storage.ParseYAML([]byte(yamlData))
@@ -113,6 +117,8 @@ entries:
     goals:
       - goal_id: "meditation"
         value: true
+        status: "completed"
+        created_at: "2024-01-01T10:00:00Z"
 `
 
 		err := os.WriteFile(entriesFile, []byte(yamlContent), 0o600)
@@ -160,10 +166,7 @@ func TestEntryStorage_SaveToFile(t *testing.T) {
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
 			Goals: []models.GoalEntry{
-				{
-					GoalID: "meditation",
-					Value:  true,
-				},
+				models.CreateBooleanGoalEntry("meditation", true),
 			},
 		}
 		err := entryLog.AddDayEntry(dayEntry)
@@ -241,7 +244,7 @@ func TestEntryStorage_AddDayEntry(t *testing.T) {
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
 			Goals: []models.GoalEntry{
-				{GoalID: "meditation", Value: true},
+				models.CreateBooleanGoalEntry("meditation", true),
 			},
 		}
 
@@ -263,7 +266,7 @@ func TestEntryStorage_AddDayEntry(t *testing.T) {
 		initialEntry := models.DayEntry{
 			Date: "2024-01-01",
 			Goals: []models.GoalEntry{
-				{GoalID: "meditation", Value: true},
+				models.CreateBooleanGoalEntry("meditation", true),
 			},
 		}
 
@@ -274,7 +277,7 @@ func TestEntryStorage_AddDayEntry(t *testing.T) {
 		secondEntry := models.DayEntry{
 			Date: "2024-01-02",
 			Goals: []models.GoalEntry{
-				{GoalID: "exercise", Value: false},
+				models.CreateBooleanGoalEntry("exercise", false),
 			},
 		}
 
@@ -294,7 +297,7 @@ func TestEntryStorage_AddDayEntry(t *testing.T) {
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
 			Goals: []models.GoalEntry{
-				{GoalID: "meditation", Value: true},
+				models.CreateBooleanGoalEntry("meditation", true),
 			},
 		}
 
@@ -320,7 +323,7 @@ func TestEntryStorage_UpdateDayEntry(t *testing.T) {
 		initialEntry := models.DayEntry{
 			Date: "2024-01-01",
 			Goals: []models.GoalEntry{
-				{GoalID: "meditation", Value: false},
+				models.CreateBooleanGoalEntry("meditation", false),
 			},
 		}
 
@@ -331,8 +334,8 @@ func TestEntryStorage_UpdateDayEntry(t *testing.T) {
 		updatedEntry := models.DayEntry{
 			Date: "2024-01-01",
 			Goals: []models.GoalEntry{
-				{GoalID: "meditation", Value: true},
-				{GoalID: "exercise", Value: true},
+				models.CreateBooleanGoalEntry("meditation", true),
+				models.CreateBooleanGoalEntry("exercise", true),
 			},
 		}
 
@@ -353,7 +356,7 @@ func TestEntryStorage_UpdateDayEntry(t *testing.T) {
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
 			Goals: []models.GoalEntry{
-				{GoalID: "meditation", Value: true},
+				models.CreateBooleanGoalEntry("meditation", true),
 			},
 		}
 
@@ -378,7 +381,7 @@ func TestEntryStorage_GetDayEntry(t *testing.T) {
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
 			Goals: []models.GoalEntry{
-				{GoalID: "meditation", Value: true},
+				models.CreateBooleanGoalEntry("meditation", true),
 			},
 		}
 
@@ -420,7 +423,7 @@ func TestEntryStorage_GetTodayEntry(t *testing.T) {
 		dayEntry := models.DayEntry{
 			Date: today,
 			Goals: []models.GoalEntry{
-				{GoalID: "meditation", Value: true},
+				models.CreateBooleanGoalEntry("meditation", true),
 			},
 		}
 
@@ -453,10 +456,7 @@ func TestEntryStorage_GoalEntry(t *testing.T) {
 		require.NoError(t, err)
 
 		// Add goal entry
-		goalEntry := models.GoalEntry{
-			GoalID: "meditation",
-			Value:  true,
-		}
+		goalEntry := models.CreateBooleanGoalEntry("meditation", true)
 
 		err = storage.AddGoalEntry(entriesFile, "2024-01-01", goalEntry)
 		require.NoError(t, err)
@@ -472,10 +472,7 @@ func TestEntryStorage_GoalEntry(t *testing.T) {
 		tempDir := t.TempDir()
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
-		goalEntry := models.GoalEntry{
-			GoalID: "meditation",
-			Value:  true,
-		}
+		goalEntry := models.CreateBooleanGoalEntry("meditation", true)
 
 		err := storage.AddGoalEntry(entriesFile, "2024-01-01", goalEntry)
 		require.NoError(t, err)
@@ -493,20 +490,14 @@ func TestEntryStorage_GoalEntry(t *testing.T) {
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
 		// Add initial goal entry
-		goalEntry := models.GoalEntry{
-			GoalID: "meditation",
-			Value:  false,
-		}
+		goalEntry := models.CreateBooleanGoalEntry("meditation", false)
 
 		err := storage.AddGoalEntry(entriesFile, "2024-01-01", goalEntry)
 		require.NoError(t, err)
 
 		// Update goal entry
-		updatedGoal := models.GoalEntry{
-			GoalID: "meditation",
-			Value:  true,
-			Notes:  "Great session!",
-		}
+		updatedGoal := models.CreateBooleanGoalEntry("meditation", true)
+		updatedGoal.Notes = "Great session!"
 
 		err = storage.UpdateGoalEntry(entriesFile, "2024-01-01", updatedGoal)
 		require.NoError(t, err)
@@ -523,10 +514,7 @@ func TestEntryStorage_GoalEntry(t *testing.T) {
 		tempDir := t.TempDir()
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
-		goalEntry := models.GoalEntry{
-			GoalID: "meditation",
-			Value:  true,
-		}
+		goalEntry := models.CreateBooleanGoalEntry("meditation", true)
 
 		err := storage.UpdateTodayGoalEntry(entriesFile, goalEntry)
 		require.NoError(t, err)
@@ -553,7 +541,7 @@ func TestEntryStorage_GetEntriesForDateRange(t *testing.T) {
 			dayEntry := models.DayEntry{
 				Date: date,
 				Goals: []models.GoalEntry{
-					{GoalID: "meditation", Value: true},
+					models.CreateBooleanGoalEntry("meditation", true),
 				},
 			}
 			err := storage.AddDayEntry(entriesFile, dayEntry)

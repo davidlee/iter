@@ -163,8 +163,9 @@ func (ec *EntryCollector) saveEntries(entriesFile string) error {
 			Value:            value,
 			AchievementLevel: ec.achievements[goal.ID], // Will be nil for simple/informational goals
 			Notes:            ec.notes[goal.ID],
-			CompletedAt:      timePtr(time.Now()),
+			Status:           models.EntryCompleted, // Default to completed for now
 		}
+		goalEntry.MarkCreated()
 
 		goalEntries = append(goalEntries, goalEntry)
 	}

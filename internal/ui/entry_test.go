@@ -34,14 +34,18 @@ func TestEntryCollector_loadExistingEntries(t *testing.T) {
 			Date: today,
 			Goals: []models.GoalEntry{
 				{
-					GoalID: "meditation",
-					Value:  true,
-					Notes:  "Great session",
+					GoalID:    "meditation",
+					Value:     true,
+					Notes:     "Great session",
+					Status:    models.EntryCompleted,
+					CreatedAt: time.Now(),
 				},
 				{
-					GoalID: "exercise",
-					Value:  false,
-					Notes:  "Too tired",
+					GoalID:    "exercise",
+					Value:     false,
+					Notes:     "Too tired",
+					Status:    models.EntryFailed,
+					CreatedAt: time.Now(),
 				},
 			},
 		}
@@ -73,7 +77,7 @@ func TestEntryCollector_loadExistingEntries(t *testing.T) {
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
 			Goals: []models.GoalEntry{
-				{GoalID: "meditation", Value: true},
+				{GoalID: "meditation", Value: true, Status: models.EntryCompleted, CreatedAt: time.Now()},
 			},
 		}
 		err := entryLog.AddDayEntry(dayEntry)
@@ -148,14 +152,14 @@ func TestEntryCollector_saveEntries(t *testing.T) {
 		assert.Equal(t, "meditation", meditationGoal.GoalID)
 		assert.Equal(t, true, meditationGoal.Value)
 		assert.Equal(t, "Peaceful session", meditationGoal.Notes)
-		assert.NotNil(t, meditationGoal.CompletedAt)
+		assert.False(t, meditationGoal.CreatedAt.IsZero())
 
 		// Check exercise goal
 		exerciseGoal := entryLog.Entries[0].Goals[1]
 		assert.Equal(t, "exercise", exerciseGoal.GoalID)
 		assert.Equal(t, false, exerciseGoal.Value)
 		assert.Equal(t, "", exerciseGoal.Notes)
-		assert.NotNil(t, exerciseGoal.CompletedAt)
+		assert.False(t, exerciseGoal.CreatedAt.IsZero())
 	})
 
 	t.Run("skip unprocessed goals", func(t *testing.T) {
