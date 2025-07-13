@@ -12,6 +12,8 @@ import (
 
 // AIDEV-NOTE: flow-implementations; concrete implementations of goal collection flow methods
 // Provides scoring, feedback display, and notes collection for each goal type flow
+// AIDEV-NOTE: T010/3.1-implementation-details; SimpleGoalCollectionFlow methods fully implemented and tested
+// Key methods: performAutomaticScoring (elastic conversion), determineManualAchievement (field-type aware), collectOptionalNotes
 
 // Simple Goal Flow Implementations
 

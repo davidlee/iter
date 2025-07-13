@@ -9,6 +9,8 @@ import (
 
 // AIDEV-NOTE: goal-collection-flows; defines specialized collection flows for each goal type with field input integration
 // Integrates T010/1.2 field input components with goal type-specific behaviors and scoring patterns
+// AIDEV-NOTE: T010/3.1-complete; SimpleGoalCollectionFlow fully implemented with headless testing support
+// Features: pass/fail logic, field type support (all except checklist), automatic/manual scoring, notes collection
 
 // GoalCollectionFlow defines the interface for goal type-specific collection flows
 type GoalCollectionFlow interface {
@@ -170,6 +172,14 @@ func NewElasticGoalCollectionFlow(factory *EntryFieldInputFactory, scoringEngine
 	}
 }
 
+// NewElasticGoalCollectionFlowForTesting creates a flow for testing that bypasses user interaction
+func NewElasticGoalCollectionFlowForTesting(factory *EntryFieldInputFactory, scoringEngine *scoring.Engine) *ElasticGoalCollectionFlow {
+	return &ElasticGoalCollectionFlow{
+		factory:       factory,
+		scoringEngine: scoringEngine,
+	}
+}
+
 // CollectEntry collects entry for elastic goals with immediate achievement calculation
 func (f *ElasticGoalCollectionFlow) CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error) {
 	// Elastic goals focus on achievement levels with immediate feedback
@@ -237,6 +247,80 @@ func (f *ElasticGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exi
 		AchievementLevel: achievementLevel,
 		Notes:            notes,
 	}, nil
+}
+
+// CollectEntryDirectly bypasses UI interaction and creates entry directly from provided value
+func (f *ElasticGoalCollectionFlow) CollectEntryDirectly(goal models.Goal, value interface{}, notes string, _ *ExistingEntry) (*EntryResult, error) {
+	// Handle scoring based on goal configuration
+	var achievementLevel *models.AchievementLevel
+	if goal.ScoringType == models.AutomaticScoring {
+		// Automatic scoring with three-tier criteria
+		level, err := f.performElasticScoring(goal, value)
+		if err != nil {
+			return nil, fmt.Errorf("elastic scoring failed: %w", err)
+		}
+		achievementLevel = level
+	} else {
+		// For testing, determine achievement level based on value patterns
+		level := f.determineTestingAchievementLevel(goal, value)
+		achievementLevel = level
+	}
+
+	return &EntryResult{
+		Value:            value,
+		AchievementLevel: achievementLevel,
+		Notes:            notes,
+	}, nil
+}
+
+// determineTestingAchievementLevel provides simplified achievement determination for testing
+func (f *ElasticGoalCollectionFlow) determineTestingAchievementLevel(goal models.Goal, value interface{}) *models.AchievementLevel {
+	// Simplified logic for testing - in real scenarios, manual selection would be used
+	switch goal.FieldType.Type {
+	case models.BooleanFieldType:
+		if boolVal, ok := value.(bool); ok && boolVal {
+			level := models.AchievementMini
+			return &level
+		}
+	case models.UnsignedIntFieldType, models.UnsignedDecimalFieldType, models.DecimalFieldType:
+		// Simple numeric achievement level determination for testing
+		if numVal, ok := value.(float64); ok {
+			switch {
+			case numVal >= 100:
+				level := models.AchievementMaxi
+				return &level
+			case numVal >= 50:
+				level := models.AchievementMidi
+				return &level
+			case numVal > 0:
+				level := models.AchievementMini
+				return &level
+			}
+		}
+		if intVal, ok := value.(int); ok {
+			switch {
+			case intVal >= 100:
+				level := models.AchievementMaxi
+				return &level
+			case intVal >= 50:
+				level := models.AchievementMidi
+				return &level
+			case intVal > 0:
+				level := models.AchievementMini
+				return &level
+			}
+		}
+	default:
+		// For other field types, default to Mini if value is provided
+		if value != nil {
+			level := models.AchievementMini
+			return &level
+		}
+	}
+
+	// Default to None
+	level := models.AchievementNone
+	return &level
 }
 
 // GetFlowType returns the goal type
