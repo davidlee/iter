@@ -24,6 +24,20 @@ High-level list of future features / improvements. Break into detailed task card
 
 - https://github.com/charmbracelet/fang
 
+## Testing & Quality Assurance
+
+**Performance Testing Infrastructure**
+- Performance testing for large goal sets (100+ goals)
+- Concurrent entry collection testing for multi-user scenarios
+- Memory usage testing for extended sessions
+- Benchmark testing for goal collection flow performance
+
+**Advanced Testing Scenarios**
+- Stress testing with complex goal schemas and criteria
+- Error recovery testing for interrupted entry sessions
+- Data integrity testing for concurrent read/write operations
+- Cross-platform testing for terminal compatibility
+
 # inspired by Harsh
 Looking at Harsh's unique features that Iter lacks, here's a prioritized list of improvements for Iter:
 

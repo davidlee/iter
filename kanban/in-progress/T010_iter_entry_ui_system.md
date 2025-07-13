@@ -2,7 +2,7 @@
 title: "Iter Entry: Goal Data Collection UI System"
 type: ["feature"] # feature | fix | documentation | testing | refactor | chore
 tags: ["ui", "data-collection", "scoring"] 
-related_tasks: ["depends:T009", "related-to:T005", "related-to:T007"] # T009 completes goal configuration support
+related_tasks: ["depends:T009", "related-to:T005", "related-to:T007", "spawned:T011"] # T009 completes goal configuration support, T011 extracted from T010/4.2
 context_windows: ["internal/ui/entry*.go", "internal/ui/entry/*.go", "internal/ui/*_handler.go", "internal/ui/goalconfig/*.go", "internal/models/*.go", "internal/scoring/*.go", "CLAUDE.md", "doc/workflow.md"] # List of glob patterns useful to build the context window required for this task
 ---
 
@@ -247,17 +247,38 @@ Building on T009's successful goal configuration patterns and existing entry.go 
   - [X] Immediate feedback display with achievement confirmation
   - [X] Error handling for scoring failures
 
-- [ ] **4.2: Enhanced User Experience**
-  - [ ] Progress indication (current goal position)
-  - [ ] Session navigation (skip, edit, review)
-  - [ ] Completion summary with achievement overview
-  - [ ] Enhanced styling following lipgloss patterns
+- [🔄] **4.2: Enhanced User Experience** → **EXTRACTED TO T011**
+  - [🔄] Progress indication (current goal position) → T011/1.2
+  - [🔄] Session navigation (skip, edit, review) → T011/2.1
+  - [🔄] Completion summary with achievement overview → T011/2.2
+  - [🔄] Enhanced styling following lipgloss patterns → T011/2.2
 
 - [ ] **4.3: Testing and Validation**
-  - [ ] Headless testing infrastructure (NewEntryCollectorForTesting)
-  - [ ] Unit tests for all field input components
-  - [ ] Integration tests for goal type collection flows
-  - [ ] End-to-end testing with real goal schemas
+  - [ ] **4.3.1: Headless Testing Infrastructure**
+    - [ ] Create NewEntryCollectorForTesting() constructor
+    - [ ] Add CollectTodayEntriesDirectly() method for headless testing
+    - [ ] Testing configuration support (custom paths, mock dependencies)
+  - [ ] **4.3.2: Complete Unit Test Coverage**
+    - [ ] EntryCollector initialization and dependency injection testing
+    - [ ] Entry collection workflow testing (all goal types)
+    - [ ] Entry persistence and loading round-trip testing
+    - [ ] Error handling and edge case coverage
+  - [ ] **4.3.3: End-to-End Integration Testing**
+    - [ ] Happy path test with complex_configuration.yml (all goal types)
+    - [ ] Basic workflow test with valid_simple_goal.yml (simple scenario)
+    - [ ] Entry persistence validation with real goal schemas
+  - [ ] **4.3.4: Manual Testing Documentation**
+    - [ ] Edge case testing checklist (invalid schemas, corrupted entries, etc.)
+    - [ ] Cross-platform compatibility testing guide
+    - [ ] Performance baseline documentation for goal set sizes
+
+**T010/4.3 Testing Strategy:**
+- **Focus**: Complete basic coverage with comprehensive unit tests
+- **Scope**: 1-2 basic end-to-end tests for happy path validation
+- **Edge Cases**: Manual testing documentation to supplement automated tests
+- **Test Data**: Use existing testdata/goals/ schema files (adapt/extend as needed)
+- **Pattern**: Follow established T009 headless testing patterns (NewXXXForTesting constructors)
+- **Coverage**: Essential functionality validation without comprehensive stress testing
 
 **Technical Implementation Notes:**
 - **Pattern Consistency**: Follow bubbletea + huh patterns established in T009 goal configuration
@@ -387,10 +408,16 @@ Building on T009's successful goal configuration patterns and existing entry.go 
 - **Testing Verified**: All existing tests pass, confirming successful integration without breaking existing functionality
 - **Performance**: Efficient flow creation and reuse through factory pattern with proper resource management
 
-**AIDEV-NOTE: T010-progress-checkpoint; Phase 2-4.1 complete - Core entry system with full scoring integration implemented**
-**Next logical step: T010/4.2 Enhanced User Experience (progress indication, session navigation) and T010/4.3 Testing**
-**Key integration points: Scoring engine integration complete, remaining work focuses on UX enhancements and comprehensive testing**
-**Architecture status: Complete goal collection system with scoring, field inputs, and flows - core functionality ready for production**
+**T011 Task Extraction (2025-07-13):**
+- **Extracted T010/4.2**: Enhanced User Experience features moved to dedicated T011 task for focused implementation
+- **Scope Separation**: T010 focuses on core entry system completion, T011 handles UX enhancements and session navigation
+- **Foundation Complete**: T010 provides complete entry system foundation for T011 to build upon
+- **Task Dependencies**: T011 depends on T010 completion, inherits all goal collection flows and scoring integration
+
+**AIDEV-NOTE: T010-core-system-complete; Phase 2-4.1 complete - Core entry system ready for T011 UX enhancements**
+**Next logical step: T010/4.3 Testing completion, then T011 Enhanced User Experience implementation**
+**Key integration points: Complete scoring integration provides foundation for T011 session navigation and progress tracking**
+**Architecture status: Core entry system complete and production-ready, T011 will add session-level UX enhancements**
 
 **Technical Dependencies:**
 - **T009 Goal Configuration**: Provides complete goal type and field type support (prerequisite)
