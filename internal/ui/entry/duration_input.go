@@ -185,8 +185,20 @@ func (di *DurationEntryInput) buildDescription(goal models.Goal) string {
 		descParts = append(descParts, descStyle.Render(goal.Description))
 	}
 
-	// Add duration format description
-	descParts = append(descParts, "Enter duration (e.g., 1h 30m, 45m, 2h, 90m)")
+	// Add duration format description with comprehensive examples
+	formatDesc := "Enter duration"
+
+	// Add format-specific guidance if available
+	if di.fieldType.Format != "" {
+		formatDesc += fmt.Sprintf(" (%s)", di.fieldType.Format)
+	} else {
+		formatDesc += " (e.g., 1h30m, 45m, 2h, 90m, 30s)"
+	}
+
+	descParts = append(descParts, formatDesc)
+
+	// Add additional helpful format examples
+	descParts = append(descParts, "Supported units: h (hours), m (minutes), s (seconds)")
 
 	return strings.Join(descParts, "\n")
 }
@@ -210,11 +222,24 @@ func (di *DurationEntryInput) parseDuration() (time.Duration, error) {
 	// Try parsing as Go duration format first
 	duration, err := time.ParseDuration(trimmed)
 	if err == nil {
+		if duration < 0 {
+			return time.Duration(0), fmt.Errorf("duration cannot be negative")
+		}
 		return duration, nil
 	}
 
-	// Enhanced parsing for common formats could be added here
-	// For now, rely on Go's built-in parser which handles:
-	// - 1h30m, 90m, 1.5h, etc.
-	return time.Duration(0), fmt.Errorf("invalid duration format, use formats like 1h30m, 45m, 2h")
+	// Provide helpful error messages for common mistakes
+	originalErr := err.Error()
+	switch {
+	case strings.Contains(trimmed, " "):
+		return time.Duration(0), fmt.Errorf("invalid duration format: remove spaces, use formats like 1h30m, 45m, 2h")
+	case !strings.ContainsAny(trimmed, "hms"):
+		return time.Duration(0), fmt.Errorf("invalid duration format: missing unit, use h (hours), m (minutes), s (seconds)")
+	case strings.Contains(originalErr, "unknown unit"):
+		return time.Duration(0), fmt.Errorf("invalid duration unit: use h (hours), m (minutes), s (seconds)")
+	case strings.Contains(originalErr, "invalid syntax"):
+		return time.Duration(0), fmt.Errorf("invalid duration syntax: use formats like 1h30m, 45m, 2h")
+	default:
+		return time.Duration(0), fmt.Errorf("invalid duration format: %s. Use formats like 1h30m, 45m, 2h", originalErr)
+	}
 }

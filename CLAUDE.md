@@ -76,6 +76,8 @@ We use markdown files within `kanban/` to plan, break down, and track progress o
 
 Read and closely follow the instructions in `doc/workflow.md`.
 
+On completion of a task or subtask: prepare a commit as per "Commit Checklist" (`doc/workflow.md`)
+
 ## Planned CLI Commands
 
 - `entry`: Submit/append to current day's entry

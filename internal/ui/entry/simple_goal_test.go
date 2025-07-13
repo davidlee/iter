@@ -9,6 +9,8 @@ import (
 
 // AIDEV-NOTE: simple-goal-tests; comprehensive testing for simple goal collection flow
 // Tests pass/fail collection, automatic/manual scoring, and field type integration for T010/3.1
+// AIDEV-NOTE: testing-patterns; uses NewSimpleGoalCollectionFlowForTesting() and CollectEntryDirectly() for headless testing
+// All major scenarios covered: Boolean true/false, text content, numeric values, automatic scoring with criteria
 
 func TestSimpleGoalCollectionFlow(t *testing.T) {
 	factory := NewEntryFieldInputFactory()

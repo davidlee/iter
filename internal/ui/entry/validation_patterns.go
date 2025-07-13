@@ -66,7 +66,7 @@ func (v *FieldValidator) GetValidationErrorMessage(err error, fieldType string) 
 	case strings.Contains(errorMsg, "invalid"):
 		return fmt.Sprintf("Please enter a valid %s", fieldName)
 	case strings.Contains(errorMsg, "required"):
-		return fmt.Sprintf("%s is required", strings.Title(fieldName))
+		return fmt.Sprintf("%s is required", fieldName)
 	case strings.Contains(errorMsg, "minimum"):
 		return errorMsg // Constraint errors are already user-friendly
 	case strings.Contains(errorMsg, "maximum"):
@@ -118,13 +118,13 @@ func (v *FieldValidator) getFieldDisplayName(fieldType string) string {
 	}
 }
 
-func (v *FieldValidator) validateNumericConstraints(value interface{}, fieldType models.FieldType) ValidationResult {
+func (v *FieldValidator) validateNumericConstraints(_ interface{}, _ models.FieldType) ValidationResult {
 	// This would implement numeric constraint validation
 	// For now, return valid (constraints are handled in individual input components)
 	return ValidationResult{IsValid: true}
 }
 
-func (v *FieldValidator) validateTextConstraints(value interface{}, fieldType models.FieldType) ValidationResult {
+func (v *FieldValidator) validateTextConstraints(value interface{}, _ models.FieldType) ValidationResult {
 	if textVal, ok := value.(string); ok {
 		// Could add text length constraints here
 		if len(textVal) > 10000 { // Example max length
@@ -164,7 +164,7 @@ func IsValidDurationFormat(durationStr string) bool {
 }
 
 // FormatValidationMessage formats a validation message for display
-func FormatValidationMessage(fieldType, message string) string {
+func FormatValidationMessage(_, message string) string {
 	if message == "" {
 		return ""
 	}

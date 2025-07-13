@@ -68,7 +68,7 @@ func (ti *TimeEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 		prompt = fmt.Sprintf("%s (current: %s)", prompt, ti.value)
 	}
 
-	// Build description
+	// Build description with time format examples
 	description := ti.buildDescription(goal)
 
 	// Create the form
@@ -185,8 +185,17 @@ func (ti *TimeEntryInput) buildDescription(goal models.Goal) string {
 		descParts = append(descParts, descStyle.Render(goal.Description))
 	}
 
-	// Add time format description
-	descParts = append(descParts, "Enter time in HH:MM format (e.g., 14:30, 09:15)")
+	// Add time format description with examples
+	formatDesc := "Enter time in HH:MM format"
+
+	// Add format-specific guidance
+	if ti.fieldType.Format != "" {
+		formatDesc += fmt.Sprintf(" (%s)", ti.fieldType.Format)
+	} else {
+		formatDesc += " (e.g., 14:30, 09:15, 6:00)"
+	}
+
+	descParts = append(descParts, formatDesc)
 
 	return strings.Join(descParts, "\n")
 }
@@ -207,12 +216,30 @@ func (ti *TimeEntryInput) validateTime(s string) error {
 func (ti *TimeEntryInput) parseTime() (time.Time, error) {
 	trimmed := strings.TrimSpace(ti.value)
 
+	// Validate basic format before parsing
+	if !strings.Contains(trimmed, ":") {
+		return time.Time{}, fmt.Errorf("invalid time format: missing colon, use HH:MM (e.g., 14:30)")
+	}
+
+	parts := strings.Split(trimmed, ":")
+	if len(parts) != 2 {
+		return time.Time{}, fmt.Errorf("invalid time format: use HH:MM (e.g., 14:30)")
+	}
+
 	// Try parsing as HH:MM (24-hour format)
 	parsedTime, err := time.Parse("15:04", trimmed)
 	if err != nil {
-		// Try parsing as H:MM
+		// Try parsing as H:MM (single digit hour)
 		parsedTime, err = time.Parse("3:04", trimmed)
 		if err != nil {
+			// Provide specific error messages for common mistakes
+			if len(parts) == 2 {
+				hour, minute := parts[0], parts[1]
+				if len(hour) == 0 || len(minute) != 2 {
+					return time.Time{}, fmt.Errorf("invalid time format: hour and minute must be numbers (e.g., 14:30)")
+				}
+				return time.Time{}, fmt.Errorf("invalid time: hours must be 0-23, minutes must be 0-59")
+			}
 			return time.Time{}, fmt.Errorf("invalid time format, use HH:MM (e.g., 14:30)")
 		}
 	}
