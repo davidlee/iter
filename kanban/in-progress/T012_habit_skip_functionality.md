@@ -406,11 +406,20 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
   - [x] Skip sets Status=EntrySkipped, Value=nil, AchievementLevel=nil - Proper skip state management
   - [x] Skip bypasses note collection but preserves existing notes - Notes preserved without new prompts for skipped entries
 
-- [ ] **2.2: Shortcut-Based Skip for Input Fields**
-  - [ ] Add "s" shortcut to numeric input components (sets EntrySkipped status)
-  - [ ] Add "s" shortcut to time and duration input components
-  - [ ] Add "s" shortcut to text input components
-  - [ ] Consistent skip feedback across all input types with status confirmation
+- [x] **2.2: Submit/Skip Button Interface for Input Fields** ✅ **COMPLETED**
+  - **APPROACH CONFIRMED**: Option 2 - Select-based Submit/Skip buttons with hybrid shortcut support
+  - **PATTERN**: Two-field form group (Input + Action selector) with TAB navigation
+  - **SHORTCUT**: "s"/"S" detection in validation for fast-path skip
+  - **DEFAULT**: ActionSubmit as default selection
+  - **CONSISTENCY**: Boolean input kept as three-option select (more natural for Yes/No/Skip)
+  - [x] Add InputAction enum (ActionSubmit/ActionSkip) and form pattern to numeric input
+  - [x] Add Submit/Skip button interface to time input components  
+  - [x] Add Submit/Skip button interface to duration input components
+  - [x] Add Submit/Skip button interface to text input components
+  - [x] Boolean input already has proper three-option select pattern (maintained for consistency)
+  - [x] Add GetStatus() method to EntryFieldInput interface
+  - [x] Implement hybrid shortcut detection ("s" key fast-path in validation)
+  - [x] Add GetStatus() to ChecklistEntryInput (basic implementation, skip functionality in Phase 2.3)
 
 - [ ] **2.3: Checklist Goal Skip Integration** ⚠️ **BLOCKED BY T007**
   - **DEPENDENCY**: Requires T007 Phase 4.2-4.4 and Phase 5.2 completion

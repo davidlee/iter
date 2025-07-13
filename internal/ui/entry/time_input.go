@@ -13,10 +13,12 @@ import (
 
 // AIDEV-NOTE: entry-time-input; implements EntryFieldInput for Time fields with scoring feedback
 // Provides HH:MM time input with validation and automatic scoring integration
+// T012/2.2: Submit/Skip button interface with hybrid shortcut support ("s" key)
 
 // TimeEntryInput handles time field value input for entry collection
 type TimeEntryInput struct {
 	value         string
+	action        InputAction
 	goal          models.Goal
 	fieldType     models.FieldType
 	existingEntry *ExistingEntry
@@ -32,6 +34,7 @@ func NewTimeEntryInput(config EntryFieldInputConfig) *TimeEntryInput {
 		fieldType:     config.FieldType,
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
+		action:        ActionSubmit, // Default to submit
 	}
 
 	// Set existing value if available
@@ -71,15 +74,22 @@ func (ti *TimeEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	// Build description with time format examples
 	description := ti.buildDescription(goal)
 
-	// Create the form
+	// Create the form with input and action selection
 	ti.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title(prompt).
+				Title(prompt + " (or press 's' to skip)").
 				Description(description).
 				Placeholder("14:30").
 				Value(&ti.value).
 				Validate(ti.validateTime),
+			huh.NewSelect[InputAction]().
+				Title("Action").
+				Options(
+					huh.NewOption("✅ Submit Value", ActionSubmit),
+					huh.NewOption("⏭️ Skip Goal", ActionSkip),
+				).
+				Value(&ti.action),
 		).Title(title),
 	)
 
@@ -91,8 +101,11 @@ func (ti *TimeEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	return ti.form
 }
 
-// GetValue returns the time value as a parsed time
+// GetValue returns the time value as a parsed time (nil for skipped)
 func (ti *TimeEntryInput) GetValue() interface{} {
+	if ti.action == ActionSkip {
+		return nil
+	}
 	parsedTime, err := ti.parseTime()
 	if err != nil {
 		return nil
@@ -102,7 +115,25 @@ func (ti *TimeEntryInput) GetValue() interface{} {
 
 // GetStringValue returns the time value as a string
 func (ti *TimeEntryInput) GetStringValue() string {
+	if ti.action == ActionSkip {
+		return "skip"
+	}
 	return ti.value
+}
+
+// GetStatus returns the entry completion status based on action and validation
+func (ti *TimeEntryInput) GetStatus() models.EntryStatus {
+	switch ti.action {
+	case ActionSkip:
+		return models.EntrySkipped
+	case ActionSubmit:
+		if ti.GetValidationError() != nil {
+			return models.EntryFailed
+		}
+		return models.EntryCompleted
+	default:
+		return models.EntryCompleted
+	}
 }
 
 // Validate validates the time value
@@ -201,7 +232,16 @@ func (ti *TimeEntryInput) buildDescription(goal models.Goal) string {
 }
 
 func (ti *TimeEntryInput) validateTime(s string) error {
-	if strings.TrimSpace(s) == "" {
+	trimmed := strings.TrimSpace(s)
+	
+	// Fast-path shortcut detection for skip
+	if trimmed == "s" || trimmed == "S" {
+		ti.action = ActionSkip
+		ti.value = ""
+		return nil // Allow form completion with skip action
+	}
+
+	if trimmed == "" {
 		return fmt.Errorf("time value is required")
 	}
 

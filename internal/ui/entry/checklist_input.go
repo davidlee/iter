@@ -131,6 +131,13 @@ func (ci *ChecklistEntryInput) GetStringValue() string {
 	return strings.Join(ci.selectedItems, ", ")
 }
 
+// GetStatus returns the entry completion status (skip functionality not yet implemented for checklists)
+func (ci *ChecklistEntryInput) GetStatus() models.EntryStatus {
+	// TODO: Implement skip functionality in Phase 2.3 (currently blocked by T007)
+	// For now, checklist entries are always completed when submitted
+	return models.EntryCompleted
+}
+
 // Validate validates the checklist selection
 func (ci *ChecklistEntryInput) Validate() error {
 	ci.validationErr = ci.validateSelection(ci.selectedItems)

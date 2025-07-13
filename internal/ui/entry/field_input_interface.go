@@ -22,6 +22,9 @@ type EntryFieldInput interface {
 	// GetStringValue returns the value as a string for display/storage
 	GetStringValue() string
 
+	// GetStatus returns the entry completion status (completed/skipped/failed)
+	GetStatus() models.EntryStatus
+
 	// Validate validates the current value against field constraints
 	Validate() error
 

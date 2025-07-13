@@ -13,10 +13,21 @@ import (
 
 // AIDEV-NOTE: entry-numeric-input; implements EntryFieldInput for Numeric fields with scoring feedback
 // Supports all numeric types (UnsignedInt, UnsignedDecimal, Decimal) with unit display and validation
+// T012/2.2: Submit/Skip button interface with hybrid shortcut support ("s" key)
+
+// InputAction represents the user's choice to submit or skip an input field
+type InputAction string
+
+// Input action options for Submit/Skip pattern
+const (
+	ActionSubmit InputAction = "submit"
+	ActionSkip   InputAction = "skip"
+)
 
 // NumericEntryInput handles numeric field value input for entry collection
 type NumericEntryInput struct {
 	value         string
+	action        InputAction
 	goal          models.Goal
 	fieldType     models.FieldType
 	existingEntry *ExistingEntry
@@ -32,6 +43,7 @@ func NewNumericEntryInput(config EntryFieldInputConfig) *NumericEntryInput {
 		fieldType:     config.FieldType,
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
+		action:        ActionSubmit, // Default to submit
 	}
 
 	// Set existing value if available
@@ -75,14 +87,21 @@ func (ni *NumericEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	// Build comprehensive description
 	description := ni.buildDescription(goal)
 
-	// Create the form
+	// Create the form with input and action selection
 	ni.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title(prompt).
+				Title(prompt + " (or press 's' to skip)").
 				Description(description).
 				Value(&ni.value).
 				Validate(ni.validateInput),
+			huh.NewSelect[InputAction]().
+				Title("Action").
+				Options(
+					huh.NewOption("✅ Submit Value", ActionSubmit),
+					huh.NewOption("⏭️ Skip Goal", ActionSkip),
+				).
+				Value(&ni.action),
 		).Title(title),
 	)
 
@@ -94,8 +113,11 @@ func (ni *NumericEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	return ni.form
 }
 
-// GetValue returns the numeric value as the appropriate type
+// GetValue returns the numeric value as the appropriate type (nil for skipped)
 func (ni *NumericEntryInput) GetValue() interface{} {
+	if ni.action == ActionSkip {
+		return nil
+	}
 	val, err := ni.parseValue()
 	if err != nil {
 		return nil
@@ -105,7 +127,25 @@ func (ni *NumericEntryInput) GetValue() interface{} {
 
 // GetStringValue returns the numeric value as a string
 func (ni *NumericEntryInput) GetStringValue() string {
+	if ni.action == ActionSkip {
+		return "skip"
+	}
 	return ni.value
+}
+
+// GetStatus returns the entry completion status based on action and validation
+func (ni *NumericEntryInput) GetStatus() models.EntryStatus {
+	switch ni.action {
+	case ActionSkip:
+		return models.EntrySkipped
+	case ActionSubmit:
+		if ni.GetValidationError() != nil {
+			return models.EntryFailed
+		}
+		return models.EntryCompleted
+	default:
+		return models.EntryCompleted
+	}
 }
 
 // Validate validates the numeric value
@@ -197,7 +237,16 @@ func (ni *NumericEntryInput) buildDescription(goal models.Goal) string {
 }
 
 func (ni *NumericEntryInput) validateInput(s string) error {
-	if strings.TrimSpace(s) == "" {
+	trimmed := strings.TrimSpace(s)
+	
+	// Fast-path shortcut detection for skip
+	if trimmed == "s" || trimmed == "S" {
+		ni.action = ActionSkip
+		ni.value = ""
+		return nil // Allow form completion with skip action
+	}
+
+	if trimmed == "" {
 		return fmt.Errorf("numeric value is required")
 	}
 

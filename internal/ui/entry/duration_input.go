@@ -13,10 +13,12 @@ import (
 
 // AIDEV-NOTE: entry-duration-input; implements EntryFieldInput for Duration fields with scoring feedback
 // Provides flexible duration parsing (1h 30m, 45m, 2h, 90m) with validation and automatic scoring
+// T012/2.2: Submit/Skip button interface with hybrid shortcut support ("s" key)
 
 // DurationEntryInput handles duration field value input for entry collection
 type DurationEntryInput struct {
 	value         string
+	action        InputAction
 	goal          models.Goal
 	fieldType     models.FieldType
 	existingEntry *ExistingEntry
@@ -32,6 +34,7 @@ func NewDurationEntryInput(config EntryFieldInputConfig) *DurationEntryInput {
 		fieldType:     config.FieldType,
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
+		action:        ActionSubmit, // Default to submit
 	}
 
 	// Set existing value if available
@@ -71,15 +74,22 @@ func (di *DurationEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	// Build description
 	description := di.buildDescription(goal)
 
-	// Create the form
+	// Create the form with input and action selection
 	di.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title(prompt).
+				Title(prompt + " (or press 's' to skip)").
 				Description(description).
 				Placeholder("1h 30m").
 				Value(&di.value).
 				Validate(di.validateDuration),
+			huh.NewSelect[InputAction]().
+				Title("Action").
+				Options(
+					huh.NewOption("✅ Submit Value", ActionSubmit),
+					huh.NewOption("⏭️ Skip Goal", ActionSkip),
+				).
+				Value(&di.action),
 		).Title(title),
 	)
 
@@ -91,8 +101,11 @@ func (di *DurationEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	return di.form
 }
 
-// GetValue returns the duration value as a time.Duration
+// GetValue returns the duration value as a time.Duration (nil for skipped)
 func (di *DurationEntryInput) GetValue() interface{} {
+	if di.action == ActionSkip {
+		return nil
+	}
 	parsedDuration, err := di.parseDuration()
 	if err != nil {
 		return nil
@@ -102,7 +115,25 @@ func (di *DurationEntryInput) GetValue() interface{} {
 
 // GetStringValue returns the duration value as a string
 func (di *DurationEntryInput) GetStringValue() string {
+	if di.action == ActionSkip {
+		return "skip"
+	}
 	return di.value
+}
+
+// GetStatus returns the entry completion status based on action and validation
+func (di *DurationEntryInput) GetStatus() models.EntryStatus {
+	switch di.action {
+	case ActionSkip:
+		return models.EntrySkipped
+	case ActionSubmit:
+		if di.GetValidationError() != nil {
+			return models.EntryFailed
+		}
+		return models.EntryCompleted
+	default:
+		return models.EntryCompleted
+	}
 }
 
 // Validate validates the duration value
@@ -204,7 +235,16 @@ func (di *DurationEntryInput) buildDescription(goal models.Goal) string {
 }
 
 func (di *DurationEntryInput) validateDuration(s string) error {
-	if strings.TrimSpace(s) == "" {
+	trimmed := strings.TrimSpace(s)
+	
+	// Fast-path shortcut detection for skip
+	if trimmed == "s" || trimmed == "S" {
+		di.action = ActionSkip
+		di.value = ""
+		return nil // Allow form completion with skip action
+	}
+
+	if trimmed == "" {
 		return fmt.Errorf("duration value is required")
 	}
 

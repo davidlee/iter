@@ -12,10 +12,12 @@ import (
 
 // AIDEV-NOTE: entry-text-input; implements EntryFieldInput for Text fields with multiline support
 // Provides single-line and multiline text input with validation and optional comment support
+// T012/2.2: Submit/Skip button interface with hybrid shortcut support ("s" key)
 
 // TextEntryInput handles text field value input for entry collection
 type TextEntryInput struct {
 	value         string
+	action        InputAction
 	goal          models.Goal
 	fieldType     models.FieldType
 	existingEntry *ExistingEntry
@@ -33,6 +35,7 @@ func NewTextEntryInput(config EntryFieldInputConfig) *TextEntryInput {
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
 		multiline:     config.FieldType.Multiline != nil && *config.FieldType.Multiline,
+		action:        ActionSubmit, // Default to submit
 	}
 
 	// Set existing value if available
@@ -96,24 +99,33 @@ func (ti *TextEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 		description += "Enter text value"
 	}
 
-	// Create the appropriate form based on multiline setting
+	// Create the appropriate form based on multiline setting with action selection
 	var inputField huh.Field
 	if ti.multiline {
 		inputField = huh.NewText().
-			Title(prompt).
+			Title(prompt + " (or press 's' to skip)").
 			Description(description).
 			Value(&ti.value).
 			Validate(ti.validateInput)
 	} else {
 		inputField = huh.NewInput().
-			Title(prompt).
+			Title(prompt + " (or press 's' to skip)").
 			Description(description).
 			Value(&ti.value).
 			Validate(ti.validateInput)
 	}
 
 	ti.form = huh.NewForm(
-		huh.NewGroup(inputField).Title(title),
+		huh.NewGroup(
+			inputField,
+			huh.NewSelect[InputAction]().
+				Title("Action").
+				Options(
+					huh.NewOption("✅ Submit Value", ActionSubmit),
+					huh.NewOption("⏭️ Skip Goal", ActionSkip),
+				).
+				Value(&ti.action),
+		).Title(title),
 	)
 
 	// Add help text if available
@@ -124,14 +136,33 @@ func (ti *TextEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	return ti.form
 }
 
-// GetValue returns the text value
+// GetValue returns the text value (nil for skipped)
 func (ti *TextEntryInput) GetValue() interface{} {
+	if ti.action == ActionSkip {
+		return nil
+	}
 	return ti.value
 }
 
 // GetStringValue returns the text value
 func (ti *TextEntryInput) GetStringValue() string {
+	if ti.action == ActionSkip {
+		return "skip"
+	}
 	return ti.value
+}
+
+// GetStatus returns the entry completion status based on action and validation
+func (ti *TextEntryInput) GetStatus() models.EntryStatus {
+	switch ti.action {
+	case ActionSkip:
+		return models.EntrySkipped
+	case ActionSubmit:
+		// Text inputs are generally always successful if not skipped
+		return models.EntryCompleted
+	default:
+		return models.EntryCompleted
+	}
 }
 
 // Validate validates the text value
@@ -173,10 +204,18 @@ func (ti *TextEntryInput) UpdateScoringDisplay(_ *models.AchievementLevel) error
 
 // Private validation method
 func (ti *TextEntryInput) validateInput(s string) error {
+	trimmed := strings.TrimSpace(s)
+	
+	// Fast-path shortcut detection for skip
+	if trimmed == "s" || trimmed == "S" {
+		ti.action = ActionSkip
+		ti.value = ""
+		return nil // Allow form completion with skip action
+	}
+
 	// Text validation is generally permissive
 	// Could add length constraints if needed in the future
-	trimmed := strings.TrimSpace(s)
-
+	
 	// Check if field is required (basic validation)
 	if trimmed == "" {
 		// For now, allow empty text values
