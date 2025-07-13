@@ -30,7 +30,8 @@
       "WebFetch(domain:d2lang.com)",
       "Bash(timeout 5s go test ./internal/ui/goalconfig -run TestGoalConfigurator_ElasticGoalIntegration)",
       "Bash(timeout 5s go test ./... -run TestGoalConfigurator)",
-      "Bash(timeout 3s go test ./internal/ui/goalconfig -v)"
+      "Bash(timeout 3s go test ./internal/ui/goalconfig -v)",
+      "Bash(timeout 3s go test ./internal/integration -v)"
     ],
     "deny": []
   }
