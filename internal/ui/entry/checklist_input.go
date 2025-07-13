@@ -15,14 +15,14 @@ import (
 
 // ChecklistEntryInput handles checklist field value input for entry collection
 type ChecklistEntryInput struct {
-	selectedItems []string
+	selectedItems  []string
 	availableItems []string
-	goal          models.Goal
-	fieldType     models.FieldType
-	existingEntry *ExistingEntry
-	showScoring   bool
-	validationErr error
-	form         *huh.Form
+	goal           models.Goal
+	fieldType      models.FieldType
+	existingEntry  *ExistingEntry
+	showScoring    bool
+	validationErr  error
+	form           *huh.Form
 }
 
 // NewChecklistEntryInput creates a new checklist entry input component
@@ -35,10 +35,11 @@ func NewChecklistEntryInput(config EntryFieldInputConfig) *ChecklistEntryInput {
 	}
 
 	// Extract checklist items from field type configuration
-	// This will depend on the final checklist field type structure
-	// For now, assume checklist items are stored in fieldType.ChecklistItems
-	if config.FieldType.ChecklistItems != nil {
-		input.availableItems = *config.FieldType.ChecklistItems
+	// ChecklistFieldType uses ChecklistID to reference external checklist definitions
+	// For now, use placeholder items until checklist system integration
+	if config.FieldType.Type == models.ChecklistFieldType {
+		// TODO: Load actual checklist items from ChecklistID
+		input.availableItems = []string{"Item 1", "Item 2", "Item 3"} // Placeholder
 	}
 
 	// Set existing selected items if available
@@ -160,16 +161,14 @@ func (ci *ChecklistEntryInput) UpdateScoringDisplay(level *models.AchievementLev
 		total := len(ci.availableItems)
 
 		switch *level {
-		case models.Pass:
-			feedback = fmt.Sprintf("✅ Checklist Goal Achieved! (%d/%d completed)", completed, total)
-		case models.Fail:
-			feedback = fmt.Sprintf("❌ Checklist Goal Not Met (%d/%d completed)", completed, total)
-		case models.Mini:
+		case models.AchievementMini:
 			feedback = fmt.Sprintf("🥉 Mini Checklist Achievement! (%d/%d completed)", completed, total)
-		case models.Midi:
+		case models.AchievementMidi:
 			feedback = fmt.Sprintf("🥈 Midi Checklist Achievement! (%d/%d completed)", completed, total)
-		case models.Maxi:
+		case models.AchievementMaxi:
 			feedback = fmt.Sprintf("🥇 Maxi Checklist Achievement! (%d/%d completed)", completed, total)
+		case models.AchievementNone:
+			feedback = fmt.Sprintf("❌ Checklist Goal Not Met (%d/%d completed)", completed, total)
 		default:
 			feedback = fmt.Sprintf("Achievement: %v (%d/%d completed)", *level, completed, total)
 		}

@@ -14,13 +14,13 @@ import (
 type GoalCollectionFlow interface {
 	// CollectEntry orchestrates the complete entry collection for a goal type
 	CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error)
-	
+
 	// GetFlowType returns the goal type this flow handles
 	GetFlowType() string
-	
+
 	// RequiresScoring indicates if this flow needs scoring engine integration
 	RequiresScoring() bool
-	
+
 	// GetExpectedFieldTypes returns field types supported by this flow
 	GetExpectedFieldTypes() []string
 }
@@ -43,7 +43,7 @@ func NewSimpleGoalCollectionFlow(factory *EntryFieldInputFactory, scoringEngine 
 func (f *SimpleGoalCollectionFlow) CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error) {
 	// Simple goals have primary pass/fail determination
 	// Additional data fields are optional supplements
-	
+
 	// Create field input configuration
 	config := EntryFieldInputConfig{
 		Goal:          goal,
@@ -51,22 +51,22 @@ func (f *SimpleGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exis
 		ExistingEntry: existing,
 		ShowScoring:   goal.ScoringType == models.AutomaticScoring,
 	}
-	
+
 	// Create field input component
 	input, err := f.factory.CreateScoringAwareInput(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create field input: %w", err)
 	}
-	
+
 	// Create and run the input form
 	form := input.CreateInputForm(goal)
 	if err := form.Run(); err != nil {
 		return nil, fmt.Errorf("input form failed: %w", err)
 	}
-	
+
 	// Get the collected value
 	value := input.GetValue()
-	
+
 	// Handle scoring based on goal configuration
 	var achievementLevel *models.AchievementLevel
 	if goal.ScoringType == models.AutomaticScoring {
@@ -76,7 +76,7 @@ func (f *SimpleGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exis
 			return nil, fmt.Errorf("automatic scoring failed: %w", err)
 		}
 		achievementLevel = level
-		
+
 		// Update input display with scoring feedback
 		if input.CanShowScoring() {
 			if err := input.UpdateScoringDisplay(achievementLevel); err != nil {
@@ -88,13 +88,13 @@ func (f *SimpleGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exis
 		level := f.determineManualAchievement(goal, value)
 		achievementLevel = level
 	}
-	
+
 	// Collect optional notes
 	notes, err := f.collectOptionalNotes(goal, value, existing)
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect notes: %w", err)
 	}
-	
+
 	return &EntryResult{
 		Value:            value,
 		AchievementLevel: achievementLevel,
@@ -104,7 +104,7 @@ func (f *SimpleGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exis
 
 // GetFlowType returns the goal type
 func (f *SimpleGoalCollectionFlow) GetFlowType() string {
-	return models.SimpleGoal
+	return string(models.SimpleGoal)
 }
 
 // RequiresScoring indicates simple goals may use scoring
@@ -119,7 +119,7 @@ func (f *SimpleGoalCollectionFlow) GetExpectedFieldTypes() []string {
 		models.BooleanFieldType,
 		models.TextFieldType,
 		models.UnsignedIntFieldType,
-		models.UnsignedDecimalFieldType, 
+		models.UnsignedDecimalFieldType,
 		models.DecimalFieldType,
 		models.TimeFieldType,
 		models.DurationFieldType,
@@ -143,7 +143,7 @@ func NewElasticGoalCollectionFlow(factory *EntryFieldInputFactory, scoringEngine
 // CollectEntry collects entry for elastic goals with immediate achievement calculation
 func (f *ElasticGoalCollectionFlow) CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error) {
 	// Elastic goals focus on achievement levels with immediate feedback
-	
+
 	// Create field input configuration with scoring enabled
 	config := EntryFieldInputConfig{
 		Goal:          goal,
@@ -151,25 +151,25 @@ func (f *ElasticGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exi
 		ExistingEntry: existing,
 		ShowScoring:   true, // Always show scoring for elastic goals
 	}
-	
+
 	// Create field input component
 	input, err := f.factory.CreateScoringAwareInput(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create field input: %w", err)
 	}
-	
+
 	// Display criteria information for motivation
 	f.displayCriteriaInformation(goal)
-	
+
 	// Create and run the input form
 	form := input.CreateInputForm(goal)
 	if err := form.Run(); err != nil {
 		return nil, fmt.Errorf("input form failed: %w", err)
 	}
-	
+
 	// Get the collected value
 	value := input.GetValue()
-	
+
 	// Perform scoring (elastic goals require achievement level determination)
 	var achievementLevel *models.AchievementLevel
 	if goal.ScoringType == models.AutomaticScoring {
@@ -187,23 +187,23 @@ func (f *ElasticGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exi
 		}
 		achievementLevel = level
 	}
-	
+
 	// Update input display with achievement feedback
 	if input.CanShowScoring() && achievementLevel != nil {
 		if err := input.UpdateScoringDisplay(achievementLevel); err != nil {
 			// Non-fatal error - continue without scoring display
 		}
 	}
-	
+
 	// Display achievement result
 	f.displayAchievementResult(goal, value, achievementLevel)
-	
+
 	// Collect optional notes
 	notes, err := f.collectOptionalNotes(goal, value, existing)
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect notes: %w", err)
 	}
-	
+
 	return &EntryResult{
 		Value:            value,
 		AchievementLevel: achievementLevel,
@@ -213,7 +213,7 @@ func (f *ElasticGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exi
 
 // GetFlowType returns the goal type
 func (f *ElasticGoalCollectionFlow) GetFlowType() string {
-	return models.ElasticGoal
+	return string(models.ElasticGoal)
 }
 
 // RequiresScoring indicates elastic goals always use scoring
@@ -251,7 +251,7 @@ func NewInformationalGoalCollectionFlow(factory *EntryFieldInputFactory) *Inform
 // CollectEntry collects entry for informational goals without scoring
 func (f *InformationalGoalCollectionFlow) CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error) {
 	// Informational goals collect data without pass/fail evaluation
-	
+
 	// Create field input configuration without scoring
 	config := EntryFieldInputConfig{
 		Goal:          goal,
@@ -259,34 +259,34 @@ func (f *InformationalGoalCollectionFlow) CollectEntry(goal models.Goal, existin
 		ExistingEntry: existing,
 		ShowScoring:   false, // No scoring for informational goals
 	}
-	
+
 	// Create field input component
 	input, err := f.factory.CreateInput(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create field input: %w", err)
 	}
-	
+
 	// Display informational context
 	f.displayInformationalContext(goal)
-	
+
 	// Create and run the input form
 	form := input.CreateInputForm(goal)
 	if err := form.Run(); err != nil {
 		return nil, fmt.Errorf("input form failed: %w", err)
 	}
-	
+
 	// Get the collected value
 	value := input.GetValue()
-	
+
 	// Display direction-aware feedback if configured
 	f.displayDirectionFeedback(goal, value)
-	
+
 	// Collect optional notes
 	notes, err := f.collectOptionalNotes(goal, value, existing)
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect notes: %w", err)
 	}
-	
+
 	return &EntryResult{
 		Value:            value,
 		AchievementLevel: nil, // No achievement level for informational goals
@@ -296,7 +296,7 @@ func (f *InformationalGoalCollectionFlow) CollectEntry(goal models.Goal, existin
 
 // GetFlowType returns the goal type
 func (f *InformationalGoalCollectionFlow) GetFlowType() string {
-	return models.InformationalGoal
+	return string(models.InformationalGoal)
 }
 
 // RequiresScoring indicates informational goals don't use scoring
@@ -339,7 +339,7 @@ func (f *ChecklistGoalCollectionFlow) CollectEntry(goal models.Goal, existing *E
 	if goal.FieldType.Type != models.ChecklistFieldType {
 		return nil, fmt.Errorf("checklist goals require checklist field type, got: %s", goal.FieldType.Type)
 	}
-	
+
 	// Create field input configuration
 	config := EntryFieldInputConfig{
 		Goal:          goal,
@@ -347,25 +347,25 @@ func (f *ChecklistGoalCollectionFlow) CollectEntry(goal models.Goal, existing *E
 		ExistingEntry: existing,
 		ShowScoring:   goal.ScoringType == models.AutomaticScoring,
 	}
-	
+
 	// Create checklist input component
 	input, err := f.factory.CreateScoringAwareInput(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create checklist input: %w", err)
 	}
-	
+
 	// Display checklist progress context
 	f.displayChecklistContext(goal, existing)
-	
+
 	// Create and run the checklist form
 	form := input.CreateInputForm(goal)
 	if err := form.Run(); err != nil {
 		return nil, fmt.Errorf("checklist form failed: %w", err)
 	}
-	
+
 	// Get the collected checklist selections
 	value := input.GetValue()
-	
+
 	// Handle scoring based on completion percentage
 	var achievementLevel *models.AchievementLevel
 	if goal.ScoringType == models.AutomaticScoring {
@@ -383,23 +383,23 @@ func (f *ChecklistGoalCollectionFlow) CollectEntry(goal models.Goal, existing *E
 		}
 		achievementLevel = level
 	}
-	
+
 	// Update input display with scoring feedback
 	if input.CanShowScoring() && achievementLevel != nil {
 		if err := input.UpdateScoringDisplay(achievementLevel); err != nil {
 			// Non-fatal error - continue without scoring display
 		}
 	}
-	
+
 	// Display completion progress feedback
 	f.displayCompletionProgress(goal, value, achievementLevel)
-	
+
 	// Collect optional notes
 	notes, err := f.collectOptionalNotes(goal, value, existing)
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect notes: %w", err)
 	}
-	
+
 	return &EntryResult{
 		Value:            value,
 		AchievementLevel: achievementLevel,
@@ -409,7 +409,7 @@ func (f *ChecklistGoalCollectionFlow) CollectEntry(goal models.Goal, existing *E
 
 // GetFlowType returns the goal type
 func (f *ChecklistGoalCollectionFlow) GetFlowType() string {
-	return models.ChecklistGoal
+	return string(models.ChecklistGoal)
 }
 
 // RequiresScoring indicates checklist goals may use scoring

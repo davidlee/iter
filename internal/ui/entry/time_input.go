@@ -22,7 +22,7 @@ type TimeEntryInput struct {
 	existingEntry *ExistingEntry
 	showScoring   bool
 	validationErr error
-	form         *huh.Form
+	form          *huh.Form
 }
 
 // NewTimeEntryInput creates a new time entry input component
@@ -153,16 +153,14 @@ func (ti *TimeEntryInput) UpdateScoringDisplay(level *models.AchievementLevel) e
 
 		feedback := ""
 		switch *level {
-		case models.Pass:
-			feedback = "✅ Time Goal Achieved!"
-		case models.Fail:
-			feedback = "❌ Time Goal Not Met"
-		case models.Mini:
+		case models.AchievementMini:
 			feedback = "🥉 Mini Time Achievement!"
-		case models.Midi:
+		case models.AchievementMidi:
 			feedback = "🥈 Midi Time Achievement!"
-		case models.Maxi:
+		case models.AchievementMaxi:
 			feedback = "🥇 Maxi Time Achievement!"
+		case models.AchievementNone:
+			feedback = "❌ Time Goal Not Met"
 		default:
 			feedback = fmt.Sprintf("Achievement: %v", *level)
 		}

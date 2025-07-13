@@ -14,12 +14,12 @@ import (
 
 // BooleanEntryInput handles boolean field value input for entry collection
 type BooleanEntryInput struct {
-	value          bool
-	goal           models.Goal
-	fieldType      models.FieldType
-	existingEntry  *ExistingEntry
-	showScoring    bool
-	validationErr  error
+	value         bool
+	goal          models.Goal
+	fieldType     models.FieldType
+	existingEntry *ExistingEntry
+	showScoring   bool
+	validationErr error
 	form          *huh.Form
 }
 
@@ -154,9 +154,9 @@ func (bi *BooleanEntryInput) UpdateScoringDisplay(level *models.AchievementLevel
 
 		feedback := ""
 		switch *level {
-		case models.Pass:
+		case models.AchievementMini:
 			feedback = "✅ Goal Completed!"
-		case models.Fail:
+		case models.AchievementNone:
 			feedback = "❌ Goal Not Completed"
 		default:
 			feedback = fmt.Sprintf("Achievement: %v", *level)

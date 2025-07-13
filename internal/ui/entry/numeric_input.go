@@ -22,7 +22,7 @@ type NumericEntryInput struct {
 	existingEntry *ExistingEntry
 	showScoring   bool
 	validationErr error
-	form         *huh.Form
+	form          *huh.Form
 }
 
 // NewNumericEntryInput creates a new numeric entry input component
@@ -149,16 +149,14 @@ func (ni *NumericEntryInput) UpdateScoringDisplay(level *models.AchievementLevel
 
 		feedback := ""
 		switch *level {
-		case models.Pass:
-			feedback = "✅ Goal Achieved!"
-		case models.Fail:
-			feedback = "❌ Goal Not Met"
-		case models.Mini:
+		case models.AchievementMini:
 			feedback = "🥉 Mini Achievement!"
-		case models.Midi:
+		case models.AchievementMidi:
 			feedback = "🥈 Midi Achievement!"
-		case models.Maxi:
+		case models.AchievementMaxi:
 			feedback = "🥇 Maxi Achievement!"
+		case models.AchievementNone:
+			feedback = "❌ Goal Not Met"
 		default:
 			feedback = fmt.Sprintf("Achievement: %v", *level)
 		}

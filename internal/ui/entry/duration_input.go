@@ -22,7 +22,7 @@ type DurationEntryInput struct {
 	existingEntry *ExistingEntry
 	showScoring   bool
 	validationErr error
-	form         *huh.Form
+	form          *huh.Form
 }
 
 // NewDurationEntryInput creates a new duration entry input component
@@ -153,16 +153,14 @@ func (di *DurationEntryInput) UpdateScoringDisplay(level *models.AchievementLeve
 
 		feedback := ""
 		switch *level {
-		case models.Pass:
-			feedback = "✅ Duration Goal Achieved!"
-		case models.Fail:
-			feedback = "❌ Duration Goal Not Met"
-		case models.Mini:
+		case models.AchievementMini:
 			feedback = "🥉 Mini Duration Achievement!"
-		case models.Midi:
+		case models.AchievementMidi:
 			feedback = "🥈 Midi Duration Achievement!"
-		case models.Maxi:
+		case models.AchievementMaxi:
 			feedback = "🥇 Maxi Duration Achievement!"
+		case models.AchievementNone:
+			feedback = "❌ Duration Goal Not Met"
 		default:
 			feedback = fmt.Sprintf("Achievement: %v", *level)
 		}

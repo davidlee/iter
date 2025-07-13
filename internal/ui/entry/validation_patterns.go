@@ -28,7 +28,7 @@ func NewFieldValidator() *FieldValidator {
 // ValidateRequired checks if a required field has a value
 func (v *FieldValidator) ValidateRequired(value interface{}, fieldType string) ValidationResult {
 	isEmpty := v.isEmpty(value)
-	
+
 	if isEmpty {
 		return ValidationResult{
 			IsValid: false,

@@ -21,8 +21,8 @@ type TextEntryInput struct {
 	existingEntry *ExistingEntry
 	showScoring   bool
 	validationErr error
-	form         *huh.Form
-	multiline    bool
+	form          *huh.Form
+	multiline     bool
 }
 
 // NewTextEntryInput creates a new text entry input component
@@ -32,7 +32,7 @@ func NewTextEntryInput(config EntryFieldInputConfig) *TextEntryInput {
 		fieldType:     config.FieldType,
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
-		multiline:    config.FieldType.Multiline != nil && *config.FieldType.Multiline,
+		multiline:     config.FieldType.Multiline != nil && *config.FieldType.Multiline,
 	}
 
 	// Set existing value if available
@@ -176,7 +176,7 @@ func (ti *TextEntryInput) validateInput(s string) error {
 	// Text validation is generally permissive
 	// Could add length constraints if needed in the future
 	trimmed := strings.TrimSpace(s)
-	
+
 	// Check if field is required (basic validation)
 	if trimmed == "" {
 		// For now, allow empty text values

@@ -1,8 +1,8 @@
 package entry
 
 import (
-	"github.com/charmbracelet/huh"
 	"davidlee/iter/internal/models"
+	"github.com/charmbracelet/huh"
 )
 
 // AIDEV-NOTE: entry-field-input-interface; designed for T010 entry collection with immediate scoring feedback
@@ -46,10 +46,10 @@ type ScoringAwareInput interface {
 
 // EntryFieldInputConfig holds configuration for field input creation
 type EntryFieldInputConfig struct {
-	Goal        models.Goal
-	FieldType   models.FieldType
+	Goal          models.Goal
+	FieldType     models.FieldType
 	ExistingEntry *ExistingEntry
-	ShowScoring bool // Whether to show immediate scoring feedback
+	ShowScoring   bool // Whether to show immediate scoring feedback
 }
 
 // ExistingEntry represents existing data for editing scenarios
@@ -57,4 +57,11 @@ type ExistingEntry struct {
 	Value            interface{}
 	Notes            string
 	AchievementLevel *models.AchievementLevel
+}
+
+// EntryResult represents the complete result of collecting an entry for a goal
+type EntryResult struct {
+	Value            interface{}              // The collected value (any type based on field type)
+	AchievementLevel *models.AchievementLevel // Achievement level for elastic goals (nil for simple goals)
+	Notes            string                   // Any notes collected from the user
 }

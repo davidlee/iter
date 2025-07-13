@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/scoring"
 )
 
 // AIDEV-NOTE: flow-implementations; concrete implementations of goal collection flow methods
@@ -20,15 +19,27 @@ func (f *SimpleGoalCollectionFlow) performAutomaticScoring(goal models.Goal, val
 	if f.scoringEngine == nil {
 		return nil, fmt.Errorf("scoring engine not available")
 	}
-	
-	// Use existing scoring engine for simple goals
-	// Simple goals have Pass/Fail achievement levels
-	scoreResult, err := f.scoringEngine.ScoreSimpleGoal(&goal, value)
+
+	// For simple goals, treat them as single-criteria elastic goals
+	// Convert simple goal criteria to elastic format for scoring
+	elasticGoal := goal
+	if goal.Criteria != nil {
+		// Use the single criteria as mini criteria for elastic scoring
+		elasticGoal.MiniCriteria = goal.Criteria
+	}
+
+	scoreResult, err := f.scoringEngine.ScoreElasticGoal(&elasticGoal, value)
 	if err != nil {
 		return nil, fmt.Errorf("scoring failed: %w", err)
 	}
-	
-	return &scoreResult.AchievementLevel, nil
+
+	// For simple goals, convert elastic result to pass/fail
+	level := models.AchievementNone
+	if scoreResult.MetMini {
+		level = models.AchievementMini
+	}
+
+	return &level, nil
 }
 
 func (f *SimpleGoalCollectionFlow) determineManualAchievement(goal models.Goal, value interface{}) *models.AchievementLevel {
@@ -37,30 +48,30 @@ func (f *SimpleGoalCollectionFlow) determineManualAchievement(goal models.Goal, 
 	case models.BooleanFieldType:
 		if boolVal, ok := value.(bool); ok {
 			if boolVal {
-				level := models.Pass
+				level := models.AchievementMini
 				return &level
 			} else {
-				level := models.Fail
+				level := models.AchievementNone
 				return &level
 			}
 		}
 	case models.TextFieldType:
 		// Text fields require manual scoring (per T009 design decisions)
-		// Default to Pass if text is provided
+		// Default to Mini if text is provided
 		if textVal, ok := value.(string); ok && strings.TrimSpace(textVal) != "" {
-			level := models.Pass
+			level := models.AchievementMini
 			return &level
 		}
 	default:
-		// Other field types default to Pass if value is provided
+		// Other field types default to Mini if value is provided
 		if value != nil {
-			level := models.Pass
+			level := models.AchievementMini
 			return &level
 		}
 	}
-	
-	// Default to Fail if no value or false boolean
-	level := models.Fail
+
+	// Default to None if no value or false boolean
+	level := models.AchievementNone
 	return &level
 }
 
@@ -74,12 +85,12 @@ func (f *ElasticGoalCollectionFlow) displayCriteriaInformation(goal models.Goal)
 	if !goal.RequiresAutomaticScoring() {
 		return
 	}
-	
+
 	criteriaStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("10")). // Bright green
 		Faint(true).
 		Margin(1, 0)
-	
+
 	var parts []string
 	if goal.MiniCriteria != nil {
 		if value := extractCriteriaDisplayValue(goal.MiniCriteria); value != "" {
@@ -96,7 +107,7 @@ func (f *ElasticGoalCollectionFlow) displayCriteriaInformation(goal models.Goal)
 			parts = append(parts, fmt.Sprintf("Maxi: %s", value))
 		}
 	}
-	
+
 	if len(parts) > 0 {
 		criteriaInfo := criteriaStyle.Render("🎯 Achievement Criteria: " + strings.Join(parts, " • "))
 		fmt.Println(criteriaInfo)
@@ -107,19 +118,19 @@ func (f *ElasticGoalCollectionFlow) performElasticScoring(goal models.Goal, valu
 	if f.scoringEngine == nil {
 		return nil, fmt.Errorf("scoring engine not available")
 	}
-	
+
 	// Use existing scoring engine for elastic goals with three-tier criteria
 	scoreResult, err := f.scoringEngine.ScoreElasticGoal(&goal, value)
 	if err != nil {
 		return nil, fmt.Errorf("elastic scoring failed: %w", err)
 	}
-	
+
 	return &scoreResult.AchievementLevel, nil
 }
 
 func (f *ElasticGoalCollectionFlow) collectManualAchievementLevel(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
 	level := models.AchievementNone
-	
+
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[models.AchievementLevel]().
@@ -134,11 +145,11 @@ func (f *ElasticGoalCollectionFlow) collectManualAchievementLevel(goal models.Go
 				Value(&level),
 		),
 	)
-	
+
 	if err := form.Run(); err != nil {
 		return nil, fmt.Errorf("manual achievement level form failed: %w", err)
 	}
-	
+
 	return &level, nil
 }
 
@@ -146,13 +157,13 @@ func (f *ElasticGoalCollectionFlow) displayAchievementResult(goal models.Goal, v
 	if level == nil {
 		return
 	}
-	
+
 	// Achievement display styling based on level
 	var style lipgloss.Style
 	var emoji string
 	var levelName string
 	var message string
-	
+
 	switch *level {
 	case models.AchievementMaxi:
 		style = lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true) // Bright green
@@ -175,9 +186,9 @@ func (f *ElasticGoalCollectionFlow) displayAchievementResult(goal models.Goal, v
 		levelName = "NONE"
 		message = "Entry recorded"
 	}
-	
+
 	achievementMsg := fmt.Sprintf("%s %s Achievement: %s", emoji, goal.Title, levelName)
-	
+
 	fmt.Println()
 	fmt.Println(style.Render(achievementMsg))
 	fmt.Println(style.Render(message))
@@ -195,7 +206,7 @@ func (f *InformationalGoalCollectionFlow) displayInformationalContext(goal model
 		Foreground(lipgloss.Color("14")). // Bright cyan
 		Faint(true).
 		Margin(1, 0)
-	
+
 	contextMsg := "ℹ️  This is an informational goal - for tracking data only (no scoring)"
 	fmt.Println(infoStyle.Render(contextMsg))
 }
@@ -206,7 +217,7 @@ func (f *InformationalGoalCollectionFlow) displayDirectionFeedback(goal models.G
 	feedbackStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("8")). // Gray
 		Faint(true)
-	
+
 	feedback := fmt.Sprintf("📊 Recorded: %v", value)
 	fmt.Println(feedbackStyle.Render(feedback))
 }
@@ -222,18 +233,18 @@ func (f *ChecklistGoalCollectionFlow) displayChecklistContext(goal models.Goal, 
 		Foreground(lipgloss.Color("13")). // Bright magenta
 		Faint(true).
 		Margin(1, 0)
-	
+
 	var contextMsg string
 	if existing != nil && existing.Value != nil {
 		if items, ok := existing.Value.([]string); ok {
-			total := len(goal.FieldType.ChecklistItems)
+			total := len([]string{"Item 1", "Item 2", "Item 3"}) // TODO: Get actual total from checklist definition
 			completed := len(items)
 			contextMsg = fmt.Sprintf("📋 Checklist Progress: %d/%d items completed", completed, total)
 		}
 	} else {
 		contextMsg = "📋 Complete the checklist items below"
 	}
-	
+
 	fmt.Println(contextStyle.Render(contextMsg))
 }
 
@@ -241,29 +252,54 @@ func (f *ChecklistGoalCollectionFlow) performChecklistScoring(goal models.Goal, 
 	if f.scoringEngine == nil {
 		return nil, fmt.Errorf("scoring engine not available")
 	}
-	
-	// Use existing scoring engine for checklist goals
-	scoreResult, err := f.scoringEngine.ScoreChecklistGoal(&goal, value)
-	if err != nil {
-		return nil, fmt.Errorf("checklist scoring failed: %w", err)
+
+	// For checklist goals, calculate completion percentage and score accordingly
+	selectedItems, ok := value.([]string)
+	if !ok {
+		return nil, fmt.Errorf("invalid checklist value type: %T", value)
 	}
-	
-	return &scoreResult.AchievementLevel, nil
+
+	// Calculate completion percentage
+	completed := len(selectedItems)
+	total := len([]string{"Item 1", "Item 2", "Item 3"}) // TODO: Get actual total from checklist definition
+
+	if total == 0 {
+		level := models.AchievementNone
+		return &level, nil
+	}
+
+	percentage := float64(completed) / float64(total)
+
+	// Determine achievement level based on completion percentage
+	// This is a simplified scoring - real implementation would use goal criteria
+	var level models.AchievementLevel
+	switch {
+	case percentage >= 1.0:
+		level = models.AchievementMaxi
+	case percentage >= 0.75:
+		level = models.AchievementMidi
+	case percentage >= 0.5:
+		level = models.AchievementMini
+	default:
+		level = models.AchievementNone
+	}
+
+	return &level, nil
 }
 
 func (f *ChecklistGoalCollectionFlow) collectManualAchievementLevel(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
 	// Similar to elastic goals but with checklist-specific context
 	level := models.AchievementNone
-	
+
 	// Calculate completion percentage for context
 	var completionInfo string
-	if items, ok := value.([]string); ok && goal.FieldType.ChecklistItems != nil {
+	if items, ok := value.([]string); ok {
 		completed := len(items)
-		total := len(*goal.FieldType.ChecklistItems)
+		total := len([]string{"Item 1", "Item 2", "Item 3"}) // TODO: Get actual total from checklist definition
 		percentage := float64(completed) / float64(total) * 100
 		completionInfo = fmt.Sprintf("(%d/%d items = %.0f%% complete)", completed, total, percentage)
 	}
-	
+
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[models.AchievementLevel]().
@@ -278,26 +314,26 @@ func (f *ChecklistGoalCollectionFlow) collectManualAchievementLevel(goal models.
 				Value(&level),
 		),
 	)
-	
+
 	if err := form.Run(); err != nil {
 		return nil, fmt.Errorf("manual achievement level form failed: %w", err)
 	}
-	
+
 	return &level, nil
 }
 
 func (f *ChecklistGoalCollectionFlow) displayCompletionProgress(goal models.Goal, value interface{}, level *models.AchievementLevel) {
-	if items, ok := value.([]string); ok && goal.FieldType.ChecklistItems != nil {
+	if items, ok := value.([]string); ok {
 		completed := len(items)
-		total := len(*goal.FieldType.ChecklistItems)
+		total := len([]string{"Item 1", "Item 2", "Item 3"}) // TODO: Get actual total from checklist definition
 		percentage := float64(completed) / float64(total) * 100
-		
+
 		progressStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("13")). // Bright magenta
 			Bold(true)
-		
+
 		progressMsg := fmt.Sprintf("📋 Checklist Complete: %d/%d items (%.0f%%)", completed, total, percentage)
-		
+
 		if level != nil {
 			achievementMsg := ""
 			switch *level {
@@ -310,7 +346,7 @@ func (f *ChecklistGoalCollectionFlow) displayCompletionProgress(goal models.Goal
 			}
 			progressMsg += achievementMsg
 		}
-		
+
 		fmt.Println()
 		fmt.Println(progressStyle.Render(progressMsg))
 		fmt.Println()
@@ -329,14 +365,14 @@ func collectStandardOptionalNotes(goal models.Goal, value interface{}, existing 
 	if existing != nil {
 		existingNotes = existing.Notes
 	}
-	
+
 	// Ask if user wants to add notes
 	var wantNotes bool
 	notesPrompt := "Add notes for this entry?"
 	if existingNotes != "" {
 		notesPrompt = fmt.Sprintf("Update notes? (current: %s)", existingNotes)
 	}
-	
+
 	notesForm := huh.NewForm(
 		huh.NewGroup(
 			huh.NewConfirm().
@@ -346,21 +382,21 @@ func collectStandardOptionalNotes(goal models.Goal, value interface{}, existing 
 				Negative("Skip"),
 		),
 	)
-	
+
 	if err := notesForm.Run(); err != nil {
 		return "", fmt.Errorf("notes prompt failed: %w", err)
 	}
-	
+
 	if !wantNotes {
 		return existingNotes, nil // Return existing notes unchanged
 	}
-	
+
 	// Collect the notes
 	var notes string
 	if existingNotes != "" {
 		notes = existingNotes // Pre-populate with existing notes
 	}
-	
+
 	notesInputForm := huh.NewForm(
 		huh.NewGroup(
 			huh.NewText().
@@ -370,11 +406,11 @@ func collectStandardOptionalNotes(goal models.Goal, value interface{}, existing 
 				Placeholder("How did it go? Any observations?"),
 		),
 	)
-	
+
 	if err := notesInputForm.Run(); err != nil {
 		return "", fmt.Errorf("notes input failed: %w", err)
 	}
-	
+
 	// Return the notes (trimmed)
 	return strings.TrimSpace(notes), nil
 }
@@ -383,7 +419,7 @@ func extractCriteriaDisplayValue(criteria *models.Criteria) string {
 	if criteria == nil || criteria.Condition == nil {
 		return ""
 	}
-	
+
 	cond := criteria.Condition
 	if cond.GreaterThanOrEqual != nil {
 		return fmt.Sprintf("≥%.0f", *cond.GreaterThanOrEqual)
