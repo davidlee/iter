@@ -18,6 +18,7 @@
       in {
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
+            structurizr-cli
             # D2 diagram rendering dependencies
             xorg.libX11
             xorg.libXext
