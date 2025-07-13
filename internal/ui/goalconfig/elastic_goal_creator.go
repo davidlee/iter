@@ -86,16 +86,16 @@ func NewElasticGoalCreator(title, description string, goalType models.GoalType) 
 
 // TestElasticGoalData contains pre-configured data for headless testing
 type TestElasticGoalData struct {
-	FieldType       string
-	NumericSubtype  string
-	Unit            string
-	MultilineText   bool
-	MinValue        string
-	MaxValue        string
-	HasMinMax       bool
-	ScoringType     models.ScoringType
-	Prompt          string
-	Comment         string
+	FieldType      string
+	NumericSubtype string
+	Unit           string
+	MultilineText  bool
+	MinValue       string
+	MaxValue       string
+	HasMinMax      bool
+	ScoringType    models.ScoringType
+	Prompt         string
+	Comment        string
 
 	// Mini criteria
 	MiniCriteriaType      string

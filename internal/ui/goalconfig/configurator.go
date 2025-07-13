@@ -70,7 +70,7 @@ func (gc *GoalConfigurator) AddGoal(goalsFilePath string) error {
 		return fmt.Errorf("basic information collection failed: %w", err)
 	}
 
-	// AIDEV-NOTE: goal-type-routing; add new goal types here with corresponding creator methods  
+	// AIDEV-NOTE: goal-type-routing; add new goal types here with corresponding creator methods
 	// Route to appropriate goal creator based on goal type
 	var newGoal *models.Goal
 
@@ -385,7 +385,7 @@ func (gc *GoalConfigurator) AddGoalWithYAMLOutput(goalsFilePath string) (string,
 		return "", fmt.Errorf("basic information collection failed: %w", err)
 	}
 
-	// AIDEV-NOTE: goal-type-routing; add new goal types here with corresponding creator methods  
+	// AIDEV-NOTE: goal-type-routing; add new goal types here with corresponding creator methods
 	// Route to appropriate goal creator based on goal type
 	var newGoal *models.Goal
 

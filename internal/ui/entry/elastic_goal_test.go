@@ -569,15 +569,15 @@ func TestElasticGoalThreeTierAchievementLogic(t *testing.T) {
 		value    float64
 		expected models.AchievementLevel
 	}{
-		{150.0, models.AchievementMaxi},   // ≥100
-		{100.0, models.AchievementMaxi},   // ≥100
-		{99.9, models.AchievementMidi},    // ≥50, <100
-		{75.0, models.AchievementMidi},    // ≥50, <100
-		{50.0, models.AchievementMidi},    // ≥50, <100
-		{49.9, models.AchievementMini},    // >0, <50
-		{25.0, models.AchievementMini},    // >0, <50
-		{0.1, models.AchievementMini},     // >0, <50
-		{0.0, models.AchievementNone},     // =0
+		{150.0, models.AchievementMaxi}, // ≥100
+		{100.0, models.AchievementMaxi}, // ≥100
+		{99.9, models.AchievementMidi},  // ≥50, <100
+		{75.0, models.AchievementMidi},  // ≥50, <100
+		{50.0, models.AchievementMidi},  // ≥50, <100
+		{49.9, models.AchievementMini},  // >0, <50
+		{25.0, models.AchievementMini},  // >0, <50
+		{0.1, models.AchievementMini},   // >0, <50
+		{0.0, models.AchievementNone},   // =0
 	}
 
 	for _, tc := range testCases {

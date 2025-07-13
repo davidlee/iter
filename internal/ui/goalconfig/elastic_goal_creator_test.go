@@ -224,7 +224,7 @@ func TestElasticGoalCreator_ThreeTierCriteria_Time(t *testing.T) {
 
 	// Set three-tier time criteria (earlier = better achievement)
 	creator.miniCriteriaTimeValue = "08:00" // Mini: before 8am
-	creator.midiCriteriaTimeValue = "07:00" // Midi: before 7am  
+	creator.midiCriteriaTimeValue = "07:00" // Midi: before 7am
 	creator.maxiCriteriaTimeValue = "06:00" // Maxi: before 6am
 
 	goal, err := creator.createGoalFromData()
@@ -259,9 +259,9 @@ func TestElasticGoalCreator_ThreeTierCriteria_Duration(t *testing.T) {
 	creator.prompt = "How long did you meditate?"
 
 	// Set three-tier duration criteria (longer = better achievement)
-	creator.miniCriteriaValue = "10m"  // Mini: 10+ minutes
-	creator.midiCriteriaValue = "20m"  // Midi: 20+ minutes
-	creator.maxiCriteriaValue = "30m"  // Maxi: 30+ minutes
+	creator.miniCriteriaValue = "10m" // Mini: 10+ minutes
+	creator.midiCriteriaValue = "20m" // Midi: 20+ minutes
+	creator.maxiCriteriaValue = "30m" // Maxi: 30+ minutes
 
 	goal, err := creator.createGoalFromData()
 	require.NoError(t, err)

@@ -245,11 +245,11 @@ func TestElasticGoalCreator_Integration_AllCombinations(t *testing.T) {
 				assert.NotNil(t, goal.MiniCriteria, "Elastic goal should have mini criteria for automatic scoring")
 				assert.NotNil(t, goal.MidiCriteria, "Elastic goal should have midi criteria for automatic scoring")
 				assert.NotNil(t, goal.MaxiCriteria, "Elastic goal should have maxi criteria for automatic scoring")
-				
+
 				assert.NotNil(t, goal.MiniCriteria.Condition, "Mini criteria should have condition")
 				assert.NotNil(t, goal.MidiCriteria.Condition, "Midi criteria should have condition")
 				assert.NotNil(t, goal.MaxiCriteria.Condition, "Maxi criteria should have condition")
-				
+
 				assert.NotEmpty(t, goal.MiniCriteria.Description, "Mini criteria should have description")
 				assert.NotEmpty(t, goal.MidiCriteria.Description, "Midi criteria should have description")
 				assert.NotEmpty(t, goal.MaxiCriteria.Description, "Maxi criteria should have description")
@@ -516,7 +516,7 @@ func TestElasticGoalCreator_Integration_YAMLValidation(t *testing.T) {
 				assert.NotNil(t, goal.MiniCriteria, "Automatic scoring elastic goals should have mini criteria")
 				assert.NotNil(t, goal.MidiCriteria, "Automatic scoring elastic goals should have midi criteria")
 				assert.NotNil(t, goal.MaxiCriteria, "Automatic scoring elastic goals should have maxi criteria")
-				
+
 				assert.NotNil(t, goal.MiniCriteria.Condition, "Mini criteria should have condition")
 				assert.NotNil(t, goal.MidiCriteria.Condition, "Midi criteria should have condition")
 				assert.NotNil(t, goal.MaxiCriteria.Condition, "Maxi criteria should have condition")

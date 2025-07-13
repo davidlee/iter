@@ -42,12 +42,12 @@ const (
 // GoalEntry represents the completion data for a single goal on a specific day.
 type GoalEntry struct {
 	GoalID           string            `yaml:"goal_id"`
-	Value            interface{}       `yaml:"value,omitempty"`              // nil for skipped entries
+	Value            interface{}       `yaml:"value,omitempty"`             // nil for skipped entries
 	AchievementLevel *AchievementLevel `yaml:"achievement_level,omitempty"` // For elastic goals
 	Notes            string            `yaml:"notes,omitempty"`
-	CreatedAt        time.Time         `yaml:"created_at"`                   // Entry creation time
-	UpdatedAt        *time.Time        `yaml:"updated_at,omitempty"`         // Last modification time (nil if never updated)
-	Status           EntryStatus       `yaml:"status"`                       // Entry completion status
+	CreatedAt        time.Time         `yaml:"created_at"`           // Entry creation time
+	UpdatedAt        *time.Time        `yaml:"updated_at,omitempty"` // Last modification time (nil if never updated)
+	Status           EntryStatus       `yaml:"status"`               // Entry completion status
 }
 
 // BooleanEntry is a convenience type for boolean goal entries.

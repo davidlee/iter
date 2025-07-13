@@ -66,11 +66,11 @@ func TestGoalConfigurator_ElasticGoalCreatorCreation(t *testing.T) {
 func TestGoalConfigurator_ElasticGoalHeadlessIntegration(t *testing.T) {
 	// Test that ElasticGoalCreator can be used headlessly (like in integration tests)
 	testData := TestElasticGoalData{
-		FieldType:         models.TextFieldType,
-		ScoringType:       models.ManualScoring,
-		MultilineText:     true,
-		Prompt:            "How was your exercise intensity today?",
-		Comment:           "Track mini/midi/maxi achievement levels",
+		FieldType:     models.TextFieldType,
+		ScoringType:   models.ManualScoring,
+		MultilineText: true,
+		Prompt:        "How was your exercise intensity today?",
+		Comment:       "Track mini/midi/maxi achievement levels",
 	}
 
 	creator := NewElasticGoalCreatorForTesting("Exercise Intensity", "Track exercise achievement levels", models.ElasticGoal, testData)
