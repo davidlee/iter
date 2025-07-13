@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
@@ -19,10 +20,14 @@ type CompletionModel struct {
 	cursor     int
 	selected   map[int]struct{}
 	completion *models.ChecklistCompletion
+	progress   progress.Model
 }
 
 // NewCompletionModel creates a new checklist completion model.
 func NewCompletionModel(checklist *models.Checklist) *CompletionModel {
+	prog := progress.New(progress.WithDefaultGradient())
+	prog.Width = 60
+	
 	model := &CompletionModel{
 		checklist: checklist,
 		items:     checklist.Items,
@@ -31,6 +36,7 @@ func NewCompletionModel(checklist *models.Checklist) *CompletionModel {
 			ChecklistID:    checklist.ID,
 			CompletedItems: make(map[string]bool),
 		},
+		progress: prog,
 	}
 
 	// Set cursor to index of first non-heading
@@ -158,6 +164,13 @@ func (m CompletionModel) View() string {
 			}
 			s += "      "
 			text := strings.TrimLeft(item, "# ")
+			
+			// Add progress indicator to heading
+			completed, total := m.getSectionProgress(i)
+			if total > 0 {
+				text = fmt.Sprintf("%s (%d/%d)", text, completed, total)
+			}
+			
 			s += headingStyle.Render(text)
 			s += "\n"
 		} else {
@@ -174,10 +187,18 @@ func (m CompletionModel) View() string {
 		}
 	}
 
-	// Footer
+	// Progress bar and footer
 	completedCount := len(m.selected)
 	totalItems := m.getTotalItemCount()
-	s += fmt.Sprintf("\nCompleted: %d/%d items", completedCount, totalItems)
+	
+	// Calculate progress percentage
+	var progressPercent float64
+	if totalItems > 0 {
+		progressPercent = float64(completedCount) / float64(totalItems)
+	}
+	
+	s += "\n" + m.progress.ViewAs(progressPercent) + "\n"
+	s += fmt.Sprintf("Completed: %d/%d items (%.0f%%)", completedCount, totalItems, progressPercent*100)
 	s += "\nPress q to quit.\n"
 
 	return s
@@ -202,6 +223,33 @@ func (m CompletionModel) getTotalItemCount() int {
 		}
 	}
 	return count
+}
+
+// getSectionProgress returns completion progress for a heading section.
+// Returns (completed, total) for items between the current heading and next heading (or end).
+func (m CompletionModel) getSectionProgress(headingIndex int) (int, int) {
+	if headingIndex < 0 || headingIndex >= len(m.items) || !strings.HasPrefix(m.items[headingIndex], "# ") {
+		return 0, 0
+	}
+
+	completed := 0
+	total := 0
+	
+	// Find items in this section (between this heading and next heading)
+	for i := headingIndex + 1; i < len(m.items); i++ {
+		// Stop at next heading
+		if strings.HasPrefix(m.items[i], "# ") {
+			break
+		}
+		
+		// Count non-heading items
+		total++
+		if _, ok := m.selected[i]; ok {
+			completed++
+		}
+	}
+	
+	return completed, total
 }
 
 // RunChecklistCompletion runs the checklist completion interface and returns the completion state.
