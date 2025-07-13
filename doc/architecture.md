@@ -77,6 +77,22 @@ These diagrams complement the textual architecture descriptions and provide visu
 4. **UI Framework** - Hybrid approach using charmbracelet libraries (huh for forms, bubbletea for complex flows)
 5. **Scoring Engine** - Automatic evaluation of entries against goal criteria with achievement levels
 
+### Dependencies
+
+Libraries & frameworks:
+
+- **User Interface**: charmbracelet/bubbletea, huh, lipgloss & bubbles for tasteful CLI/TUI presentation
+  - [huh documentation](https://github.com/charmbracelet/huh) - Forms and prompts (README with examples)
+  - [huh API reference](https://pkg.go.dev/github.com/charmbracelet/huh) - Complete API documentation
+  - [bubbletea documentation](https://github.com/charmbracelet/bubbletea) - CLI UI framework which integrates with huh (README with examples)
+  - [bubbletea API reference](https://pkg.go.dev/github.com/charmbracelet/bubbletea) - complete API documentation
+  - [bubbletea with huh reference example](https://github.com/charmbracelet/huh/blob/main/examples/bubbletea/main.go) - idiomatic example of huh + bubbletea
+- **YAML parsing**: goccy/go-yaml
+- **Markdown rendering**: charmbracelet/glow
+- **Test assertions & mocks**: stretchr/testify
+- **Strict formatter**: mvdan/gofumpt
+- **Linters**: golangci-lint.run with staticcheck, revive, gosec, errcheck, govet, gocritic, nilnil, nilerr
+
 ### Data Flow Architecture
 
 ```mermaid
@@ -585,6 +601,5 @@ The architectural diagrams referenced throughout this document provide visual re
 These diagrams complement the textual descriptions and serve as implementation guides for developers working on the system. They are particularly valuable for understanding the component relationships in the UI layer and the process flow implications of architectural decisions.
 
 For the most current versions of these diagrams, refer to the [diagrams](./diagrams) directory.
-
 
 

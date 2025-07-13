@@ -27,7 +27,10 @@
       "Bash(go fmt:*)",
       "Bash(fd:*)",
       "Bash(d2:*)",
-      "WebFetch(domain:d2lang.com)"
+      "WebFetch(domain:d2lang.com)",
+      "Bash(timeout 5s go test ./internal/ui/goalconfig -run TestGoalConfigurator_ElasticGoalIntegration)",
+      "Bash(timeout 5s go test ./... -run TestGoalConfigurator)",
+      "Bash(timeout 3s go test ./internal/ui/goalconfig -v)"
     ],
     "deny": []
   }

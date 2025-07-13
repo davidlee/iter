@@ -40,6 +40,7 @@ func TestGoalConfigurator_ElasticGoalIntegration(t *testing.T) {
 	_, err := configurator.runElasticGoalCreator(basicInfo, existingGoals)
 	// This will fail due to TTY requirement, but that's expected - we just want to verify the method exists
 	assert.Error(t, err, "Should error due to TTY requirement, but method should exist")
+	// In non-TTY environments, bubbletea programs fail to execute due to TTY requirement
 	assert.Contains(t, err.Error(), "elastic goal creator execution failed", "Should be the expected error from bubbletea execution")
 }
 

@@ -20,6 +20,10 @@ High-level list of future features / improvements. Break into detailed task card
 
 - https://github.com/NimbleMarkets/ntcharts
 
+## bling
+
+- https://github.com/charmbracelet/fang
+
 # inspired by Harsh
 Looking at Harsh's unique features that Iter lacks, here's a prioritized list of improvements for Iter:
 
