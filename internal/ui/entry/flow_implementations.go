@@ -12,8 +12,8 @@ import (
 
 // AIDEV-NOTE: flow-implementations; concrete implementations of goal collection flow methods
 // Provides scoring, feedback display, and notes collection for each goal type flow
-// AIDEV-NOTE: T010/3.1-implementation-details; SimpleGoalCollectionFlow methods fully implemented and tested
-// Key methods: performAutomaticScoring (elastic conversion), determineManualAchievement (field-type aware), collectOptionalNotes
+// AIDEV-NOTE: T010/3.1-3.3-complete; Simple/Elastic/Informational goal collection flows fully implemented and tested
+// Key methods: performAutomaticScoring (elastic conversion), determineManualAchievement (field-type aware), displayDirectionFeedback (direction-aware), collectOptionalNotes
 
 // Simple Goal Flow Implementations
 
@@ -212,15 +212,38 @@ func (f *InformationalGoalCollectionFlow) displayInformationalContext(_ models.G
 	fmt.Println(infoStyle.Render(contextMsg))
 }
 
-func (f *InformationalGoalCollectionFlow) displayDirectionFeedback(_ models.Goal, value interface{}) {
-	// Display direction-aware feedback based on goal configuration
-	// This would integrate with goal.Direction field if available
-	feedbackStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("8")). // Gray
-		Faint(true)
+// AIDEV-NOTE: direction-aware-feedback; displays value with directional context for informational goals
+// Supports higher_better (green 📈), lower_better (blue 📉), neutral (gray 📊) with contextual hints
+func (f *InformationalGoalCollectionFlow) displayDirectionFeedback(goal models.Goal, value interface{}) {
+	// Display direction-aware feedback based on goal.Direction configuration
+	var style lipgloss.Style
+	var emoji string
+	var directionHint string
 
-	feedback := fmt.Sprintf("📊 Recorded: %v", value)
-	fmt.Println(feedbackStyle.Render(feedback))
+	// Direction-specific styling and feedback
+	switch strings.ToLower(goal.Direction) {
+	case "higher_better":
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("10")) // Bright green
+		emoji = "📈"
+		directionHint = " (higher is better)"
+	case "lower_better":
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("12")) // Bright blue
+		emoji = "📉"
+		directionHint = " (lower is better)"
+	case "neutral", "":
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("8")) // Gray
+		emoji = "📊"
+		directionHint = ""
+	default:
+		// Unknown direction - fall back to neutral
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("8")) // Gray
+		emoji = "📊"
+		directionHint = ""
+	}
+
+	style = style.Faint(true)
+	feedback := fmt.Sprintf("%s Recorded: %v%s", emoji, value, directionHint)
+	fmt.Println(style.Render(feedback))
 }
 
 func (f *InformationalGoalCollectionFlow) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {

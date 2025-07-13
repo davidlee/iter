@@ -1,6 +1,7 @@
 package entry
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,7 +33,7 @@ func TestInformationalGoalCollectionFlow_GetExpectedFieldTypes(t *testing.T) {
 	flow := NewInformationalGoalCollectionFlowForTesting(factory)
 
 	fieldTypes := flow.GetExpectedFieldTypes()
-	
+
 	// Informational goals support all field types
 	expectedTypes := []string{
 		models.BooleanFieldType,
@@ -63,7 +64,7 @@ func TestInformationalGoalCollectionFlow_CollectEntryDirectly_NoScoring(t *testi
 	}
 
 	result, err := flow.CollectEntryDirectly(goal, 42, "Test notes", nil)
-	
+
 	require.NoError(t, err)
 	assert.Equal(t, 42, result.Value)
 	assert.Nil(t, result.AchievementLevel) // Never has achievement level
@@ -137,7 +138,7 @@ func TestInformationalGoalCollectionFlow_FieldTypes(t *testing.T) {
 			}
 
 			result, err := flow.CollectEntryDirectly(goal, tc.value, "", nil)
-			
+
 			require.NoError(t, err)
 			assert.Equal(t, tc.expected, result.Value)
 			assert.Nil(t, result.AchievementLevel)
@@ -162,7 +163,7 @@ func TestInformationalGoalCollectionFlow_WithNotes(t *testing.T) {
 
 	notes := "Detailed observations about this data point"
 	result, err := flow.CollectEntryDirectly(goal, "Data value", notes, nil)
-	
+
 	require.NoError(t, err)
 	assert.Equal(t, "Data value", result.Value)
 	assert.Nil(t, result.AchievementLevel)
@@ -191,7 +192,7 @@ func TestInformationalGoalCollectionFlow_AutomaticScoringIgnored(t *testing.T) {
 	}
 
 	result, err := flow.CollectEntryDirectly(goal, 75, "Test notes", nil)
-	
+
 	require.NoError(t, err)
 	assert.Equal(t, 75, result.Value)
 	assert.Nil(t, result.AchievementLevel) // Should still be nil despite criteria
@@ -242,7 +243,7 @@ func TestInformationalGoalCollectionFlow_ZeroValues(t *testing.T) {
 			}
 
 			result, err := flow.CollectEntryDirectly(goal, tc.value, "", nil)
-			
+
 			require.NoError(t, err)
 			assert.Equal(t, tc.value, result.Value)
 			assert.Nil(t, result.AchievementLevel) // Always nil for informational goals
@@ -271,10 +272,10 @@ func TestInformationalGoalCollectionFlow_WithExistingEntry(t *testing.T) {
 	}
 
 	result, err := flow.CollectEntryDirectly(goal, 50, "Updated notes", existing)
-	
+
 	require.NoError(t, err)
-	assert.Equal(t, 50, result.Value)      // New value
-	assert.Nil(t, result.AchievementLevel) // Still nil
+	assert.Equal(t, 50, result.Value)              // New value
+	assert.Nil(t, result.AchievementLevel)         // Still nil
 	assert.Equal(t, "Updated notes", result.Notes) // New notes
 }
 
@@ -282,7 +283,7 @@ func TestInformationalGoalCollectionFlow_WithScoringEngine(t *testing.T) {
 	// Test that scoring engine presence doesn't affect informational goals
 	factory := NewEntryFieldInputFactory()
 	scoringEngine := scoring.NewEngine()
-	
+
 	// Even if we somehow created the flow with a scoring engine, it shouldn't be used
 	flow := NewInformationalGoalCollectionFlowForTesting(factory)
 
@@ -303,7 +304,7 @@ func TestInformationalGoalCollectionFlow_WithScoringEngine(t *testing.T) {
 
 	// Even with scoring engine and criteria, informational goals don't score
 	result, err := flow.CollectEntryDirectly(goal, 150, "", nil)
-	
+
 	require.NoError(t, err)
 	assert.Equal(t, 150, result.Value)
 	assert.Nil(t, result.AchievementLevel) // Still nil despite meeting criteria
@@ -313,3 +314,61 @@ func TestInformationalGoalCollectionFlow_WithScoringEngine(t *testing.T) {
 	_ = scoringEngine
 }
 
+func TestInformationalGoalCollectionFlow_DirectionAwareness(t *testing.T) {
+	factory := NewEntryFieldInputFactory()
+	flow := NewInformationalGoalCollectionFlowForTesting(factory)
+
+	testCases := []struct {
+		name      string
+		direction string
+		value     interface{}
+	}{
+		{
+			name:      "Higher better direction",
+			direction: "higher_better",
+			value:     85,
+		},
+		{
+			name:      "Lower better direction",
+			direction: "lower_better",
+			value:     12.5,
+		},
+		{
+			name:      "Neutral direction",
+			direction: "neutral",
+			value:     "Status update",
+		},
+		{
+			name:      "Empty direction (defaults to neutral)",
+			direction: "",
+			value:     42,
+		},
+		{
+			name:      "Unknown direction (falls back to neutral)",
+			direction: "unknown_direction",
+			value:     100,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			goal := models.Goal{
+				ID:          "test_direction_" + strings.ReplaceAll(tc.name, " ", "_"),
+				Title:       "Test " + tc.name,
+				GoalType:    models.InformationalGoal,
+				ScoringType: models.ManualScoring,
+				Direction:   tc.direction,
+				FieldType: models.FieldType{
+					Type: models.UnsignedDecimalFieldType,
+				},
+			}
+
+			result, err := flow.CollectEntryDirectly(goal, tc.value, "", nil)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.value, result.Value)
+			assert.Nil(t, result.AchievementLevel) // Always nil for informational goals
+			assert.Equal(t, "", result.Notes)
+		})
+	}
+}
