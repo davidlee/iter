@@ -58,12 +58,12 @@ func (v *ViewRenderer) RenderReturnBehavior(behavior ReturnBehavior) string {
 	return returnBehaviorStyle.Render(behaviorText)
 }
 
-// RenderHeader renders the complete header section with progress, filters, and behavior.
-func (v *ViewRenderer) RenderHeader(goals []models.Goal, entries map[string]models.GoalEntry, filterState FilterState, returnBehavior ReturnBehavior) string {
+// RenderHeader renders the complete header section with progress and filters.
+func (v *ViewRenderer) RenderHeader(goals []models.Goal, entries map[string]models.GoalEntry, filterState FilterState) string {
 	var headerParts []string
 
-	// Progress bar with right-aligned return behavior
-	progressSection := v.renderProgressWithReturnBehavior(goals, entries, returnBehavior)
+	// Progress bar
+	progressSection := v.renderProgress(goals, entries)
 	if progressSection != "" {
 		headerParts = append(headerParts, progressSection)
 	}
@@ -74,12 +74,14 @@ func (v *ViewRenderer) RenderHeader(goals []models.Goal, entries map[string]mode
 		headerParts = append(headerParts, filters)
 	}
 
-	return strings.Join(headerParts, "\n")
+	header := strings.Join(headerParts, "\n")
+	
+	// AIDEV-NOTE: layout-spacing; blank line provides visual separation between header and menu
+	return header + "\n"
 }
 
-// renderProgressWithReturnBehavior renders progress bar with right-aligned return behavior.
-// AIDEV-NOTE: layout-improvement; T018 user-requested right-alignment of return behavior text
-func (v *ViewRenderer) renderProgressWithReturnBehavior(goals []models.Goal, entries map[string]models.GoalEntry, returnBehavior ReturnBehavior) string {
+// renderProgress renders progress bar with statistics.
+func (v *ViewRenderer) renderProgress(goals []models.Goal, entries map[string]models.GoalEntry) string {
 	if len(goals) == 0 {
 		return progressStyle.Render("No goals configured")
 	}
@@ -97,37 +99,7 @@ func (v *ViewRenderer) renderProgressWithReturnBehavior(goals []models.Goal, ent
 		stats.Failed, stats.Skipped, stats.Remaining,
 	)
 	
-	// Create return behavior text
-	var returnText string
-	switch returnBehavior {
-	case ReturnToMenu:
-		returnText = "Return: menu"
-	case ReturnToNextGoal:
-		returnText = "Return: next goal"
-	default:
-		returnText = "Return: menu"
-	}
-	
-	// Try to fit progress text and return behavior on same line if width allows
-	totalLength := len(progressText) + len(returnText) + 3 // 3 spaces between
-	var statusLine string
-	
-	if v.width > 0 && totalLength <= v.width {
-		// Fit on same line with right alignment
-		spacesNeeded := v.width - len(progressText) - len(returnText)
-		if spacesNeeded < 1 {
-			spacesNeeded = 1
-		}
-		spacing := strings.Repeat(" ", spacesNeeded)
-		
-		leftSide := progressStyle.Render(progressText)
-		rightSide := returnBehaviorStyle.Render(returnText)
-		
-		statusLine = leftSide + spacing + rightSide
-	} else {
-		// Separate lines if doesn't fit
-		statusLine = progressStyle.Render(progressText)
-	}
+	statusLine := progressStyle.Render(progressText)
 	
 	// Combine progress bar visual and status line
 	return lipgloss.JoinVertical(

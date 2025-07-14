@@ -83,7 +83,7 @@ func TestViewRenderer_RenderProgressBar(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := renderer.renderProgressWithReturnBehavior(tt.goals, tt.entries, ReturnToMenu)
+			result := renderer.renderProgress(tt.goals, tt.entries)
 			
 			for _, expected := range tt.contains {
 				if !strings.Contains(result, expected) {
@@ -273,7 +273,7 @@ func TestViewRenderer_RenderHeader(t *testing.T) {
 		},
 	}
 
-	result := renderer.RenderHeader(goals, entries, FilterHideSkipped, ReturnToMenu)
+	result := renderer.RenderHeader(goals, entries, FilterHideSkipped)
 
 	// Should contain progress information
 	if !strings.Contains(result, "1/1 completed") {
@@ -285,9 +285,9 @@ func TestViewRenderer_RenderHeader(t *testing.T) {
 		t.Errorf("Expected header to contain filter info, got: %s", result)
 	}
 
-	// Should contain return behavior
-	if !strings.Contains(result, "Return: menu") {
-		t.Errorf("Expected header to contain return behavior, got: %s", result)
+	// Header should no longer contain return behavior (moved to footer)
+	if strings.Contains(result, "Return:") {
+		t.Errorf("Expected header to NOT contain return behavior (moved to footer), got: %s", result)
 	}
 }
 

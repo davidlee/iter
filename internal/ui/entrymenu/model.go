@@ -4,6 +4,7 @@ package entrymenu
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -338,13 +339,66 @@ func (m *EntryMenuModel) View() string {
 		return "Loading..."
 	}
 	
-	header := m.viewRenderer.RenderHeader(m.goals, m.entries, m.filterState, m.returnBehavior)
+	header := m.viewRenderer.RenderHeader(m.goals, m.entries, m.filterState)
+	m.list.Title = "Entry Menu"
+	
+	// Get list view with return behavior inserted before help
+	listView := m.renderListWithFooter()
 	
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		header,
-		m.list.View(),
+		listView,
 	)
+}
+
+// renderListWithFooter renders the list with return behavior inserted before help.
+// AIDEV-NOTE: footer-layout; robust approach moving return behavior to footer above keybindings
+func (m *EntryMenuModel) renderListWithFooter() string {
+	// Temporarily disable list help to render it manually
+	showHelp := m.list.ShowHelp()
+	m.list.SetShowHelp(false)
+	
+	listContent := m.list.View()
+	
+	// Restore help setting
+	m.list.SetShowHelp(showHelp)
+	
+	// Create return behavior line
+	var returnText string
+	switch m.returnBehavior {
+	case ReturnToMenu:
+		returnText = "Return: menu"
+	case ReturnToNextGoal:
+		returnText = "Return: next goal"
+	default:
+		returnText = "Return: menu"
+	}
+	
+	returnLine := returnBehaviorStyle.Render(returnText)
+	
+	// Add help if it was enabled
+	var parts []string
+	parts = append(parts, listContent)
+	parts = append(parts, returnLine)
+	
+	if showHelp {
+		// Get the list's help text by temporarily restoring help and getting just that part
+		m.list.SetShowHelp(true)
+		fullView := m.list.View()
+		m.list.SetShowHelp(false)
+		
+		// Extract help text from the bottom of the full view
+		lines := strings.Split(fullView, "\n")
+		if len(lines) > 0 {
+			helpLine := lines[len(lines)-1]
+			if helpLine != "" {
+				parts = append(parts, helpLine)
+			}
+		}
+	}
+	
+	return lipgloss.JoinVertical(lipgloss.Left, parts...)
 }
 
 // ShouldQuit returns true if the menu should quit.

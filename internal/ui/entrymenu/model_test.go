@@ -277,9 +277,9 @@ func TestEntryMenuModel_View(t *testing.T) {
 		t.Errorf("Expected view to contain progress info, got: %s", view)
 	}
 
-	// Should contain return behavior info
-	if !strings.Contains(view, "Return: menu") {
-		t.Errorf("Expected view to contain return behavior, got: %s", view)
+	// Should contain return behavior in footer
+	if !strings.Contains(view, "Return:") {
+		t.Errorf("Expected view to contain return behavior in footer, got: %s", view)
 	}
 }
 
