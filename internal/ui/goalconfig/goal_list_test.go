@@ -3,6 +3,7 @@ package goalconfig
 import (
 	"testing"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
 
@@ -178,6 +179,22 @@ func TestGoalListModel_Modal(t *testing.T) {
 		assert.True(t, model.showModal)
 	})
 
+	t.Run("space key opens modal", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "Test Goal", GoalType: models.SimpleGoal},
+		}
+		model := NewGoalListModel(goals)
+		model.width = 80
+		model.height = 24
+
+		// Simulate space key press
+		msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{' '}}
+		updatedModel, _ := model.Update(msg)
+		model = updatedModel.(*GoalListModel)
+
+		assert.True(t, model.showModal)
+	})
+
 	t.Run("escape key closes modal", func(t *testing.T) {
 		goals := []models.Goal{
 			{Title: "Test Goal", GoalType: models.SimpleGoal},
@@ -191,6 +208,22 @@ func TestGoalListModel_Modal(t *testing.T) {
 		model = updatedModel.(*GoalListModel)
 
 		assert.False(t, model.showModal)
+	})
+
+	t.Run("keys ignored when modal is open", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "Test Goal", GoalType: models.SimpleGoal},
+		}
+		model := NewGoalListModel(goals)
+		model.showModal = true
+
+		// Simulate 'q' key press (should not quit when modal is open)
+		msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}}
+		updatedModel, cmd := model.Update(msg)
+		model = updatedModel.(*GoalListModel)
+
+		assert.True(t, model.showModal) // Modal should still be open
+		assert.Nil(t, cmd)              // Should not quit
 	})
 
 	t.Run("getSelectedGoal returns correct goal", func(t *testing.T) {
@@ -212,6 +245,117 @@ func TestGoalListModel_Modal(t *testing.T) {
 
 		selectedGoal := model.getSelectedGoal()
 		assert.Nil(t, selectedGoal)
+	})
+}
+
+func TestGoalListKeyMap(t *testing.T) {
+	t.Run("default keybindings are properly configured", func(t *testing.T) {
+		keys := DefaultGoalListKeyMap()
+
+		// Test that keys are defined
+		assert.NotNil(t, keys.Up)
+		assert.NotNil(t, keys.Down)
+		assert.NotNil(t, keys.ShowDetail)
+		assert.NotNil(t, keys.CloseModal)
+		assert.NotNil(t, keys.Edit)
+		assert.NotNil(t, keys.Delete)
+		assert.NotNil(t, keys.Search)
+		assert.NotNil(t, keys.Quit)
+
+		// Test help text is available
+		shortHelp := keys.ShortHelp()
+		assert.Equal(t, 4, len(shortHelp))
+
+		fullHelp := keys.FullHelp()
+		assert.Equal(t, 2, len(fullHelp))
+		assert.Equal(t, 4, len(fullHelp[0]))
+		assert.Equal(t, 4, len(fullHelp[1]))
+	})
+
+	t.Run("custom keybindings can be set", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "Test Goal", GoalType: models.SimpleGoal},
+		}
+		model := NewGoalListModel(goals)
+
+		// Create custom keybindings
+		customKeys := DefaultGoalListKeyMap()
+		customKeys.Quit = key.NewBinding(
+			key.WithKeys("x"),
+			key.WithHelp("x", "exit"),
+		)
+
+		// Apply custom keybindings
+		model = model.WithKeyMap(customKeys)
+
+		assert.Equal(t, customKeys, model.keys)
+	})
+}
+
+func TestGoalListModel_Keybindings(t *testing.T) {
+	t.Run("quit key triggers quit command", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "Test Goal", GoalType: models.SimpleGoal},
+		}
+		model := NewGoalListModel(goals)
+
+		// Simulate 'q' key press
+		msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}}
+		_, cmd := model.Update(msg)
+
+		// Execute the command to check if it's a quit command
+		if cmd != nil {
+			result := cmd()
+			_, isQuitMsg := result.(tea.QuitMsg)
+			assert.True(t, isQuitMsg, "Expected quit command")
+		} else {
+			t.Error("Expected a command to be returned")
+		}
+	})
+
+	t.Run("ctrl+c triggers quit command", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "Test Goal", GoalType: models.SimpleGoal},
+		}
+		model := NewGoalListModel(goals)
+
+		// Simulate Ctrl+C key press
+		msg := tea.KeyMsg{Type: tea.KeyCtrlC}
+		_, cmd := model.Update(msg)
+
+		// Execute the command to check if it's a quit command
+		if cmd != nil {
+			result := cmd()
+			_, isQuitMsg := result.(tea.QuitMsg)
+			assert.True(t, isQuitMsg, "Expected quit command")
+		} else {
+			t.Error("Expected a command to be returned")
+		}
+	})
+
+	t.Run("future operation keys are handled gracefully", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "Test Goal", GoalType: models.SimpleGoal},
+		}
+		model := NewGoalListModel(goals)
+
+		testCases := []struct {
+			key  rune
+			desc string
+		}{
+			{'e', "edit key"},
+			{'d', "delete key"},
+			{'/', "search key"},
+		}
+
+		for _, tc := range testCases {
+			msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{tc.key}}
+			updatedModel, cmd := model.Update(msg)
+
+			// Should not crash and should return the model
+			assert.NotNil(t, updatedModel)
+			assert.Nil(t, cmd) // No command should be issued yet
+		}
 	})
 }
 

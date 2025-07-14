@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -54,6 +55,88 @@ func (g GoalItem) getGoalTypeEmoji() string {
 	}
 }
 
+// GoalListKeyMap defines the keybindings for the goal list interface.
+type GoalListKeyMap struct {
+	// Navigation
+	Up     key.Binding
+	Down   key.Binding
+	Select key.Binding
+
+	// Modal actions
+	ShowDetail key.Binding
+	CloseModal key.Binding
+
+	// Future operations (prepared but not yet implemented)
+	Edit   key.Binding
+	Delete key.Binding
+	Search key.Binding
+
+	// Exit
+	Quit key.Binding
+}
+
+// DefaultGoalListKeyMap returns the default keybindings for the goal list.
+func DefaultGoalListKeyMap() GoalListKeyMap {
+	return GoalListKeyMap{
+		// Navigation - vim-style + arrow keys
+		Up: key.NewBinding(
+			key.WithKeys("k", "up"),
+			key.WithHelp("↑/k", "up"),
+		),
+		Down: key.NewBinding(
+			key.WithKeys("j", "down"),
+			key.WithHelp("↓/j", "down"),
+		),
+		Select: key.NewBinding(
+			key.WithKeys("enter"),
+			key.WithHelp("enter", "select"),
+		),
+
+		// Modal actions
+		ShowDetail: key.NewBinding(
+			key.WithKeys("enter", " "),
+			key.WithHelp("enter/space", "show details"),
+		),
+		CloseModal: key.NewBinding(
+			key.WithKeys("esc"),
+			key.WithHelp("esc", "close"),
+		),
+
+		// Future operations
+		Edit: key.NewBinding(
+			key.WithKeys("e"),
+			key.WithHelp("e", "edit goal"),
+		),
+		Delete: key.NewBinding(
+			key.WithKeys("d"),
+			key.WithHelp("d", "delete goal"),
+		),
+		Search: key.NewBinding(
+			key.WithKeys("/"),
+			key.WithHelp("/", "search"),
+		),
+
+		// Exit
+		Quit: key.NewBinding(
+			key.WithKeys("q", "ctrl+c"),
+			key.WithHelp("q", "quit"),
+		),
+	}
+}
+
+// ShortHelp returns the short help for the keybindings.
+func (k GoalListKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Up, k.Down, k.ShowDetail, k.Quit}
+}
+
+// FullHelp returns the full help for the keybindings.
+func (k GoalListKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Up, k.Down, k.ShowDetail, k.CloseModal},
+		{k.Edit, k.Delete, k.Search, k.Quit},
+	}
+}
+
 // GoalListModel represents the state of the goal list UI.
 type GoalListModel struct {
 	list      list.Model
@@ -61,6 +144,7 @@ type GoalListModel struct {
 	width     int
 	height    int
 	showModal bool
+	keys      GoalListKeyMap
 }
 
 // NewGoalListModel creates a new goal list model with the provided goals.
@@ -83,7 +167,15 @@ func NewGoalListModel(goals []models.Goal) *GoalListModel {
 	return &GoalListModel{
 		list:  l,
 		goals: goals,
+		keys:  DefaultGoalListKeyMap(),
 	}
+}
+
+// WithKeyMap allows customizing the keybindings for the goal list.
+// This enables future user configurability of key mappings.
+func (m *GoalListModel) WithKeyMap(keyMap GoalListKeyMap) *GoalListModel {
+	m.keys = keyMap
+	return m
 }
 
 // Init implements the tea.Model interface.
@@ -100,20 +192,35 @@ func (m *GoalListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetWidth(msg.Width)
 		m.list.SetHeight(msg.Height - 2) // Account for margins
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "ctrl+c":
-			return m, tea.Quit
-		case "esc":
-			if m.showModal {
+		// Handle modal-specific keys first
+		if m.showModal {
+			switch {
+			case key.Matches(msg, m.keys.CloseModal):
 				m.showModal = false
 				return m, nil
 			}
+			// In modal mode, don't process other keys
+			return m, nil
+		}
+
+		// Handle main interface keys
+		switch {
+		case key.Matches(msg, m.keys.Quit):
 			return m, tea.Quit
-		case "enter", " ":
-			if !m.showModal && len(m.goals) > 0 {
+		case key.Matches(msg, m.keys.ShowDetail):
+			if len(m.goals) > 0 {
 				m.showModal = true
 				return m, nil
 			}
+		case key.Matches(msg, m.keys.Edit):
+			// TODO: Phase 3.1 - Implement goal editing
+			return m, nil
+		case key.Matches(msg, m.keys.Delete):
+			// TODO: Phase 3.2 - Implement goal deletion
+			return m, nil
+		case key.Matches(msg, m.keys.Search):
+			// TODO: Phase 4.1 - Implement search functionality
+			return m, nil
 		}
 	}
 
