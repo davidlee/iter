@@ -47,7 +47,7 @@ Error: failed to save entries: failed to update day entry: failed to update day 
 
 ## 4. Implementation Plan & Progress
 
-**Overall Status:** `In Progress`
+**Overall Status:** `Completed`
 
 **Sub-tasks:**
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
@@ -58,26 +58,26 @@ Error: failed to save entries: failed to update day entry: failed to update day 
     - *Code/Artifacts:* Analysis of `internal/models/entry.go:186` and collection flows
     - *Testing Strategy:* Review existing test coverage for validation
     - *AI Notes:* Core issue is strict validation vs permissive data handling
-  - [WIP] **Sub-task 1.2:** Design preservation strategy for skip transitions
+  - [x] **Sub-task 1.2:** Design preservation strategy for skip transitions
     - *Design:* Choose between validation relaxation vs data cleanup approaches
     - *Code/Artifacts:* Design document or architectural decision
     - *Testing Strategy:* Define test scenarios for skip/unskip transitions
     - *AI Notes:* Need to consider impact on data integrity
 
 - [ ] **Phase 2: Implementation**
-  - [ ] **Sub-task 2.1:** Implement chosen preservation strategy
+  - [x] **Sub-task 2.1:** Implement chosen preservation strategy
     - *Design:* Modify validation logic or collection flow to handle preserved data
     - *Code/Artifacts:* `internal/models/entry.go` or collection flow modifications
     - *Testing Strategy:* Unit tests for validation, integration tests for entry flow
     - *AI Notes:* Ensure backward compatibility with existing entries
-  - [ ] **Sub-task 2.2:** Add tests for skip preservation scenarios
+  - [x] **Sub-task 2.2:** Add tests for skip preservation scenarios
     - *Design:* Cover skip→unskip, unskip→skip, and data preservation cases
     - *Code/Artifacts:* Test files covering validation and collection scenarios
     - *Testing Strategy:* Automated tests for all transition scenarios
     - *AI Notes:* Include edge cases like partial data preservation
 
 - [ ] **Phase 3: Verification**
-  - [ ] **Sub-task 3.1:** Manual testing of skip functionality
+  - [x] **Sub-task 3.1:** Manual testing of skip functionality
     - *Design:* Test actual `iter entry` command with skip scenarios
     - *Code/Artifacts:* Manual test validation
     - *Testing Strategy:* Reproduce original bug scenario and verify fix
@@ -93,3 +93,5 @@ Error: failed to save entries: failed to update day entry: failed to update day 
 
 - `2025-07-14 - User:` Reported bug: `iter entry` fails when skipping previously filled habit with "skipped entries cannot have achievement levels" error. Requested permissive behavior to preserve user data.
 - `2025-07-14 - AI:` Completed analysis of validation logic in `internal/models/entry.go:186` and entry collection flows. Core conflict identified between strict validation rules and data preservation during status transitions. Achievement levels are preserved during loading but validation rejects them for skipped entries.
+- `2025-07-14 - AI:` Implemented permissive validation approach per ADR-001. Removed achievement level restriction for skipped entries in `internal/models/entry.go:185-187`. Added comprehensive tests covering skip preservation scenarios. All tests pass.
+- `2025-07-14 - User:` Manual testing successful - original bug scenario resolved.

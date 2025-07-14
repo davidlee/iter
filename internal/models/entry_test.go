@@ -197,6 +197,32 @@ func TestGoalEntry_Validate(t *testing.T) {
 		err := goalEntry.Validate()
 		assert.EqualError(t, err, "completed and failed entries must have values")
 	})
+
+	t.Run("skipped entries with achievement levels are allowed", func(t *testing.T) {
+		achievementLevel := AchievementMini
+		goalEntry := GoalEntry{
+			GoalID:           "meditation",
+			Status:           EntrySkipped,
+			AchievementLevel: &achievementLevel,
+			CreatedAt:        time.Now(),
+			// Value is nil (valid for skipped entries)
+		}
+
+		err := goalEntry.Validate()
+		assert.NoError(t, err, "skipped entries should allow achievement levels per ADR-001")
+	})
+
+	t.Run("skipped entries with values are still invalid", func(t *testing.T) {
+		goalEntry := GoalEntry{
+			GoalID:    "meditation",
+			Value:     true,
+			Status:    EntrySkipped,
+			CreatedAt: time.Now(),
+		}
+
+		err := goalEntry.Validate()
+		assert.EqualError(t, err, "skipped entries cannot have values")
+	})
 }
 
 func TestEntryLog_GetDayEntry(t *testing.T) {

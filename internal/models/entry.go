@@ -175,16 +175,15 @@ func (ge *GoalEntry) Validate() error {
 		return fmt.Errorf("invalid entry status: %s", ge.Status)
 	}
 
+	// AIDEV-NOTE: Permissive validation per ADR-001 - allow dormant achievement levels on skipped entries
 	// Status-based validation
 	switch ge.Status {
 	case EntrySkipped:
-		// Skipped entries should not have values or achievement levels
+		// Skipped entries should not have values (but may preserve achievement levels)
 		if ge.Value != nil {
 			return fmt.Errorf("skipped entries cannot have values")
 		}
-		if ge.AchievementLevel != nil {
-			return fmt.Errorf("skipped entries cannot have achievement levels")
-		}
+		// Achievement levels allowed for data preservation (see ADR-001)
 	case EntryCompleted, EntryFailed:
 		// Completed and failed entries must have values
 		if ge.Value == nil {
