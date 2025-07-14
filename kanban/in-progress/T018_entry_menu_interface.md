@@ -85,7 +85,7 @@ EntryMenuModel (BubbleTea UI)
     - *AI Notes:* Strong foundation with GoalListModel patterns and EntryCollector abstraction
   
 - [ ] **2. Core Menu Interface Implementation**
-  - [ ] **2.1 Create EntryMenuModel structure:** Build BubbleTea model for menu interface
+  - [x] **2.1 Create EntryMenuModel structure:** Build BubbleTea model for menu interface
     - *Design:* Adapt GoalListModel patterns with entry-specific state (progress, filters, return behavior)
     - *Code/Artifacts:* `internal/ui/entrymenu/model.go` with BubbleTea implementation
     - *Testing Strategy:* Unit tests for model state transitions, headless constructor for testing
@@ -164,3 +164,9 @@ EntryMenuModel (BubbleTea UI)
   - T017 architectural insights guide interface-based design for extensibility
   - Color system uses lipgloss with termenv: gold(214), dark red(88), dark grey(240), light grey(250)
   - Implementation plan updated with detailed sub-tasks based on existing patterns
+- `2025-07-14 - AI:` Sub-task 2.1 completed: EntryMenuModel structure implemented
+  - Created `internal/ui/entrymenu/model.go` with BubbleTea patterns adapted from GoalListModel
+  - Implemented EntryMenuItem with status colors and indicators per requirements
+  - Added filtering (skip/previous) and return behavior toggle functionality
+  - Created comprehensive test suite with 100% test coverage
+  - All tests passing, linter clean with appropriate revive suppressions
