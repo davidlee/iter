@@ -83,7 +83,7 @@ func TestViewRenderer_RenderProgressBar(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := renderer.RenderProgressBar(tt.goals, tt.entries)
+			result := renderer.renderProgressWithReturnBehavior(tt.goals, tt.entries, ReturnToMenu)
 			
 			for _, expected := range tt.contains {
 				if !strings.Contains(result, expected) {
@@ -247,7 +247,7 @@ func TestViewRenderer_RenderProgressBarVisual(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := renderer.renderProgressBarVisual(tt.completedPct, tt.total)
+			result := renderer.renderProgressBarVisual(tt.completedPct)
 			
 			for _, expected := range tt.shouldContain {
 				if !strings.Contains(result, expected) {
@@ -294,7 +294,7 @@ func TestViewRenderer_RenderHeader(t *testing.T) {
 func TestViewRenderer_ZeroWidth(t *testing.T) {
 	renderer := NewViewRenderer(0, 24)
 
-	result := renderer.renderProgressBarVisual(50.0, 4)
+	result := renderer.renderProgressBarVisual(50.0)
 	
 	// Should handle zero width gracefully
 	if result != "" {

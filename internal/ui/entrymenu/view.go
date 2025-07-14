@@ -24,15 +24,6 @@ func NewViewRenderer(width, height int) *ViewRenderer {
 	}
 }
 
-// RenderProgressBar renders the progress bar showing completion status.
-func (v *ViewRenderer) RenderProgressBar(goals []models.Goal, entries map[string]models.GoalEntry) string {
-	if len(goals) == 0 {
-		return v.renderEmptyProgress()
-	}
-
-	stats := v.calculateProgressStats(goals, entries)
-	return v.renderProgressWithStats(stats)
-}
 
 // RenderFilters renders the current filter state indicator.
 func (v *ViewRenderer) RenderFilters(filterState FilterState) string {
@@ -71,29 +62,116 @@ func (v *ViewRenderer) RenderReturnBehavior(behavior ReturnBehavior) string {
 func (v *ViewRenderer) RenderHeader(goals []models.Goal, entries map[string]models.GoalEntry, filterState FilterState, returnBehavior ReturnBehavior) string {
 	var headerParts []string
 
-	// Progress bar
-	progressBar := v.RenderProgressBar(goals, entries)
-	if progressBar != "" {
-		headerParts = append(headerParts, progressBar)
+	// Progress bar with right-aligned return behavior
+	progressSection := v.renderProgressWithReturnBehavior(goals, entries, returnBehavior)
+	if progressSection != "" {
+		headerParts = append(headerParts, progressSection)
 	}
 
-	// Status line with filters and return behavior
-	var statusParts []string
-	
+	// Filters on separate line if present
 	filters := v.RenderFilters(filterState)
 	if filters != "" {
-		statusParts = append(statusParts, filters)
-	}
-	
-	returnBehaviorText := v.RenderReturnBehavior(returnBehavior)
-	statusParts = append(statusParts, returnBehaviorText)
-
-	if len(statusParts) > 0 {
-		statusLine := strings.Join(statusParts, " | ")
-		headerParts = append(headerParts, statusLine)
+		headerParts = append(headerParts, filters)
 	}
 
 	return strings.Join(headerParts, "\n")
+}
+
+// renderProgressWithReturnBehavior renders progress bar with right-aligned return behavior.
+// AIDEV-NOTE: layout-improvement; T018 user-requested right-alignment of return behavior text
+func (v *ViewRenderer) renderProgressWithReturnBehavior(goals []models.Goal, entries map[string]models.GoalEntry, returnBehavior ReturnBehavior) string {
+	if len(goals) == 0 {
+		return progressStyle.Render("No goals configured")
+	}
+
+	stats := v.calculateProgressStats(goals, entries)
+	completedPct := float64(stats.Completed) / float64(stats.Total) * 100
+	
+	// Create visual progress bar
+	progressBarVisual := v.renderProgressBarVisual(completedPct)
+	
+	// Create progress text
+	progressText := fmt.Sprintf(
+		"Progress: %d/%d completed (%.1f%%) | %d failed | %d skipped | %d remaining",
+		stats.Completed, stats.Total, completedPct,
+		stats.Failed, stats.Skipped, stats.Remaining,
+	)
+	
+	// Create return behavior text
+	var returnText string
+	switch returnBehavior {
+	case ReturnToMenu:
+		returnText = "Return: menu"
+	case ReturnToNextGoal:
+		returnText = "Return: next goal"
+	default:
+		returnText = "Return: menu"
+	}
+	
+	// Try to fit progress text and return behavior on same line if width allows
+	totalLength := len(progressText) + len(returnText) + 3 // 3 spaces between
+	var statusLine string
+	
+	if v.width > 0 && totalLength <= v.width {
+		// Fit on same line with right alignment
+		spacesNeeded := v.width - len(progressText) - len(returnText)
+		if spacesNeeded < 1 {
+			spacesNeeded = 1
+		}
+		spacing := strings.Repeat(" ", spacesNeeded)
+		
+		leftSide := progressStyle.Render(progressText)
+		rightSide := returnBehaviorStyle.Render(returnText)
+		
+		statusLine = leftSide + spacing + rightSide
+	} else {
+		// Separate lines if doesn't fit
+		statusLine = progressStyle.Render(progressText)
+	}
+	
+	// Combine progress bar visual and status line
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		progressBarVisual,
+		statusLine,
+	)
+}
+
+// renderProgressBarVisual creates a visual progress bar representation.
+func (v *ViewRenderer) renderProgressBarVisual(completedPct float64) string {
+	if v.width <= 0 {
+		return ""
+	}
+
+	// Calculate bar width (leave space for brackets and percentage)
+	barWidth := v.width - 20
+	if barWidth < 10 {
+		barWidth = 10
+	}
+
+	// Calculate filled portion
+	filledWidth := int(float64(barWidth) * completedPct / 100)
+	if filledWidth > barWidth {
+		filledWidth = barWidth
+	}
+
+	// Create bar components
+	filled := strings.Repeat("█", filledWidth)
+	empty := strings.Repeat("░", barWidth-filledWidth)
+
+	// Style the bar
+	filledBar := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("214")). // gold
+		Render(filled)
+
+	emptyBar := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("240")). // dark grey
+		Render(empty)
+
+	// Combine with brackets
+	progressBar := fmt.Sprintf("[%s%s] %.1f%%", filledBar, emptyBar, completedPct)
+
+	return progressBarStyle.Render(progressBar)
 }
 
 // ProgressStats holds calculated progress statistics.
@@ -130,69 +208,7 @@ func (v *ViewRenderer) calculateProgressStats(goals []models.Goal, entries map[s
 	return stats
 }
 
-// renderProgressWithStats renders a detailed progress bar with statistics.
-func (v *ViewRenderer) renderProgressWithStats(stats ProgressStats) string {
-	// Calculate percentages
-	completedPct := float64(stats.Completed) / float64(stats.Total) * 100
 
-	// Create progress bar visual
-	progressBar := v.renderProgressBarVisual(completedPct, stats.Total)
-
-	// Create status text
-	statusText := fmt.Sprintf(
-		"Progress: %d/%d completed (%.1f%%) | %d failed | %d skipped | %d remaining",
-		stats.Completed, stats.Total, completedPct,
-		stats.Failed, stats.Skipped, stats.Remaining,
-	)
-
-	return lipgloss.JoinVertical(
-		lipgloss.Left,
-		progressBar,
-		progressStyle.Render(statusText),
-	)
-}
-
-// renderProgressBarVisual creates a visual progress bar representation.
-func (v *ViewRenderer) renderProgressBarVisual(completedPct float64, _ int) string {
-	if v.width <= 0 {
-		return ""
-	}
-
-	// Calculate bar width (leave space for brackets and text)
-	barWidth := v.width - 20
-	if barWidth < 10 {
-		barWidth = 10
-	}
-
-	// Calculate filled portion
-	filledWidth := int(float64(barWidth) * completedPct / 100)
-	if filledWidth > barWidth {
-		filledWidth = barWidth
-	}
-
-	// Create bar components
-	filled := strings.Repeat("█", filledWidth)
-	empty := strings.Repeat("░", barWidth-filledWidth)
-
-	// Style the bar
-	filledBar := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("214")). // gold
-		Render(filled)
-
-	emptyBar := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("240")). // dark grey
-		Render(empty)
-
-	// Combine with brackets
-	progressBar := fmt.Sprintf("[%s%s] %.1f%%", filledBar, emptyBar, completedPct)
-
-	return progressBarStyle.Render(progressBar)
-}
-
-// renderEmptyProgress renders progress display when no goals are present.
-func (v *ViewRenderer) renderEmptyProgress() string {
-	return progressStyle.Render("No goals configured")
-}
 
 // Styling definitions for the view renderer.
 var (

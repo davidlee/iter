@@ -10,8 +10,29 @@ None I'm especially conscious of
 
 # features 
 
+Affinity:
+
+```
+  habit tracking <-> recurring tasks <-> tasks 
+          |    _________________|_______*  |
+          |   /                       \_* projects <-> notes
+       missions 
+```
+
 ## Goal Management (add / edit)
 
+        92 -    switch e.EntryStatus {
+        93 -    case models.EntryCompleted:
+        94 -      return "●" // success
+        95 -    case models.EntryFailed:
+        96 -      return "✗" // failed
+        97 -    case models.EntrySkipped:
+        98 -      return "–" // skipped
+        99 -    default:
+       100 -      return "○" // incomplete
+       101 -    }
+
+- [ ] default command: if no data, enter goal add wizard 
 - [ ] edit title
 - [ ] add optional default for boolean fields. This will set the default state for form fields during entry.
 

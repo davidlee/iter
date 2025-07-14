@@ -1,10 +1,24 @@
 package cmd
 
 import (
+	"fmt"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
+	"davidlee/vice/internal/config"
 	init_pkg "davidlee/vice/internal/init"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
+	"davidlee/vice/internal/storage"
 	"davidlee/vice/internal/ui"
+	"davidlee/vice/internal/ui/entrymenu"
+)
+
+var (
+	// menuFlag indicates whether to launch the interactive menu interface
+	menuFlag bool
 )
 
 // entryCmd represents the entry command
@@ -17,12 +31,14 @@ you completed today. Your entries are stored in entries.yml for tracking progres
 
 Examples:
   vice entry                    # Record today's habits
+  vice entry --menu             # Launch interactive menu interface
   vice --config-dir /tmp entry  # Use custom config directory`,
 	RunE: runEntry,
 }
 
 func init() {
 	rootCmd.AddCommand(entryCmd)
+	entryCmd.Flags().BoolVar(&menuFlag, "menu", false, "Launch interactive menu interface")
 }
 
 func runEntry(_ *cobra.Command, _ []string) error {
@@ -35,7 +51,70 @@ func runEntry(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
+	if menuFlag {
+		return runEntryMenu(paths)
+	}
+
 	// Create entry collector and run interactive UI
 	collector := ui.NewEntryCollector(paths.ChecklistsFile)
 	return collector.CollectTodayEntries(paths.GoalsFile, paths.EntriesFile)
+}
+
+// runEntryMenu launches the interactive entry menu interface.
+// AIDEV-NOTE: entry-menu-integration; T018 command integration for --menu flag
+func runEntryMenu(paths *config.Paths) error {
+	// Load goals
+	goalParser := parser.NewGoalParser()
+	schema, err := goalParser.LoadFromFile(paths.GoalsFile)
+	if err != nil {
+		return fmt.Errorf("failed to load goals: %w", err)
+	}
+
+	if len(schema.Goals) == 0 {
+		return fmt.Errorf("no goals found in %s", paths.GoalsFile)
+	}
+
+	// Load existing entries for today
+	entryStorage := storage.NewEntryStorage()
+	entries, err := loadTodayEntries(entryStorage, paths.EntriesFile)
+	if err != nil {
+		return fmt.Errorf("failed to load existing entries: %w", err)
+	}
+
+	// Create entry collector for future integration
+	collector := ui.NewEntryCollector(paths.ChecklistsFile)
+
+	// Create and run entry menu
+	model := entrymenu.NewEntryMenuModel(schema.Goals, entries, collector)
+	
+	program := tea.NewProgram(model, tea.WithAltScreen())
+	_, err = program.Run()
+	
+	return err
+}
+
+// loadTodayEntries loads existing entries for today's date.
+func loadTodayEntries(entryStorage *storage.EntryStorage, entriesFile string) (map[string]models.GoalEntry, error) {
+	// Load entry log
+	entryLog, err := entryStorage.LoadFromFile(entriesFile)
+	if err != nil {
+		// If file doesn't exist, return empty entries
+		return make(map[string]models.GoalEntry), nil
+	}
+
+	// Find today's entries
+	today := time.Now().Format("2006-01-02")
+	for _, dayEntry := range entryLog.Entries {
+		if dayEntry.Date == today {
+			// Convert to map for easy lookup
+			entriesMap := make(map[string]models.GoalEntry)
+			for _, goalEntry := range dayEntry.Goals {
+				entriesMap[goalEntry.GoalID] = goalEntry
+			}
+			return entriesMap, nil
+		}
+	}
+
+	// No entries for today
+	return make(map[string]models.GoalEntry), nil
 }

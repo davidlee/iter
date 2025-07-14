@@ -32,12 +32,11 @@ func (e EntryMenuItem) FilterValue() string {
 
 // Title returns the primary display text with status indicator.
 func (e EntryMenuItem) Title() string {
-	emoji := e.getGoalTypeEmoji()
+	emoji := e.getGoalStatusEmoji()
 	statusColor := e.getStatusColor()
-	status := e.getStatusIndicator()
 	
 	titleStyle := lipgloss.NewStyle().Foreground(statusColor)
-	return fmt.Sprintf("%s %s %s", emoji, titleStyle.Render(e.Goal.Title), status)
+	return fmt.Sprintf("%s %s", emoji, titleStyle.Render(e.Goal.Title))
 }
 
 // Description returns the secondary display text.
@@ -48,19 +47,22 @@ func (e EntryMenuItem) Description() string {
 	return fmt.Sprintf("   %s", e.Goal.Description)
 }
 
-// getGoalTypeEmoji returns the emoji representing the goal type.
-func (e EntryMenuItem) getGoalTypeEmoji() string {
-	switch e.Goal.GoalType {
-	case models.SimpleGoal:
-		return "✅"
-	case models.ElasticGoal:
-		return "🎯"
-	case models.InformationalGoal:
-		return "📊"
-	case models.ChecklistGoal:
-		return "📝"
+// getGoalStatusEmoji returns the emoji representing the goal's entry status.
+// AIDEV-NOTE: status-emoji-design; T018 user-requested change from goal type to status emojis
+func (e EntryMenuItem) getGoalStatusEmoji() string {
+	if !e.HasEntry {
+		return "☐" // incomplete - empty box
+	}
+	
+	switch e.EntryStatus {
+	case models.EntryCompleted:
+		return "✓" // completed - checkmark
+	case models.EntryFailed:
+		return "✗" // failed - red cross
+	case models.EntrySkipped:
+		return "~" // skipped - tilde
 	default:
-		return "❓"
+		return "☐" // incomplete
 	}
 }
 
@@ -82,23 +84,6 @@ func (e EntryMenuItem) getStatusColor() lipgloss.Color {
 	}
 }
 
-// getStatusIndicator returns a visual indicator of entry status.
-func (e EntryMenuItem) getStatusIndicator() string {
-	if !e.HasEntry {
-		return "○" // incomplete
-	}
-	
-	switch e.EntryStatus {
-	case models.EntryCompleted:
-		return "●" // success
-	case models.EntryFailed:
-		return "✗" // failed
-	case models.EntrySkipped:
-		return "–" // skipped
-	default:
-		return "○" // incomplete
-	}
-}
 
 // FilterState represents the current filtering state of the menu.
 type FilterState int
