@@ -1,4 +1,5 @@
 // Package storage provides functionality for persisting and loading entry data.
+// AIDEV-NOTE: T021 entries-storage-patterns; centralized file operations with atomic writes and YAML marshaling
 package storage
 
 import (
@@ -11,7 +12,25 @@ import (
 	"davidlee/vice/internal/models"
 )
 
+// BackupConfig defines backup behavior for entries storage
+// AIDEV-NOTE: T021 config-stub; placeholder for future user configuration system
+type BackupConfig struct {
+	// Enabled controls whether automatic backups are created
+	Enabled bool
+	// CreateBeforeWrite creates backup before any write operation
+	CreateBeforeWrite bool
+}
+
+// DefaultBackupConfig returns the default backup configuration
+func DefaultBackupConfig() BackupConfig {
+	return BackupConfig{
+		Enabled:           true,  // Default to enabled for safety
+		CreateBeforeWrite: true,  // Backup before each write
+	}
+}
+
 // EntryStorage handles the persistent storage of entry logs.
+// AIDEV-NOTE: T021 storage-with-config; future enhancement to include BackupConfig field
 type EntryStorage struct{}
 
 // NewEntryStorage creates a new entry storage instance.
@@ -21,6 +40,7 @@ func NewEntryStorage() *EntryStorage {
 
 // LoadFromFile loads an entry log from the specified file path.
 // If the file doesn't exist, it returns an empty entry log.
+// AIDEV-NOTE: T021 file-load-pattern; graceful handling of missing files, strict YAML parsing
 func (es *EntryStorage) LoadFromFile(filePath string) (*models.EntryLog, error) {
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -40,6 +60,7 @@ func (es *EntryStorage) LoadFromFile(filePath string) (*models.EntryLog, error) 
 }
 
 // ParseYAML parses YAML data into an entry log and validates it.
+// AIDEV-NOTE: T021 yaml-parsing-strategy; strict mode prevents unknown fields, validation ensures data integrity
 func (es *EntryStorage) ParseYAML(data []byte) (*models.EntryLog, error) {
 	var entryLog models.EntryLog
 
@@ -58,6 +79,7 @@ func (es *EntryStorage) ParseYAML(data []byte) (*models.EntryLog, error) {
 
 // SaveToFile saves an entry log to the specified file path with atomic writes.
 // This creates a temporary file first, then renames it to prevent corruption.
+// AIDEV-NOTE: T021 atomic-write-pattern; temp-file + rename ensures data consistency, validates before marshaling
 func (es *EntryStorage) SaveToFile(entryLog *models.EntryLog, filePath string) error {
 	// Validate before saving
 	if err := entryLog.Validate(); err != nil {
@@ -71,6 +93,13 @@ func (es *EntryStorage) SaveToFile(entryLog *models.EntryLog, filePath string) e
 	)
 	if err != nil {
 		return fmt.Errorf("failed to marshal entry log to YAML: %w", err)
+	}
+
+	// Validate marshalled data by attempting to parse it back
+	// AIDEV-NOTE: T021 marshal-validation; prevents corrupted data from being written
+	var testLog models.EntryLog
+	if err := yaml.Unmarshal(data, &testLog); err != nil {
+		return fmt.Errorf("marshalled data failed validation - would produce corrupted file: %w", err)
 	}
 
 	// Ensure the directory exists
@@ -109,16 +138,37 @@ func (es *EntryStorage) AddDayEntry(filePath string, dayEntry models.DayEntry) e
 		return fmt.Errorf("failed to add day entry: %w", err)
 	}
 
-	// Save the updated log
-	if err := es.SaveToFile(entryLog, filePath); err != nil {
+	// Save the updated log with automatic backup
+	config := DefaultBackupConfig()
+	if err := es.SaveToFileWithBackup(entryLog, filePath, config); err != nil {
 		return fmt.Errorf("failed to save updated entries: %w", err)
 	}
 
 	return nil
 }
 
+// SaveToFileWithBackup saves an entry log with optional automatic backup based on configuration.
+// AIDEV-NOTE: T021 resilient-save; automatic backup + validation before atomic write
+func (es *EntryStorage) SaveToFileWithBackup(entryLog *models.EntryLog, filePath string, config BackupConfig) error {
+	// Create automatic backup if enabled and file exists
+	if config.Enabled && config.CreateBeforeWrite {
+		if _, err := os.Stat(filePath); err == nil {
+			// File exists, create backup
+			if backupErr := es.BackupFile(filePath); backupErr != nil {
+				// Log warning but don't fail - backup is best-effort
+				// In a real implementation, this would use a proper logger
+				fmt.Fprintf(os.Stderr, "Warning: failed to create backup before write: %v\n", backupErr)
+			}
+		}
+	}
+
+	// Proceed with standard atomic save (includes validation)
+	return es.SaveToFile(entryLog, filePath)
+}
+
 // UpdateDayEntry updates or creates a day entry in the entry log file.
 // This loads the existing log, updates the entry, and saves it back.
+// AIDEV-NOTE: T021 load-modify-save-pattern; most common entry operation, full file rewrite on each save
 func (es *EntryStorage) UpdateDayEntry(filePath string, dayEntry models.DayEntry) error {
 	// Load existing entry log
 	entryLog, err := es.LoadFromFile(filePath)
@@ -131,8 +181,10 @@ func (es *EntryStorage) UpdateDayEntry(filePath string, dayEntry models.DayEntry
 		return fmt.Errorf("failed to update day entry: %w", err)
 	}
 
-	// Save the updated log
-	if err := es.SaveToFile(entryLog, filePath); err != nil {
+	// Save the updated log with automatic backup
+	// AIDEV-NOTE: T021 auto-backup-integration; uses default config for automatic backup
+	config := DefaultBackupConfig()
+	if err := es.SaveToFileWithBackup(entryLog, filePath, config); err != nil {
 		return fmt.Errorf("failed to save updated entries: %w", err)
 	}
 
@@ -264,6 +316,7 @@ func (es *EntryStorage) ValidateFile(filePath string) error {
 }
 
 // BackupFile creates a backup of the entries file with a timestamp.
+// AIDEV-NOTE: T021 backup-strategy; simple .backup suffix, single backup file (no versioning)
 func (es *EntryStorage) BackupFile(filePath string) error {
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {

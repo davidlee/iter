@@ -38,6 +38,7 @@ func NewTimeEntryInput(config EntryFieldInputConfig) *TimeEntryInput {
 	}
 
 	// Set existing value if available
+	// AIDEV-NOTE: T019 time-input-fix; handles both time.Time and RFC3339 string formats for backward compatibility
 	if config.ExistingEntry != nil && config.ExistingEntry.Value != nil {
 		// Convert time value to string for editing
 		if timeVal, ok := config.ExistingEntry.Value.(time.Time); ok {
