@@ -33,7 +33,8 @@
       "Bash(timeout 3s go test ./internal/ui/goalconfig -v)",
       "Bash(timeout 3s go test ./internal/integration -v)",
       "Bash(cp:*)",
-      "Bash(command -v:*)"
+      "Bash(command -v:*)",
+      "Bash(go list:*)"
     ],
     "deny": []
   }

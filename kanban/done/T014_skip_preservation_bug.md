@@ -21,7 +21,7 @@ The validation error occurs in `GoalEntry.Validate()` which enforces that skippe
 
 **All commits related to this task (newest first):**
 
-*No commits yet - task is in backlog*
+- `f95569b` - fix(entry)[T014/2.1]: implement permissive validation for skip preservation
 
 ## 1. Goal / User Story
 
