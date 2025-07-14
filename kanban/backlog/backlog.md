@@ -2,52 +2,200 @@
 
 High-level list of future features / improvements. Break into detailed task cards before implementation.
 
-## Goal Management
+If dumb ideas were worth shit, we'd all be rich.
 
-## Schema / add / edit
+# bugs
 
-- add optional default for boolean fields. This will set the default state for form fields during entry.
+## Goal Management (add / edit)
 
-### List
+- [ ] edit title
+- [ ] add optional default for boolean fields. This will set the default state for form fields during entry.
 
-  - [ ] List goals by title; select goal to view details
-  - [ ] Rich table display with goal summaries
-  - [ ] Interactive filtering and sorting
-  - [ ] Goal status indicators (manual/automatic scoring, completeness)
-  - [ ] Search functionality for large goal sets
+## data model
 
-## reporting 
+- goals? call them habits.
+- a habit can have n fields
+- more complex (DSL?) criteria
+  - combine per-field criteria
+  - and / or, or ... any / all
+  - criteria spanning fields (at least n of criteria true)
+  - checklist % completion
+- checklists 
+  - notes?
+  - skippable items
+  - skip the whole thing
+  - % or x/y success thresholds? optional vs non-optional items?
+  - embed into logs / tasks? ad-hoc?
 
+## Scoring
+
+- [ ] time of day : before conditions spanning midnight - how can this be adressed?
+
+## reporting / analytics
+
+- it's a whole thing.
+- loosely coupled, but reuse a decent chunk of entry parsing / error handling
+- performance requirements
+  - time series / caching
+  - sqlite (projection; text is truth). 
+    - ingestion
+  - or, skates; convex; ...
+- sequence-dependent evaluation (n every m days; streaks; etc)
 - https://github.com/NimbleMarkets/ntcharts
+- calendar stuff
+- lots of opportunity to build stuff that looks cool
+  - cli animations!
 
-## bling
+## cli bling
 
+- better / updated help
 - https://github.com/charmbracelet/fang
 
-## Testing & Quality Assurance
+## TUI
 
-**Performance Testing Infrastructure**
+- full screen tui interface
+  - finally memory leaks a possibility
+- tabs
+- design multi-element UI
+- command bar
+- viewport
+
+## persistent process
+
+- sway / menu bar app
+- server process
+
+## oddities
+
+- flotsam: user messages which show up randomly
+  - title, notes
+  - can be revised, dismissed, dunked (don't show for a while longer)
+  - form of SRS / iterative writing
+  - convert to X (task? ...)
+
+- other SRS / incremental writing
+
+## expanded features
+
+- persistent processes: api; mcp server; 
+- stuff with time
+  - timer; stopwatch
+  - pomodoros
+  - eyestrain / health & mindfulness timer
+  - flowtime log
+  - time block planner
+  - interstitial journal (timestamped (begin/end) logs)
+
+## separate vault / context support
+
+- work | personal | family
+- different data dirs
+- \-c / --config-dir / VICE_DATA
+
+## task management / note taking
+
+- recurring tasks
+  - kinda like habits
+  - lots of wrinkles around scheduling, periodicity
+  - due, defer dates, deadlines - lots of semantics to unmuddle
+  - need reminders, notifications (cross-platform: notify-send, whatever pound of flesh apple needs to use their notifications API)
+  - lots of filtering things to solve for large sets of occasional obligations
+  - never start a land war in asia
+
+- standard tasks  
+  - don't wanna try to be todoist
+- integration: taskwarrior? rem?
+- personal kanban
+  - ready
+  - doing
+  - done
+  - trough_of_lamentation.yml
+
+- work clean style opinionated thing
+  - missions
+  - back/front burners
+  - capacity
+
+- gtd
+  - lists
+  - actions
+    - title
+    - status
+    - mission
+  - projects
+    - title
+    - status
+    - mission
+    - 0-1 next \*action 
+      - title
+      - status
+  - projects and actions mostly interchangeable in UI but projects render as 2 lines if they have a next action
+  - agendas
+    - people are interesting. or are they just lists?
+
+- bullet journal
+  - daily log
+  - mix tasks / notes
+  - simple migration (move to today / bin; toggle day's entry migrated)
+  - collections (named notes)
+
+- zettelkasten
+  - don't implement 
+
+- notational velocity
+  - the rewrite is vapourware right?
+
+- shittywiki
+
+## integrations
+
+- $EDITOR
+- Obsidian
+- taskwarrior
+- rem
+- zsh (prompt - counts, or .. see flotsam)
+- neovim / emacs
+- user scripts (bash?) / plugin system?
+- waybar / macos menu bar
+- tmux (plugin?)
+- zk
+- dnote, et al?
+
+## docs
+
+- better readme
+- fancy videos
+- simple description of data model / features / variations
+
+## compatibility
+
+- Cross-platform testing / fallback for terminal compatibility (low colour; no emoji support!)
+  - non-nerdfonts
+  - system TTY; kms
+  - all the xterms: foot, wezterm, ghostty, gnome, kde, 
+  - Apple: iTerm; Terminal
+  - SSH
+  - shitty slow computer / vm (docker et al?)
+
+## Testing & QA
+
 - Performance testing for large goal sets (100+ goals)
-- Concurrent entry collection testing for multi-user scenarios
-- Memory usage testing for extended sessions
-- Benchmark testing for goal collection flow performance
-
-**Advanced Testing Scenarios**
+- Table / cartesian product of test scenarios / supported cases
+- Fuzz testing (goals > collectors)
+- Logging / headless operation?
 - Stress testing with complex goal schemas and criteria
 - Error recovery testing for interrupted entry sessions
-- Data integrity testing for concurrent read/write operations
-- Cross-platform testing for terminal compatibility
+  - dump scratch files?
+
+-- AI Slop hereafter: --
 
 # inspired by Harsh
 Looking at Harsh's unique features that Vice lacks, here's a prioritized list of improvements for Vice:
 
 ## High Priority
 
-**1. Skip functionality with visual tracking**
-- Add "skip" option alongside current goal responses
 - Track skips separately from failures in analytics
 - Visual indicators for skipped days vs failed days
-- Essential for real-world habit tracking where circumstances prevent completion
 
 **2. Consistency graph visualization**
 - Terminal-based visual habit chains (Seinfeld method)
@@ -70,7 +218,6 @@ Looking at Harsh's unique features that Vice lacks, here's a prioritized list of
 - More realistic than daily-only tracking for many habits
 
 **5. Enhanced CLI workflow commands**
-- `todo` command showing today's incomplete habits
 - `ask` command for quick habit entry without full forms
 - Substring filtering for specific habits (e.g., `vice ask gym`)
 - Streamlines daily usage vs current form-based approach
@@ -106,5 +253,3 @@ Looking at Harsh's unique features that Vice lacks, here's a prioritized list of
 - Automatic sample habit generation
 - Configuration validation and helpful error messages
 - Easier habit file management
-
-The top 3 features (skip functionality, consistency graphs, and streak warnings) would transform Vice from a data collection tool into a true habit formation system by adding the psychological reinforcement mechanisms that make habit tracking effective.
