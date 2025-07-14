@@ -160,9 +160,34 @@ func (gc *GoalConfigurator) displayGoalAdded(goal *models.Goal) {
 	fmt.Println()
 }
 
-// ListGoals displays all existing goals in a formatted view
-func (gc *GoalConfigurator) ListGoals(_ string) error {
-	// TODO: Phase 3 - Implement goal listing UI
+// ListGoals displays all existing goals in an interactive list view
+func (gc *GoalConfigurator) ListGoals(goalsFilePath string) error {
+	// Load existing goals
+	schema, err := gc.goalParser.LoadFromFile(goalsFilePath)
+	if err != nil {
+		// Handle file not found gracefully
+		if strings.Contains(err.Error(), "goals file not found") {
+			fmt.Println("No goals file found. Use 'iter goal add' to create your first goal.")
+			return nil
+		}
+		return fmt.Errorf("failed to load goals: %w", err)
+	}
+
+	// Handle empty goals list
+	if len(schema.Goals) == 0 {
+		fmt.Println("No goals configured yet. Use 'iter goal add' to create your first goal.")
+		return nil
+	}
+
+	// Create and run the interactive list
+	listModel := NewGoalListModel(schema.Goals)
+	program := tea.NewProgram(listModel)
+
+	// Run the program
+	if _, err := program.Run(); err != nil {
+		return fmt.Errorf("failed to run goal list interface: %w", err)
+	}
+
 	return nil
 }
 
