@@ -22,7 +22,8 @@ The CLI currently has placeholder implementations for goal listing, editing, and
 
 **All commits related to this task (newest first):**
 
-*No commits yet - task is in backlog*
+- `4327c9b` - feat(goalconfig)[T015/3]: Phase 3 complete - edit and delete operations
+- Previous commits from Phases 1-2 in git history
 
 ## 1. Goal / User Story
 
