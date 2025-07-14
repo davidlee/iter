@@ -43,7 +43,12 @@ func NewTimeEntryInput(config EntryFieldInputConfig) *TimeEntryInput {
 		if timeVal, ok := config.ExistingEntry.Value.(time.Time); ok {
 			input.value = timeVal.Format("15:04")
 		} else if strVal, ok := config.ExistingEntry.Value.(string); ok {
-			input.value = strVal
+			// Try parsing string as time first (handles stored timestamps)
+			if parsedTime, err := time.Parse(time.RFC3339, strVal); err == nil {
+				input.value = parsedTime.Format("15:04")
+			} else {
+				input.value = strVal
+			}
 		}
 	}
 
@@ -68,7 +73,11 @@ func (ti *TimeEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 
 	// Show existing value in prompt if available
 	if ti.existingEntry != nil && ti.existingEntry.Value != nil && ti.value != "" {
-		prompt = fmt.Sprintf("%s (current: %s)", prompt, ti.value)
+		if timeVal, ok := ti.existingEntry.Value.(time.Time); ok {
+			prompt = fmt.Sprintf("%s (current: %s)", prompt, timeVal.Format("15:04"))
+		} else {
+			prompt = fmt.Sprintf("%s (current: %s)", prompt, ti.value)
+		}
 	}
 
 	// Build description with time format examples
@@ -154,7 +163,12 @@ func (ti *TimeEntryInput) SetExistingValue(value interface{}) error {
 		return nil
 	}
 	if strVal, ok := value.(string); ok {
-		ti.value = strVal
+		// Try parsing string as time first (handles stored timestamps)
+		if parsedTime, err := time.Parse(time.RFC3339, strVal); err == nil {
+			ti.value = parsedTime.Format("15:04")
+		} else {
+			ti.value = strVal
+		}
 		return nil
 	}
 	return fmt.Errorf("invalid time value type: %T", value)
