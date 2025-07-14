@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -99,7 +100,10 @@ func loadTodayEntries(entryStorage *storage.EntryStorage, entriesFile string) (m
 	entryLog, err := entryStorage.LoadFromFile(entriesFile)
 	if err != nil {
 		// If file doesn't exist, return empty entries
-		return make(map[string]models.GoalEntry), nil
+		if os.IsNotExist(err) {
+			return make(map[string]models.GoalEntry), nil
+		}
+		return nil, err
 	}
 
 	// Find today's entries

@@ -357,6 +357,9 @@ func (e *Engine) convertTimeToMinutes(value interface{}) (float64, error) {
 	case string:
 		// Parse time string (e.g., "14:30", "2:30 PM")
 		return e.parseTimeToMinutes(v)
+	case time.Time:
+		// Convert time.Time to minutes since midnight
+		return float64(v.Hour()*60 + v.Minute()), nil
 	default:
 		return 0, fmt.Errorf("cannot convert %T to time in minutes", value)
 	}
