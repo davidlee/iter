@@ -94,11 +94,38 @@ type TestGoalData struct {
 	RangeInclusive    bool
 }
 
+// NewSimpleGoalCreatorForEdit creates a goal creator pre-populated with existing goal data for editing.
 // AIDEV-NOTE: edit-mode-support; goal-to-data conversion enables editing existing goals
-// NewSimpleGoalCreatorForEdit creates a goal creator pre-populated with existing goal data for editing
 func NewSimpleGoalCreatorForEdit(goal *models.Goal) *SimpleGoalCreator {
 	data := goalToTestData(goal)
-	return NewSimpleGoalCreatorForTesting(goal.Title, goal.Description, goal.GoalType, data)
+
+	creator := &SimpleGoalCreator{
+		title:             goal.Title,
+		description:       goal.Description,
+		goalType:          goal.GoalType,
+		selectedFieldType: data.FieldType,
+		numericSubtype:    data.NumericSubtype,
+		unit:              data.Unit,
+		multilineText:     data.MultilineText,
+		minValue:          data.MinValue,
+		maxValue:          data.MaxValue,
+		hasMinMax:         data.HasMinMax,
+		scoringType:       data.ScoringType,
+		prompt:            data.Prompt,
+		comment:           data.Comment,
+		criteriaType:      data.CriteriaType,
+		criteriaValue:     data.CriteriaValue,
+		criteriaValue2:    data.CriteriaValue2,
+		criteriaTimeValue: data.CriteriaTimeValue,
+		rangeInclusive:    data.RangeInclusive,
+		currentStep:       0,
+		maxSteps:          0, // Will be determined based on flow
+	}
+
+	// Initialize the first step with forms
+	creator.initializeStep()
+
+	return creator
 }
 
 // AIDEV-NOTE: goal-to-data-conversion; Phase 3 critical pattern for edit mode support
@@ -106,6 +133,10 @@ func NewSimpleGoalCreatorForEdit(goal *models.Goal) *SimpleGoalCreator {
 // This pattern enables position preservation and ID retention during goal editing
 // goalToTestData converts a models.Goal to TestGoalData for pre-population
 func goalToTestData(goal *models.Goal) TestGoalData {
+	if goal == nil {
+		return TestGoalData{}
+	}
+
 	data := TestGoalData{
 		FieldType:   goal.FieldType.Type,
 		ScoringType: goal.ScoringType,
@@ -115,6 +146,8 @@ func goalToTestData(goal *models.Goal) TestGoalData {
 
 	// Field type specific conversion
 	switch goal.FieldType.Type {
+	case models.BooleanFieldType:
+		data.FieldType = "boolean"
 	case models.UnsignedIntFieldType, models.UnsignedDecimalFieldType, models.DecimalFieldType:
 		data.FieldType = "numeric"
 		data.NumericSubtype = goal.FieldType.Type
@@ -128,6 +161,7 @@ func goalToTestData(goal *models.Goal) TestGoalData {
 			data.HasMinMax = true
 		}
 	case models.TextFieldType:
+		data.FieldType = "text"
 		if goal.FieldType.Multiline != nil {
 			data.MultilineText = *goal.FieldType.Multiline
 		}

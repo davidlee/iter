@@ -279,7 +279,7 @@ func TestGoalListKeyMap(t *testing.T) {
 
 		// Test help text is available
 		shortHelp := keys.ShortHelp()
-		assert.Equal(t, 4, len(shortHelp))
+		assert.Equal(t, 6, len(shortHelp)) // Up, Down, ShowDetail, Edit, Delete, Quit
 
 		fullHelp := keys.FullHelp()
 		assert.Equal(t, 2, len(fullHelp))
@@ -348,29 +348,28 @@ func TestGoalListModel_Keybindings(t *testing.T) {
 		}
 	})
 
-	t.Run("future operation keys are handled gracefully", func(t *testing.T) {
+	t.Run("operation keys work correctly", func(t *testing.T) {
 		goals := []models.Goal{
-			{Title: "Test Goal", GoalType: models.SimpleGoal},
+			{Title: "Test Goal", GoalType: models.SimpleGoal, ID: "test-1"},
 		}
 		model := NewGoalListModel(goals)
 
-		testCases := []struct {
-			key  rune
-			desc string
-		}{
-			{'e', "edit key"},
-			{'d', "delete key"},
-			{'/', "search key"},
-		}
+		// Edit and delete keys should trigger quit (to initiate operation)
+		editMsg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}}
+		updatedModel, cmd := model.Update(editMsg)
+		assert.NotNil(t, updatedModel)
+		assert.NotNil(t, cmd) // Should issue tea.Quit command
 
-		for _, tc := range testCases {
-			msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{tc.key}}
-			updatedModel, cmd := model.Update(msg)
+		deleteMsg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}}
+		updatedModel, cmd = model.Update(deleteMsg)
+		assert.NotNil(t, updatedModel)
+		assert.NotNil(t, cmd) // Should issue tea.Quit command
 
-			// Should not crash and should return the model
-			assert.NotNil(t, updatedModel)
-			assert.Nil(t, cmd) // No command should be issued yet
-		}
+		// Search key is not yet implemented
+		searchMsg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}}
+		updatedModel, cmd = model.Update(searchMsg)
+		assert.NotNil(t, updatedModel)
+		assert.Nil(t, cmd) // No command should be issued yet
 	})
 }
 

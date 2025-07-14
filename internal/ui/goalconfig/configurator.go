@@ -229,18 +229,18 @@ func (gc *GoalConfigurator) ListGoals(goalsFilePath string) error {
 	return nil
 }
 
+// EditGoal presents an interactive UI to modify an existing goal.
 // AIDEV-NOTE: goal-edit-flow; Phase 3 implementation - delegates to interactive list UI
 // Public API maintains backward compatibility while ListGoals() handles selection+editing
-// EditGoal presents an interactive UI to modify an existing goal
 // AIDEV-NOTE: goal-edit-integration; uses interactive list for goal selection and editing
 func (gc *GoalConfigurator) EditGoal(goalsFilePath string) error {
 	// Delegate to ListGoals which now handles edit operations
 	return gc.ListGoals(goalsFilePath)
 }
 
+// EditGoalByID modifies a specific goal by ID (used internally by goal list UI).
 // AIDEV-NOTE: position-preservation-architecture; maintains goal.Position and goal.ID during edits
 // Critical for future reordering feature - goals stay in same list position after editing
-// EditGoalByID modifies a specific goal by ID (used internally by goal list UI)
 func (gc *GoalConfigurator) EditGoalByID(goalsFilePath string, goalID string) error {
 	// Load existing schema
 	schema, err := gc.loadSchema(goalsFilePath)
@@ -323,9 +323,9 @@ func (gc *GoalConfigurator) EditGoalByID(goalsFilePath string, goalID string) er
 	return nil
 }
 
+// RemoveGoal presents an interactive UI to remove an existing goal.
 // AIDEV-NOTE: goal-remove-flow; Phase 3 implementation - delegates to interactive list UI
 // Public API maintains backward compatibility while ListGoals() handles selection+deletion
-// RemoveGoal presents an interactive UI to remove an existing goal
 // AIDEV-NOTE: goal-remove-integration; uses interactive list for goal selection and deletion
 func (gc *GoalConfigurator) RemoveGoal(goalsFilePath string) error {
 	// Delegate to ListGoals which now handles delete operations
@@ -900,7 +900,7 @@ func (gc *GoalConfigurator) confirmGoalDeletion(goal *models.Goal) (confirmed bo
 
 	// Confirmation form with backup option
 	var confirmDelete bool
-	var backupOption bool = true // Default to yes
+	backupOption := true // Default to yes
 
 	form := huh.NewForm(
 		huh.NewGroup(

@@ -55,8 +55,8 @@ func (g GoalItem) getGoalTypeEmoji() string {
 	}
 }
 
-// AIDEV-NOTE: keybinding-architecture; centralized key management enables user configurability
 // GoalListKeyMap defines the keybindings for the goal list interface.
+// AIDEV-NOTE: keybinding-architecture; centralized key management enables user configurability
 // This struct enables dynamic keybinding configuration and consistent help text generation.
 type GoalListKeyMap struct {
 	// Navigation
@@ -128,7 +128,7 @@ func DefaultGoalListKeyMap() GoalListKeyMap {
 
 // ShortHelp returns the short help for the keybindings.
 func (k GoalListKeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.ShowDetail, k.Quit}
+	return []key.Binding{k.Up, k.Down, k.ShowDetail, k.Edit, k.Delete, k.Quit}
 }
 
 // FullHelp returns the full help for the keybindings.
@@ -172,7 +172,7 @@ func NewGoalListModel(goals []models.Goal) *GoalListModel {
 	// Set additional keybindings for the list help
 	keyMap := DefaultGoalListKeyMap()
 	l.AdditionalShortHelpKeys = func() []key.Binding {
-		return []key.Binding{keyMap.ShowDetail}
+		return []key.Binding{keyMap.ShowDetail, keyMap.Edit, keyMap.Delete}
 	}
 
 	// AIDEV-NOTE: quit-and-return-pattern; Phase 3 edit/delete operations use this pattern
@@ -209,8 +209,7 @@ func (m *GoalListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// AIDEV-NOTE: modal-key-isolation; modal keys processed first to prevent interference
 		// Handle modal-specific keys first
 		if m.showModal {
-			switch {
-			case key.Matches(msg, m.keys.CloseModal):
+			if key.Matches(msg, m.keys.CloseModal) {
 				m.showModal = false
 				return m, nil
 			}
@@ -322,16 +321,6 @@ func (m *GoalListModel) renderModalView() string {
 		Width(modalWidth).
 		Height(modalHeight).
 		Render(content)
-
-	// Center the modal
-	x := (m.width - modalWidth) / 2
-	y := (m.height - modalHeight) / 2
-	if x < 0 {
-		x = 0
-	}
-	if y < 0 {
-		y = 0
-	}
 
 	// Overlay on background with centered placement
 	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modal, lipgloss.WithWhitespaceChars(" "), lipgloss.WithWhitespaceForeground(lipgloss.Color("8")))
