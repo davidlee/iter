@@ -89,14 +89,16 @@ These diagrams complement the textual architecture descriptions and provide visu
 
 ### Dependencies
 
-Libraries & frameworks:
+**UI Libraries & frameworks**:
 
-- **User Interface**: charmbracelet/bubbletea, huh, lipgloss & bubbles for tasteful CLI/TUI presentation
-  - [huh documentation](https://github.com/charmbracelet/huh) - Forms and prompts (README with examples)
+charmbracelet/bubbletea, huh, lipgloss & bubbles for CLI/TUI UI
   - [huh API reference](https://pkg.go.dev/github.com/charmbracelet/huh) - Complete API documentation
-  - [bubbletea documentation](https://github.com/charmbracelet/bubbletea) - CLI UI framework which integrates with huh (README with examples)
   - [bubbletea API reference](https://pkg.go.dev/github.com/charmbracelet/bubbletea) - complete API documentation
   - [bubbletea with huh reference example](https://github.com/charmbracelet/huh/blob/main/examples/bubbletea/main.go) - idiomatic example of huh + bubbletea
+
+**AIDEV-NOTE**: UI libraries with example code are checked out as git submodules at [[/charmbracelet]]. Consult these for idiomatic patterns and usage examples.
+
+**Other Dependencies**:
 - **YAML parsing**: goccy/go-yaml
 - **Markdown rendering**: charmbracelet/glow
 - **Test assertions & mocks**: stretchr/testify
@@ -611,4 +613,3 @@ The architectural diagrams referenced throughout this document provide visual re
 These diagrams complement the textual descriptions and serve as implementation guides for developers working on the system. They are particularly valuable for understanding the component relationships in the UI layer and the process flow implications of architectural decisions.
 
 For the most current versions of these diagrams, refer to the [diagrams](./diagrams) directory.
-

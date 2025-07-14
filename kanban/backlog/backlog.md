@@ -8,6 +8,37 @@ If dumb ideas were worth shit, we'd all be rich.
 
 None I'm especially conscious of
 
+ cat /home/david/.config/vice/goals.yml
+version: 1.0.0
+created_date: "2025-07-10"
+goals:
+  - title: Wake Up @ 7
+    id: wake_up
+    position: 1
+    goal_type: simple
+    field_type:
+      type: time
+    scoring_type: automatic
+    criteria:
+      description: Goal achieved when time is before 07:30
+      condition:
+        before: "07:30"
+    prompt: When did you get out of bed?
+
+vice entry >
+ vice entry
+                                               
+╭─────────────────────────────────────────────╮
+│                                             │
+│  🎯 Habit Tracker - Tuesday, July 15, 2025  │
+│                                             │
+╰─────────────────────────────────────────────╯
+                                               
+Ready to track 6 goals for today!
+                                 
+Error: failed to collect entry for goal wake_up: failed to collect entry for goal wake_up: automatic scoring failed: scoring failed: cannot convert time.Time to time in minutes
+
+
 # features 
 
 Affinity:

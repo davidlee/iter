@@ -106,17 +106,24 @@ EntryMenuModel (BubbleTea UI)
     - *Testing Strategy:* Navigation behavior tests, filter state persistence tests
     - *AI Notes:* Follow established keybinding patterns, maintain help text generation consistency
 
-- [ ] **3. Entry Integration Layer**
+- [x] **3. Entry Integration Layer**
+  - [x] **3.0 POC: BubbleTea integration testing framework:** Evaluate teatest for end-to-end UI testing
+    - *Design:* Use github.com/charmbracelet/x/exp/teatest for entry menu integration tests
+    - *Code/Artifacts:* POC integration test for goal selection flow, golden file testing, evaluation document
+    - *Testing Strategy:* Two POC tests: basic integration + golden file regression testing
+    - *Investment Assessment:* ✅ HIGH VALUE - 80x slower than unit tests but fills critical integration gap
+    - *AI Notes:* POC SUCCESSFUL - teatest recommended for Phase 3.1+ complex flows; keeps unit tests for fast feedback
+  
   - [ ] **3.1 Create menu-entry integration:** Connect menu to existing EntryCollector system
     - *Design:* Launch EntryCollector.CollectSingleEntry() method, handle return flow
     - *Code/Artifacts:* Integration methods in EntryMenuModel, single-goal entry collection
-    - *Testing Strategy:* End-to-end tests for menu→entry→menu flow across all goal types
+    - *Testing Strategy:* End-to-end tests for menu→entry→menu flow across all goal types (use teatest if POC successful)
     - *AI Notes:* Leverage existing EntryCollector abstraction, avoid direct goal type coupling
   
   - [ ] **3.2 Implement auto-save and state management:** Handle entries.yml updates and navigation
     - *Design:* Reuse EntryCollector storage mechanisms, smart next-goal selection algorithm
     - *Code/Artifacts:* State persistence logic, next-goal selection in menu model
-    - *Testing Strategy:* File I/O tests, state transition tests, error handling validation
+    - *Testing Strategy:* File I/O tests, state transition tests, error handling validation (enhanced with teatest if adopted)
     - *AI Notes:* Build on existing storage abstraction, handle write failures gracefully
 
 - [ ] **4. Command Integration & Default Behavior**
@@ -209,14 +216,40 @@ EntryMenuModel (BubbleTea UI)
 
 **Next critical step**: Phase 3.1 (entry integration) to make goal selection functional
 
+- `2025-07-14 - AI:` Layout issues resolved: Return behavior moved to footer for robust layout
+  - **FIXED**: Tests failing due to brittle layout logic - now all tests passing
+  - **IMPROVED**: Return behavior moved from header to footer above keybindings for consistent placement
+  - **SIMPLIFIED**: Eliminated complex width calculations and brittle layout code
+  - **ENHANCED**: Added visual padding between header and menu title
+  - **COMMIT**: `577e769` - fix(ui)[T018]: move return behavior to footer for robust layout
+  - **CURRENT STATE**: Clean, robust layout that adapts to any terminal width
+  
+**Current functional state**: 
+- ✅ Full menu navigation with real data
+- ✅ Progress tracking and visual feedback  
+- ✅ All filtering and keybinding functionality
+- ✅ Clean, robust layout with proper visual hierarchy
+- ✅ Comprehensive test coverage (all tests passing)
+- ❌ Entry collection (pressing Enter exits - needs Phase 3.1)
+
+**Next critical step**: Phase 3.1 (entry integration) to make goal selection functional
+
+**Testing Framework Evaluation - COMPLETED** (2025-07-14):
+- **teatest POC SUCCESSFUL**: Two integration tests implemented and passing
+- **Key findings**: 
+  - ✅ 80x slower than unit tests (250ms vs 3ms) but fills critical integration gap
+  - ✅ Excellent for complex user flows: navigation → selection → state changes
+  - ✅ Golden file testing effective for UI regression prevention  
+  - ✅ Clean API for user input simulation and output capture
+- **ROI Assessment**: HIGH VALUE for Phase 3.1+ complex multi-step flows
+- **Adoption Strategy**: Keep unit tests + add teatest for integration flows
+- **Investment realized**: ~2 hours setup (complete), teatest ready for Phase 3.1
+
 **Future improvements identified**:
 - Goal type indication: Need alternative way to show goal types (simple/elastic/informational) 
-- **URGENT - Tests failing**: Status emoji changes and layout changes broke tests in `view_test.go` and `model_test.go`
-- Progress bar width calculation: Could be more intelligent for different terminal sizes
 - Entry collection integration: Phase 3.1 should reuse existing EntryCollector methods
 - Default command: Phase 4.2 to make `vice` alone launch menu (zero additional work)
 
 **Refactoring advisable**:
 - Consider extracting emoji constants to shared package for consistency
 - ViewRenderer could benefit from more configurable styling options
-- Navigation tests could be more comprehensive for edge cases

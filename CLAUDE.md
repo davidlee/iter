@@ -6,7 +6,9 @@ This is "vice" - a CLI habit tracker application built in Go.
 
 ## Architecture
 
-See `doc/architecture`.
+See `doc/architecture`. 
+
+IMPORTANT: Always read the section "**UI Libraries & frameworks**" before working on any UI code (or UI tests).
 
 ## Core Design Goals 
 
