@@ -55,7 +55,9 @@ func (g GoalItem) getGoalTypeEmoji() string {
 	}
 }
 
+// AIDEV-NOTE: keybinding-architecture; centralized key management enables user configurability
 // GoalListKeyMap defines the keybindings for the goal list interface.
+// This struct enables dynamic keybinding configuration and consistent help text generation.
 type GoalListKeyMap struct {
 	// Navigation
 	Up     key.Binding
@@ -164,6 +166,7 @@ func NewGoalListModel(goals []models.Goal) *GoalListModel {
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle
 	
+	// AIDEV-NOTE: help-integration; AdditionalShortHelpKeys integrates custom keys with bubbles/list help
 	// Set additional keybindings for the list help
 	keyMap := DefaultGoalListKeyMap()
 	l.AdditionalShortHelpKeys = func() []key.Binding {
@@ -198,6 +201,7 @@ func (m *GoalListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetWidth(msg.Width)
 		m.list.SetHeight(msg.Height - 2) // Account for margins
 	case tea.KeyMsg:
+		// AIDEV-NOTE: modal-key-isolation; modal keys processed first to prevent interference
 		// Handle modal-specific keys first
 		if m.showModal {
 			switch {
@@ -377,6 +381,7 @@ func (m *GoalListModel) renderGoalDetails(goal *models.Goal) string {
 		details = append(details, goal.HelpText)
 	}
 
+	// AIDEV-NOTE: dynamic-help-text; avoid hardcoded keys, use Help().Key for configurability
 	// Footer with dynamic keybinding help
 	closeHelp := m.keys.CloseModal.Help()
 	footerText := fmt.Sprintf("Press %s to close", closeHelp.Key)
@@ -401,6 +406,7 @@ func getGoalTypeEmojiForGoal(goalType models.GoalType) string {
 	}
 }
 
+// AIDEV-NOTE: criteria-rendering; comprehensive criteria display supporting all condition types
 // renderCriteria renders criteria information for display.
 func renderCriteria(criteria *models.Criteria) string {
 	if criteria == nil {
