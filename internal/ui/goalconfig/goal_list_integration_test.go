@@ -82,7 +82,7 @@ func TestGoalConfigurator_ListGoals_Integration(t *testing.T) {
 		// Test that ListGoals handles missing file gracefully
 		configurator := NewGoalConfigurator()
 		err := configurator.ListGoals(nonExistentFile)
-		
+
 		// Should not error, should handle gracefully with user message
 		assert.NoError(t, err)
 	})
@@ -107,7 +107,7 @@ func TestGoalConfigurator_ListGoals_Integration(t *testing.T) {
 		// Test ListGoals with empty file
 		configurator := NewGoalConfigurator()
 		err = configurator.ListGoals(goalsFile)
-		
+
 		// Should handle empty list gracefully
 		assert.NoError(t, err)
 	})
@@ -120,6 +120,7 @@ func TestGoalListModel_WithRealGoalData(t *testing.T) {
 			{
 				ID:          "meditation",
 				Title:       "Morning Meditation",
+				Description: "Daily mindfulness practice",
 				GoalType:    models.SimpleGoal,
 				FieldType:   models.FieldType{Type: models.BooleanFieldType},
 				ScoringType: models.ManualScoring,
@@ -127,19 +128,22 @@ func TestGoalListModel_WithRealGoalData(t *testing.T) {
 			{
 				ID:          "exercise_duration",
 				Title:       "Exercise Duration",
+				Description: "Track workout time",
 				GoalType:    models.ElasticGoal,
 				FieldType:   models.FieldType{Type: models.DurationFieldType},
-				ScoringType: models.AutomaticScoring,
+				ScoringType: models.ManualScoring,
 			},
 			{
 				ID:          "mood_rating",
 				Title:       "Daily Mood Rating",
+				Description: "Track emotional state",
 				GoalType:    models.InformationalGoal,
 				FieldType:   models.FieldType{Type: models.UnsignedIntFieldType},
 			},
 			{
 				ID:          "morning_routine",
 				Title:       "Morning Routine Checklist",
+				Description: "Complete morning tasks",
 				GoalType:    models.ChecklistGoal,
 				FieldType:   models.FieldType{Type: models.ChecklistFieldType},
 				ScoringType: models.AutomaticScoring,
@@ -154,31 +158,31 @@ func TestGoalListModel_WithRealGoalData(t *testing.T) {
 
 		// Verify each goal type is properly represented
 		items := model.list.Items()
-		
+
 		// Test first item (SimpleGoal)
 		item0, ok := items[0].(GoalItem)
 		require.True(t, ok)
 		assert.Equal(t, "Morning Meditation", item0.Goal.Title)
 		assert.Equal(t, "meditation", item0.Goal.ID)
-		assert.Contains(t, item0.Description(), "simple")
+		assert.Contains(t, item0.Title(), "✅")
 
 		// Test second item (ElasticGoal)
 		item1, ok := items[1].(GoalItem)
 		require.True(t, ok)
 		assert.Equal(t, "Exercise Duration", item1.Goal.Title)
-		assert.Contains(t, item1.Description(), "elastic")
+		assert.Contains(t, item1.Title(), "🎯")
 
 		// Test third item (InformationalGoal)
 		item2, ok := items[2].(GoalItem)
 		require.True(t, ok)
 		assert.Equal(t, "Daily Mood Rating", item2.Goal.Title)
-		assert.Contains(t, item2.Description(), "informational")
+		assert.Contains(t, item2.Title(), "📊")
 
 		// Test fourth item (ChecklistGoal)
 		item3, ok := items[3].(GoalItem)
 		require.True(t, ok)
 		assert.Equal(t, "Morning Routine Checklist", item3.Goal.Title)
-		assert.Contains(t, item3.Description(), "checklist")
+		assert.Contains(t, item3.Title(), "📝")
 	})
 
 	t.Run("filtering works with realistic goal data", func(t *testing.T) {
@@ -193,7 +197,7 @@ func TestGoalListModel_WithRealGoalData(t *testing.T) {
 
 		// Test filtering functionality
 		items := model.list.Items()
-		
+
 		// Verify filter values contain both title and type
 		item0, ok := items[0].(GoalItem)
 		require.True(t, ok)

@@ -2,7 +2,6 @@ package goalconfig
 
 import (
 	"fmt"
-	"io"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -24,44 +23,44 @@ func (g GoalItem) FilterValue() string {
 }
 
 // Title returns the primary display text for the list item.
+// Format: "emoji title" for clean visual grouping.
 func (g GoalItem) Title() string {
-	return g.Goal.Title
+	emoji := g.getGoalTypeEmoji()
+	return fmt.Sprintf("%s %s", emoji, g.Goal.Title)
 }
 
 // Description returns the secondary display text for the list item.
-// Format: "ID | Type | Status" for table-like appearance within list.
+// Format: "   description" with spacing to align with title text after emoji.
 func (g GoalItem) Description() string {
-	// AIDEV-NOTE: Custom delegate will handle full tabular formatting
-	status := g.getGoalStatus()
-	return fmt.Sprintf("%s | %s | %s", g.Goal.ID, g.Goal.GoalType, status)
+	if g.Goal.Description == "" {
+		return ""
+	}
+	return fmt.Sprintf("   %s", g.Goal.Description)
 }
 
-// getGoalStatus determines the display status of a goal.
-// For now, we show basic goal type status - future enhancement could include active/archived.
-func (g GoalItem) getGoalStatus() string {
+// getGoalTypeEmoji returns the emoji representing the goal type.
+func (g GoalItem) getGoalTypeEmoji() string {
 	switch g.Goal.GoalType {
 	case models.SimpleGoal:
-		if g.Goal.ScoringType != "" {
-			return fmt.Sprintf("Simple (%s)", g.Goal.ScoringType)
-		}
-		return "Simple"
+		return "✅" // Simple boolean goals
 	case models.ElasticGoal:
-		return "Elastic"
+		return "🎯" // Multi-tier achievement goals
 	case models.InformationalGoal:
-		return "Info"
+		return "📊" // Data collection goals
 	case models.ChecklistGoal:
-		return "Checklist"
+		return "📝" // Checklist completion goals
 	default:
-		return "Unknown"
+		return "❓" // Unknown goal type
 	}
 }
 
 // GoalListModel represents the state of the goal list UI.
 type GoalListModel struct {
-	list   list.Model
-	goals  []models.Goal
-	width  int
-	height int
+	list      list.Model
+	goals     []models.Goal
+	width     int
+	height    int
+	showModal bool
 }
 
 // NewGoalListModel creates a new goal list model with the provided goals.
@@ -72,8 +71,8 @@ func NewGoalListModel(goals []models.Goal) *GoalListModel {
 		items[i] = GoalItem{Goal: goal}
 	}
 
-	// Create list with default styling
-	l := list.New(items, NewGoalItemDelegate(), 0, 0)
+	// Create list with default delegate for clean vertical layout
+	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
 	l.Title = "Goals"
 	l.SetShowStatusBar(true)
 	l.SetFilteringEnabled(true)
@@ -102,14 +101,30 @@ func (m *GoalListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetHeight(msg.Height - 2) // Account for margins
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q", "ctrl+c", "esc":
+		case "q", "ctrl+c":
 			return m, tea.Quit
+		case "esc":
+			if m.showModal {
+				m.showModal = false
+				return m, nil
+			}
+			return m, tea.Quit
+		case "enter", " ":
+			if !m.showModal && len(m.goals) > 0 {
+				m.showModal = true
+				return m, nil
+			}
 		}
 	}
 
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-	return m, cmd
+	// Only update list when not showing modal
+	if !m.showModal {
+		var cmd tea.Cmd
+		m.list, cmd = m.list.Update(msg)
+		return m, cmd
+	}
+
+	return m, nil
 }
 
 // View implements the tea.Model interface.
@@ -117,94 +132,218 @@ func (m *GoalListModel) View() string {
 	if m.width == 0 {
 		return "Initializing..."
 	}
-	return m.list.View()
-}
 
-// GoalItemDelegate handles the rendering and interaction for individual goal items.
-type GoalItemDelegate struct{}
-
-// NewGoalItemDelegate creates a new goal item delegate.
-func NewGoalItemDelegate() *GoalItemDelegate {
-	return &GoalItemDelegate{}
-}
-
-// Height returns the height of a single item.
-func (d *GoalItemDelegate) Height() int {
-	return 1
-}
-
-// Spacing returns the spacing between items.
-func (d *GoalItemDelegate) Spacing() int {
-	return 0
-}
-
-// Update handles updates for individual items.
-func (d *GoalItemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd {
-	return nil
-}
-
-// Render renders a single goal item with tabular formatting.
-func (d *GoalItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	goalItem, ok := listItem.(GoalItem)
-	if !ok {
-		return
+	// Show modal overlay if active
+	if m.showModal {
+		return m.renderModalView()
 	}
 
-	goal := goalItem.Goal
-	isSelected := index == m.Index()
+	// Main list view
+	listView := m.list.View()
 
-	// Define column widths for tabular appearance
-	const (
-		idWidth     = 12
-		titleWidth  = 30
-		typeWidth   = 12
-		statusWidth = 15
+	// Item count
+	itemCount := fmt.Sprintf("\n%d goals", len(m.goals))
+
+	// Legend
+	legend := "\n" + legendStyle.Render(
+		"✅ Simple  🎯 Elastic  📊 Info  📝 Checklist",
 	)
 
-	// Format columns with fixed widths
-	id := truncateOrPad(goal.ID, idWidth)
-	title := truncateOrPad(goal.Title, titleWidth)
-	goalType := truncateOrPad(string(goal.GoalType), typeWidth)
-	status := truncateOrPad(goalItem.getGoalStatus(), statusWidth)
-
-	// Combine columns
-	line := fmt.Sprintf("%s %s %s %s", id, title, goalType, status)
-
-	// Apply styling based on selection
-	if isSelected {
-		line = selectedItemStyle.Render(line)
-	} else {
-		line = itemStyle.Render(line)
-	}
-
-	_, _ = fmt.Fprint(w, line)
+	return listView + itemCount + legend
 }
 
-// truncateOrPad ensures text fits within specified width.
-func truncateOrPad(text string, width int) string {
-	if len(text) > width {
-		if width > 3 {
-			return text[:width-3] + "..."
-		}
-		return text[:width]
+// getSelectedGoal returns the currently selected goal.
+func (m *GoalListModel) getSelectedGoal() *models.Goal {
+	if len(m.goals) == 0 {
+		return nil
 	}
-	return text + strings.Repeat(" ", width-len(text))
+
+	selectedIndex := m.list.Index()
+	if selectedIndex < 0 || selectedIndex >= len(m.goals) {
+		return nil
+	}
+
+	return &m.goals[selectedIndex]
+}
+
+// renderModalView renders the goal detail modal overlay.
+func (m *GoalListModel) renderModalView() string {
+	goal := m.getSelectedGoal()
+	if goal == nil {
+		return "No goal selected"
+	}
+
+	// Modal content
+	content := m.renderGoalDetails(goal)
+
+	// Modal dimensions (centered)
+	modalWidth := 80
+	modalHeight := 20
+	if m.width > 0 && m.width < modalWidth {
+		modalWidth = m.width - 4
+	}
+
+	// Create modal box with border
+	modal := modalStyle.
+		Width(modalWidth).
+		Height(modalHeight).
+		Render(content)
+
+	// Center the modal
+	x := (m.width - modalWidth) / 2
+	y := (m.height - modalHeight) / 2
+	if x < 0 {
+		x = 0
+	}
+	if y < 0 {
+		y = 0
+	}
+
+	// Overlay on background with centered placement
+	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modal, lipgloss.WithWhitespaceChars(" "), lipgloss.WithWhitespaceForeground(lipgloss.Color("8")))
+}
+
+// renderGoalDetails renders the detailed goal information for the modal.
+func (m *GoalListModel) renderGoalDetails(goal *models.Goal) string {
+	var details []string
+
+	// Title with emoji
+	emoji := getGoalTypeEmojiForGoal(goal.GoalType)
+	title := modalTitleStyle.Render(fmt.Sprintf("%s %s", emoji, goal.Title))
+	details = append(details, title)
+
+	if goal.Description != "" {
+		details = append(details, "", modalFieldStyle.Render("Description:"))
+		details = append(details, goal.Description)
+	}
+
+	// Goal details
+	details = append(details, "", modalFieldStyle.Render("Details:"))
+	details = append(details, fmt.Sprintf("ID: %s", goal.ID))
+	details = append(details, fmt.Sprintf("Type: %s", goal.GoalType))
+	details = append(details, fmt.Sprintf("Field: %s", goal.FieldType.Type))
+
+	if goal.ScoringType != "" {
+		details = append(details, fmt.Sprintf("Scoring: %s", goal.ScoringType))
+	}
+
+	// Goal-type specific details
+	switch goal.GoalType {
+	case models.ElasticGoal:
+		if goal.MiniCriteria != nil || goal.MidiCriteria != nil || goal.MaxiCriteria != nil {
+			details = append(details, "", modalFieldStyle.Render("Achievement Levels:"))
+			if goal.MiniCriteria != nil {
+				details = append(details, fmt.Sprintf("Mini: %s", renderCriteria(goal.MiniCriteria)))
+			}
+			if goal.MidiCriteria != nil {
+				details = append(details, fmt.Sprintf("Midi: %s", renderCriteria(goal.MidiCriteria)))
+			}
+			if goal.MaxiCriteria != nil {
+				details = append(details, fmt.Sprintf("Maxi: %s", renderCriteria(goal.MaxiCriteria)))
+			}
+		}
+	case models.InformationalGoal:
+		if goal.Direction != "" {
+			details = append(details, fmt.Sprintf("Direction: %s", goal.Direction))
+		}
+	}
+
+	if goal.Criteria != nil {
+		details = append(details, "", modalFieldStyle.Render("Criteria:"))
+		details = append(details, renderCriteria(goal.Criteria))
+	}
+
+	// UI prompts
+	if goal.Prompt != "" {
+		details = append(details, "", modalFieldStyle.Render("Prompt:"))
+		details = append(details, goal.Prompt)
+	}
+
+	if goal.HelpText != "" {
+		details = append(details, "", modalFieldStyle.Render("Help:"))
+		details = append(details, goal.HelpText)
+	}
+
+	// Footer
+	details = append(details, "", modalFooterStyle.Render("Press ESC to close"))
+
+	return strings.Join(details, "\n")
+}
+
+// getGoalTypeEmojiForGoal returns emoji for goal type (helper for modal).
+func getGoalTypeEmojiForGoal(goalType models.GoalType) string {
+	switch goalType {
+	case models.SimpleGoal:
+		return "✅"
+	case models.ElasticGoal:
+		return "🎯"
+	case models.InformationalGoal:
+		return "📊"
+	case models.ChecklistGoal:
+		return "📝"
+	default:
+		return "❓"
+	}
+}
+
+// renderCriteria renders criteria information for display.
+func renderCriteria(criteria *models.Criteria) string {
+	if criteria == nil {
+		return "None"
+	}
+
+	var parts []string
+
+	if criteria.Description != "" {
+		parts = append(parts, criteria.Description)
+	}
+
+	if criteria.Condition != nil {
+		condition := criteria.Condition
+		var conditionParts []string
+
+		if condition.GreaterThan != nil {
+			conditionParts = append(conditionParts, fmt.Sprintf("> %.2f", *condition.GreaterThan))
+		}
+		if condition.GreaterThanOrEqual != nil {
+			conditionParts = append(conditionParts, fmt.Sprintf(">= %.2f", *condition.GreaterThanOrEqual))
+		}
+		if condition.LessThan != nil {
+			conditionParts = append(conditionParts, fmt.Sprintf("< %.2f", *condition.LessThan))
+		}
+		if condition.LessThanOrEqual != nil {
+			conditionParts = append(conditionParts, fmt.Sprintf("<= %.2f", *condition.LessThanOrEqual))
+		}
+		if condition.Equals != nil {
+			conditionParts = append(conditionParts, fmt.Sprintf("= %t", *condition.Equals))
+		}
+		if condition.Before != "" {
+			conditionParts = append(conditionParts, fmt.Sprintf("before %s", condition.Before))
+		}
+		if condition.After != "" {
+			conditionParts = append(conditionParts, fmt.Sprintf("after %s", condition.After))
+		}
+
+		if len(conditionParts) > 0 {
+			parts = append(parts, strings.Join(conditionParts, " and "))
+		}
+	}
+
+	if len(parts) == 0 {
+		return "No conditions specified"
+	}
+
+	return strings.Join(parts, " - ")
 }
 
 // Styling definitions
 var (
 	titleStyle = lipgloss.NewStyle().
-			MarginLeft(2).
+			MarginLeft(0).
 			Bold(true).
-			Foreground(lipgloss.Color("205"))
-
-	itemStyle = lipgloss.NewStyle().
-			PaddingLeft(4)
-
-	selectedItemStyle = lipgloss.NewStyle().
-				PaddingLeft(2).
-				Foreground(lipgloss.Color("170")).
-				Bold(true)
+			Foreground(lipgloss.Color("15")).  // White text
+			Background(lipgloss.Color("205")). // Bright background
+			Padding(0, 1)                      // Inverted styling for emphasis
 
 	paginationStyle = list.DefaultStyles().PaginationStyle.
 			PaddingLeft(4)
@@ -212,4 +351,32 @@ var (
 	helpStyle = list.DefaultStyles().HelpStyle.
 			PaddingLeft(4).
 			PaddingBottom(1)
+
+	legendStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("243")). // Muted text for legend
+			PaddingLeft(4).
+			Italic(true)
+
+	// Modal styling
+	modalStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("62")). // Purple border
+			Background(lipgloss.Color("0")).        // Black background
+			Padding(1, 2)
+
+	modalTitleStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("15")). // White text
+			Background(lipgloss.Color("62")). // Purple background
+			Padding(0, 1).
+			MarginBottom(1)
+
+	modalFieldStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("14")) // Cyan text
+
+	modalFooterStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("243")). // Muted text
+				Italic(true).
+				MarginTop(1)
 )

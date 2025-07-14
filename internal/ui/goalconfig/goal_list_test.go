@@ -3,6 +3,7 @@ package goalconfig
 import (
 	"testing"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
 
 	"davidlee/iter/internal/models"
@@ -45,84 +46,54 @@ func TestGoalItem_FilterValue(t *testing.T) {
 }
 
 func TestGoalItem_Title(t *testing.T) {
-	t.Run("returns goal title", func(t *testing.T) {
+	t.Run("returns emoji + goal title", func(t *testing.T) {
 		goal := models.Goal{
-			Title: "Daily Exercise",
-		}
-		item := GoalItem{Goal: goal}
-
-		title := item.Title()
-		assert.Equal(t, "Daily Exercise", title)
-	})
-}
-
-func TestGoalItem_Description(t *testing.T) {
-	t.Run("formats as ID | Type | Status", func(t *testing.T) {
-		goal := models.Goal{
-			ID:       "exercise",
 			Title:    "Daily Exercise",
 			GoalType: models.SimpleGoal,
 		}
 		item := GoalItem{Goal: goal}
 
-		description := item.Description()
-		assert.Equal(t, "exercise | simple | Simple", description)
-	})
-
-	t.Run("handles different goal types correctly", func(t *testing.T) {
-		testCases := []struct {
-			goalType       models.GoalType
-			expectedStatus string
-		}{
-			{models.SimpleGoal, "Simple"},
-			{models.ElasticGoal, "Elastic"},
-			{models.InformationalGoal, "Info"},
-			{models.ChecklistGoal, "Checklist"},
-		}
-
-		for _, tc := range testCases {
-			goal := models.Goal{
-				ID:       "test",
-				GoalType: tc.goalType,
-			}
-			item := GoalItem{Goal: goal}
-
-			description := item.Description()
-			assert.Contains(t, description, tc.expectedStatus)
-		}
+		title := item.Title()
+		assert.Equal(t, "✅ Daily Exercise", title)
 	})
 }
 
-func TestGoalItem_getGoalStatus(t *testing.T) {
-	t.Run("returns Simple for simple goals", func(t *testing.T) {
+func TestGoalItem_Description(t *testing.T) {
+	t.Run("formats with indentation for alignment", func(t *testing.T) {
 		goal := models.Goal{
-			GoalType: models.SimpleGoal,
-		}
-		item := GoalItem{Goal: goal}
-
-		status := item.getGoalStatus()
-		assert.Equal(t, "Simple", status)
-	})
-
-	t.Run("includes scoring type for simple goals when present", func(t *testing.T) {
-		goal := models.Goal{
+			Title:       "Daily Exercise",
+			Description: "30 minutes of physical activity",
 			GoalType:    models.SimpleGoal,
-			ScoringType: models.AutomaticScoring,
 		}
 		item := GoalItem{Goal: goal}
 
-		status := item.getGoalStatus()
-		assert.Equal(t, "Simple (automatic)", status)
+		description := item.Description()
+		assert.Equal(t, "   30 minutes of physical activity", description)
 	})
 
-	t.Run("returns appropriate status for each goal type", func(t *testing.T) {
+	t.Run("returns empty string for empty description", func(t *testing.T) {
+		goal := models.Goal{
+			Title:       "Daily Exercise",
+			Description: "",
+			GoalType:    models.SimpleGoal,
+		}
+		item := GoalItem{Goal: goal}
+
+		description := item.Description()
+		assert.Equal(t, "", description)
+	})
+}
+
+func TestGoalItem_getGoalTypeEmoji(t *testing.T) {
+	t.Run("returns correct emoji for each goal type", func(t *testing.T) {
 		testCases := []struct {
-			goalType       models.GoalType
-			expectedStatus string
+			goalType      models.GoalType
+			expectedEmoji string
 		}{
-			{models.ElasticGoal, "Elastic"},
-			{models.InformationalGoal, "Info"},
-			{models.ChecklistGoal, "Checklist"},
+			{models.SimpleGoal, "✅"},
+			{models.ElasticGoal, "🎯"},
+			{models.InformationalGoal, "📊"},
+			{models.ChecklistGoal, "📝"},
 		}
 
 		for _, tc := range testCases {
@@ -131,19 +102,19 @@ func TestGoalItem_getGoalStatus(t *testing.T) {
 			}
 			item := GoalItem{Goal: goal}
 
-			status := item.getGoalStatus()
-			assert.Equal(t, tc.expectedStatus, status)
+			emoji := item.getGoalTypeEmoji()
+			assert.Equal(t, tc.expectedEmoji, emoji)
 		}
 	})
 
-	t.Run("returns Unknown for unrecognized goal type", func(t *testing.T) {
+	t.Run("returns question mark for unknown goal type", func(t *testing.T) {
 		goal := models.Goal{
 			GoalType: models.GoalType("unknown"),
 		}
 		item := GoalItem{Goal: goal}
 
-		status := item.getGoalStatus()
-		assert.Equal(t, "Unknown", status)
+		emoji := item.getGoalTypeEmoji()
+		assert.Equal(t, "❓", emoji)
 	})
 }
 
@@ -181,24 +152,108 @@ func TestNewGoalListModel(t *testing.T) {
 	})
 }
 
-func TestTruncateOrPad(t *testing.T) {
-	t.Run("truncates long text with ellipsis", func(t *testing.T) {
-		result := truncateOrPad("This is a very long text", 10)
-		assert.Equal(t, "This is...", result)
+func TestGoalListModel_Modal(t *testing.T) {
+	t.Run("modal starts closed", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "Test Goal", GoalType: models.SimpleGoal},
+		}
+		model := NewGoalListModel(goals)
+
+		assert.False(t, model.showModal)
 	})
 
-	t.Run("pads short text with spaces", func(t *testing.T) {
-		result := truncateOrPad("Short", 10)
-		assert.Equal(t, "Short     ", result)
+	t.Run("enter key opens modal", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "Test Goal", GoalType: models.SimpleGoal},
+		}
+		model := NewGoalListModel(goals)
+		model.width = 80
+		model.height = 24
+
+		// Simulate enter key press
+		msg := tea.KeyMsg{Type: tea.KeyEnter}
+		updatedModel, _ := model.Update(msg)
+		model = updatedModel.(*GoalListModel)
+
+		assert.True(t, model.showModal)
 	})
 
-	t.Run("returns exact text when length matches", func(t *testing.T) {
-		result := truncateOrPad("ExactFit12", 10)
-		assert.Equal(t, "ExactFit12", result)
+	t.Run("escape key closes modal", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "Test Goal", GoalType: models.SimpleGoal},
+		}
+		model := NewGoalListModel(goals)
+		model.showModal = true
+
+		// Simulate escape key press
+		msg := tea.KeyMsg{Type: tea.KeyEsc}
+		updatedModel, _ := model.Update(msg)
+		model = updatedModel.(*GoalListModel)
+
+		assert.False(t, model.showModal)
 	})
 
-	t.Run("handles edge case with width less than ellipsis", func(t *testing.T) {
-		result := truncateOrPad("Long text", 2)
-		assert.Equal(t, "Lo", result)
+	t.Run("getSelectedGoal returns correct goal", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "First Goal", GoalType: models.SimpleGoal},
+			{Title: "Second Goal", GoalType: models.ElasticGoal},
+		}
+		model := NewGoalListModel(goals)
+
+		// Default selection should be first goal
+		selectedGoal := model.getSelectedGoal()
+		assert.NotNil(t, selectedGoal)
+		assert.Equal(t, "First Goal", selectedGoal.Title)
+	})
+
+	t.Run("getSelectedGoal handles empty list", func(t *testing.T) {
+		goals := []models.Goal{}
+		model := NewGoalListModel(goals)
+
+		selectedGoal := model.getSelectedGoal()
+		assert.Nil(t, selectedGoal)
+	})
+}
+
+func TestRenderCriteria(t *testing.T) {
+	t.Run("handles nil criteria", func(t *testing.T) {
+		result := renderCriteria(nil)
+		assert.Equal(t, "None", result)
+	})
+
+	t.Run("renders description only", func(t *testing.T) {
+		criteria := &models.Criteria{
+			Description: "Test description",
+		}
+		result := renderCriteria(criteria)
+		assert.Equal(t, "Test description", result)
+	})
+
+	t.Run("renders numeric conditions", func(t *testing.T) {
+		greaterThan := 5.0
+		criteria := &models.Criteria{
+			Condition: &models.Condition{
+				GreaterThan: &greaterThan,
+			},
+		}
+		result := renderCriteria(criteria)
+		assert.Equal(t, "> 5.00", result)
+	})
+
+	t.Run("renders boolean conditions", func(t *testing.T) {
+		equals := true
+		criteria := &models.Criteria{
+			Condition: &models.Condition{
+				Equals: &equals,
+			},
+		}
+		result := renderCriteria(criteria)
+		assert.Equal(t, "= true", result)
+	})
+
+	t.Run("handles empty criteria", func(t *testing.T) {
+		criteria := &models.Criteria{}
+		result := renderCriteria(criteria)
+		assert.Equal(t, "No conditions specified", result)
 	})
 }
