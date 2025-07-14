@@ -27,7 +27,7 @@ type CompletionModel struct {
 func NewCompletionModel(checklist *models.Checklist) *CompletionModel {
 	prog := progress.New(progress.WithDefaultGradient())
 	prog.Width = 60
-	
+
 	model := &CompletionModel{
 		checklist: checklist,
 		items:     checklist.Items,
@@ -164,14 +164,14 @@ func (m CompletionModel) View() string {
 			}
 			s += "      "
 			text := strings.TrimLeft(item, "# ")
-			
-			// Add progress indicator to heading  
+
+			// Add progress indicator to heading
 			// AIDEV-NOTE: heading-progress-display; injects "(completed/total)" into section headings
 			completed, total := m.getSectionProgress(i)
 			if total > 0 {
 				text = fmt.Sprintf("%s (%d/%d)", text, completed, total)
 			}
-			
+
 			s += headingStyle.Render(text)
 			s += "\n"
 		} else {
@@ -191,13 +191,13 @@ func (m CompletionModel) View() string {
 	// Progress bar and footer
 	completedCount := len(m.selected)
 	totalItems := m.getTotalItemCount()
-	
+
 	// Calculate progress percentage
 	var progressPercent float64
 	if totalItems > 0 {
 		progressPercent = float64(completedCount) / float64(totalItems)
 	}
-	
+
 	// AIDEV-NOTE: bubbles-progress-bar; visual gradient progress bar with percentage display (commit 04973be)
 	s += "\n" + m.progress.ViewAs(progressPercent) + "\n"
 	s += fmt.Sprintf("Completed: %d/%d items (%.0f%%)", completedCount, totalItems, progressPercent*100)
@@ -237,21 +237,21 @@ func (m CompletionModel) getSectionProgress(headingIndex int) (int, int) {
 
 	completed := 0
 	total := 0
-	
+
 	// Find items in this section (between this heading and next heading)
 	for i := headingIndex + 1; i < len(m.items); i++ {
 		// Stop at next heading
 		if strings.HasPrefix(m.items[i], "# ") {
 			break
 		}
-		
+
 		// Count non-heading items
 		total++
 		if _, ok := m.selected[i]; ok {
 			completed++
 		}
 	}
-	
+
 	return completed, total
 }
 

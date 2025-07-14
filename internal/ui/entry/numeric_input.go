@@ -91,7 +91,7 @@ func (ni *NumericEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	ni.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title(prompt + " (or press 's' to skip)").
+				Title(prompt+" (or press 's' to skip)").
 				Description(description).
 				Value(&ni.value).
 				Validate(ni.validateInput),
@@ -238,7 +238,7 @@ func (ni *NumericEntryInput) buildDescription(goal models.Goal) string {
 
 func (ni *NumericEntryInput) validateInput(s string) error {
 	trimmed := strings.TrimSpace(s)
-	
+
 	// Fast-path shortcut detection for skip
 	if trimmed == "s" || trimmed == "S" {
 		ni.action = ActionSkip

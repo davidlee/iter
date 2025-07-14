@@ -205,7 +205,7 @@ func (ti *TextEntryInput) UpdateScoringDisplay(_ *models.AchievementLevel) error
 // Private validation method
 func (ti *TextEntryInput) validateInput(s string) error {
 	trimmed := strings.TrimSpace(s)
-	
+
 	// Fast-path shortcut detection for skip
 	if trimmed == "s" || trimmed == "S" {
 		ti.action = ActionSkip
@@ -215,7 +215,7 @@ func (ti *TextEntryInput) validateInput(s string) error {
 
 	// Text validation is generally permissive
 	// Could add length constraints if needed in the future
-	
+
 	// Check if field is required (basic validation)
 	if trimmed == "" {
 		// For now, allow empty text values

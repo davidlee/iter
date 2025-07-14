@@ -69,6 +69,7 @@ type ExistingEntry struct {
 
 // EntryResult represents the complete result of collecting an entry for a goal
 // AIDEV-NOTE: T012/2.1-enhanced; added Status field for skip functionality integration
+//
 //revive:disable-next-line:exported
 type EntryResult struct {
 	Value            interface{}              // The collected value (any type based on field type)

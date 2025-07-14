@@ -16,7 +16,7 @@ func TestCompletionModel_getSectionProgress(t *testing.T) {
 			"# section one",
 			"item 1",
 			"item 2",
-			"# section two", 
+			"# section two",
 			"item 3",
 			"item 4",
 			"item 5",
@@ -27,7 +27,7 @@ func TestCompletionModel_getSectionProgress(t *testing.T) {
 	}
 
 	model := NewCompletionModel(checklist)
-	
+
 	// Select some items
 	model.selected[1] = struct{}{} // item 1 (section one)
 	model.selected[4] = struct{}{} // item 3 (section two)
@@ -47,7 +47,7 @@ func TestCompletionModel_getSectionProgress(t *testing.T) {
 			wantTotal:     2, // item 1, item 2
 		},
 		{
-			name:          "section two progress", 
+			name:          "section two progress",
 			headingIndex:  3, // "# section two"
 			wantCompleted: 2, // item 3, item 4 selected
 			wantTotal:     3, // item 3, item 4, item 5
@@ -95,22 +95,22 @@ func TestCompletionModel_ViewWithProgressIndicators(t *testing.T) {
 	}
 
 	model := NewCompletionModel(checklist)
-	
+
 	// Select first item in each section
 	model.selected[1] = struct{}{} // clear desk
 	model.selected[4] = struct{}{} // process emails
 
 	view := model.View()
-	
+
 	// Check that progress indicators appear in headings
 	if !strings.Contains(view, "clean station (1/2)") {
 		t.Errorf("Expected 'clean station (1/2)' in view, got: %s", view)
 	}
-	
+
 	if !strings.Contains(view, "digital inputs (1/2)") {
 		t.Errorf("Expected 'digital inputs (1/2)' in view, got: %s", view)
 	}
-	
+
 	// Check that overall progress information appears
 	if !strings.Contains(view, "Completed: 2/4 items (50%)") {
 		t.Errorf("Expected 'Completed: 2/4 items (50%%)' in view, got: %s", view)
@@ -120,7 +120,7 @@ func TestCompletionModel_ViewWithProgressIndicators(t *testing.T) {
 func TestCompletionModel_getSectionProgressEdgeCases(t *testing.T) {
 	checklist := &models.Checklist{
 		ID:    "test",
-		Title: "Test Checklist", 
+		Title: "Test Checklist",
 		Items: []string{
 			"item without heading",
 			"# heading",

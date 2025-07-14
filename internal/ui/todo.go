@@ -7,10 +7,10 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
 
+	"davidlee/iter/internal/config"
 	"davidlee/iter/internal/models"
 	"davidlee/iter/internal/parser"
 	"davidlee/iter/internal/storage"
-	"davidlee/iter/internal/config"
 )
 
 // TodoDashboard displays today's habit status in a table format
@@ -81,7 +81,7 @@ func (td *TodoDashboard) displayBubblesTable(statuses []HabitStatus) error {
 		symbol := td.getStatusSymbol(status.Status)
 		value := td.formatValue(status.Value)
 		notes := td.truncateString(status.Notes, 30)
-		
+
 		rows[i] = table.Row{
 			symbol,
 			td.truncateString(status.Goal.Title, 30),
@@ -111,11 +111,11 @@ func (td *TodoDashboard) displayBubblesTable(statuses []HabitStatus) error {
 
 	// Create a simple model that just renders once
 	model := simpleTableModel{table: t, statuses: statuses}
-	
+
 	// Just render the view directly (no interaction needed)
 	fmt.Print(model.View())
 	td.displaySummary(statuses)
-	
+
 	return nil
 }
 
@@ -129,7 +129,7 @@ func (m simpleTableModel) View() string {
 	baseStyle := lipgloss.NewStyle().
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("240"))
-	
+
 	return baseStyle.Render(m.table.View()) + "\n\n"
 }
 
@@ -141,12 +141,12 @@ func (td *TodoDashboard) displayMarkdownList(statuses []HabitStatus) error {
 	for _, status := range statuses {
 		checkbox := td.getMarkdownCheckbox(status.Status)
 		fmt.Printf("%s %s\n", checkbox, status.Goal.Title)
-		
+
 		// Add notes aligned with habit text (no bullet, indented to align with habit title)
 		if status.Notes != "" {
 			fmt.Printf("      %s\n", status.Notes)
 		}
-		
+
 		// Add value aligned with habit text if present and not boolean
 		if status.Value != nil {
 			valueStr := td.formatValue(status.Value)
@@ -177,22 +177,21 @@ func (td *TodoDashboard) getMarkdownCheckbox(status models.EntryStatus) string {
 	}
 }
 
-
 // displaySimpleTable shows a basic text table
 func (td *TodoDashboard) displaySimpleTable(statuses []HabitStatus) error {
 	fmt.Println("Today's Habits:")
 	fmt.Println("Status | Habit                         | Value               | Notes")
 	fmt.Println("-------|-------------------------------|---------------------|------------------------------")
-	
+
 	for _, status := range statuses {
 		symbol := td.getStatusSymbol(status.Status)
 		habit := td.truncateString(status.Goal.Title, 29)
 		value := td.truncateString(td.formatValue(status.Value), 19)
 		notes := td.truncateString(status.Notes, 30)
-		
+
 		fmt.Printf("%-6s | %-29s | %-19s | %-30s\n", symbol, habit, value, notes)
 	}
-	
+
 	td.displaySummary(statuses)
 	return nil
 }
@@ -215,7 +214,7 @@ func (td *TodoDashboard) loadTodayStatuses() ([]HabitStatus, error) {
 
 	// Get today's date
 	today := time.Now().Format("2006-01-02")
-	
+
 	// Find today's entry
 	var todayEntry *models.DayEntry
 	for _, dayEntry := range entryLog.Entries {
@@ -270,7 +269,7 @@ func (td *TodoDashboard) displaySummary(statuses []HabitStatus) {
 	}
 
 	pending := total - completed - skipped - failed
-	
+
 	fmt.Printf("\nSummary: %d/%d completed", completed, total)
 	if skipped > 0 {
 		fmt.Printf(", %d skipped", skipped)

@@ -42,7 +42,7 @@ func runTodo(_ *cobra.Command, _ []string) error {
 
 	// Create todo dashboard
 	dashboard := ui.NewTodoDashboard(paths)
-	
+
 	// Display in requested format
 	if markdownOutput {
 		return dashboard.DisplayMarkdown()

@@ -85,18 +85,18 @@ This enhances the current goal management workflow by providing a unified interf
 
 ## 4. Implementation Plan & Progress
 
-**Overall Status:** `Not Started`
+**Overall Status:** `In Progress`
 
 **Sub-tasks:**
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
 
 - [ ] **Phase 1: Core List Implementation**
-  - [ ] **Sub-task 1.1:** Create GoalItem type implementing list.Item interface
+  - [x] **Sub-task 1.1:** Create GoalItem type implementing list.Item interface
     - *Design:* Implement FilterValue(), Title(), Description() for goal display
     - *Code/Artifacts:* `internal/ui/goalconfig/goal_list.go` - New list model
     - *Testing Strategy:* Unit tests for GoalItem formatting and filtering
     - *AI Notes:* Follow existing bubbletea patterns, reuse goal loading from parser
-  - [ ] **Sub-task 1.2:** Implement basic GoalListModel with bubbles/list
+  - [WIP] **Sub-task 1.2:** Implement basic GoalListModel with bubbles/list
     - *Design:* Bubbletea Model-View-Update pattern, integration with configurator
     - *Code/Artifacts:* List model with goal loading, basic navigation
     - *Testing Strategy:* Integration tests with sample goals.yml files

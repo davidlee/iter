@@ -78,7 +78,7 @@ func (ti *TimeEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	ti.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title(prompt + " (or press 's' to skip)").
+				Title(prompt+" (or press 's' to skip)").
 				Description(description).
 				Placeholder("14:30").
 				Value(&ti.value).
@@ -233,7 +233,7 @@ func (ti *TimeEntryInput) buildDescription(goal models.Goal) string {
 
 func (ti *TimeEntryInput) validateTime(s string) error {
 	trimmed := strings.TrimSpace(s)
-	
+
 	// Fast-path shortcut detection for skip
 	if trimmed == "s" || trimmed == "S" {
 		ti.action = ActionSkip
