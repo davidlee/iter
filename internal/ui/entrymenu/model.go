@@ -129,10 +129,15 @@ type EntryMenuKeyMap struct {
 	Down   key.Binding
 	Select key.Binding
 
+	// Smart navigation
+	NextIncomplete     key.Binding
+	PreviousIncomplete key.Binding
+
 	// Entry menu specific
 	ToggleReturnBehavior key.Binding
 	FilterSkipped        key.Binding
 	FilterPrevious       key.Binding
+	ClearFilters         key.Binding
 
 	// Exit
 	Quit key.Binding
@@ -155,18 +160,32 @@ func DefaultEntryMenuKeyMap() EntryMenuKeyMap {
 			key.WithHelp("enter", "enter goal"),
 		),
 
+		// Smart navigation
+		NextIncomplete: key.NewBinding(
+			key.WithKeys("n", "tab"),
+			key.WithHelp("n/tab", "next incomplete"),
+		),
+		PreviousIncomplete: key.NewBinding(
+			key.WithKeys("N", "shift+tab"),
+			key.WithHelp("N/shift+tab", "prev incomplete"),
+		),
+
 		// Entry menu specific
 		ToggleReturnBehavior: key.NewBinding(
 			key.WithKeys("r"),
-			key.WithHelp("r", "toggle return behavior"),
+			key.WithHelp("r", "toggle return"),
 		),
 		FilterSkipped: key.NewBinding(
 			key.WithKeys("s"),
-			key.WithHelp("s", "filter skipped"),
+			key.WithHelp("s", "toggle skip filter"),
 		),
 		FilterPrevious: key.NewBinding(
 			key.WithKeys("p"),
-			key.WithHelp("p", "filter previous"),
+			key.WithHelp("p", "toggle prev filter"),
+		),
+		ClearFilters: key.NewBinding(
+			key.WithKeys("c"),
+			key.WithHelp("c", "clear filters"),
 		),
 
 		// Exit
@@ -191,6 +210,7 @@ type EntryMenuModel struct {
 	returnBehavior ReturnBehavior
 	entryCollector *ui.EntryCollector
 	viewRenderer   *ViewRenderer
+	navEnhancer    *NavigationEnhancer
 	
 	// Navigation state
 	selectedGoalID string  // ID of goal selected for entry
@@ -213,7 +233,10 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 	// Set additional keybindings for help
 	keyMap := DefaultEntryMenuKeyMap()
 	l.AdditionalShortHelpKeys = func() []key.Binding {
-		return []key.Binding{keyMap.ToggleReturnBehavior, keyMap.FilterSkipped, keyMap.FilterPrevious}
+		return []key.Binding{
+			keyMap.NextIncomplete, keyMap.ToggleReturnBehavior, 
+			keyMap.FilterSkipped, keyMap.FilterPrevious, keyMap.ClearFilters,
+		}
 	}
 
 	return &EntryMenuModel{
@@ -225,6 +248,7 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 		returnBehavior: ReturnToMenu,
 		entryCollector: collector,
 		viewRenderer:   NewViewRenderer(0, 0), // Will be updated on first WindowSizeMsg
+		navEnhancer:    NewNavigationEnhancer(),
 	}
 }
 
@@ -244,6 +268,7 @@ func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.
 		filterState:    FilterNone,
 		returnBehavior: ReturnToMenu,
 		viewRenderer:   NewViewRenderer(80, 24), // Fixed size for testing
+		navEnhancer:    NewNavigationEnhancer(),
 	}
 }
 
@@ -292,14 +317,26 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 				}
 			}
+		case key.Matches(msg, m.keys.NextIncomplete):
+			m.navEnhancer.SelectNextIncompleteGoal(m)
+			return m, nil
+		case key.Matches(msg, m.keys.PreviousIncomplete):
+			m.navEnhancer.SelectPreviousIncompleteGoal(m)
+			return m, nil
 		case key.Matches(msg, m.keys.ToggleReturnBehavior):
 			m.toggleReturnBehavior()
 			return m, nil
 		case key.Matches(msg, m.keys.FilterSkipped):
 			m.toggleSkippedFilter()
+			m.navEnhancer.UpdateListAfterFilterChange(m)
 			return m, nil
 		case key.Matches(msg, m.keys.FilterPrevious):
 			m.togglePreviousFilter()
+			m.navEnhancer.UpdateListAfterFilterChange(m)
+			return m, nil
+		case key.Matches(msg, m.keys.ClearFilters):
+			m.clearAllFilters()
+			m.navEnhancer.UpdateListAfterFilterChange(m)
 			return m, nil
 		}
 	}
@@ -373,7 +410,6 @@ func (m *EntryMenuModel) toggleSkippedFilter() {
 	case FilterHideSkippedAndPrevious:
 		m.filterState = FilterHidePrevious
 	}
-	m.applyFilter()
 }
 
 // togglePreviousFilter toggles filtering of previously entered goals.
@@ -388,43 +424,13 @@ func (m *EntryMenuModel) togglePreviousFilter() {
 	case FilterHideSkippedAndPrevious:
 		m.filterState = FilterHideSkipped
 	}
-	m.applyFilter()
 }
 
-// applyFilter applies the current filter state to the list.
-func (m *EntryMenuModel) applyFilter() {
-	allItems := createMenuItems(m.goals, m.entries)
-	filteredItems := make([]list.Item, 0, len(allItems))
-	
-	for _, item := range allItems {
-		menuItem := item.(EntryMenuItem)
-		
-		// Apply filter logic
-		if m.shouldFilterOut(menuItem) {
-			continue
-		}
-		
-		filteredItems = append(filteredItems, item)
-	}
-	
-	m.list.SetItems(filteredItems)
+// clearAllFilters clears all active filters.
+func (m *EntryMenuModel) clearAllFilters() {
+	m.filterState = FilterNone
 }
 
-// shouldFilterOut determines if a menu item should be filtered out.
-func (m *EntryMenuModel) shouldFilterOut(item EntryMenuItem) bool {
-	hideSkipped := m.filterState == FilterHideSkipped || m.filterState == FilterHideSkippedAndPrevious
-	hidePrevious := m.filterState == FilterHidePrevious || m.filterState == FilterHideSkippedAndPrevious
-	
-	if hideSkipped && item.HasEntry && item.EntryStatus == models.EntrySkipped {
-		return true
-	}
-	
-	if hidePrevious && item.HasEntry && (item.EntryStatus == models.EntryCompleted || item.EntryStatus == models.EntryFailed) {
-		return true
-	}
-	
-	return false
-}
 
 
 // Styles for the entry menu interface.

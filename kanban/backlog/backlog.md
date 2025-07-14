@@ -6,6 +6,10 @@ If dumb ideas were worth shit, we'd all be rich.
 
 # bugs
 
+None I'm especially conscious of
+
+# features 
+
 ## Goal Management (add / edit)
 
 - [ ] edit title
@@ -50,6 +54,18 @@ If dumb ideas were worth shit, we'd all be rich.
 
 - better / updated help
 - https://github.com/charmbracelet/fang
+
+## configuration
+
+- theme support
+  - steal neovim ones
+    - gruvbox
+    - material
+    - paperthingy
+    - catpuccin
+    - user defined
+
+- prefs / filter state
 
 ## TUI
 
@@ -144,6 +160,8 @@ If dumb ideas were worth shit, we'd all be rich.
 
 - notational velocity
   - the rewrite is vapourware right?
+  - this + flotsam seems cool
+  - it'd also be good to have fast fuzzy search for the trough of disillusionment
 
 - shittywiki
 
