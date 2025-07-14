@@ -210,20 +210,35 @@ func TestGoalListModel_Modal(t *testing.T) {
 		assert.False(t, model.showModal)
 	})
 
-	t.Run("keys ignored when modal is open", func(t *testing.T) {
+	t.Run("q key closes modal", func(t *testing.T) {
 		goals := []models.Goal{
 			{Title: "Test Goal", GoalType: models.SimpleGoal},
 		}
 		model := NewGoalListModel(goals)
 		model.showModal = true
 
-		// Simulate 'q' key press (should not quit when modal is open)
+		// Simulate 'q' key press
 		msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}}
+		updatedModel, _ := model.Update(msg)
+		model = updatedModel.(*GoalListModel)
+
+		assert.False(t, model.showModal)
+	})
+
+	t.Run("non-modal keys ignored when modal is open", func(t *testing.T) {
+		goals := []models.Goal{
+			{Title: "Test Goal", GoalType: models.SimpleGoal},
+		}
+		model := NewGoalListModel(goals)
+		model.showModal = true
+
+		// Simulate 'e' key press (edit key should be ignored when modal is open)
+		msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}}
 		updatedModel, cmd := model.Update(msg)
 		model = updatedModel.(*GoalListModel)
 
 		assert.True(t, model.showModal) // Modal should still be open
-		assert.Nil(t, cmd)              // Should not quit
+		assert.Nil(t, cmd)              // Should not trigger any command
 	})
 
 	t.Run("getSelectedGoal returns correct goal", func(t *testing.T) {

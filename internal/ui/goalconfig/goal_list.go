@@ -98,8 +98,8 @@ func DefaultGoalListKeyMap() GoalListKeyMap {
 			key.WithHelp("enter/space", "show details"),
 		),
 		CloseModal: key.NewBinding(
-			key.WithKeys("esc"),
-			key.WithHelp("esc", "close"),
+			key.WithKeys("esc", "q"),
+			key.WithHelp("esc/q", "close"),
 		),
 
 		// Future operations
@@ -163,6 +163,12 @@ func NewGoalListModel(goals []models.Goal) *GoalListModel {
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle
+	
+	// Set additional keybindings for the list help
+	keyMap := DefaultGoalListKeyMap()
+	l.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{keyMap.ShowDetail}
+	}
 
 	return &GoalListModel{
 		list:  l,
@@ -371,8 +377,10 @@ func (m *GoalListModel) renderGoalDetails(goal *models.Goal) string {
 		details = append(details, goal.HelpText)
 	}
 
-	// Footer
-	details = append(details, "", modalFooterStyle.Render("Press ESC to close"))
+	// Footer with dynamic keybinding help
+	closeHelp := m.keys.CloseModal.Help()
+	footerText := fmt.Sprintf("Press %s to close", closeHelp.Key)
+	details = append(details, "", modalFooterStyle.Render(footerText))
 
 	return strings.Join(details, "\n")
 }
