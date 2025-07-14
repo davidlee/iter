@@ -17,8 +17,8 @@ run:
 wip:
   glow kanban/in-progress
 
-plans:
+plan:
   glow kanban/backlog
 
-claude-logs:
+logs:
   uvx claude-code-log --open-browser

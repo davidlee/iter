@@ -1,5 +1,7 @@
 # Workflow 
 
+<!-- AIDEV-NOTE: Read this file FIRST before any kanban/ operations - contains task ID assignment rules and workflow --> 
+
 ## Roles & Collaboration Model
 
 This document outlines the collaboration model between the User (acting as Tech Lead) and the AI (Claude, acting as a senior developer/pair programmer). We will use a DIY Kanban system based on folders and Markdown files, managed with Git.
@@ -25,7 +27,7 @@ This document outlines the collaboration model between the User (acting as Tech 
 
 ## Kanban System: Folders & Files
 
-The project work is managed in `kanban/` and subdirectories: 
+The project work is managed with "cards" within `kanban/` and subdirectories: 
 
 ```
   - kanban/
@@ -36,9 +38,11 @@ The project work is managed in `kanban/` and subdirectories:
     - archive/
 ```
 
+**ALWAYS** read [[kanban/CLAUDE.md]] before any (read or write) operations on `kanban/`.
+
 Each task is a single Markdown file (e.g., `T023_implement_option_parser.md`), where T023 is the task's unique ID (also stored in the file's frontmatter).
 
-Tasks must adhere closely to the format of `../kanban/backlog/T000_example.md`.
+Tasks MUST adhere closely to the format of `../kanban/backlog/T000_example.md`.
 
 ## Task Dependencies & Relationships
 
