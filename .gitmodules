@@ -1,0 +1,15 @@
+[submodule "charmbracelet/bubbles"]
+	path = charmbracelet/bubbles
+	url = https://github.com/charmbracelet/bubbles.git
+[submodule "charmbracelet/bubbletea"]
+	path = charmbracelet/bubbletea
+	url = https://github.com/charmbracelet/bubbletea.git
+[submodule "charmbracelet/huh"]
+	path = charmbracelet/huh
+	url = https://github.com/charmbracelet/huh.git
+[submodule "charmbracelet/lipgloss"]
+	path = charmbracelet/lipgloss
+	url = https://github.com/charmbracelet/lipgloss.git
+[submodule "charmbracelet/x"]
+	path = charmbracelet/x
+	url = https://github.com/charmbracelet/x
