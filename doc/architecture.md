@@ -54,14 +54,24 @@ This section provides context on the key documentation files that inform the arc
 The following diagrams are available in the [diagrams](./diagrams) directory and provide visual representation of the system architecture:
 
 ### System Context and Containers
-- **[entry_system_context.d2](./diagrams/entry_system_context.d2)** ([SVG](./diagrams/entry_system_context.svg)) - High-level system context showing how the entry system fits within the broader iter application
-- **[entry_system_containers.d2](./diagrams/entry_system_containers.d2)** ([SVG](./diagrams/entry_system_containers.svg)) - Container-level view of the entry collection system architecture
+
+1. Entry System Context
+   ![entry system c4 context diagram](./diagrams/entry_system_context.svg)
+   *High-level system context showing how the entry system fits within the broader application ([src](./diagrams/entry_system_context.d2))*
+
+2. Entry System Containers
+   ![entry system c4 container diagram](./diagrams/entry_system_containers.svg)
+   *Container-level view of the entry collection system architecture ([src]([./diagrams/entry_system_context.d2))*
 
 ### Component Architecture Diagrams  
-- **[field_input_hierarchy.d2](./diagrams/field_input_hierarchy.d2)** ([SVG](./diagrams/field_input_hierarchy.svg)) - Field input component hierarchy and relationships
+
+1. ![field input hierarchy](./diagrams/field_input_hierarchy.svg)
+   *Field input component hierarchy and relationships ([src](./diagrams/field_input_hierarchy.d2))
 
 ### Process Flow Diagrams
-- **[goal_collection_flow.d2](./diagrams/goal_collection_flow.d2)** ([SVG](./diagrams/goal_collection_flow.svg)) - Goal-based entry collection process flow
+
+1. ![goal collection flow](./diagrams/goal_collection_flow.svg)
+   *Goal-based entry collection process flow ([src](./diagrams/goal_collection_flow.d2))*
 
 These diagrams complement the textual architecture descriptions and provide visual reference for developers implementing and extending the system.
 
@@ -601,5 +611,4 @@ The architectural diagrams referenced throughout this document provide visual re
 These diagrams complement the textual descriptions and serve as implementation guides for developers working on the system. They are particularly valuable for understanding the component relationships in the UI layer and the process flow implications of architectural decisions.
 
 For the most current versions of these diagrams, refer to the [diagrams](./diagrams) directory.
-
 
