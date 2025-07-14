@@ -312,12 +312,14 @@ func timePtr(t time.Time) *time.Time {
 }
 
 // CollectSingleGoalEntry collects an entry for a single goal, used by the entry menu interface.
-// AIDEV-NOTE: T018/3.1-entry-integration; single goal collection for menu selection flow
+// AIDEV-NOTE: T018/3.1-entry-integration; main integration point for menu→entry flow
+// This method is called when user presses Enter in entry menu to collect entry for selected goal
 func (ec *EntryCollector) CollectSingleGoalEntry(goal models.Goal) error {
 	return ec.collectGoalEntry(goal)
 }
 
 // GetGoalEntry returns the current entry data for a goal.
+// AIDEV-NOTE: T018/3.1-state-sync; used by menu to sync state after entry collection
 func (ec *EntryCollector) GetGoalEntry(goalID string) (interface{}, string, *models.AchievementLevel, models.EntryStatus, bool) {
 	value, hasValue := ec.entries[goalID]
 	notes := ec.notes[goalID]
@@ -328,7 +330,8 @@ func (ec *EntryCollector) GetGoalEntry(goalID string) (interface{}, string, *mod
 }
 
 // InitializeForMenu initializes the EntryCollector with goals and existing entries for menu usage.
-// AIDEV-NOTE: T018/3.1-entry-integration; setup collector state for menu integration
+// AIDEV-NOTE: T018/3.1-menu-setup; critical setup for menu integration - must be called before goal selection
+// Converts GoalEntry format to internal collector format (interface{} values)
 func (ec *EntryCollector) InitializeForMenu(goals []models.Goal, entries map[string]models.GoalEntry) {
 	ec.goals = goals
 	
@@ -350,7 +353,8 @@ func (ec *EntryCollector) InitializeForMenu(goals []models.Goal, entries map[str
 }
 
 // SaveEntriesToFile saves the current entries to the specified file.
-// AIDEV-NOTE: T018/3.2-auto-save; save entries after each goal completion
+// AIDEV-NOTE: T018/3.2-auto-save; called after each goal completion for automatic persistence
+// Reuses existing saveEntries() method for consistency with main entry flow
 func (ec *EntryCollector) SaveEntriesToFile(entriesFile string) error {
 	return ec.saveEntries(entriesFile)
 }

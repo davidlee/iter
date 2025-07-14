@@ -303,19 +303,22 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if item, ok := selected.(EntryMenuItem); ok {
 					m.selectedGoalID = item.Goal.ID
 					
-					// AIDEV-NOTE: T018/3.1-entry-integration; launch EntryCollector for selected goal
+					// AIDEV-NOTE: T018/3.1-entry-integration; MAIN INTEGRATION POINT for menu→entry→menu flow
+					// This is the core implementation that makes goal selection functional
 					if m.entryCollector != nil {
+						// Phase 3.1: Launch entry collection for selected goal
 						err := m.entryCollector.CollectSingleGoalEntry(item.Goal)
 						if err != nil {
 							// For now, just continue - could add error display later
 							_ = err // TODO: Consider adding error handling UI
 						}
 						
-						// Update entries map with new data
+						// Phase 3.1: Sync menu state with collector after entry collection
+						// CRITICAL: This updates menu visual state to reflect new entry data
 						m.updateEntriesFromCollector()
 						
-						// AIDEV-NOTE: T018/3.2-auto-save; save entries after each goal completion
-						// Auto-save entries after collection (Phase 3.2)
+						// AIDEV-NOTE: T018/3.2-auto-save; automatic persistence after each goal completion
+						// Phase 3.2: Auto-save entries after collection for seamless UX
 						if m.entriesFile != "" {
 							err = m.entryCollector.SaveEntriesToFile(m.entriesFile)
 							if err != nil {
@@ -324,12 +327,13 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							}
 						}
 						
-						// Handle return behavior
+						// Phase 3.2: Smart navigation based on return behavior preference
+						// AIDEV-NOTE: T018/3.2-navigation; toggle between menu-focus vs goal-focus workflows
 						if m.returnBehavior == ReturnToNextGoal {
-							// Auto-select next incomplete goal
+							// Auto-select next incomplete goal for efficient goal completion workflow
 							m.navEnhancer.SelectNextIncompleteGoal(m)
 						}
-						// If ReturnToMenu, stay on current goal
+						// If ReturnToMenu, stay on current goal for review-focused workflow
 					}
 					
 					return m, nil
@@ -461,7 +465,9 @@ func (m *EntryMenuModel) UpdateEntries(entries map[string]models.GoalEntry) {
 }
 
 // updateEntriesFromCollector updates the entries map with data from the EntryCollector.
-// AIDEV-NOTE: T018/3.1-entry-integration; sync menu state with collector after entry collection
+// AIDEV-NOTE: T018/3.1-state-sync; CRITICAL method for syncing collector state to menu after entry collection
+// Handles type conversion from collector interface{} values to GoalEntry structs for menu display
+// This is what makes the menu visual state update after user completes an entry
 func (m *EntryMenuModel) updateEntriesFromCollector() {
 	if m.entryCollector == nil {
 		return
