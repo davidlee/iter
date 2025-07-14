@@ -190,6 +190,7 @@ type EntryMenuModel struct {
 	filterState    FilterState
 	returnBehavior ReturnBehavior
 	entryCollector *ui.EntryCollector
+	viewRenderer   *ViewRenderer
 	
 	// Navigation state
 	selectedGoalID string  // ID of goal selected for entry
@@ -223,6 +224,7 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 		filterState:    FilterNone,
 		returnBehavior: ReturnToMenu,
 		entryCollector: collector,
+		viewRenderer:   NewViewRenderer(0, 0), // Will be updated on first WindowSizeMsg
 	}
 }
 
@@ -241,6 +243,7 @@ func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.
 		keys:           DefaultEntryMenuKeyMap(),
 		filterState:    FilterNone,
 		returnBehavior: ReturnToMenu,
+		viewRenderer:   NewViewRenderer(80, 24), // Fixed size for testing
 	}
 }
 
@@ -273,6 +276,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		m.list.SetWidth(msg.Width)
 		m.list.SetHeight(msg.Height - 4) // Account for progress bar and margins
+		m.viewRenderer = NewViewRenderer(msg.Width, msg.Height)
 
 	case tea.KeyMsg:
 		switch {
@@ -312,10 +316,11 @@ func (m *EntryMenuModel) View() string {
 		return "Loading..."
 	}
 	
+	header := m.viewRenderer.RenderHeader(m.goals, m.entries, m.filterState, m.returnBehavior)
+	
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
-		m.renderProgressBar(),
-		m.renderFilters(),
+		header,
 		m.list.View(),
 	)
 }
@@ -421,52 +426,6 @@ func (m *EntryMenuModel) shouldFilterOut(item EntryMenuItem) bool {
 	return false
 }
 
-// renderProgressBar renders the progress bar showing completion status.
-func (m *EntryMenuModel) renderProgressBar() string {
-	if len(m.goals) == 0 {
-		return ""
-	}
-	
-	completed := 0
-	attempted := 0
-	
-	for _, goal := range m.goals {
-		if entry, hasEntry := m.entries[goal.ID]; hasEntry {
-			attempted++
-			if entry.Status == models.EntryCompleted {
-				completed++
-			}
-		}
-	}
-	
-	progress := float64(completed) / float64(len(m.goals)) * 100
-	progressBar := fmt.Sprintf("Progress: %d/%d goals completed (%.1f%%)", completed, len(m.goals), progress)
-	
-	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color("12")).
-		Bold(true).
-		Render(progressBar)
-}
-
-// renderFilters renders the current filter state.
-func (m *EntryMenuModel) renderFilters() string {
-	if m.filterState == FilterNone {
-		return ""
-	}
-	
-	var filters []string
-	if m.filterState == FilterHideSkipped || m.filterState == FilterHideSkippedAndPrevious {
-		filters = append(filters, "hiding skipped")
-	}
-	if m.filterState == FilterHidePrevious || m.filterState == FilterHideSkippedAndPrevious {
-		filters = append(filters, "hiding previous")
-	}
-	
-	filterText := "Filters: " + fmt.Sprintf("%v", filters)
-	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color("11")).
-		Render(filterText)
-}
 
 // Styles for the entry menu interface.
 var (

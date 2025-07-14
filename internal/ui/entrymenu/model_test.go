@@ -1,6 +1,7 @@
 package entrymenu
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -56,6 +57,10 @@ func TestNewEntryMenuModelForTesting(t *testing.T) {
 
 	if model.returnBehavior != ReturnToMenu {
 		t.Errorf("Expected ReturnToMenu, got %v", model.returnBehavior)
+	}
+
+	if model.viewRenderer == nil {
+		t.Error("Expected viewRenderer to be initialized")
 	}
 }
 
@@ -226,5 +231,70 @@ func TestShouldFilterOut(t *testing.T) {
 				t.Errorf("Expected shouldFilter %v, got %v", tt.shouldFilter, result)
 			}
 		})
+	}
+}
+
+func TestEntryMenuModel_View(t *testing.T) {
+	goals := []models.Goal{
+		{
+			ID:       "goal1",
+			Title:    "Test Goal",
+			GoalType: models.SimpleGoal,
+		},
+	}
+
+	entries := map[string]models.GoalEntry{
+		"goal1": {
+			GoalID:    "goal1",
+			Status:    models.EntryCompleted,
+			CreatedAt: time.Now(),
+		},
+	}
+
+	model := NewEntryMenuModelForTesting(goals, entries)
+
+	// Set dimensions for proper rendering
+	model.width = 80
+	model.height = 24
+
+	// Test view rendering
+	view := model.View()
+
+	// Should contain progress information
+	if !strings.Contains(view, "1/1 completed") {
+		t.Errorf("Expected view to contain progress info, got: %s", view)
+	}
+
+	// Should contain return behavior info
+	if !strings.Contains(view, "Return: menu") {
+		t.Errorf("Expected view to contain return behavior, got: %s", view)
+	}
+}
+
+func TestEntryMenuModel_ViewWithFilters(t *testing.T) {
+	goals := []models.Goal{
+		{ID: "goal1", Title: "Completed Goal", GoalType: models.SimpleGoal},
+		{ID: "goal2", Title: "Skipped Goal", GoalType: models.SimpleGoal},
+	}
+
+	entries := map[string]models.GoalEntry{
+		"goal1": {GoalID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+		"goal2": {GoalID: "goal2", Status: models.EntrySkipped, CreatedAt: time.Now()},
+	}
+
+	model := NewEntryMenuModelForTesting(goals, entries)
+	
+	// Set dimensions for proper rendering
+	model.width = 80
+	model.height = 24
+	
+	// Enable skipped filter
+	model.toggleSkippedFilter()
+	
+	view := model.View()
+
+	// Should show filter information
+	if !strings.Contains(view, "hiding skipped") {
+		t.Errorf("Expected view to show filter info, got: %s", view)
 	}
 }

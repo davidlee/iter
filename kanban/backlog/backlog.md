@@ -182,7 +182,7 @@ If dumb ideas were worth shit, we'd all be rich.
 - Performance testing for large goal sets (100+ goals)
 - Table / cartesian product of test scenarios / supported cases
 - Fuzz testing (goals > collectors)
-- Logging / headless operation?
+- Logging / headless operation? ask stupid to come up with a plan, or do some research (must be patterns for charm out there)
 - Stress testing with complex goal schemas and criteria
 - Error recovery testing for interrupted entry sessions
   - dump scratch files?

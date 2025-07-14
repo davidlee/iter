@@ -91,7 +91,7 @@ EntryMenuModel (BubbleTea UI)
     - *Testing Strategy:* Unit tests for model state transitions, headless constructor for testing
     - *AI Notes:* Follow established patterns from GoalListModel, maintain loose coupling to goal types
   
-  - [ ] **2.2 Implement goal status rendering:** Add color-coded goal status display with progress bar
+  - [x] **2.2 Implement goal status rendering:** Add color-coded goal status display with progress bar
     - *Design:* Status colors via lipgloss.Color(), progress calculation across all goals
     - *Code/Artifacts:* Status rendering logic in `internal/ui/entrymenu/view.go`
     - *Testing Strategy:* Visual rendering tests, color mapping validation, progress calculation tests
@@ -170,3 +170,10 @@ EntryMenuModel (BubbleTea UI)
   - Added filtering (skip/previous) and return behavior toggle functionality
   - Created comprehensive test suite with 100% test coverage
   - All tests passing, linter clean with appropriate revive suppressions
+- `2025-07-14 - AI:` Sub-task 2.2 completed: Goal status rendering implemented
+  - Created `internal/ui/entrymenu/view.go` with dedicated ViewRenderer for presentation logic
+  - Implemented detailed progress bar with visual progress indicator and statistics
+  - Added comprehensive header rendering with progress, filters, and return behavior
+  - Enhanced status colors in EntryMenuItem with proper lipgloss integration
+  - Created extensive test suite covering all rendering scenarios and edge cases
+  - All tests passing, linter clean, proper separation of concerns between model and view
