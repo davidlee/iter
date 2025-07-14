@@ -92,12 +92,6 @@ func TestEntryMenuIntegration_POC(t *testing.T) {
 	}
 
 	t.Logf("Final output length: %d characters", len(outputStr))
-	t.Logf("Output preview: %q", outputStr[:min(200, len(outputStr))])
+	t.Logf("Output preview: %q", outputStr[:minInt(200, len(outputStr))])
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}

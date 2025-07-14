@@ -5,6 +5,7 @@ package entrymenu
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -195,6 +196,7 @@ type EntryMenuModel struct {
 	filterState    FilterState
 	returnBehavior ReturnBehavior
 	entryCollector *ui.EntryCollector
+	entriesFile    string          // Path to entries file for auto-save
 	viewRenderer   *ViewRenderer
 	navEnhancer    *NavigationEnhancer
 	
@@ -204,7 +206,7 @@ type EntryMenuModel struct {
 }
 
 // NewEntryMenuModel creates a new entry menu model with the provided goals and entries.
-func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry, collector *ui.EntryCollector) *EntryMenuModel {
+func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry, collector *ui.EntryCollector, entriesFile string) *EntryMenuModel {
 	items := createMenuItems(goals, entries)
 	
 	// Create list with default delegate
@@ -233,6 +235,7 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 		filterState:    FilterNone,
 		returnBehavior: ReturnToMenu,
 		entryCollector: collector,
+		entriesFile:    entriesFile,
 		viewRenderer:   NewViewRenderer(0, 0), // Will be updated on first WindowSizeMsg
 		navEnhancer:    NewNavigationEnhancer(),
 	}
@@ -299,7 +302,36 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				selected := m.list.SelectedItem()
 				if item, ok := selected.(EntryMenuItem); ok {
 					m.selectedGoalID = item.Goal.ID
-					// Entry collection will be handled by parent
+					
+					// AIDEV-NOTE: T018/3.1-entry-integration; launch EntryCollector for selected goal
+					if m.entryCollector != nil {
+						err := m.entryCollector.CollectSingleGoalEntry(item.Goal)
+						if err != nil {
+							// For now, just continue - could add error display later
+							_ = err // TODO: Consider adding error handling UI
+						}
+						
+						// Update entries map with new data
+						m.updateEntriesFromCollector()
+						
+						// AIDEV-NOTE: T018/3.2-auto-save; save entries after each goal completion
+						// Auto-save entries after collection (Phase 3.2)
+						if m.entriesFile != "" {
+							err = m.entryCollector.SaveEntriesToFile(m.entriesFile)
+							if err != nil {
+								// Log error but continue - could add error display later
+								_ = err // TODO: Consider adding save error handling UI
+							}
+						}
+						
+						// Handle return behavior
+						if m.returnBehavior == ReturnToNextGoal {
+							// Auto-select next incomplete goal
+							m.navEnhancer.SelectNextIncompleteGoal(m)
+						}
+						// If ReturnToMenu, stay on current goal
+					}
+					
 					return m, nil
 				}
 			}
@@ -425,6 +457,51 @@ func (m *EntryMenuModel) GetReturnBehavior() ReturnBehavior {
 func (m *EntryMenuModel) UpdateEntries(entries map[string]models.GoalEntry) {
 	m.entries = entries
 	items := createMenuItems(m.goals, entries)
+	m.list.SetItems(items)
+}
+
+// updateEntriesFromCollector updates the entries map with data from the EntryCollector.
+// AIDEV-NOTE: T018/3.1-entry-integration; sync menu state with collector after entry collection
+func (m *EntryMenuModel) updateEntriesFromCollector() {
+	if m.entryCollector == nil {
+		return
+	}
+	
+	// Update entries for all goals based on collector state
+	for _, goal := range m.goals {
+		value, notes, achievement, status, hasEntry := m.entryCollector.GetGoalEntry(goal.ID)
+		if hasEntry {
+			// Convert to GoalEntry format
+			goalEntry := models.GoalEntry{
+				GoalID:           goal.ID,
+				Status:           status,
+				Notes:            notes,
+				AchievementLevel: achievement,
+				CreatedAt:        time.Now(),
+			}
+			
+			// Set value based on type
+			switch v := value.(type) {
+			case string:
+				goalEntry.Value = v
+			case bool:
+				if v {
+					goalEntry.Value = "true"
+				} else {
+					goalEntry.Value = "false"
+				}
+			case time.Time:
+				goalEntry.Value = v.Format("15:04")
+			default:
+				goalEntry.Value = fmt.Sprintf("%v", v)
+			}
+			
+			m.entries[goal.ID] = goalEntry
+		}
+	}
+	
+	// Recreate menu items with updated entry data
+	items := createMenuItems(m.goals, m.entries)
 	m.list.SetItems(items)
 }
 

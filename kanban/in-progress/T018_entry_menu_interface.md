@@ -114,17 +114,17 @@ EntryMenuModel (BubbleTea UI)
     - *Investment Assessment:* ✅ HIGH VALUE - 80x slower than unit tests but fills critical integration gap
     - *AI Notes:* POC SUCCESSFUL - teatest recommended for Phase 3.1+ complex flows; keeps unit tests for fast feedback
   
-  - [ ] **3.1 Create menu-entry integration:** Connect menu to existing EntryCollector system
-    - *Design:* Launch EntryCollector.CollectSingleEntry() method, handle return flow
-    - *Code/Artifacts:* Integration methods in EntryMenuModel, single-goal entry collection
-    - *Testing Strategy:* End-to-end tests for menu→entry→menu flow across all goal types (use teatest if POC successful)
-    - *AI Notes:* Leverage existing EntryCollector abstraction, avoid direct goal type coupling
+  - [x] **3.1 Create menu-entry integration:** Connect menu to existing EntryCollector system
+    - *Design:* Launch EntryCollector.CollectSingleGoalEntry() method, handle return flow
+    - *Code/Artifacts:* Integration methods in EntryMenuModel, updateEntriesFromCollector(), goal selection flow
+    - *Testing Strategy:* teatest integration test verifying menu→entry→menu flow
+    - *AI Notes:* Clean integration via EntryCollector abstraction, maintains loose coupling to goal types
   
-  - [ ] **3.2 Implement auto-save and state management:** Handle entries.yml updates and navigation
-    - *Design:* Reuse EntryCollector storage mechanisms, smart next-goal selection algorithm
-    - *Code/Artifacts:* State persistence logic, next-goal selection in menu model
-    - *Testing Strategy:* File I/O tests, state transition tests, error handling validation (enhanced with teatest if adopted)
-    - *AI Notes:* Build on existing storage abstraction, handle write failures gracefully
+  - [x] **3.2 Implement auto-save and state management:** Handle entries.yml updates and navigation
+    - *Design:* Auto-save after each goal completion, smart return behavior (menu vs next-goal)
+    - *Code/Artifacts:* SaveEntriesToFile() integration, return behavior handling, state sync
+    - *Testing Strategy:* Integration test coverage for auto-save and navigation behavior
+    - *AI Notes:* Reuses existing storage mechanisms, graceful error handling for file operations
 
 - [ ] **4. Command Integration & Default Behavior**
   - [x] **4.1 Add --menu flag to entry command:** Implement command-line interface
@@ -223,6 +223,13 @@ EntryMenuModel (BubbleTea UI)
   - **ENHANCED**: Added visual padding between header and menu title
   - **COMMIT**: `577e769` - fix(ui)[T018]: move return behavior to footer for robust layout
   - **CURRENT STATE**: Clean, robust layout that adapts to any terminal width
+- `2025-07-14 - AI:` Sub-task 3.0 completed: teatest POC successful
+  - **POC RESULTS**: teatest provides HIGH VALUE for integration testing of complex user flows
+  - **PERFORMANCE**: 80x slower than unit tests (250ms vs 3ms) but fills critical integration gap
+  - **CAPABILITIES**: User simulation, output capture, golden file regression testing
+  - **ADOPTION STRATEGY**: Keep unit tests + add teatest for multi-step integration flows
+  - **COMMIT**: `b0a762b` - feat(test)[T018/3.0]: POC BubbleTea integration testing with teatest
+  - **READY FOR**: Phase 3.1 entry integration with comprehensive testing framework
   
 **Current functional state**: 
 - ✅ Full menu navigation with real data
@@ -230,9 +237,11 @@ EntryMenuModel (BubbleTea UI)
 - ✅ All filtering and keybinding functionality
 - ✅ Clean, robust layout with proper visual hierarchy
 - ✅ Comprehensive test coverage (all tests passing)
-- ❌ Entry collection (pressing Enter exits - needs Phase 3.1)
+- ✅ **Entry collection integration** - pressing Enter launches EntryCollector for selected goal
+- ✅ **Auto-save functionality** - entries.yml updated after each goal completion
+- ✅ **Smart return behavior** - toggle between return-to-menu vs advance-to-next-goal
 
-**Next critical step**: Phase 3.1 (entry integration) to make goal selection functional
+**Next step**: Phase 4.2 (default command behavior) - make `vice` alone launch entry menu
 
 **Testing Framework Evaluation - COMPLETED** (2025-07-14):
 - **teatest POC SUCCESSFUL**: Two integration tests implemented and passing

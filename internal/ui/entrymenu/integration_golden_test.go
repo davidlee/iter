@@ -87,10 +87,17 @@ func TestEntryMenuGoldenFiles_POC(t *testing.T) {
 	
 	// Clean output for preview
 	cleanOutput := stripANSI(rawOutput)
-	t.Logf("Clean output preview:\n%s", cleanOutput[:min(300, len(cleanOutput))])
+	t.Logf("Clean output preview:\n%s", cleanOutput[:minInt(300, len(cleanOutput))])
 }
 
 // stripANSI removes ANSI escape sequences for more stable golden file testing
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func stripANSI(s string) string {
 	// Simple ANSI stripping - more sophisticated libraries exist
 	result := strings.Builder{}

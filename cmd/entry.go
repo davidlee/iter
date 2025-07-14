@@ -82,11 +82,12 @@ func runEntryMenu(paths *config.Paths) error {
 		return fmt.Errorf("failed to load existing entries: %w", err)
 	}
 
-	// Create entry collector for future integration
+	// Create and initialize entry collector
 	collector := ui.NewEntryCollector(paths.ChecklistsFile)
+	collector.InitializeForMenu(schema.Goals, entries)
 
-	// Create and run entry menu
-	model := entrymenu.NewEntryMenuModel(schema.Goals, entries, collector)
+	// Create and run entry menu with auto-save capability
+	model := entrymenu.NewEntryMenuModel(schema.Goals, entries, collector, paths.EntriesFile)
 	
 	program := tea.NewProgram(model, tea.WithAltScreen())
 	_, err = program.Run()

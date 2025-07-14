@@ -311,6 +311,50 @@ func timePtr(t time.Time) *time.Time {
 	return &t
 }
 
+// CollectSingleGoalEntry collects an entry for a single goal, used by the entry menu interface.
+// AIDEV-NOTE: T018/3.1-entry-integration; single goal collection for menu selection flow
+func (ec *EntryCollector) CollectSingleGoalEntry(goal models.Goal) error {
+	return ec.collectGoalEntry(goal)
+}
+
+// GetGoalEntry returns the current entry data for a goal.
+func (ec *EntryCollector) GetGoalEntry(goalID string) (interface{}, string, *models.AchievementLevel, models.EntryStatus, bool) {
+	value, hasValue := ec.entries[goalID]
+	notes := ec.notes[goalID]
+	achievement := ec.achievements[goalID]
+	status, hasStatus := ec.statuses[goalID]
+	
+	return value, notes, achievement, status, hasValue && hasStatus
+}
+
+// InitializeForMenu initializes the EntryCollector with goals and existing entries for menu usage.
+// AIDEV-NOTE: T018/3.1-entry-integration; setup collector state for menu integration
+func (ec *EntryCollector) InitializeForMenu(goals []models.Goal, entries map[string]models.GoalEntry) {
+	ec.goals = goals
+	
+	// Initialize maps
+	ec.entries = make(map[string]interface{})
+	ec.achievements = make(map[string]*models.AchievementLevel)
+	ec.notes = make(map[string]string)
+	ec.statuses = make(map[string]models.EntryStatus)
+	
+	// Load existing entries into collector format
+	for _, entry := range entries {
+		ec.entries[entry.GoalID] = entry.Value
+		ec.notes[entry.GoalID] = entry.Notes
+		ec.statuses[entry.GoalID] = entry.Status
+		if entry.AchievementLevel != nil {
+			ec.achievements[entry.GoalID] = entry.AchievementLevel
+		}
+	}
+}
+
+// SaveEntriesToFile saves the current entries to the specified file.
+// AIDEV-NOTE: T018/3.2-auto-save; save entries after each goal completion
+func (ec *EntryCollector) SaveEntriesToFile(entriesFile string) error {
+	return ec.saveEntries(entriesFile)
+}
+
 // Testing helpers - these methods are only used in tests
 
 // SetGoalsForTesting sets the goals for testing purposes.
