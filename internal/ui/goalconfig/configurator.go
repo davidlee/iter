@@ -955,6 +955,7 @@ func (gc *GoalConfigurator) createGoalsBackup(goalsFilePath string) error {
 	}
 
 	// Read original file
+	//nolint:gosec // file path validated via file existence check
 	data, err := os.ReadFile(goalsFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to read goals file for backup: %w", err)

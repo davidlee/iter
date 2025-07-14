@@ -26,8 +26,8 @@ type ScoreResult struct {
 	MetMaxi          bool
 }
 
-// AIDEV-NOTE: goal-type-separation; dedicated scoring method prevents type masquerading anti-pattern
 // ScoreSimpleGoal evaluates a value against simple goal criteria and returns pass/fail.
+// AIDEV-NOTE: goal-type-separation; dedicated scoring method prevents type masquerading anti-pattern
 // Simple goals have a single criteria that determines pass (mini) or fail (none).
 // IMPORTANT: This method was added to fix T016 - simple goals were incorrectly trying to masquerade as elastic goals.
 func (e *Engine) ScoreSimpleGoal(goal *models.Goal, value interface{}) (*ScoreResult, error) {
