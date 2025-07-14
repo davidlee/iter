@@ -141,12 +141,14 @@ func (k GoalListKeyMap) FullHelp() [][]key.Binding {
 
 // GoalListModel represents the state of the goal list UI.
 type GoalListModel struct {
-	list      list.Model
-	goals     []models.Goal
-	width     int
-	height    int
-	showModal bool
-	keys      GoalListKeyMap
+	list                  list.Model
+	goals                 []models.Goal
+	width                 int
+	height                int
+	showModal             bool
+	keys                  GoalListKeyMap
+	selectedGoalForEdit   string // ID of goal selected for editing (triggers quit)
+	selectedGoalForDelete string // ID of goal selected for deletion (triggers quit)
 }
 
 // NewGoalListModel creates a new goal list model with the provided goals.
@@ -165,13 +167,16 @@ func NewGoalListModel(goals []models.Goal) *GoalListModel {
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle
-	
+
 	// AIDEV-NOTE: help-integration; AdditionalShortHelpKeys integrates custom keys with bubbles/list help
 	// Set additional keybindings for the list help
 	keyMap := DefaultGoalListKeyMap()
 	l.AdditionalShortHelpKeys = func() []key.Binding {
 		return []key.Binding{keyMap.ShowDetail}
 	}
+
+	// AIDEV-NOTE: quit-and-return-pattern; Phase 3 edit/delete operations use this pattern
+	// Operations set selectedGoalFor* fields and quit, parent handles action, returns to refreshed list
 
 	return &GoalListModel{
 		list:  l,
@@ -223,10 +228,22 @@ func (m *GoalListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 		case key.Matches(msg, m.keys.Edit):
-			// TODO: Phase 3.1 - Implement goal editing
+			if len(m.goals) > 0 {
+				selectedGoal := m.getSelectedGoal()
+				if selectedGoal != nil {
+					m.selectedGoalForEdit = selectedGoal.ID
+					return m, tea.Quit // Exit to trigger edit
+				}
+			}
 			return m, nil
 		case key.Matches(msg, m.keys.Delete):
-			// TODO: Phase 3.2 - Implement goal deletion
+			if len(m.goals) > 0 {
+				selectedGoal := m.getSelectedGoal()
+				if selectedGoal != nil {
+					m.selectedGoalForDelete = selectedGoal.ID
+					return m, tea.Quit // Exit to trigger delete
+				}
+			}
 			return m, nil
 		case key.Matches(msg, m.keys.Search):
 			// TODO: Phase 4.1 - Implement search functionality
@@ -388,6 +405,16 @@ func (m *GoalListModel) renderGoalDetails(goal *models.Goal) string {
 	details = append(details, "", modalFooterStyle.Render(footerText))
 
 	return strings.Join(details, "\n")
+}
+
+// GetSelectedGoalForEdit returns the ID of the goal selected for editing (if any)
+func (m *GoalListModel) GetSelectedGoalForEdit() string {
+	return m.selectedGoalForEdit
+}
+
+// GetSelectedGoalForDelete returns the ID of the goal selected for deletion (if any)
+func (m *GoalListModel) GetSelectedGoalForDelete() string {
+	return m.selectedGoalForDelete
 }
 
 // getGoalTypeEmojiForGoal returns emoji for goal type (helper for modal).

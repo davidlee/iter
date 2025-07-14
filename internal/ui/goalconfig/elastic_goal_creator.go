@@ -119,6 +119,86 @@ type TestElasticGoalData struct {
 	MaxiRangeInclusive    bool
 }
 
+// NewElasticGoalCreatorForEdit creates an elastic goal creator pre-populated with existing goal data for editing
+func NewElasticGoalCreatorForEdit(goal *models.Goal) *ElasticGoalCreator {
+	data := goalToTestElasticData(goal)
+	return NewElasticGoalCreatorForTesting(goal.Title, goal.Description, goal.GoalType, data)
+}
+
+// goalToTestElasticData converts a models.Goal to TestElasticGoalData for pre-population
+func goalToTestElasticData(goal *models.Goal) TestElasticGoalData {
+	data := TestElasticGoalData{
+		FieldType:   goal.FieldType.Type,
+		ScoringType: goal.ScoringType,
+		Prompt:      goal.Prompt,
+		Comment:     extractCommentFromDescription(goal.Description),
+	}
+
+	// Field type specific conversion (reuse logic from simple creator)
+	switch goal.FieldType.Type {
+	case models.UnsignedIntFieldType, models.UnsignedDecimalFieldType, models.DecimalFieldType:
+		data.FieldType = "numeric"
+		data.NumericSubtype = goal.FieldType.Type
+		data.Unit = goal.FieldType.Unit
+		if goal.FieldType.Min != nil {
+			data.MinValue = fmt.Sprintf("%.2f", *goal.FieldType.Min)
+			data.HasMinMax = true
+		}
+		if goal.FieldType.Max != nil {
+			data.MaxValue = fmt.Sprintf("%.2f", *goal.FieldType.Max)
+			data.HasMinMax = true
+		}
+	case models.TextFieldType:
+		if goal.FieldType.Multiline != nil {
+			data.MultilineText = *goal.FieldType.Multiline
+		}
+	}
+
+	// Convert elastic-specific criteria
+	if goal.MiniCriteria != nil {
+		data.MiniCriteriaType, data.MiniCriteriaValue, data.MiniCriteriaValue2, data.MiniCriteriaTimeValue, data.MiniRangeInclusive = convertCriteriaToElasticData(goal.MiniCriteria)
+	}
+	if goal.MidiCriteria != nil {
+		data.MidiCriteriaType, data.MidiCriteriaValue, data.MidiCriteriaValue2, data.MidiCriteriaTimeValue, data.MidiRangeInclusive = convertCriteriaToElasticData(goal.MidiCriteria)
+	}
+	if goal.MaxiCriteria != nil {
+		data.MaxiCriteriaType, data.MaxiCriteriaValue, data.MaxiCriteriaValue2, data.MaxiCriteriaTimeValue, data.MaxiRangeInclusive = convertCriteriaToElasticData(goal.MaxiCriteria)
+	}
+
+	return data
+}
+
+// convertCriteriaToElasticData converts models.Criteria to elastic test data format
+func convertCriteriaToElasticData(criteria *models.Criteria) (criteriaType, value, value2, timeValue string, inclusive bool) {
+	if criteria.Condition == nil {
+		return "", "", "", "", false
+	}
+
+	cond := criteria.Condition
+	if cond.GreaterThan != nil {
+		return "greater_than", fmt.Sprintf("%.2f", *cond.GreaterThan), "", "", false
+	}
+	if cond.GreaterThanOrEqual != nil {
+		return "greater_than_or_equal", fmt.Sprintf("%.2f", *cond.GreaterThanOrEqual), "", "", false
+	}
+	if cond.LessThan != nil {
+		return "less_than", fmt.Sprintf("%.2f", *cond.LessThan), "", "", false
+	}
+	if cond.LessThanOrEqual != nil {
+		return "less_than_or_equal", fmt.Sprintf("%.2f", *cond.LessThanOrEqual), "", "", false
+	}
+	if cond.Equals != nil {
+		return "equals", fmt.Sprintf("%t", *cond.Equals), "", "", false
+	}
+	if cond.Before != "" {
+		return "before", "", "", cond.Before, false
+	}
+	if cond.After != "" {
+		return "after", "", "", cond.After, false
+	}
+	return "", "", "", "", false
+}
+
 // NewElasticGoalCreatorForTesting creates an elastic goal creator with pre-populated test data, bypassing UI
 func NewElasticGoalCreatorForTesting(title, description string, goalType models.GoalType, data TestElasticGoalData) *ElasticGoalCreator {
 	creator := &ElasticGoalCreator{

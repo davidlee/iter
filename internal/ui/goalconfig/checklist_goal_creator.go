@@ -35,6 +35,30 @@ type ChecklistGoalCreator struct {
 	checklistParser     *parser.ChecklistParser
 }
 
+// NewChecklistGoalCreatorForEdit creates a checklist goal creator pre-populated with existing goal data for editing
+func NewChecklistGoalCreatorForEdit(goal *models.Goal, checklistsFilePath string) *ChecklistGoalCreator {
+	creator := &ChecklistGoalCreator{
+		title:           goal.Title,
+		description:     goal.Description,
+		goalType:        goal.GoalType,
+		checklistID:     goal.FieldType.ChecklistID,
+		scoringType:     goal.ScoringType,
+		prompt:          goal.Prompt,
+		checklistParser: parser.NewChecklistParser(),
+	}
+
+	// Load available checklists for selection
+	if err := creator.loadAvailableChecklists(checklistsFilePath); err != nil {
+		creator.err = fmt.Errorf("failed to load checklists: %w", err)
+		return creator
+	}
+
+	// Create the form
+	creator.createForm()
+
+	return creator
+}
+
 // NewChecklistGoalCreator creates a new checklist goal creator with pre-populated basic info
 func NewChecklistGoalCreator(title, description string, goalType models.GoalType, checklistsFilePath string) *ChecklistGoalCreator {
 	creator := &ChecklistGoalCreator{

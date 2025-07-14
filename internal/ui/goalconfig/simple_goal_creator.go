@@ -94,6 +94,102 @@ type TestGoalData struct {
 	RangeInclusive    bool
 }
 
+// AIDEV-NOTE: edit-mode-support; goal-to-data conversion enables editing existing goals
+// NewSimpleGoalCreatorForEdit creates a goal creator pre-populated with existing goal data for editing
+func NewSimpleGoalCreatorForEdit(goal *models.Goal) *SimpleGoalCreator {
+	data := goalToTestData(goal)
+	return NewSimpleGoalCreatorForTesting(goal.Title, goal.Description, goal.GoalType, data)
+}
+
+// AIDEV-NOTE: goal-to-data-conversion; Phase 3 critical pattern for edit mode support
+// Reverse engineers from models.Goal back to form data structures for seamless editing
+// This pattern enables position preservation and ID retention during goal editing
+// goalToTestData converts a models.Goal to TestGoalData for pre-population
+func goalToTestData(goal *models.Goal) TestGoalData {
+	data := TestGoalData{
+		FieldType:   goal.FieldType.Type,
+		ScoringType: goal.ScoringType,
+		Prompt:      goal.Prompt,
+		Comment:     extractCommentFromDescription(goal.Description),
+	}
+
+	// Field type specific conversion
+	switch goal.FieldType.Type {
+	case models.UnsignedIntFieldType, models.UnsignedDecimalFieldType, models.DecimalFieldType:
+		data.FieldType = "numeric"
+		data.NumericSubtype = goal.FieldType.Type
+		data.Unit = goal.FieldType.Unit
+		if goal.FieldType.Min != nil {
+			data.MinValue = fmt.Sprintf("%.2f", *goal.FieldType.Min)
+			data.HasMinMax = true
+		}
+		if goal.FieldType.Max != nil {
+			data.MaxValue = fmt.Sprintf("%.2f", *goal.FieldType.Max)
+			data.HasMinMax = true
+		}
+	case models.TextFieldType:
+		if goal.FieldType.Multiline != nil {
+			data.MultilineText = *goal.FieldType.Multiline
+		}
+	}
+
+	// Criteria conversion for automatic scoring
+	if goal.ScoringType == models.AutomaticScoring && goal.Criteria != nil {
+		data.CriteriaType, data.CriteriaValue, data.CriteriaValue2, data.CriteriaTimeValue, data.RangeInclusive = convertCriteriaToData(goal.Criteria)
+	}
+
+	return data
+}
+
+// AIDEV-NOTE: comment-extraction; handles legacy comment storage in description field
+// Future enhancement: add dedicated Comment field to models.Goal to avoid string parsing
+// extractCommentFromDescription extracts comment portion from description if present
+func extractCommentFromDescription(description string) string {
+	if strings.Contains(description, "\n\nComment: ") {
+		parts := strings.Split(description, "\n\nComment: ")
+		if len(parts) == 2 {
+			return parts[1]
+		}
+	} else if strings.HasPrefix(description, "Comment: ") {
+		return strings.TrimPrefix(description, "Comment: ")
+	}
+	return ""
+}
+
+// AIDEV-NOTE: criteria-conversion; comprehensive criteria reverse engineering for all condition types
+// Handles GreaterThan, LessThan, Equals, Before, After - critical for automatic scoring goal editing
+// convertCriteriaToData converts models.Criteria to test data format
+func convertCriteriaToData(criteria *models.Criteria) (criteriaType, value, value2, timeValue string, inclusive bool) {
+	if criteria.Condition == nil {
+		return "", "", "", "", false
+	}
+
+	cond := criteria.Condition
+	if cond.GreaterThan != nil {
+		return "greater_than", fmt.Sprintf("%.2f", *cond.GreaterThan), "", "", false
+	}
+	if cond.GreaterThanOrEqual != nil {
+		return "greater_than_or_equal", fmt.Sprintf("%.2f", *cond.GreaterThanOrEqual), "", "", false
+	}
+	if cond.LessThan != nil {
+		return "less_than", fmt.Sprintf("%.2f", *cond.LessThan), "", "", false
+	}
+	if cond.LessThanOrEqual != nil {
+		return "less_than_or_equal", fmt.Sprintf("%.2f", *cond.LessThanOrEqual), "", "", false
+	}
+	if cond.Equals != nil {
+		return "equals", fmt.Sprintf("%t", *cond.Equals), "", "", false
+	}
+	if cond.Before != "" {
+		return "before", "", "", cond.Before, false
+	}
+	if cond.After != "" {
+		return "after", "", "", cond.After, false
+	}
+	// Range handling would go here if supported
+	return "", "", "", "", false
+}
+
 // NewSimpleGoalCreatorForTesting creates a goal creator with pre-populated test data, bypassing UI
 func NewSimpleGoalCreatorForTesting(title, description string, goalType models.GoalType, data TestGoalData) *SimpleGoalCreator {
 	creator := &SimpleGoalCreator{

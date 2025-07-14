@@ -43,6 +43,46 @@ type InformationalGoalCreator struct {
 	maxSteps    int
 }
 
+// NewInformationalGoalCreatorForEdit creates an informational goal creator pre-populated with existing goal data for editing
+func NewInformationalGoalCreatorForEdit(goal *models.Goal) *InformationalGoalCreator {
+	creator := &InformationalGoalCreator{
+		title:             goal.Title,
+		description:       goal.Description,
+		goalType:          goal.GoalType,
+		selectedFieldType: goal.FieldType.Type,
+		numericSubtype:    goal.FieldType.Type,
+		unit:              goal.FieldType.Unit,
+		direction:         goal.Direction,
+		prompt:            goal.Prompt,
+		currentStep:       0,
+		maxSteps:          4,
+	}
+
+	// Handle field type specific configuration
+	switch goal.FieldType.Type {
+	case models.UnsignedIntFieldType, models.UnsignedDecimalFieldType, models.DecimalFieldType:
+		creator.selectedFieldType = "numeric"
+		creator.numericSubtype = goal.FieldType.Type
+		if goal.FieldType.Min != nil {
+			creator.minValue = fmt.Sprintf("%.2f", *goal.FieldType.Min)
+			creator.hasMinMax = true
+		}
+		if goal.FieldType.Max != nil {
+			creator.maxValue = fmt.Sprintf("%.2f", *goal.FieldType.Max)
+			creator.hasMinMax = true
+		}
+	case models.TextFieldType:
+		if goal.FieldType.Multiline != nil {
+			creator.multilineText = *goal.FieldType.Multiline
+		}
+	}
+
+	// Initialize the first form
+	creator.initializeStep()
+
+	return creator
+}
+
 // NewInformationalGoalCreator creates a new informational goal creator with pre-populated basic info
 func NewInformationalGoalCreator(title, description string, goalType models.GoalType) *InformationalGoalCreator {
 	creator := &InformationalGoalCreator{
