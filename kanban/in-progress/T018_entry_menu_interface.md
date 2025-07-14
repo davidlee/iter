@@ -77,66 +77,66 @@ EntryMenuModel (BubbleTea UI)
 
 **Sub-tasks:**
 
-- [x] **Analysis & Design Phase**
-  - [x] **Research existing UI patterns:** Analyze current goal list and entry implementations
+- [x] **1. Analysis & Design Phase**
+  - [x] **1.1 Research existing UI patterns:** Analyze current goal list and entry implementations
     - *Design:* GoalListModel uses bubbles/list, EntryCollector orchestrates flows, BubbleTea Model-View-Update
     - *Code/Artifacts:* Understanding of GoalListKeyMap, EntryCollectionFlow interface, styling patterns
     - *Testing Strategy:* N/A - research phase
     - *AI Notes:* Strong foundation with GoalListModel patterns and EntryCollector abstraction
   
-- [ ] **Core Menu Interface Implementation**
-  - [ ] **Create EntryMenuModel structure:** Build BubbleTea model for menu interface
+- [ ] **2. Core Menu Interface Implementation**
+  - [ ] **2.1 Create EntryMenuModel structure:** Build BubbleTea model for menu interface
     - *Design:* Adapt GoalListModel patterns with entry-specific state (progress, filters, return behavior)
     - *Code/Artifacts:* `internal/ui/entrymenu/model.go` with BubbleTea implementation
     - *Testing Strategy:* Unit tests for model state transitions, headless constructor for testing
     - *AI Notes:* Follow established patterns from GoalListModel, maintain loose coupling to goal types
   
-  - [ ] **Implement goal status rendering:** Add color-coded goal status display with progress bar
+  - [ ] **2.2 Implement goal status rendering:** Add color-coded goal status display with progress bar
     - *Design:* Status colors via lipgloss.Color(), progress calculation across all goals
     - *Code/Artifacts:* Status rendering logic in `internal/ui/entrymenu/view.go`
     - *Testing Strategy:* Visual rendering tests, color mapping validation, progress calculation tests
     - *AI Notes:* Use termenv-compatible colors: gold(214), dark red(88), dark grey(240), light grey(250)
   
-  - [ ] **Add menu navigation and filtering:** Implement keybindings for menu operations
+  - [ ] **2.3 Add menu navigation and filtering:** Implement keybindings for menu operations
     - *Design:* Extend GoalListKeyMap patterns: r(return behavior), s(skip filter), p(previous filter)
     - *Code/Artifacts:* Keybinding definitions and filter state management
     - *Testing Strategy:* Navigation behavior tests, filter state persistence tests
     - *AI Notes:* Follow established keybinding patterns, maintain help text generation consistency
 
-- [ ] **Entry Integration Layer**
-  - [ ] **Create menu-entry integration:** Connect menu to existing EntryCollector system
+- [ ] **3. Entry Integration Layer**
+  - [ ] **3.1 Create menu-entry integration:** Connect menu to existing EntryCollector system
     - *Design:* Launch EntryCollector.CollectSingleEntry() method, handle return flow
     - *Code/Artifacts:* Integration methods in EntryMenuModel, single-goal entry collection
     - *Testing Strategy:* End-to-end tests for menu→entry→menu flow across all goal types
     - *AI Notes:* Leverage existing EntryCollector abstraction, avoid direct goal type coupling
   
-  - [ ] **Implement auto-save and state management:** Handle entries.yml updates and navigation
+  - [ ] **3.2 Implement auto-save and state management:** Handle entries.yml updates and navigation
     - *Design:* Reuse EntryCollector storage mechanisms, smart next-goal selection algorithm
     - *Code/Artifacts:* State persistence logic, next-goal selection in menu model
     - *Testing Strategy:* File I/O tests, state transition tests, error handling validation
     - *AI Notes:* Build on existing storage abstraction, handle write failures gracefully
 
-- [ ] **Command Integration & Default Behavior**
-  - [ ] **Add --menu flag to entry command:** Implement command-line interface
+- [ ] **4. Command Integration & Default Behavior**
+  - [ ] **4.1 Add --menu flag to entry command:** Implement command-line interface
     - *Design:* Extend cmd/entry.go with menu flag, conditional execution path
     - *Code/Artifacts:* Modified `cmd/entry.go` with menu mode selection
     - *Testing Strategy:* CLI flag parsing tests, backward compatibility validation
     - *AI Notes:* Maintain existing entry command behavior, clean flag integration
   
-  - [ ] **Configure default command behavior:** Make `vice` alone launch entry menu
+  - [ ] **4.2 Configure default command behavior:** Make `vice` alone launch entry menu
     - *Design:* Modify root command to detect no arguments and launch menu mode
     - *Code/Artifacts:* Updated `cmd/root.go` with default command routing
     - *Testing Strategy:* Default behavior tests, ensure other commands remain accessible
     - *AI Notes:* Preserve access to help and other commands, clear user experience
 
-- [ ] **Enhancement Features**
-  - [ ] **Implement configurable return behavior:** Add "r" key toggle for menu vs next-goal return
+- [ ] **5. Enhancement Features**
+  - [ ] **5.1 Implement configurable return behavior:** Add "r" key toggle for menu vs next-goal return
     - *Design:* Menu state tracking return preference, toggle keybinding
     - *Code/Artifacts:* Return behavior state management and toggle logic
     - *Testing Strategy:* Behavior toggle tests, state persistence across menu sessions
     - *AI Notes:* User preference should persist during menu session, clear visual indication
   
-  - [ ] **Add goal filtering capabilities:** Implement "s" and "p" keys for status filtering
+  - [ ] **5.2 Add goal filtering capabilities:** Implement "s" and "p" keys for status filtering
     - *Design:* Filter state management, goal list filtering based on entry status
     - *Code/Artifacts:* Filter logic in menu model, visual filter indicators
     - *Testing Strategy:* Filter behavior tests, filter state transitions
