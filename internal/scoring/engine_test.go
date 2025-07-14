@@ -9,6 +9,76 @@ import (
 	"davidlee/iter/internal/models"
 )
 
+func TestEngine_ScoreSimpleGoal(t *testing.T) {
+	engine := NewEngine()
+
+	t.Run("numeric simple goal with criteria", func(t *testing.T) {
+		goal := createTestSimpleGoal(models.UnsignedIntFieldType, 10)
+
+		testCases := []struct {
+			value         interface{}
+			expectedLevel models.AchievementLevel
+			expectedMini  bool
+		}{
+			{5, models.AchievementNone, false},   // Below threshold
+			{10, models.AchievementMini, true},   // At threshold
+			{15, models.AchievementMini, true},   // Above threshold
+		}
+
+		for _, tc := range testCases {
+			result, err := engine.ScoreSimpleGoal(&goal, tc.value)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedLevel, result.AchievementLevel)
+			assert.Equal(t, tc.expectedMini, result.MetMini)
+			assert.False(t, result.MetMidi) // Simple goals don't have midi
+			assert.False(t, result.MetMaxi) // Simple goals don't have maxi
+		}
+	})
+
+	t.Run("boolean simple goal", func(t *testing.T) {
+		goal := createTestSimpleBooleanGoal()
+
+		// Test true value
+		result, err := engine.ScoreSimpleGoal(&goal, true)
+		require.NoError(t, err)
+		assert.Equal(t, models.AchievementMini, result.AchievementLevel)
+		assert.True(t, result.MetMini)
+
+		// Test false value
+		result, err = engine.ScoreSimpleGoal(&goal, false)
+		require.NoError(t, err)
+		assert.Equal(t, models.AchievementNone, result.AchievementLevel)
+		assert.False(t, result.MetMini)
+	})
+
+	t.Run("error cases", func(t *testing.T) {
+		// Test nil goal
+		_, err := engine.ScoreSimpleGoal(nil, 5)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "goal cannot be nil")
+
+		// Test non-simple goal
+		elasticGoal := createTestElasticGoal(models.UnsignedIntFieldType, 5, 10, 15)
+		_, err = engine.ScoreSimpleGoal(elasticGoal, 5)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "is not a simple goal")
+
+		// Test manual scoring goal
+		manualGoal := createTestSimpleGoal(models.UnsignedIntFieldType, 10)
+		manualGoal.ScoringType = models.ManualScoring
+		_, err = engine.ScoreSimpleGoal(&manualGoal, 5)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "does not require automatic scoring")
+
+		// Test goal without criteria
+		noCriteriaGoal := createTestSimpleGoal(models.UnsignedIntFieldType, 10)
+		noCriteriaGoal.Criteria = nil
+		_, err = engine.ScoreSimpleGoal(&noCriteriaGoal, 5)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "has no criteria for automatic scoring")
+	})
+}
+
 func TestEngine_ScoreElasticGoal(t *testing.T) {
 	engine := NewEngine()
 
@@ -425,6 +495,39 @@ func createTestTextElasticGoal() *models.Goal {
 		MaxiCriteria: &models.Criteria{
 			Condition: &models.Condition{
 				GreaterThanOrEqual: &maxiLength,
+			},
+		},
+	}
+}
+
+func createTestSimpleGoal(fieldType string, threshold float64) models.Goal {
+	return models.Goal{
+		ID:       "test_simple_goal",
+		GoalType: models.SimpleGoal,
+		FieldType: models.FieldType{
+			Type: fieldType,
+		},
+		ScoringType: models.AutomaticScoring,
+		Criteria: &models.Criteria{
+			Condition: &models.Condition{
+				GreaterThanOrEqual: &threshold,
+			},
+		},
+	}
+}
+
+func createTestSimpleBooleanGoal() models.Goal {
+	trueValue := true
+	return models.Goal{
+		ID:       "test_simple_boolean_goal",
+		GoalType: models.SimpleGoal,
+		FieldType: models.FieldType{
+			Type: models.BooleanFieldType,
+		},
+		ScoringType: models.AutomaticScoring,
+		Criteria: &models.Criteria{
+			Condition: &models.Condition{
+				Equals: &trueValue,
 			},
 		},
 	}

@@ -17,31 +17,22 @@ import (
 
 // Simple Goal Flow Implementations
 
+// AIDEV-NOTE: T016-fix; proper goal type handling prevents "not an elastic goal" errors
+// This method was rewritten to use dedicated ScoreSimpleGoal() instead of masquerading simple goals as elastic
 func (f *SimpleGoalCollectionFlow) performAutomaticScoring(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
 	if f.scoringEngine == nil {
 		return nil, fmt.Errorf("scoring engine not available")
 	}
 
-	// For simple goals, treat them as single-criteria elastic goals
-	// Convert simple goal criteria to elastic format for scoring
-	elasticGoal := goal
-	if goal.Criteria != nil {
-		// Use the single criteria as mini criteria for elastic scoring
-		elasticGoal.MiniCriteria = goal.Criteria
-	}
-
-	scoreResult, err := f.scoringEngine.ScoreElasticGoal(&elasticGoal, value)
+	// Use dedicated simple goal scoring method (T016 fix)
+	// OLD APPROACH: Tried to fake simple goals as elastic goals, causing type validation errors
+	// NEW APPROACH: Each goal type uses its own appropriate scoring method
+	scoreResult, err := f.scoringEngine.ScoreSimpleGoal(&goal, value)
 	if err != nil {
 		return nil, fmt.Errorf("scoring failed: %w", err)
 	}
 
-	// For simple goals, convert elastic result to pass/fail
-	level := models.AchievementNone
-	if scoreResult.MetMini {
-		level = models.AchievementMini
-	}
-
-	return &level, nil
+	return &scoreResult.AchievementLevel, nil
 }
 
 func (f *SimpleGoalCollectionFlow) determineManualAchievement(goal models.Goal, value interface{}) *models.AchievementLevel {

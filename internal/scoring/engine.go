@@ -26,6 +26,56 @@ type ScoreResult struct {
 	MetMaxi          bool
 }
 
+// AIDEV-NOTE: goal-type-separation; dedicated scoring method prevents type masquerading anti-pattern
+// ScoreSimpleGoal evaluates a value against simple goal criteria and returns pass/fail.
+// Simple goals have a single criteria that determines pass (mini) or fail (none).
+// IMPORTANT: This method was added to fix T016 - simple goals were incorrectly trying to masquerade as elastic goals.
+func (e *Engine) ScoreSimpleGoal(goal *models.Goal, value interface{}) (*ScoreResult, error) {
+	if goal == nil {
+		return nil, fmt.Errorf("goal cannot be nil")
+	}
+
+	if !goal.IsSimple() {
+		return nil, fmt.Errorf("goal %s is not a simple goal", goal.ID)
+	}
+
+	if !goal.RequiresAutomaticScoring() {
+		return nil, fmt.Errorf("goal %s does not require automatic scoring", goal.ID)
+	}
+
+	if goal.Criteria == nil {
+		return nil, fmt.Errorf("goal %s has no criteria for automatic scoring", goal.ID)
+	}
+
+	// Initialize result
+	result := &ScoreResult{
+		AchievementLevel: models.AchievementNone,
+		MetMini:          false,
+		MetMidi:          false,
+		MetMaxi:          false,
+	}
+
+	// Convert value to appropriate type for evaluation
+	evaluationValue, err := e.convertValueForEvaluation(value, goal.FieldType.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	// Evaluate against the single criteria
+	met, err := e.evaluateCriteria(evaluationValue, goal.Criteria, goal.FieldType.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	// For simple goals, criteria met = mini achievement level (pass)
+	if met {
+		result.AchievementLevel = models.AchievementMini
+		result.MetMini = true
+	}
+
+	return result, nil
+}
+
 // ScoreElasticGoal evaluates a value against elastic goal criteria and returns the achievement level.
 // Returns the highest achievement level met (none, mini, midi, or maxi).
 func (e *Engine) ScoreElasticGoal(goal *models.Goal, value interface{}) (*ScoreResult, error) {

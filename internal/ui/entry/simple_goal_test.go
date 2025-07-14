@@ -156,13 +156,14 @@ func TestSimpleGoalAutomaticScoringWithRealEngine(t *testing.T) {
 	scoringEngine := scoring.NewEngine() // Use real scoring engine
 	flow := NewSimpleGoalCollectionFlow(factory, scoringEngine)
 
-	// Test with a simple elastic goal that has clear criteria
+	// Test with a simple goal that has criteria for automatic scoring
 	goal := models.Goal{
 		Title:       "Test Automatic Goal",
-		GoalType:    models.ElasticGoal, // Need elastic goal for scoring to work
+		ID:          "test_goal",
+		GoalType:    models.SimpleGoal, // Simple goal with automatic scoring
 		ScoringType: models.AutomaticScoring,
 		FieldType:   models.FieldType{Type: models.UnsignedIntFieldType},
-		MiniCriteria: &models.Criteria{
+		Criteria: &models.Criteria{
 			Description: "At least 1",
 			Condition: &models.Condition{
 				GreaterThanOrEqual: float64Ptr(1),
@@ -325,13 +326,14 @@ func TestSimpleGoalCollectEntryDirectly(t *testing.T) {
 			expectedAchievement: models.AchievementMini,
 		},
 		{
-			name: "Automatic scoring with elastic criteria",
+			name: "Automatic scoring with simple criteria",
 			goal: models.Goal{
 				Title:       "Steps Goal",
-				GoalType:    models.ElasticGoal, // Use elastic for automatic scoring to work
+				ID:          "steps_goal",
+				GoalType:    models.SimpleGoal, // Simple goal with automatic scoring
 				ScoringType: models.AutomaticScoring,
 				FieldType:   models.FieldType{Type: models.UnsignedIntFieldType, Unit: "steps"},
-				MiniCriteria: &models.Criteria{
+				Criteria: &models.Criteria{
 					Description: "At least 5000 steps",
 					Condition: &models.Condition{
 						GreaterThanOrEqual: float64Ptr(5000),
