@@ -7,7 +7,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // GoalParser handles parsing and validation of goal schemas.

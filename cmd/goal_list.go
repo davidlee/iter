@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	initpkg "davidlee/iter/internal/init"
-	"davidlee/iter/internal/ui/goalconfig"
+	initpkg "davidlee/vice/internal/init"
+	"davidlee/vice/internal/ui/goalconfig"
 )
 
 // goalListCmd represents the goal list command
@@ -16,8 +16,8 @@ Shows goal type, field type, scoring configuration, and other properties
 for each defined goal.
 
 Examples:
-  iter goal list                     # List all goals
-  iter --config-dir /tmp goal list   # Use custom config directory`,
+  vice goal list                     # List all goals
+  vice --config-dir /tmp goal list   # Use custom config directory`,
 	RunE: runGoalList,
 }
 

@@ -1,4 +1,4 @@
-// Package config provides configuration management for the iter application.
+// Package config provides configuration management for the vice application.
 package config
 
 import (
@@ -7,7 +7,7 @@ import (
 )
 
 // DefaultAppName is the application name used in XDG paths.
-const DefaultAppName = "iter"
+const DefaultAppName = "vice"
 
 // Paths holds the resolved configuration paths for the application.
 // AIDEV-NOTE: file-paths-central; all YAML file paths defined here for consistency
@@ -22,7 +22,7 @@ type Paths struct {
 // GetDefaultPaths returns the default XDG-compliant paths for the application.
 // It follows the XDG Base Directory Specification:
 // - Uses XDG_CONFIG_HOME if set, otherwise defaults to ~/.config
-// - Creates application-specific subdirectory: iter/
+// - Creates application-specific subdirectory: vice/
 // - Returns paths for goals.yml and entries.yml files
 func GetDefaultPaths() (*Paths, error) {
 	configDir, err := getXDGConfigDir()

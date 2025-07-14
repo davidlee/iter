@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // GoalFormBuilder provides methods to build interactive forms for goal configuration

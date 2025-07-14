@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/parser"
-	"davidlee/iter/internal/ui/checklist"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
+	"davidlee/vice/internal/ui/checklist"
 )
 
 // listEntryCmd represents the list entry command (with optional ID)
@@ -20,9 +20,9 @@ you'll be shown a menu to select from available checklists.
 Navigate with arrow keys or a/e, toggle items with space or enter, quit with q.
 
 Examples:
-  iter list entry                     # Select from a menu of checklists
-  iter list entry morning_routine     # Complete the "morning_routine" checklist
-  iter list entry daily_review        # Complete the "daily_review" checklist`,
+  vice list entry                     # Select from a menu of checklists
+  vice list entry morning_routine     # Complete the "morning_routine" checklist
+  vice list entry daily_review        # Complete the "daily_review" checklist`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runListEntry,
 }
@@ -50,7 +50,7 @@ func runListEntry(_ *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		// No ID provided - show selection menu
 		if len(schema.Checklists) == 0 {
-			return fmt.Errorf("no checklists available. Create one with 'iter list add <id>'")
+			return fmt.Errorf("no checklists available. Create one with 'vice list add <id>'")
 		}
 
 		selector := checklist.NewSelector(schema.Checklists)

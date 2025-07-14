@@ -1,12 +1,12 @@
 ---
-title: "Iter Entry: Goal Data Collection UI System"
+title: "Vice Entry: Goal Data Collection UI System"
 type: ["feature"] # feature | fix | documentation | testing | refactor | chore
 tags: ["ui", "data-collection", "scoring"] 
 related_tasks: ["depends:T009", "related-to:T005", "related-to:T007", "spawned:T011"] # T009 completes goal configuration support, T011 extracted from T010/4.2
 context_windows: ["internal/ui/entry*.go", "internal/ui/entry/*.go", "internal/ui/*_handler.go", "internal/ui/goalconfig/*.go", "internal/models/*.go", "internal/scoring/*.go", "CLAUDE.md", "doc/workflow.md"] # List of glob patterns useful to build the context window required for this task
 ---
 
-# Iter Entry: Goal Data Collection UI System
+# Vice Entry: Goal Data Collection UI System
 
 ## Git Commit History
 
@@ -112,7 +112,7 @@ I want an entry system that:
 
 ## System Overview
 
-The `iter entry` system provides field-type-aware data collection for all goal types with immediate scoring feedback. Built on the foundation established by T009's goal configuration system, it reuses proven bubbletea + huh patterns while integrating seamlessly with the existing scoring engine.
+The `vice entry` system provides field-type-aware data collection for all goal types with immediate scoring feedback. Built on the foundation established by T009's goal configuration system, it reuses proven bubbletea + huh patterns while integrating seamlessly with the existing scoring engine.
 
 ## Core Architecture Components
 

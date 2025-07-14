@@ -6,7 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // GoalWizardModel is the main bubbletea model for the goal creation wizard

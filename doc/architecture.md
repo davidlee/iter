@@ -77,7 +77,7 @@ These diagrams complement the textual architecture descriptions and provide visu
 
 ## High-Level Architecture Summary
 
-**iter** is a CLI habit tracker designed around three core principles: **low-friction entry**, **schema resilience**, and **text-based interoperability**. The architecture follows clean separation of concerns with a focus on maintaining user data integrity as goals evolve over time.
+**vice** is a CLI habit tracker designed around three core principles: **low-friction entry**, **schema resilience**, and **text-based interoperability**. The architecture follows clean separation of concerns with a focus on maintaining user data integrity as goals evolve over time.
 
 ### Core Components
 
@@ -137,7 +137,7 @@ graph LR
 
 ### YAML Schema Structure
 
-The iter application uses a declarative YAML-based schema for goal definitions, designed for human readability and version control compatibility:
+The vice application uses a declarative YAML-based schema for goal definitions, designed for human readability and version control compatibility:
 
 ```yaml
 version: "1.0.0"
@@ -232,7 +232,7 @@ entries:
 ### Package Organization
 
 ```
-iter/
+vice/
 ├── cmd/                    # CLI commands and routing
 ├── internal/
 │   ├── config/            # XDG-compliant path resolution
@@ -456,7 +456,7 @@ type StepHandler interface {
 
 **Cobra-based Command Hierarchy:**
 ```
-iter
+vice
 ├── entry                    # Entry collection (enhanced in T010)
 ├── goal                     # Goal management
 │   ├── add [--dry-run]     # Interactive goal creation
@@ -480,7 +480,7 @@ iter
 **XDG Base Directory Compliance:**
 ```go
 type Paths struct {
-    ConfigDir        string  // ~/.config/iter/
+    ConfigDir        string  // ~/.config/vice/
     GoalsFile        string  // goals.yml
     EntriesFile      string  // entries.yml 
     ChecklistsFile   string  // checklists.yml
@@ -603,7 +603,7 @@ func MigrateSchema(fromVersion, toVersion string, data []byte) ([]byte, error) {
 
 The architectural diagrams referenced throughout this document provide visual representations of:
 
-1. **System Context**: How the entry system integrates with the broader iter application ecosystem
+1. **System Context**: How the entry system integrates with the broader vice application ecosystem
 2. **Container Architecture**: The internal structure of the entry collection system and its components
 3. **Component Hierarchy**: Field input component relationships and inheritance patterns
 4. **Process Flow**: How goal-based entry collection routes through different handlers and validation steps

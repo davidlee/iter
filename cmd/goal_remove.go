@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	initpkg "davidlee/iter/internal/init"
-	"davidlee/iter/internal/ui/goalconfig"
+	initpkg "davidlee/vice/internal/init"
+	"davidlee/vice/internal/ui/goalconfig"
 )
 
 // goalRemoveCmd represents the goal remove command
@@ -16,8 +16,8 @@ This command will present a list of existing goals to choose from,
 show the goal details, and ask for confirmation before removal.
 
 Examples:
-  iter goal remove                     # Remove a goal
-  iter --config-dir /tmp goal remove   # Use custom config directory`,
+  vice goal remove                     # Remove a goal
+  vice --config-dir /tmp goal remove   # Use custom config directory`,
 	RunE: runGoalRemove,
 }
 

@@ -7,9 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/parser"
-	"davidlee/iter/internal/ui/checklist"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
+	"davidlee/vice/internal/ui/checklist"
 )
 
 // listAddCmd represents the list add command
@@ -21,9 +21,9 @@ You'll enter checklist items one per line, with headings prefixed by "# ".
 If no checklist ID is provided, one will be generated from the title.
 
 Examples:
-  iter list add                       # Add a checklist (ID generated from title)
-  iter list add morning_routine       # Add a checklist called "morning_routine"
-  iter list add daily_review          # Add a checklist called "daily_review"`,
+  vice list add                       # Add a checklist (ID generated from title)
+  vice list add morning_routine       # Add a checklist called "morning_routine"
+  vice list add daily_review          # Add a checklist called "daily_review"`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runListAdd,
 }

@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	init_pkg "davidlee/iter/internal/init"
-	"davidlee/iter/internal/ui"
+	init_pkg "davidlee/vice/internal/init"
+	"davidlee/vice/internal/ui"
 )
 
 // entryCmd represents the entry command
@@ -16,8 +16,8 @@ This command will present an interactive form where you can mark which habits
 you completed today. Your entries are stored in entries.yml for tracking progress.
 
 Examples:
-  iter entry                    # Record today's habits
-  iter --config-dir /tmp entry  # Use custom config directory`,
+  vice entry                    # Record today's habits
+  vice --config-dir /tmp entry  # Use custom config directory`,
 	RunE: runEntry,
 }
 

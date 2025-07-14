@@ -1,9 +1,9 @@
-// Package ui provides interactive user interface components for the iter application.
+// Package ui provides interactive user interface components for the vice application.
 package ui
 
 import (
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/scoring"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/scoring"
 )
 
 // GoalEntryHandler defines the interface for collecting entries for different goal types.

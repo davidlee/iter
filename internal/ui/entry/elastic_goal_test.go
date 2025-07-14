@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/scoring"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/scoring"
 )
 
 // AIDEV-NOTE: elastic-goal-tests; comprehensive testing for elastic goal collection flow

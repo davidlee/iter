@@ -3,8 +3,8 @@ package entry
 import (
 	"fmt"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/scoring"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/scoring"
 )
 
 // AIDEV-NOTE: flow-factory; creates appropriate goal collection flows with field input and scoring integration

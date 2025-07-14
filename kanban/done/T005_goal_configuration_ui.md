@@ -37,17 +37,17 @@ context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./inter
 As a user, I want to configure my goals through an interactive CLI interface rather than manually editing YAML files, so that I can easily add, modify, and manage my goals without needing to understand the YAML schema syntax.
 
 The system should provide:
-- `iter goal add` - Interactive UI to create new goals with guided prompts
-- `iter goal list` - Display existing goals in a readable format
-- `iter goal edit` - Select and modify existing goal definitions
-- `iter goal remove` - Remove existing goals with confirmation
+- `vice goal add` - Interactive UI to create new goals with guided prompts
+- `vice goal list` - Display existing goals in a readable format
+- `vice goal edit` - Select and modify existing goal definitions
+- `vice goal remove` - Remove existing goals with confirmation
 
 This eliminates the need for users to manually edit YAML and reduces configuration errors while maintaining the existing file-based storage approach.
 
 ## 2. Acceptance Criteria
 
 ### Core Functionality
-- [ ] `iter goal add` command creates new goals through interactive prompts
+- [ ] `vice goal add` command creates new goals through interactive prompts
 - [ ] Goal type selection (simple, elastic, informational) with appropriate follow-up questions
 - [ ] Field type selection with validation and guidance
 - [ ] Scoring type configuration (manual/automatic) with criteria definition for automatic scoring
@@ -56,9 +56,9 @@ This eliminates the need for users to manually edit YAML and reduces configurati
 - [ ] New goals added to existing goals.yml file preserving existing goals
 
 ### Goal Management
-- [ ] `iter goal list` displays existing goals in human-readable format
-- [ ] `iter goal edit` allows selection and modification of existing goals
-- [ ] `iter goal remove` removes goals with confirmation prompt
+- [ ] `vice goal list` displays existing goals in human-readable format
+- [ ] `vice goal edit` allows selection and modification of existing goals
+- [ ] `vice goal remove` removes goals with confirmation prompt
 - [ ] All operations preserve goal IDs and maintain data integrity
 - [ ] File operations are atomic (no partial writes)
 
@@ -282,7 +282,7 @@ Based on investigation of existing codebase:
   - [x] Ensure YAML output goes to stdout, status messages to stderr
   - [x] Test that dry-run mode doesn't modify goals.yml (implementation ready for testing)
   - [x] Test that generated YAML is valid and parseable (uses same validation as save)
-  - [x] Use cases: `iter goal add --dry-run`, `iter goal add --dry-run > custom.yml`
+  - [x] Use cases: `vice goal add --dry-run`, `vice goal add --dry-run > custom.yml`
   - [x] Complete implementation with proper error handling and validation
   - [x] Status messages properly routed to stderr to avoid interfering with YAML output
   - [x] Help documentation updated with dry-run examples

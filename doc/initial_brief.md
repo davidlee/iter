@@ -1,6 +1,6 @@
-# iter: habit tracker 
+# vice: habit tracker 
 
-Let's use Claude Code to build a CLI habit tracker app. Working title "iter".
+Let's use Claude Code to build a CLI habit tracker app. Working title "vice".
 
 - assume we use Golang, for the nice CLI libraries like charmbracelet.
 - data is stored for each day (an entry)

@@ -1,4 +1,4 @@
-// Package ui provides interactive user interface components for the iter application.
+// Package ui provides interactive user interface components for the vice application.
 package ui
 
 import (
@@ -7,11 +7,11 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/parser"
-	"davidlee/iter/internal/scoring"
-	"davidlee/iter/internal/storage"
-	"davidlee/iter/internal/ui/entry"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
+	"davidlee/vice/internal/scoring"
+	"davidlee/vice/internal/storage"
+	"davidlee/vice/internal/ui/entry"
 )
 
 // EntryCollector handles the interactive collection of today's habit entries.

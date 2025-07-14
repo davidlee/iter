@@ -1,4 +1,4 @@
-module davidlee/iter
+module davidlee/vice
 
 go 1.24.4
 

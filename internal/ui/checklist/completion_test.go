@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 func TestCompletionModel_getSectionProgress(t *testing.T) {

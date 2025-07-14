@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // GoalBuilder orchestrates the complete goal creation process

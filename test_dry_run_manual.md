@@ -12,43 +12,43 @@ The CLI UI framework requires interactive input. Test these scenarios manually:
 
 ### 1. Boolean + Manual (Quick Path)
 ```bash
-iter goal add --dry-run
+vice goal add --dry-run
 ```
 **User inputs**: simple → boolean → manual → "Did you exercise today?"
 
 ### 2. Boolean + Automatic  
 ```bash
-iter goal add --dry-run
+vice goal add --dry-run
 ```
 **User inputs**: simple → boolean → automatic → "Did you exercise today?"
 
 ### 3. Numeric + Manual with Constraints
 ```bash
-iter goal add --dry-run
+vice goal add --dry-run
 ```
 **User inputs**: simple → numeric → unsigned_int → "reps" → yes → "10" → "100" → manual → "How many push-ups?"
 
 ### 4. Numeric + Automatic with Range
 ```bash
-iter goal add --dry-run
+vice goal add --dry-run
 ```
 **User inputs**: simple → numeric → unsigned_decimal → "hours" → no → automatic → range → "7.0" → "9.0" → yes → "How many hours did you sleep?"
 
 ### 5. Time + Automatic
 ```bash
-iter goal add --dry-run
+vice goal add --dry-run
 ```
 **User inputs**: simple → time → automatic → before → "07:00" → "What time did you wake up?"
 
 ### 6. Duration + Automatic
 ```bash
-iter goal add --dry-run
+vice goal add --dry-run
 ```
 **User inputs**: simple → duration → automatic → greater_than_or_equal → "20m" → "How long did you meditate?"
 
 ### 7. Text + Manual (Multiline)
 ```bash
-iter goal add --dry-run
+vice goal add --dry-run
 ```
 **User inputs**: simple → text → yes → manual → "What did you write about today?"
 

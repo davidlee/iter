@@ -1,12 +1,12 @@
 ---
-title: "Interactive Goal List UI - iter goal list"
+title: "Interactive Goal List UI - vice goal list"
 type: ["feature"]
 tags: ["cli", "ui", "goals", "table", "interactive"]
 related_tasks: []
 context_windows: ["cmd/goal/**/*.go", "internal/ui/**/*.go", "internal/models/goal.go", "CLAUDE.md", "kanban/CLAUDE.md"]
 ---
 
-# Interactive Goal List UI - iter goal list
+# Interactive Goal List UI - vice goal list
 
 **Context (Background)**:
 The CLI currently has placeholder implementations for goal listing, editing, and removal. Goal creation is fully implemented using bubbletea/huh patterns. The interactive list UI should integrate with existing GoalConfigurator routing and reuse established goal loading/validation patterns.
@@ -27,14 +27,14 @@ The CLI currently has placeholder implementations for goal listing, editing, and
 
 ## 1. Goal / User Story
 
-Users need an interactive way to view, manage, and modify their goals through a command-line interface. The `iter goal list` command should provide a table-based interface where users can navigate through their goals, view details, and perform management operations (edit, delete) without leaving the interface.
+Users need an interactive way to view, manage, and modify their goals through a command-line interface. The `vice goal list` command should provide a table-based interface where users can navigate through their goals, view details, and perform management operations (edit, delete) without leaving the interface.
 
 This enhances the current goal management workflow by providing a unified interface for goal operations rather than requiring separate commands for each action.
 
 ## 2. Acceptance Criteria
 
 ### Core Functionality
-- [x] `iter goal list` command launches an interactive list interface
+- [x] `vice goal list` command launches an interactive list interface
 - [x] List displays all goals with title, type, and description
 - [x] Uses charmbracelet/bubbles list component (decision changed from table)
 - [x] Interface handles empty goal lists gracefully
@@ -152,7 +152,7 @@ This enhances the current goal management workflow by providing a unified interf
 - `2025-07-14 - AI:` Phase 2.1 complete. Implemented goal detail modal overlay with enter/space to open and ESC to close. Modal displays comprehensive goal information including title with emoji, description, goal details (ID, type, field, scoring), goal-type specific details (achievement levels for elastic goals, direction for informational goals), criteria with proper formatting, and UI prompts. Added proper styling with purple border and organized layout. Created extensive tests for modal functionality and criteria rendering.
 - `2025-07-14 - AI:` Phase 2.2 complete. Implemented centralized keybinding management using bubbles/key. Created GoalListKeyMap struct with vim-style navigation (j/k + arrows), modal controls (enter/space/ESC), and prepared future operations (e/d//) with TODO placeholders. Added WithKeyMap() method for user configurability. Enhanced Update() method to use key.Matches() for cleaner key handling. Modal keys are properly isolated to prevent interference. Created comprehensive tests for all keybinding scenarios and custom keymap functionality.
 - `2025-07-14 - AI:` UX improvements: Added 'q' key to close modal for consistency. Integrated ShowDetail key into main help system via AdditionalShortHelpKeys. Made modal footer dynamic using Help().Key instead of hardcoded text. Added AIDEV anchor comments documenting key architectural patterns: keybinding-architecture (centralized management), help-integration (bubbles/list integration), dynamic-help-text (configurability), and modal-key-isolation (event handling priority).
-- `2025-07-14 - AI:` Phase 3 complete. Implemented comprehensive goal editing and deletion operations. Edit functionality: Created NewXXXGoalCreatorForEdit constructors for all goal types with goal-to-data conversion logic. Edit operations preserve goal position and ID as requested. Added EditGoalByID method with routing to appropriate creators. Integrated 'e' key in goal list with quit-and-edit pattern that returns to updated list after editing. Delete functionality: Implemented RemoveGoalByID with dual confirmation dialog (delete + backup option). Backup handling includes overwrite protection for existing .backup files. Goal removal updates schema and handles empty list gracefully. Integrated 'd' key in goal list. Both operations use goal list UI for selection, maintaining consistent UX. CLI commands (iter goal edit/remove) delegate to interactive list for seamless user experience.
+- `2025-07-14 - AI:` Phase 3 complete. Implemented comprehensive goal editing and deletion operations. Edit functionality: Created NewXXXGoalCreatorForEdit constructors for all goal types with goal-to-data conversion logic. Edit operations preserve goal position and ID as requested. Added EditGoalByID method with routing to appropriate creators. Integrated 'e' key in goal list with quit-and-edit pattern that returns to updated list after editing. Delete functionality: Implemented RemoveGoalByID with dual confirmation dialog (delete + backup option). Backup handling includes overwrite protection for existing .backup files. Goal removal updates schema and handles empty list gracefully. Integrated 'd' key in goal list. Both operations use goal list UI for selection, maintaining consistent UX. CLI commands (vice goal edit/remove) delegate to interactive list for seamless user experience.
 - `2025-07-14 - AI:` Task completion: All acceptance criteria met. Built-in bubbles/list filtering with "/" key provides complete search functionality. Help text updated to show edit/delete operations. Boolean goal editing crash fixed. Task ready for completion.
 
 ### Key Code Files Modified in Phase 3:

@@ -8,8 +8,8 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/scoring"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/scoring"
 )
 
 // ElasticGoalHandler handles entry collection for elastic goals with mini/midi/maxi achievement levels.

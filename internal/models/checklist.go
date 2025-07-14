@@ -1,4 +1,4 @@
-// Package models contains checklist data structures for the iter application.
+// Package models contains checklist data structures for the vice application.
 package models
 
 import (

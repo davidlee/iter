@@ -1,4 +1,4 @@
-// Package init provides file initialization functionality for the iter application.
+// Package init provides file initialization functionality for the vice application.
 package init
 
 import (
@@ -6,9 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/parser"
-	"davidlee/iter/internal/storage"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
+	"davidlee/vice/internal/storage"
 )
 
 // FileInitializer handles creation of sample configuration files.

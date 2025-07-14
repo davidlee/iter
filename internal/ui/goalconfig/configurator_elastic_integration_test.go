@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // TestGoalConfigurator_ElasticGoalIntegration tests the integration between configurator and ElasticGoalCreator

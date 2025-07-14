@@ -51,7 +51,7 @@ We have Simple+Manual+Boolean goals. We don't yet have Simple+Manual+(other fiel
 We don't yet have working Elastic goals.
 
 simple > automatic
-   iter goal add --dry-run
+   vice goal add --dry-run
 
   🎯 Add New Goal
 
@@ -61,7 +61,7 @@ simple > automatic
   Error: goal validation failed: criteria is required for automatic scoring
 
 elastic > automatic
-   iter goal add --dry-run
+   vice goal add --dry-run
 
   🎯 Add New Goal
 

@@ -13,10 +13,10 @@ This command provides subcommands to add, edit, and complete checklists
 stored in checklists.yml.
 
 Examples:
-  iter list add morning_routine    # Add a new checklist with guided prompts
-  iter list edit morning_routine   # Edit an existing checklist
-  iter list entry                  # Select and complete a checklist
-  iter list entry morning_routine  # Complete a specific checklist`,
+  vice list add morning_routine    # Add a new checklist with guided prompts
+  vice list edit morning_routine   # Edit an existing checklist
+  vice list entry                  # Select and complete a checklist
+  vice list entry morning_routine  # Complete a specific checklist`,
 }
 
 func init() {

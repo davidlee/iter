@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: time-duration-tests; comprehensive testing for time and duration input components

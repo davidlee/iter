@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"davidlee/iter/internal/config"
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/config"
+	"davidlee/vice/internal/models"
 )
 
 func TestTodoDashboard(t *testing.T) {

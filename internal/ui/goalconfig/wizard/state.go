@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // GoalState implements State for goal creation

@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"davidlee/iter/internal/ui"
+	"davidlee/vice/internal/ui"
 )
 
 // todoCmd represents the todo command
@@ -18,10 +18,10 @@ Shows each goal with its current status:
   ⤫ Skipped
 
 Examples:
-  iter todo                    # Show today's status table (bubbles)
-  iter todo --ascii            # Show plain ASCII table
-  iter todo -m                 # Output markdown todo list
-  iter --config-dir /tmp todo  # Use custom config directory`,
+  vice todo                    # Show today's status table (bubbles)
+  vice todo --ascii            # Show plain ASCII table
+  vice todo -m                 # Output markdown todo list
+  vice --config-dir /tmp todo  # Use custom config directory`,
 	RunE: runTodo,
 }
 

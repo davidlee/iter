@@ -9,9 +9,9 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/parser"
-	"davidlee/iter/internal/ui/goalconfig/wizard"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
+	"davidlee/vice/internal/ui/goalconfig/wizard"
 )
 
 // GoalConfigurator provides UI for managing goal configurations
@@ -167,7 +167,7 @@ func (gc *GoalConfigurator) ListGoals(goalsFilePath string) error {
 	if err != nil {
 		// Handle file not found gracefully
 		if strings.Contains(err.Error(), "goals file not found") {
-			fmt.Println("No goals file found. Use 'iter goal add' to create your first goal.")
+			fmt.Println("No goals file found. Use 'vice goal add' to create your first goal.")
 			return nil
 		}
 		return fmt.Errorf("failed to load goals: %w", err)
@@ -175,7 +175,7 @@ func (gc *GoalConfigurator) ListGoals(goalsFilePath string) error {
 
 	// Handle empty goals list
 	if len(schema.Goals) == 0 {
-		fmt.Println("No goals configured yet. Use 'iter goal add' to create your first goal.")
+		fmt.Println("No goals configured yet. Use 'vice goal add' to create your first goal.")
 		return nil
 	}
 
@@ -215,7 +215,7 @@ func (gc *GoalConfigurator) ListGoals(goalsFilePath string) error {
 				}
 				// Check if any goals remain
 				if len(schema.Goals) == 0 {
-					fmt.Println("No goals remaining. Use 'iter goal add' to create your first goal.")
+					fmt.Println("No goals remaining. Use 'vice goal add' to create your first goal.")
 					break // Exit the loop
 				}
 				continue // Show list again with updated goals

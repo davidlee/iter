@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	initpkg "davidlee/iter/internal/init"
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/parser"
-	"davidlee/iter/internal/scoring"
-	"davidlee/iter/internal/storage"
-	"davidlee/iter/internal/ui"
+	initpkg "davidlee/vice/internal/init"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
+	"davidlee/vice/internal/scoring"
+	"davidlee/vice/internal/storage"
+	"davidlee/vice/internal/ui"
 )
 
 // TestElasticGoalsEndToEnd verifies the complete elastic goals workflow:

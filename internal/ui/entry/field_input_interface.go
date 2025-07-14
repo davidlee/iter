@@ -1,7 +1,7 @@
 package entry
 
 import (
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 	"github.com/charmbracelet/huh"
 )
 

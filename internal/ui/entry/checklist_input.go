@@ -7,8 +7,8 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/parser"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
 )
 
 // AIDEV-NOTE: entry-checklist-input; implements EntryFieldInput for Checklist fields with progress tracking

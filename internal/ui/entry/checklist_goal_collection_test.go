@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/scoring"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/scoring"
 )
 
 // AIDEV-NOTE: checklist-goal-tests; comprehensive testing for checklist goal collection flow

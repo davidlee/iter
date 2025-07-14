@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	initpkg "davidlee/iter/internal/init"
-	"davidlee/iter/internal/ui/goalconfig"
+	initpkg "davidlee/vice/internal/init"
+	"davidlee/vice/internal/ui/goalconfig"
 )
 
 // goalEditCmd represents the goal edit command
@@ -18,10 +18,10 @@ This command will present a list of existing goals to choose from,
 then allow you to modify any of the goal's properties.
 
 Examples:
-  iter goal edit                     # Edit a goal
-  iter goal edit --dry-run           # Preview edited YAML without saving
-  iter goal edit --dry-run > goal.yml # Save preview to custom file
-  iter --config-dir /tmp goal edit   # Use custom config directory`,
+  vice goal edit                     # Edit a goal
+  vice goal edit --dry-run           # Preview edited YAML without saving
+  vice goal edit --dry-run > goal.yml # Save preview to custom file
+  vice --config-dir /tmp goal edit   # Use custom config directory`,
 	RunE: runGoalEdit,
 }
 

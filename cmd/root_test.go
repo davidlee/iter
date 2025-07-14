@@ -61,7 +61,7 @@ func TestInitializePaths(t *testing.T) {
 
 		// Verify paths were set correctly
 		require.NotNil(t, paths)
-		expected := filepath.Join(tempDir, "iter")
+		expected := filepath.Join(tempDir, "vice")
 		assert.Equal(t, expected, paths.ConfigDir)
 		assert.Equal(t, filepath.Join(expected, "goals.yml"), paths.GoalsFile)
 		assert.Equal(t, filepath.Join(expected, "entries.yml"), paths.EntriesFile)
@@ -75,7 +75,7 @@ func TestInitializePaths(t *testing.T) {
 	t.Run("uses custom config-dir when flag is set", func(t *testing.T) {
 		// Setup
 		tempDir := t.TempDir()
-		customConfigDir := filepath.Join(tempDir, "custom-iter")
+		customConfigDir := filepath.Join(tempDir, "custom-vice")
 
 		// Set configDir global variable (simulating flag being set)
 		originalConfigDir := configDir

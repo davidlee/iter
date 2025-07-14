@@ -1,8 +1,8 @@
-// Package main provides the iter CLI habit tracker application.
+// Package main provides the vice CLI habit tracker application.
 package main
 
 import (
-	"davidlee/iter/cmd"
+	"davidlee/vice/cmd"
 
 	// Import dependencies to keep them in go.mod
 	_ "github.com/charmbracelet/bubbles"

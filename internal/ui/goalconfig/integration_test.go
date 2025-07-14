@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	initpkg "davidlee/iter/internal/init"
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/parser"
+	initpkg "davidlee/vice/internal/init"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
 )
 
 // TestGoalCreationWorkflows tests goal creation workflows without UI interaction

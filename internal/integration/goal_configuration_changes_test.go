@@ -6,9 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/scoring"
-	"davidlee/iter/internal/ui/entry"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/scoring"
+	"davidlee/vice/internal/ui/entry"
 )
 
 // AIDEV-NOTE: T016-integration-tests; critical for validating goal configuration change resilience

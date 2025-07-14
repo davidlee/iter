@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"davidlee/iter/internal/parser"
+	"davidlee/vice/internal/parser"
 )
 
 // TestUserDataBackwardsCompatibility ensures that real user data patterns continue to work

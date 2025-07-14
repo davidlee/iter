@@ -7,7 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 func TestGoalItem_FilterValue(t *testing.T) {

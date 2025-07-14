@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 func TestGoalParser_ParseYAML(t *testing.T) {

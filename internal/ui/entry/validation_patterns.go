@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: entry-validation-patterns; common validation and error messaging patterns for entry collection

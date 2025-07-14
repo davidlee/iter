@@ -22,7 +22,7 @@ Analysis of T016 revealed significant architectural vulnerabilities that will im
 
 ## 1. Goal / User Story
 
-As a developer extending the iter data model, I should be able to add new goal types, field types, scoring methods, and periodicity patterns without requiring extensive validation logic changes throughout the codebase. The architecture should support loose coupling between components and flexible combinations of data model elements to enable feature evolution without architectural refactoring.
+As a developer extending the vice data model, I should be able to add new goal types, field types, scoring methods, and periodicity patterns without requiring extensive validation logic changes throughout the codebase. The architecture should support loose coupling between components and flexible combinations of data model elements to enable feature evolution without architectural refactoring.
 
 ## 2. Problem Analysis
 

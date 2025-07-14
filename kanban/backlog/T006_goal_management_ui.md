@@ -19,23 +19,23 @@ context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./inter
 As a user, I want to manage my existing goals through an interactive CLI interface, so that I can view, edit, and remove goals without needing to manually edit YAML files.
 
 The system should provide:
-- `iter goal list` - Display existing goals in a readable format with detail views
-- `iter goal edit` - Select and modify existing goal definitions with validation
-- `iter goal remove` - Remove existing goals with confirmation and impact analysis
+- `vice goal list` - Display existing goals in a readable format with detail views
+- `vice goal edit` - Select and modify existing goal definitions with validation
+- `vice goal remove` - Remove existing goals with confirmation and impact analysis
 
 This builds upon T005 (Goal Configuration UI) to provide comprehensive goal lifecycle management while maintaining the existing file-based storage approach.
 
 ## 2. Acceptance Criteria
 
 ### Goal Listing
-- [ ] `iter goal list` displays existing goals in human-readable format
+- [ ] `vice goal list` displays existing goals in human-readable format
 - [ ] Goal selection to view detailed information
 - [ ] Goal detail / summary view with rich table display
 - [ ] Navigation back from goal detail to list
 - [ ] Filtering and sorting capabilities (future enhancement)
 
 ### Goal Editing
-- [ ] `iter goal edit` allows selection and modification of existing goals
+- [ ] `vice goal edit` allows selection and modification of existing goals
 - [ ] Interactive goal selection - reuses listing interface with edit context
 - [ ] Default action on [enter] is edit when in edit mode, view when in list mode
 - [ ] Wizard-style editing with current values pre-populated
@@ -47,7 +47,7 @@ This builds upon T005 (Goal Configuration UI) to provide comprehensive goal life
 - [ ] Preserve goal ID and data integrity
 
 ### Goal Removal
-- [ ] `iter goal remove` removes goals with confirmation prompt
+- [ ] `vice goal remove` removes goals with confirmation prompt
 - [ ] Interactive goal selection with details display
 - [ ] Impact analysis showing entries that reference the goal
 - [ ] Confirmation prompt with goal summary

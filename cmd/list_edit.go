@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"davidlee/iter/internal/parser"
-	"davidlee/iter/internal/ui/checklist"
+	"davidlee/vice/internal/parser"
+	"davidlee/vice/internal/ui/checklist"
 )
 
 // listEditCmd represents the list edit command
@@ -19,8 +19,8 @@ used for creating checklists. The current content will be pre-loaded
 for modification.
 
 Examples:
-  iter list edit morning_routine       # Edit the "morning_routine" checklist
-  iter list edit daily_review          # Edit the "daily_review" checklist`,
+  vice list edit morning_routine       # Edit the "morning_routine" checklist
+  vice list edit daily_review          # Edit the "daily_review" checklist`,
 	Args: cobra.ExactArgs(1),
 	RunE: runListEdit,
 }

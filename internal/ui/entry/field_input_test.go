@@ -3,7 +3,7 @@ package entry
 import (
 	"testing"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: entry-field-input-tests; unit tests for field input components with validation testing

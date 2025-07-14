@@ -13,10 +13,10 @@ This command provides subcommands to add, list, edit, and remove goals
 without manually editing YAML files.
 
 Examples:
-  iter goal add     # Add a new goal with guided prompts
-  iter goal list    # List all existing goals
-  iter goal edit    # Edit an existing goal
-  iter goal remove  # Remove a goal`,
+  vice goal add     # Add a new goal with guided prompts
+  vice goal list    # List all existing goals
+  vice goal edit    # Edit an existing goal
+  vice goal remove  # Remove a goal`,
 }
 
 func init() {

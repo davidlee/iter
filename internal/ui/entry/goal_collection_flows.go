@@ -3,9 +3,9 @@ package entry
 import (
 	"fmt"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/parser"
-	"davidlee/iter/internal/scoring"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
+	"davidlee/vice/internal/scoring"
 )
 
 // AIDEV-NOTE: goal-collection-flows; defines specialized collection flows for each goal type with field input integration

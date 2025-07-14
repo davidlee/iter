@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is "iter" - a CLI habit tracker application built in Go.
+This is "vice" - a CLI habit tracker application built in Go.
 
 ## Architecture
 

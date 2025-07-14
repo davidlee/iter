@@ -16,7 +16,7 @@ context_windows: ["cmd/entry.go", "internal/ui/**/*.go", "internal/storage/**/*.
 
 ## 1. Goal / User Story
 
-When using `iter entry` to record habit data, form controls should default to previously written data to minimize friction during daily entry. Currently, boolean fields incorrectly default to "No" even when previous data shows "Yes", while numeric fields correctly preserve previous values.
+When using `vice entry` to record habit data, form controls should default to previously written data to minimize friction during daily entry. Currently, boolean fields incorrectly default to "No" even when previous data shows "Yes", while numeric fields correctly preserve previous values.
 
 This bug reduces user experience by forcing re-entry of unchanged boolean values and breaks the principle of low-friction entry.
 

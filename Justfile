@@ -1,6 +1,6 @@
 
 build:
-  go build -o iter .
+  go build -o vice .
 
 test:
   go test ./...

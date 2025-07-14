@@ -1,4 +1,4 @@
-# iter - CLI Habit Tracker
+# vice - CLI Habit Tracker
 
 A command-line habit tracker that supports flexible goal types and stores data in human-readable YAML files.
 
@@ -16,8 +16,8 @@ A command-line habit tracker that supports flexible goal types and stores data i
 ```bash
 # Build from source
 git clone <repository>
-cd iter
-go build -o iter .
+cd vice
+go build -o vice .
 
 # Install to PATH
 go install .
@@ -27,29 +27,29 @@ go install .
 
 1. **Initialize configuration**:
    ```bash
-   iter entry
+   vice entry
    ```
-   This creates sample configuration files in `~/.config/iter/` on first run.
+   This creates sample configuration files in `~/.config/vice/` on first run.
 
 2. **Record today's habits**:
    ```bash
-   iter entry
+   vice entry
    ```
    Answer the interactive prompts to record your progress.
 
 3. **Use custom config directory**:
    ```bash
-   iter --config-dir /path/to/config entry
+   vice --config-dir /path/to/config entry
    ```
 
 ## Configuration
 
-iter stores configuration in two files:
+vice stores configuration in two files:
 
 - `goals.yml` - defines your habit goals and criteria
 - `entries.yml` - stores your daily progress entries
 
-Default location: `~/.config/iter/` (follows XDG Base Directory specification)
+Default location: `~/.config/vice/` (follows XDG Base Directory specification)
 
 ## Goal Types
 
@@ -276,7 +276,7 @@ goals:
 
 ## Commands
 
-### `iter entry`
+### `vice entry`
 
 Record today's habit completion. Presents an interactive form for each defined goal.
 
@@ -285,8 +285,8 @@ Record today's habit completion. Presents an interactive form for each defined g
 
 **Examples:**
 ```bash
-iter entry                           # Use default config directory
-iter --config-dir ~/habits entry    # Use custom config directory
+vice entry                           # Use default config directory
+vice --config-dir ~/habits entry    # Use custom config directory
 ```
 
 ## Data Storage

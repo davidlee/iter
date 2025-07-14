@@ -39,7 +39,7 @@ High-level list of future features / improvements. Break into detailed task card
 - Cross-platform testing for terminal compatibility
 
 # inspired by Harsh
-Looking at Harsh's unique features that Iter lacks, here's a prioritized list of improvements for Iter:
+Looking at Harsh's unique features that Vice lacks, here's a prioritized list of improvements for Vice:
 
 ## High Priority
 
@@ -72,7 +72,7 @@ Looking at Harsh's unique features that Iter lacks, here's a prioritized list of
 **5. Enhanced CLI workflow commands**
 - `todo` command showing today's incomplete habits
 - `ask` command for quick habit entry without full forms
-- Substring filtering for specific habits (e.g., `iter ask gym`)
+- Substring filtering for specific habits (e.g., `vice ask gym`)
 - Streamlines daily usage vs current form-based approach
 
 **6. Habit categorization and organization**
@@ -107,4 +107,4 @@ Looking at Harsh's unique features that Iter lacks, here's a prioritized list of
 - Configuration validation and helpful error messages
 - Easier habit file management
 
-The top 3 features (skip functionality, consistency graphs, and streak warnings) would transform Iter from a data collection tool into a true habit formation system by adding the psychological reinforcement mechanisms that make habit tracking effective.
+The top 3 features (skip functionality, consistency graphs, and streak warnings) would transform Vice from a data collection tool into a true habit formation system by adding the psychological reinforcement mechanisms that make habit tracking effective.

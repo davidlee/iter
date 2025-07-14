@@ -1,4 +1,4 @@
-// Package cmd provides the CLI commands for the iter application.
+// Package cmd provides the CLI commands for the vice application.
 package cmd
 
 import (
@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"davidlee/iter/internal/config"
+	"davidlee/vice/internal/config"
 )
 
 var (
@@ -19,15 +19,15 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "iter",
+	Use:   "vice",
 	Short: "A CLI habit tracker",
-	Long: `iter is a command-line habit tracker. It supports simple boolean goals,
+	Long: `vice is a command-line habit tracker. It supports simple boolean goals,
 storing your data in local YAML files for easy version control and portability.
 
 Examples:
-  iter entry          # Record today's habit completion
-  iter goals          # Display current goals
-  iter --config-dir /path/to/config entry  # Use custom config directory`,
+  vice entry          # Record today's habit completion
+  vice goals          # Display current goals
+  vice --config-dir /path/to/config entry  # Use custom config directory`,
 	PersistentPreRunE: initializePaths,
 }
 
@@ -43,7 +43,7 @@ func Execute() {
 func init() {
 	// Add persistent flags that apply to all commands
 	rootCmd.PersistentFlags().StringVar(&configDir, "config-dir", "",
-		"custom config directory (default: XDG_CONFIG_HOME/iter or ~/.config/iter)")
+		"custom config directory (default: XDG_CONFIG_HOME/vice or ~/.config/vice)")
 }
 
 // initializePaths resolves the configuration paths based on CLI flags or defaults.

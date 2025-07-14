@@ -23,12 +23,12 @@ related_tasks: ["T005"]
 
 ## 1. Goal
 
-Extend the static checklist prototype (`iter checklist`) to support configurable checklists stored in `checklists.yml` and integrated with the goal system. Enable checklists to be used as goal types with automatic or manual scoring based on completion criteria.
+Extend the static checklist prototype (`vice checklist`) to support configurable checklists stored in `checklists.yml` and integrated with the goal system. Enable checklists to be used as goal types with automatic or manual scoring based on completion criteria.
 
 ## 2. Acceptance Criteria
 
 - [ ] Create `checklists.yml` configuration file format for storing checklist definitions
-- [ ] Implement checklist management commands: `iter list add`, `iter list edit`, `iter list entry`
+- [ ] Implement checklist management commands: `vice list add`, `vice list edit`, `vice list entry`
 - [ ] Add `ChecklistGoal` as a new goal type in the existing goal system
 - [ ] Support automatic scoring when all checklist items are completed
 - [ ] Support manual scoring for partial checklist completion
@@ -46,21 +46,21 @@ Extend the static checklist prototype (`iter checklist`) to support configurable
 - [x] 1.4: Add checklist validation logic
 
 ### Phase 2: Checklist Management Commands (Priority: High)
-- [x] 2.1: Implement `iter list add $id` command
+- [x] 2.1: Implement `vice list add $id` command
   - Simple multiline text field UI with note about "# " prefix for headings
   - Parse input into checklist items array and save to checklists.yml
   - Basic validation and ID generation
-- [x] 2.2: Implement `iter list edit $id` command
+- [x] 2.2: Implement `vice list edit $id` command
   - Load existing checklist and populate multiline text field
   - Reuse same UI as add command with pre-filled content
   - Update existing checklist in checklists.yml
-- [x] 2.3: Implement `iter list entry $id` (direct access)
+- [x] 2.3: Implement `vice list entry $id` (direct access)
   - Adapt existing internal/ui/checklist.go prototype with minimal changes
   - Load checklist by ID and populate items from checklists.yml
   - Save completion state (item text -> boolean map) for entry recording
-- [x] 2.4: Implement `iter list entry` (menu selection)
+- [x] 2.4: Implement `vice list entry` (menu selection)
   - Present list of available checklist IDs/titles for selection
-  - On selection, invoke same logic as `iter list entry $id`
+  - On selection, invoke same logic as `vice list entry $id`
   - Handle empty checklists.yml gracefully
 - [x] 2.5: Review implementation and consider refactoring opportunities
   - Evaluate code reuse between add/edit commands
@@ -68,7 +68,7 @@ Extend the static checklist prototype (`iter checklist`) to support configurable
   - Identify any architectural improvements needed for Phase 3
 
 ### Phase 3: Checklist Entry Persistence & UX Refinements (Priority: High)
-- [x] 3.1: Make checklist ID optional in `iter list add` command
+- [x] 3.1: Make checklist ID optional in `vice list add` command
   - Generate ID from title using same logic as goals
   - Update editor UI to prompt for title first, then generate ID
 - [x] 3.2: Implement checklist_entries.yml for persistent completion tracking
@@ -285,7 +285,7 @@ Extend the static checklist prototype (`iter checklist`) to support configurable
   - **Files to Create/Modify**:
     - `internal/ui/checklist/statistics.go` - New statistics dashboard
     - `internal/models/checklist_stats.go` - Statistics calculation models
-    - `cmd/list.go` - Add `iter list stats` command
+    - `cmd/list.go` - Add `vice list stats` command
   - **Integration Points**:
     - Read historical data from `entries.yml` for trend analysis
     - Leverage existing checklist parser for template data
@@ -461,18 +461,18 @@ internal/
 
 ```bash
 # Checklist management
-iter list add morning_routine          # Create new checklist with multiline text UI
-iter list edit morning_routine         # Edit existing checklist (reuse add UI)
-iter list rm morning_routine           # Remove checklist
+vice list add morning_routine          # Create new checklist with multiline text UI
+vice list edit morning_routine         # Edit existing checklist (reuse add UI)
+vice list rm morning_routine           # Remove checklist
 
 # Checklist completion
-iter list entry                        # Show menu of available checklists, then enter selected
-iter list entry morning_routine        # Complete specific checklist (adapted from prototype)
-iter list show morning_routine         # Display checklist without interaction
+vice list entry                        # Show menu of available checklists, then enter selected
+vice list entry morning_routine        # Complete specific checklist (adapted from prototype)
+vice list show morning_routine         # Display checklist without interaction
 
 # Goal integration (through existing goal commands)
-iter goal add                          # Extended to support checklist goals
-iter entry                            # Extended to handle checklist entry recording
+vice goal add                          # Extended to support checklist goals
+vice entry                            # Extended to handle checklist entry recording
 ```
 
 ## 5. Dependencies & Integration Points
@@ -499,7 +499,7 @@ iter entry                            # Extended to handle checklist entry recor
 
 ### User Experience
 - Leverage existing bubbletea UI patterns from checklist prototype
-- Consistent command structure with existing `iter` commands
+- Consistent command structure with existing `vice` commands
 - Progressive disclosure: simple cases work simply, complex cases supported
 
 ### Backward Compatibility
@@ -558,7 +558,7 @@ iter entry                            # Extended to handle checklist entry recor
 - Ready for Phase 3 UX refinements
 
 **Phase 3 Complete (2025-07-12):**
-- Made checklist ID optional in `iter list add` command with automatic generation from title
+- Made checklist ID optional in `vice list add` command with automatic generation from title
 - Implemented comprehensive checklist_entries.yml persistence system for daily completion tracking
 - Enhanced entry command to save/restore completion state on same-day re-entry
 - Added ChecklistEntriesFile to config paths with proper initialization

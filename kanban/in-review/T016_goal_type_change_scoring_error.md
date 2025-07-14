@@ -20,7 +20,7 @@ The system lacks resilience when users modify goal configurations, particularly 
 - `internal/models/entry.go` - Entry data structures and type handling
 - `internal/parser/` - YAML parsing and schema validation  
 - `internal/ui/goalconfig/` - Goal editing workflows (future Phase 2 enhancement target)
-- User data: `/home/david/.config/iter/goals.yml` and `entries.yml`
+- User data: `/home/david/.config/vice/goals.yml` and `entries.yml`
 
 ## 1. Goal / User Story
 

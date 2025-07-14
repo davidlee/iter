@@ -25,11 +25,11 @@ Users need a quick way to see their daily habit status without going through the
 
 ## 1. Goal / User Story
 
-As a habit tracker user, I want a quick `iter todo` command that shows me today's habit status in a clean table format, so I can see at a glance what I've completed, what's pending, and what I've skipped without entering the full entry collection workflow.
+As a habit tracker user, I want a quick `vice todo` command that shows me today's habit status in a clean table format, so I can see at a glance what I've completed, what's pending, and what I've skipped without entering the full entry collection workflow.
 
 ## 2. Acceptance Criteria
 
-- [ ] `iter todo` command displays today's habits in a table format
+- [ ] `vice todo` command displays today's habits in a table format
 - [ ] Status indicators: ✓ (completed), ○ (pending), ⤫ (skipped) 
 - [ ] Table shows: Goal Name, Status, Value/Notes (if any)
 - [ ] Command works when no entries exist for today (shows all pending)

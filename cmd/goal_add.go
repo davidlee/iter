@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	initpkg "davidlee/iter/internal/init"
-	"davidlee/iter/internal/ui/goalconfig"
+	initpkg "davidlee/vice/internal/init"
+	"davidlee/vice/internal/ui/goalconfig"
 )
 
 // goalAddCmd represents the goal add command
@@ -18,10 +18,10 @@ This command will guide you through defining a goal's properties including
 type, field type, scoring criteria, and other settings.
 
 Examples:
-  iter goal add                      # Add a new goal
-  iter goal add --dry-run            # Preview YAML without saving
-  iter goal add --dry-run > goal.yml # Save preview to custom file
-  iter --config-dir /tmp goal add    # Use custom config directory`,
+  vice goal add                      # Add a new goal
+  vice goal add --dry-run            # Preview YAML without saving
+  vice goal add --dry-run > goal.yml # Save preview to custom file
+  vice --config-dir /tmp goal add    # Use custom config directory`,
 	RunE: runGoalAdd,
 }
 

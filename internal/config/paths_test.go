@@ -29,7 +29,7 @@ func TestGetDefaultPaths(t *testing.T) {
 		paths, err := GetDefaultPaths()
 		require.NoError(t, err)
 
-		expected := filepath.Join(testConfigDir, "iter")
+		expected := filepath.Join(testConfigDir, "vice")
 		assert.Equal(t, expected, paths.ConfigDir)
 		assert.Equal(t, filepath.Join(expected, "goals.yml"), paths.GoalsFile)
 		assert.Equal(t, filepath.Join(expected, "entries.yml"), paths.EntriesFile)
@@ -54,7 +54,7 @@ func TestGetDefaultPaths(t *testing.T) {
 		homeDir, err := os.UserHomeDir()
 		require.NoError(t, err)
 
-		expected := filepath.Join(homeDir, ".config", "iter")
+		expected := filepath.Join(homeDir, ".config", "vice")
 		assert.Equal(t, expected, paths.ConfigDir)
 		assert.Equal(t, filepath.Join(expected, "goals.yml"), paths.GoalsFile)
 		assert.Equal(t, filepath.Join(expected, "entries.yml"), paths.EntriesFile)
@@ -81,7 +81,7 @@ func TestGetDefaultPaths(t *testing.T) {
 		homeDir, err := os.UserHomeDir()
 		require.NoError(t, err)
 
-		expected := filepath.Join(homeDir, ".config", "iter")
+		expected := filepath.Join(homeDir, ".config", "vice")
 		assert.Equal(t, expected, paths.ConfigDir)
 	})
 }
@@ -99,7 +99,7 @@ func TestGetPathsWithConfigDir(t *testing.T) {
 func TestEnsureConfigDir(t *testing.T) {
 	// Create a temporary directory for testing
 	tempDir := t.TempDir()
-	testConfigDir := filepath.Join(tempDir, "test-iter-config")
+	testConfigDir := filepath.Join(tempDir, "test-vice-config")
 
 	paths := GetPathsWithConfigDir(testConfigDir)
 

@@ -8,7 +8,7 @@
 
 ## Context
 
-The `iter entry` command fails when users skip previously completed habits, throwing "skipped entries cannot have achievement levels" validation errors. This creates a poor user experience where changing one's mind about habit completion results in data loss or application failure.
+The `vice entry` command fails when users skip previously completed habits, throwing "skipped entries cannot have achievement levels" validation errors. This creates a poor user experience where changing one's mind about habit completion results in data loss or application failure.
 
 Two validation philosophies exist:
 - **Strict validation**: Enforce pure data models where skipped entries have no associated data

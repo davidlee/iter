@@ -26,7 +26,7 @@ context_windows: ["./CLAUDE.md", "./go.mod", "./doc/specifications/goal_structur
 
 ## 1. Goal / User Story
 
-As a user, I want to track simple boolean habits (did/didn't do) using a CLI tool so that I can start building a habit tracking routine with minimal friction. This epic establishes the core foundation for the iter habit tracker by implementing the essential components needed for a working MVP.
+As a user, I want to track simple boolean habits (did/didn't do) using a CLI tool so that I can start building a habit tracking routine with minimal friction. This epic establishes the core foundation for the vice habit tracker by implementing the essential components needed for a working MVP.
 
 The system should allow me to:
 - Define simple boolean goals in a goals.yml file
@@ -40,7 +40,7 @@ This task is important because it establishes the architectural foundation and c
 
 - [x] User can define simple boolean goals in a goals.yml file with XDG-compliant default location
 - [x] CLI supports --config-dir flag to override default config location for testing
-- [x] User can run `iter entry` command to record today's habit completion
+- [x] User can run `vice entry` command to record today's habit completion
 - [x] UI uses charmbracelet libraries for a polished CLI experience
 - [x] Entries are stored in entries.yml with proper structure and validation
 - [x] Code follows project standards (formatted, linted, tested)
@@ -68,7 +68,7 @@ This task is important because it establishes the architectural foundation and c
 
 - [x] **2. Configuration Management**: Implement XDG-compliant config paths with CLI override
     - [x] **2.1 XDG path resolution:** Implement XDG Base Directory specification support
-        - *Design:* Function to resolve ~/.config/iter/ as default, support XDG_CONFIG_HOME
+        - *Design:* Function to resolve ~/.config/vice/ as default, support XDG_CONFIG_HOME
         - *Code/Artifacts to be created or modified:* `internal/config/paths.go`
         - *Testing Strategy:* Unit tests for path resolution with various XDG env vars
         - *AI Notes:* Should gracefully handle missing directories

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // Engine handles scoring of goal entries against elastic goal criteria.

@@ -3,8 +3,8 @@ package entry
 import (
 	"testing"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/scoring"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/scoring"
 )
 
 // AIDEV-NOTE: simple-goal-tests; comprehensive testing for simple goal collection flow

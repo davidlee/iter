@@ -17,7 +17,7 @@ context_windows: ["./CLAUDE.md", "./internal/models/*_test.go", "./doc/specifica
 
 ## 1. Goal / User Story
 
-As a developer maintaining the iter codebase, I want comprehensive testing that validates backwards compatibility and real-world integration so that changes don't break existing user data or create inconsistencies between documentation and code. This addresses the failure where T002 documentation changes weren't synchronized with validation code, causing user data to fail validation.
+As a developer maintaining the vice codebase, I want comprehensive testing that validates backwards compatibility and real-world integration so that changes don't break existing user data or create inconsistencies between documentation and code. This addresses the failure where T002 documentation changes weren't synchronized with validation code, causing user data to fail validation.
 
 The system should ensure that:
 - Existing user goals.yml files continue to work after updates

@@ -10,7 +10,7 @@ package wizard
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
-	"davidlee/iter/internal/models"
+	"davidlee/vice/internal/models"
 )
 
 // State represents the complete state of the goal creation wizard

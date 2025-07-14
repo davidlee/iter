@@ -7,8 +7,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 
-	"davidlee/iter/internal/models"
-	"davidlee/iter/internal/parser"
+	"davidlee/vice/internal/models"
+	"davidlee/vice/internal/parser"
 )
 
 // AIDEV-NOTE: Checklist goal creation following simple idiomatic bubbletea pattern
@@ -102,7 +102,7 @@ func (cgc *ChecklistGoalCreator) loadAvailableChecklists(checklistsFilePath stri
 func (cgc *ChecklistGoalCreator) createForm() {
 	// Check if we have any checklists available
 	if len(cgc.availableChecklists) == 0 {
-		cgc.err = fmt.Errorf("no checklists found - create checklists first using 'iter list add'")
+		cgc.err = fmt.Errorf("no checklists found - create checklists first using 'vice list add'")
 		return
 	}
 
