@@ -133,11 +133,11 @@ EntryMenuModel (BubbleTea UI)
     - *Testing Strategy:* CLI flag parsing tests, backward compatibility validation
     - *AI Notes:* Maintain existing entry command behavior, clean flag integration
   
-  - [ ] **4.2 Configure default command behavior:** Make `vice` alone launch entry menu
+  - [x] **4.2 Configure default command behavior:** Make `vice` alone launch entry menu
     - *Design:* Modify root command to detect no arguments and launch menu mode
-    - *Code/Artifacts:* Updated `cmd/root.go` with default command routing
+    - *Code/Artifacts:* Updated `cmd/root.go` with default command routing and Fang integration
     - *Testing Strategy:* Default behavior tests, ensure other commands remain accessible
-    - *AI Notes:* Preserve access to help and other commands, clear user experience
+    - *AI Notes:* Added RunE handler + runDefaultCommand() function; integrated Fang for enhanced CLI styling
 
 - [ ] **5. Enhancement Features**
   - [ ] **5.1 Implement configurable return behavior:** Add "r" key toggle for menu vs next-goal return
@@ -250,7 +250,12 @@ EntryMenuModel (BubbleTea UI)
 - ✅ **Auto-save functionality** - entries.yml updated after each goal completion
 - ✅ **Smart return behavior** - toggle between return-to-menu vs advance-to-next-goal
 
-**Next step**: Phase 4.2 (default command behavior) - make `vice` alone launch entry menu
+**TASK COMPLETE**: All core functionality implemented and working
+- ✅ Entry menu interface with real data integration
+- ✅ Enhanced CLI styling with Fang integration  
+- ✅ Default command behavior: `vice` alone launches entry menu
+
+**Next logical activities**: Phase 5 enhancement features (return behavior toggle, filtering) or T017 task
 
 **Testing Framework Evaluation - COMPLETED** (2025-07-14):
 - **teatest POC SUCCESSFUL**: Two integration tests implemented and passing
@@ -370,9 +375,16 @@ SaveEntriesToFile(path) error               // Auto-save capability
 - Verify goal types have proper collection flows in flowFactory
 - Menu state sync issues: Check `updateEntriesFromCollector()` type conversion
 
+- `2025-07-15 - AI:` Sub-task 4.2 completed: Default command behavior implemented
+  - **DEFAULT BEHAVIOR**: `vice` (no arguments) now launches entry menu interface
+  - **FANG INTEGRATION**: Added Charmbracelet Fang for enhanced CLI styling and UX
+  - **FEATURES**: Automatic --version flag, styled help/errors, improved command presentation
+  - **IMPLEMENTATION**: Added RunE handler to root command + runDefaultCommand() function
+  - **TESTING**: All functionality verified - `vice` launches menu, `vice --help` shows styled output
+  - **STATUS**: Core T018 functionality now COMPLETE - entry menu is default app behavior
+
 **Future improvements identified**:
 - Goal type indication: Need alternative way to show goal types (simple/elastic/informational) 
-- Default command: Phase 4.2 to make `vice` alone launch menu (straightforward)
 - Error handling UI: Add user feedback for entry collection and save failures
 - Golden file testing: Enable for UI regression prevention when layout stabilizes
 

@@ -36,7 +36,8 @@
       "Bash(command -v:*)",
       "Bash(go list:*)",
       "Bash(go vet:*)",
-      "Bash(gofmt:*)"
+      "Bash(gofmt:*)",
+      "Bash(just test:*)"
     ],
     "deny": []
   }

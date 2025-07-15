@@ -2,12 +2,15 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/fang"
 	"github.com/spf13/cobra"
 
 	"davidlee/vice/internal/config"
+	init_pkg "davidlee/vice/internal/init"
 )
 
 var (
@@ -25,16 +28,18 @@ var rootCmd = &cobra.Command{
 storing your data in local YAML files for easy version control and portability.
 
 Examples:
+  vice                # Launch interactive entry menu (default)
   vice entry          # Record today's habit completion
   vice goals          # Display current goals
   vice --config-dir /path/to/config entry  # Use custom config directory`,
 	PersistentPreRunE: initializePaths,
+	RunE:              runDefaultCommand,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := rootCmd.Execute()
+	err := fang.Execute(context.Background(), rootCmd)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -74,4 +79,20 @@ func initializePaths(_ *cobra.Command, _ []string) error {
 // This should be called after cobra command execution has started.
 func GetPaths() *config.Paths {
 	return paths
+}
+
+// runDefaultCommand handles the default behavior when 'vice' is called without arguments.
+// AIDEV-NOTE: T018/4.2-default-command; launches entry menu as default behavior
+func runDefaultCommand(_ *cobra.Command, _ []string) error {
+	// Get the resolved paths
+	paths := GetPaths()
+
+	// Ensure config files exist, creating samples if missing
+	initializer := init_pkg.NewFileInitializer()
+	if err := initializer.EnsureConfigFiles(paths.GoalsFile, paths.EntriesFile); err != nil {
+		return err
+	}
+
+	// Launch entry menu as default behavior
+	return runEntryMenu(paths)
 }
