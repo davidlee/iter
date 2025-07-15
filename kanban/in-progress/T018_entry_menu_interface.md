@@ -12,15 +12,18 @@ context_windows: ["cmd/**/*.go", "internal/ui/**/*.go", "internal/entry/**/*.go"
 Entry menu interface provides streamlined daily habit tracking by combining goal browsing with direct entry capabilities. Current system requires separate `vice goal list` and `vice entry` commands. This task creates unified interface showing goals with visual status indicators and allowing immediate entry without command switching.
 
 **Context (Significant Code Files)**:
-- `cmd/entry.go` - Entry command with --menu flag integration (MODIFIED)
-- `cmd/root.go` - Root command configuration for default behavior  
-- `internal/ui/entry.go` - EntryCollector orchestrates entry workflow
-- `internal/ui/entrymenu/model.go` - Complete BubbleTea model with navigation (NEW)
-- `internal/ui/entrymenu/view.go` - ViewRenderer for progress bar and layout (NEW)
-- `internal/ui/entrymenu/navigation.go` - NavigationHelper and smart navigation (NEW)
-- `internal/ui/goalconfig/goal_list.go` - GoalListModel provides goal browsing patterns
-- `internal/ui/entry/goal_collection_flows.go` - Goal-specific entry collection flows
-- `internal/ui/entry/` - Field input components and entry UI patterns
+- `cmd/entry.go` - Entry command with --menu flag integration (MODIFIED) + updated help text
+- `cmd/root.go` - Root command configuration for default behavior + Fang integration (MODIFIED)
+- `cmd/goal.go` - Goal command help text updated for comprehensive feature set (MODIFIED)
+- `cmd/goal_add.go` - Goal add command help text updated (MODIFIED)
+- `internal/ui/entry.go` - EntryCollector orchestrates entry workflow + menu integration methods
+- `internal/ui/entrymenu/model.go` - Complete BubbleTea model with navigation, filtering, return behavior (COMPLETE)
+- `internal/ui/entrymenu/view.go` - ViewRenderer for progress bar, filters, return behavior display (COMPLETE)
+- `internal/ui/entrymenu/navigation.go` - NavigationHelper with filtering and smart navigation (COMPLETE)
+- `internal/ui/entrymenu/*_test.go` - Comprehensive test suite including teatest integration tests (COMPLETE)
+- `internal/ui/goalconfig/goal_list.go` - GoalListModel provides goal browsing patterns (REFERENCE)
+- `internal/ui/entry/goal_collection_flows.go` - Goal-specific entry collection flows (INTEGRATION)
+- `doc/specifications/goal_schema.md` - Complete feature set documentation (REFERENCE)
 
 ## Git Commit History
 
@@ -76,7 +79,7 @@ EntryMenuModel (BubbleTea UI)
 
 ## 4. Implementation Plan & Progress
 
-**Overall Status:** `In Progress`
+**Overall Status:** `Complete`
 
 **Sub-tasks:**
 
@@ -139,18 +142,24 @@ EntryMenuModel (BubbleTea UI)
     - *Testing Strategy:* Default behavior tests, ensure other commands remain accessible
     - *AI Notes:* Added RunE handler + runDefaultCommand() function; integrated Fang for enhanced CLI styling
 
-- [ ] **5. Enhancement Features**
-  - [ ] **5.1 Implement configurable return behavior:** Add "r" key toggle for menu vs next-goal return
+- [x] **5. Enhancement Features**
+  - [x] **5.1 Implement configurable return behavior:** Add "r" key toggle for menu vs next-goal return
     - *Design:* Menu state tracking return preference, toggle keybinding
-    - *Code/Artifacts:* Return behavior state management and toggle logic
+    - *Code/Artifacts:* Return behavior state management and toggle logic in model.go, footer display
     - *Testing Strategy:* Behavior toggle tests, state persistence across menu sessions
-    - *AI Notes:* User preference should persist during menu session, clear visual indication
+    - *AI Notes:* ALREADY IMPLEMENTED - r key toggles between ReturnToMenu/ReturnToNextGoal with footer display
   
-  - [ ] **5.2 Add goal filtering capabilities:** Implement "s" and "p" keys for status filtering
+  - [x] **5.2 Add goal filtering capabilities:** Implement "s" and "p" keys for status filtering
     - *Design:* Filter state management, goal list filtering based on entry status
-    - *Code/Artifacts:* Filter logic in menu model, visual filter indicators
+    - *Code/Artifacts:* Filter logic in navigation.go, visual indicators in view.go, toggle logic in model.go
     - *Testing Strategy:* Filter behavior tests, filter state transitions
-    - *AI Notes:* Filters should be clearly indicated in UI, easy to toggle on/off
+    - *AI Notes:* ALREADY IMPLEMENTED - s/p keys + c (clear), header indicators, combination filters supported
+
+  - [x] **5.3 Update CLI help messages for comprehensive feature set:** Reflect all goal types and features
+    - *Design:* Update help text to mention simple/elastic/informational/checklist goals, automatic criteria
+    - *Code/Artifacts:* Updated help in cmd/root.go, cmd/goal.go, cmd/entry.go, cmd/goal_add.go
+    - *Testing Strategy:* Verify help output accuracy, ensure examples are current
+    - *AI Notes:* Help now accurately reflects elastic achievement tiers, automatic success evaluation
 
 ## 5. Roadblocks
 
@@ -382,14 +391,51 @@ SaveEntriesToFile(path) error               // Auto-save capability
   - **IMPLEMENTATION**: Added RunE handler to root command + runDefaultCommand() function
   - **TESTING**: All functionality verified - `vice` launches menu, `vice --help` shows styled output
   - **STATUS**: Core T018 functionality now COMPLETE - entry menu is default app behavior
+- `2025-07-15 - AI:` Sub-task 5.3 completed: CLI help messages updated
+  - **SCOPE**: Updated help text across all commands to reflect comprehensive feature set
+  - **FEATURES DOCUMENTED**: Simple/elastic/informational/checklist goals, automatic criteria evaluation
+  - **IMPROVEMENTS**: Added achievement tier explanations, better examples, accurate capability descriptions
+  - **FILES UPDATED**: cmd/root.go, cmd/goal.go, cmd/entry.go, cmd/goal_add.go
+  - **VERIFICATION**: All help outputs tested and accurately reflect current functionality
+- `2025-07-15 - AI:` Sub-task 5.1 already complete: Return behavior toggle functionality discovered
+  - **EXISTING IMPLEMENTATION**: 'r' key toggle between ReturnToMenu/ReturnToNextGoal modes
+  - **VISUAL INDICATION**: Footer displays "Return: menu" or "Return: next goal"
+  - **INTEGRATION**: Works with navigation flow - auto-advance to next goal or stay on current
+  - **TESTING**: Complete test coverage in model_test.go
+  - **STATUS**: Feature was implemented during Phase 3.2 integration work
+- `2025-07-15 - AI:` Sub-task 5.2 already complete: Goal filtering capabilities discovered
+  - **FILTER KEYS**: 's' (toggle skip filter), 'p' (toggle previous filter), 'c' (clear all filters)
+  - **COMBINATION FILTERS**: Support hiding skipped AND previous simultaneously
+  - **VISUAL INDICATION**: Header shows "Filters: hiding skipped, hiding previous" when active
+  - **SMART UPDATES**: List updates immediately, auto-selects first incomplete goal after filter changes
+  - **COMPREHENSIVE TESTING**: Full test coverage for all filter scenarios and combinations
+  - **STATUS**: Feature was implemented during Phase 2.3 navigation and filtering work
+
+**FINAL TASK SUMMARY - T018 COMPLETE**:
+- **MISSION ACCOMPLISHED**: Entry menu is now the default interface (`vice` alone launches it)
+- **COMPREHENSIVE FEATURES**: All planned functionality implemented with robust testing
+- **USER EXPERIENCE**: Streamlined daily habit tracking with visual feedback, smart navigation, flexible filtering
+- **TECHNICAL EXCELLENCE**: Clean architecture, loose coupling via interfaces, comprehensive test coverage including integration tests
+- **CLI ENHANCEMENT**: Added Fang for beautiful styling, updated help text to reflect full feature capabilities
+- **DISCOVERY**: Sub-tasks 5.1 and 5.2 were already implemented but not properly tracked - this demonstrates the need for better progress documentation during implementation
+- **NEXT STEPS**: T018 ready to move to done/, consider T017 or other priorities
 
 **Future improvements identified**:
-- Goal type indication: Need alternative way to show goal types (simple/elastic/informational) 
-- Error handling UI: Add user feedback for entry collection and save failures
-- Golden file testing: Enable for UI regression prevention when layout stabilizes
+- **Goal type indication**: Need alternative way to show goal types (simple/elastic/informational) since status emojis replaced type emojis
+- **Error handling UI**: Add user feedback for entry collection and save failures with modal or status bar
+- **Golden file testing**: Enable for UI regression prevention when layout stabilizes (currently commented out)
+- **Progress bar enhancements**: More intelligent sizing for different terminal widths, customizable colors
+- **Entry editing**: Support editing entries for days other than today (mentioned in original requirements)
+- **Bulk operations**: Consider "mark all complete" or "skip remaining" shortcuts for power users
+- **Export integration**: Connect with potential export functionality for progress tracking
+- **Theme support**: Configurable color schemes for different preferences
 
 **Refactoring advisable**:
-- Extract emoji constants to shared package for consistency across UI
-- ViewRenderer styling: More configurable options for different themes
-- Error handling: Centralized error display component for menu errors
-- State management: Consider unified state structure between collector and menu
+- **Extract emoji constants**: Move status emojis (✓ ✗ ~ ☐) to shared package for consistency across UI components
+- **ViewRenderer modularity**: More configurable styling options, theme system for different color schemes
+- **Error handling centralization**: Unified error display component for menu errors, save failures, validation issues  
+- **State management optimization**: Consider unified state structure between EntryCollector and EntryMenuModel formats
+- **Navigation abstraction**: Extract navigation patterns for reuse in other menu interfaces
+- **Filter persistence**: Consider persisting filter preferences across sessions in config
+- **Keybinding customization**: Allow user-configurable keybindings via config file
+- **Component separation**: Split large model.go into smaller focused modules (state, handlers, rendering)

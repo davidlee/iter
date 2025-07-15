@@ -23,6 +23,7 @@ var (
 )
 
 // entryCmd represents the entry command
+// AIDEV-NOTE: T018/5.3-help-update; comprehensive help text reflects full feature set (simple/elastic/informational/checklist goals)
 var entryCmd = &cobra.Command{
 	Use:   "entry",
 	Short: "Record today's habit completion",

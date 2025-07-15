@@ -41,6 +41,7 @@ Examples:
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
+// AIDEV-NOTE: T018/5.3-fang-integration; replaced cobra.Execute() with fang.Execute() for enhanced CLI styling
 func Execute() {
 	err := fang.Execute(context.Background(), rootCmd)
 	if err != nil {
@@ -85,7 +86,8 @@ func GetPaths() *config.Paths {
 }
 
 // runDefaultCommand handles the default behavior when 'vice' is called without arguments.
-// AIDEV-NOTE: T018/4.2-default-command; launches entry menu as default behavior
+// AIDEV-NOTE: T018/4.2-default-command; launches entry menu as default behavior for streamlined UX
+// AIDEV-NOTE: fang-integration; uses Charmbracelet Fang for enhanced CLI styling (automatic --version, styled help)
 func runDefaultCommand(_ *cobra.Command, _ []string) error {
 	// Get the resolved paths
 	paths := GetPaths()

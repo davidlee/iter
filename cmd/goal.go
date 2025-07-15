@@ -5,6 +5,7 @@ import (
 )
 
 // goalCmd represents the goal command
+// AIDEV-NOTE: T018/5.3-help-update; enhanced help documents all goal types and automatic criteria features
 var goalCmd = &cobra.Command{
 	Use:   "goal",
 	Short: "Manage goal definitions",

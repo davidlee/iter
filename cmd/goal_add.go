@@ -10,6 +10,7 @@ import (
 )
 
 // goalAddCmd represents the goal add command
+// AIDEV-NOTE: T018/5.3-help-update; detailed help explains all goal types and automatic criteria configuration options
 var goalAddCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new goal with interactive prompts",
