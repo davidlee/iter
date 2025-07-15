@@ -24,13 +24,16 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "vice",
 	Short: "A CLI habit tracker",
-	Long: `vice is a command-line habit tracker. It supports simple boolean goals,
-storing your data in local YAML files for easy version control and portability.
+	Long: `vice is a flexible command-line habit tracker supporting diverse goal types:
+simple boolean goals, elastic goals with three achievement tiers (mini/midi/maxi), 
+informational goals for data collection, and checklist-based goals. Features automatic
+success criteria evaluation and stores data in local YAML files for portability.
 
 Examples:
   vice                # Launch interactive entry menu (default)
   vice entry          # Record today's habit completion
-  vice goals          # Display current goals
+  vice goal add       # Add new goals (simple/elastic/informational/checklist)
+  vice todo           # View today's completion status dashboard
   vice --config-dir /path/to/config entry  # Use custom config directory`,
 	PersistentPreRunE: initializePaths,
 	RunE:              runDefaultCommand,

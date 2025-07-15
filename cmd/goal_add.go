@@ -13,12 +13,13 @@ import (
 var goalAddCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new goal with interactive prompts",
-	Long: `Add a new goal through an interactive configuration interface.
-This command will guide you through defining a goal's properties including
-type, field type, scoring criteria, and other settings.
+	Long: `Add a new goal through an interactive configuration interface. Supports all goal types:
+simple boolean goals, elastic goals with mini/midi/maxi achievement tiers, informational 
+goals for data collection, and checklist-based goals. Configure automatic success criteria
+with numeric/time/boolean conditions or choose manual evaluation.
 
 Examples:
-  vice goal add                      # Add a new goal
+  vice goal add                      # Add a new goal (all types supported)
   vice goal add --dry-run            # Preview YAML without saving
   vice goal add --dry-run > goal.yml # Save preview to custom file
   vice --config-dir /tmp goal add    # Use custom config directory`,

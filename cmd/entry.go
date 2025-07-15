@@ -26,13 +26,14 @@ var (
 var entryCmd = &cobra.Command{
 	Use:   "entry",
 	Short: "Record today's habit completion",
-	Long: `Record today's habit completion by answering questions about your goals.
-This command will present an interactive form where you can mark which habits
-you completed today. Your entries are stored in entries.yml for tracking progress.
+	Long: `Record today's habit data through interactive collection forms. Supports all goal types:
+simple boolean tracking, elastic goals with achievement tiers, informational data collection,
+and checklist completion. Features automatic success evaluation based on configured criteria.
+Your entries are stored in entries.yml for progress tracking and analysis.
 
 Examples:
-  vice entry                    # Record today's habits
-  vice entry --menu             # Launch interactive menu interface
+  vice entry                    # Record today's habits (sequential form)
+  vice entry --menu             # Launch interactive menu interface (recommended)
   vice --config-dir /tmp entry  # Use custom config directory`,
 	RunE: runEntry,
 }
