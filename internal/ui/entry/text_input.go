@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
+	"davidlee/vice/internal/debug"
 	"davidlee/vice/internal/models"
 )
 
@@ -50,7 +51,7 @@ func NewTextEntryInput(config EntryFieldInputConfig) *TextEntryInput {
 
 // CreateInputForm creates a text input form with validation
 func (ti *TextEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
-	fieldDebugLogger.Printf("Creating huh.Form for text goal %s, multiline: %v, current value: %q", goal.ID, ti.multiline, ti.value)
+	debug.Field("Creating huh.Form for text goal %s, multiline: %v, current value: %q", goal.ID, ti.multiline, ti.value)
 	// Prepare styling
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).

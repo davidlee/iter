@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
+	"davidlee/vice/internal/debug"
 	"davidlee/vice/internal/models"
 )
 
@@ -57,7 +58,7 @@ func NewNumericEntryInput(config EntryFieldInputConfig) *NumericEntryInput {
 
 // CreateInputForm creates a numeric input form with unit display and validation
 func (ni *NumericEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
-	fieldDebugLogger.Printf("Creating huh.Form for numeric goal %s, current value: %v", goal.ID, ni.value)
+	debug.Field("Creating huh.Form for numeric goal %s, current value: %v", goal.ID, ni.value)
 	// Prepare styling
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).

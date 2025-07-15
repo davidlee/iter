@@ -365,7 +365,7 @@ func (ec *EntryCollector) StoreEntryResult(goalID string, result *entry.EntryRes
 	ec.entries[goalID] = result.Value
 	ec.notes[goalID] = result.Notes
 	ec.statuses[goalID] = result.Status
-	
+
 	// Store achievement level if present (for elastic goals)
 	if result.AchievementLevel != nil {
 		ec.achievements[goalID] = result.AchievementLevel

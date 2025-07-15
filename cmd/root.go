@@ -10,12 +10,15 @@ import (
 	"github.com/spf13/cobra"
 
 	"davidlee/vice/internal/config"
+	"davidlee/vice/internal/debug"
 	init_pkg "davidlee/vice/internal/init"
 )
 
 var (
 	// configDir holds the custom config directory path from CLI flag
 	configDir string
+	// debugMode enables debug logging to file
+	debugMode bool
 	// paths holds the resolved configuration paths
 	paths *config.Paths
 )
@@ -43,6 +46,13 @@ Examples:
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 // AIDEV-NOTE: T018/5.3-fang-integration; replaced cobra.Execute() with fang.Execute() for enhanced CLI styling
 func Execute() {
+	// Ensure debug logger is closed on exit
+	defer func() {
+		if err := debug.GetInstance().Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to close debug logger: %v\n", err)
+		}
+	}()
+
 	err := fang.Execute(context.Background(), rootCmd)
 	if err != nil {
 		os.Exit(1)
@@ -53,6 +63,8 @@ func init() {
 	// Add persistent flags that apply to all commands
 	rootCmd.PersistentFlags().StringVar(&configDir, "config-dir", "",
 		"custom config directory (default: XDG_CONFIG_HOME/vice or ~/.config/vice)")
+	rootCmd.PersistentFlags().BoolVar(&debugMode, "debug", false,
+		"enable debug logging to file (creates vice-debug.log in config directory)")
 }
 
 // initializePaths resolves the configuration paths based on CLI flags or defaults.
@@ -74,6 +86,14 @@ func initializePaths(_ *cobra.Command, _ []string) error {
 	// Ensure the config directory exists
 	if err := paths.EnsureConfigDir(); err != nil {
 		return fmt.Errorf("failed to create config directory %s: %w", paths.ConfigDir, err)
+	}
+
+	// Initialize debug logging if requested
+	if debugMode {
+		if err := debug.GetInstance().Initialize(paths.ConfigDir); err != nil {
+			return fmt.Errorf("failed to initialize debug logging: %w", err)
+		}
+		debug.General("Debug mode enabled via --debug flag")
 	}
 
 	return nil

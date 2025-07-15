@@ -4,8 +4,6 @@ package entrymenu
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -14,18 +12,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
+	"davidlee/vice/internal/debug"
 	"davidlee/vice/internal/models"
 	"davidlee/vice/internal/ui"
 	"davidlee/vice/internal/ui/entry"
 	"davidlee/vice/internal/ui/modal"
 )
-
-// AIDEV-NOTE: T024-debug-logging; entry menu debug logging for modal investigation
-var entryMenuDebugLogger *log.Logger
-
-func init() {
-	entryMenuDebugLogger = log.New(os.Stderr, "[ENTRYMENU-DEBUG] ", log.LstdFlags|log.Lshortfile)
-}
 
 // EntryMenuItem represents a goal as a menu item for entry collection.
 // AIDEV-NOTE: entry-menu-item; extends GoalItem pattern with entry status tracking
@@ -214,8 +206,8 @@ type EntryMenuModel struct {
 	navEnhancer    *NavigationEnhancer
 
 	// Modal system for entry editing
-	modalManager       *modal.ModalManager
-	fieldInputFactory  *entry.EntryFieldInputFactory
+	modalManager      *modal.ModalManager
+	fieldInputFactory *entry.EntryFieldInputFactory
 
 	// Navigation state
 	selectedGoalID string // ID of goal selected for entry
@@ -245,17 +237,17 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 	}
 
 	return &EntryMenuModel{
-		list:           l,
-		goals:          goals,
-		entries:        entries,
-		keys:           keyMap,
-		filterState:    FilterNone,
-		returnBehavior: ReturnToMenu,
-		entryCollector: collector,
-		entriesFile:    entriesFile,
-		viewRenderer:   NewViewRenderer(0, 0), // Will be updated on first WindowSizeMsg
-		navEnhancer:    NewNavigationEnhancer(),
-		modalManager:   modal.NewModalManager(0, 0), // Will be updated on first WindowSizeMsg
+		list:              l,
+		goals:             goals,
+		entries:           entries,
+		keys:              keyMap,
+		filterState:       FilterNone,
+		returnBehavior:    ReturnToMenu,
+		entryCollector:    collector,
+		entriesFile:       entriesFile,
+		viewRenderer:      NewViewRenderer(0, 0), // Will be updated on first WindowSizeMsg
+		navEnhancer:       NewNavigationEnhancer(),
+		modalManager:      modal.NewModalManager(0, 0), // Will be updated on first WindowSizeMsg
 		fieldInputFactory: entry.NewEntryFieldInputFactory(),
 	}
 }
@@ -269,15 +261,15 @@ func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.
 	l.Title = "Entry Menu"
 
 	return &EntryMenuModel{
-		list:           l,
-		goals:          goals,
-		entries:        entries,
-		keys:           DefaultEntryMenuKeyMap(),
-		filterState:    FilterNone,
-		returnBehavior: ReturnToMenu,
-		viewRenderer:   NewViewRenderer(80, 24), // Fixed size for testing
-		navEnhancer:    NewNavigationEnhancer(),
-		modalManager:   modal.NewModalManager(80, 24), // Fixed size for testing
+		list:              l,
+		goals:             goals,
+		entries:           entries,
+		keys:              DefaultEntryMenuKeyMap(),
+		filterState:       FilterNone,
+		returnBehavior:    ReturnToMenu,
+		viewRenderer:      NewViewRenderer(80, 24), // Fixed size for testing
+		navEnhancer:       NewNavigationEnhancer(),
+		modalManager:      modal.NewModalManager(80, 24), // Fixed size for testing
 		fieldInputFactory: entry.NewEntryFieldInputFactory(),
 	}
 }
@@ -322,36 +314,36 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case modal.ModalClosedMsg:
 		// AIDEV-NOTE: T024-bug-fix; modal closed with result, sync menu state and auto-save
 		// Handle modal result and update menu state
-		entryMenuDebugLogger.Printf("Modal closed for goal %s, result: %v", m.selectedGoalID, msg.Result != nil)
+		debug.EntryMenu("Modal closed for goal %s, result: %v", m.selectedGoalID, msg.Result != nil)
 		if result := msg.Result; result != nil {
 			if entryResult, ok := result.(*entry.EntryResult); ok {
-				entryMenuDebugLogger.Printf("Processing entry result for goal %s: value=%v, status=%v", m.selectedGoalID, entryResult.Value, entryResult.Status)
-				
+				debug.EntryMenu("Processing entry result for goal %s: value=%v, status=%v", m.selectedGoalID, entryResult.Value, entryResult.Status)
+
 				// Store the entry result in the collector
 				if m.entryCollector != nil {
 					m.entryCollector.StoreEntryResult(m.selectedGoalID, entryResult)
 				}
-				
+
 				// Update menu state after entry storage
 				m.updateEntriesFromCollector()
-				
+
 				// Auto-save entries after collection
 				if m.entriesFile != "" && m.entryCollector != nil {
 					err := m.entryCollector.SaveEntriesToFile(m.entriesFile)
 					if err != nil {
-						entryMenuDebugLogger.Printf("Failed to save entries for goal %s: %v", m.selectedGoalID, err)
+						debug.EntryMenu("Failed to save entries for goal %s: %v", m.selectedGoalID, err)
 						// Log error but continue - could add error display later
 						_ = err // TODO: Consider adding save error handling UI
 					}
 				}
-				
+
 				// Smart navigation based on return behavior preference
 				if m.returnBehavior == ReturnToNextGoal {
 					m.navEnhancer.SelectNextIncompleteGoal(m)
 				}
 			}
 		} else {
-			entryMenuDebugLogger.Printf("Modal closed for goal %s with no result (cancelled)", m.selectedGoalID)
+			debug.EntryMenu("Modal closed for goal %s with no result (cancelled)", m.selectedGoalID)
 		}
 		return m, nil
 
@@ -361,7 +353,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmd := m.modalManager.Update(msg)
 			return m, cmd
 		}
-		
+
 		switch {
 		case key.Matches(msg, m.keys.Quit):
 			m.shouldQuit = true
@@ -375,12 +367,12 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					// AIDEV-NOTE: T024-modal-integration; replaced form.Run() with modal system to eliminate looping
 					// Launch entry form modal instead of direct collector call
 					if m.entryCollector != nil {
-						entryMenuDebugLogger.Printf("Opening modal for goal %s (type: %s, field: %s)", item.Goal.ID, item.Goal.GoalType, item.Goal.FieldType.Type)
-						
+						debug.EntryMenu("Opening modal for goal %s (type: %s, field: %s)", item.Goal.ID, item.Goal.GoalType, item.Goal.FieldType.Type)
+
 						// Create entry form modal
 						entryFormModal, err := modal.NewEntryFormModal(item.Goal, m.entryCollector, m.fieldInputFactory)
 						if err != nil {
-							entryMenuDebugLogger.Printf("Failed to create modal for goal %s: %v", item.Goal.ID, err)
+							debug.EntryMenu("Failed to create modal for goal %s: %v", item.Goal.ID, err)
 							// Log error but continue - could add error display later
 							_ = err // TODO: Consider adding error handling UI
 							return m, nil
@@ -388,7 +380,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 						// Open modal - this returns command to initialize modal
 						cmd := m.modalManager.OpenModal(entryFormModal)
-						entryMenuDebugLogger.Printf("Modal opened for goal %s, command: %v", item.Goal.ID, cmd != nil)
+						debug.EntryMenu("Modal opened for goal %s, command: %v", item.Goal.ID, cmd != nil)
 						return m, cmd
 					}
 
