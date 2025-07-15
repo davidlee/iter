@@ -506,6 +506,205 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 
 **New Focus**: Modal infrastructure debugging - the bug exists at the modal architecture level, not the form content level.
 
+### BaseModal Lifecycle Experiment Results
+
+**Hypothesis**: BaseModal complex state machine (`Opening → Active → Closing → Closed`) is causing auto-closing bug.
+
+**Experiment**: Replaced `*BaseModal` inheritance with simple `isOpen bool` flag in `EntryFormModal`.
+
+**Changes Made**:
+- Removed `*BaseModal` from `EntryFormModal` struct
+- Added simple `isOpen bool` field
+- Replaced BaseModal methods with direct boolean operations:
+  - `IsOpen() bool { return efm.isOpen }`
+  - `Close() { efm.isOpen = false }`
+  - `Open() { efm.isOpen = true }`
+- Eliminated complex state transitions entirely
+
+**User Testing Result**: ❌ **BASEMODAL IS NOT THE ROOT CAUSE**
+- Prototype still exits after form submission with simple boolean flag
+- Bug persists even without BaseModal state machine
+- Auto-closing behavior unchanged
+
+**Conclusion**: BaseModal lifecycle management is NOT the source of the auto-closing bug.
+
+**Eliminated from Investigation**:
+- ✅ BaseModal state transitions (`Opening → Active → Closing → Closed`)
+- ✅ Modal lifecycle complexity
+- ✅ BaseModal state synchronization issues
+
+**New Focus**: ModalManager message routing and modal closure detection - the bug is at a higher architectural level.
+
+### ModalManager Bypass Experiment Results
+
+**Hypothesis**: ModalManager message routing or closure detection logic is causing auto-closing bug.
+
+**Experiment**: Completely replaced ModalManager with direct modal handling in real EntryMenuModel, matching the working prototype architecture.
+
+**Changes Made**:
+- Removed `modalManager *modal.ModalManager` from `EntryMenuModel` struct
+- Added `directModal modal.Modal` field for direct modal handling
+- Replaced all ModalManager calls with direct modal operations:
+  - `modalManager.OpenModal(modal)` → `directModal = modal; modal.Init()`
+  - `modalManager.Update(msg)` → `directModal.Update(msg)`
+  - `modalManager.View(bg)` → `renderWithDirectModal(bg, modal.View())`
+  - `modalManager.HasActiveModal()` → `directModal != nil && directModal.IsOpen()`
+- Added `syncStateAfterEntry()` method for state management after modal closure
+- Added `renderWithDirectModal()` method for direct overlay rendering
+
+**User Testing Result**: ❌ **MODALMANAGER IS NOT THE ROOT CAUSE**
+- Real application still exhibits auto-closing behavior with direct modal handling
+- Modal exits on form submission exactly as before
+- Bug persists even without ModalManager layer entirely
+
+**Conclusion**: ModalManager is NOT the source of the auto-closing bug.
+
+**Eliminated from Investigation**:
+- ✅ ModalManager message routing and filtering
+- ✅ ModalManager closure detection (`activeModal.IsClosed()`)
+- ✅ ModalManager state management and cleanup
+- ✅ ModalManager overlay rendering system
+
+**Critical Insight**: All core modal system components have been systematically eliminated as bug sources:
+1. ✅ **Form Processing** - Bug exists even with forms completely disabled
+2. ✅ **BaseModal Lifecycle** - Bug exists even with simple boolean flag
+3. ✅ **ModalManager Architecture** - Bug exists even with direct modal handling
+
+**New Focus**: EntryMenuModel state management and modal closure handling - the bug must be in the complex state synchronization, auto-save, or navigation logic that exists in the real application but not in our simplified prototype.
+
+### Next Experiment Candidates - Prioritized
+
+**Systematic Approach**: Test each EntryMenuModel complexity layer individually by disabling specific functionality in real application.
+
+#### **HIGH PRIORITY (Quick & High Impact)**
+
+**Experiment 1: Disable State Synchronization**
+- **Hypothesis**: `syncStateAfterEntry()` logic is causing premature modal closure
+- **Method**: Comment out all logic in `syncStateAfterEntry()` - return immediately
+- **Effort**: 2 minutes (comment out method body)
+- **Impact**: High - if state sync is triggering closure, modal should stay open
+- **Risk**: Low - easily reversible
+
+**Experiment 2: Disable Auto-Save**
+- **Hypothesis**: File I/O operations (`SaveEntriesToFile()`) are triggering modal closure
+- **Method**: Comment out auto-save logic in modal closure handling
+- **Effort**: 2 minutes (comment out save operations)
+- **Impact**: High - file I/O timing issues are common causes of UI bugs
+- **Risk**: Low - no data loss in testing
+
+**Experiment 3: Disable Entry Collector Integration**
+- **Hypothesis**: `StoreEntryResult()` or `updateEntriesFromCollector()` is causing closure
+- **Method**: Comment out collector operations, keep modal result only
+- **Effort**: 5 minutes (isolate collector calls)
+- **Impact**: High - collector state management could trigger closure
+- **Risk**: Low - isolated change
+
+#### **MEDIUM PRIORITY (Moderate Effort)**
+
+**Experiment 4: Disable Navigation Logic**
+- **Hypothesis**: Smart navigation (`SelectNextIncompleteGoal()`) is interfering with modal
+- **Method**: Comment out return behavior and navigation logic
+- **Effort**: 5 minutes (disable navigation after modal close)
+- **Impact**: Medium - navigation timing could affect modal lifecycle
+- **Risk**: Low - UI behavior only
+
+**Experiment 5: Simplify Modal Closure Detection**
+- **Hypothesis**: `directModal.IsClosed()` check is too frequent or has timing issues
+- **Method**: Replace with simple timeout or manual closure flag
+- **Effort**: 10 minutes (modify closure detection logic)
+- **Impact**: Medium - closure detection timing could be wrong
+- **Risk**: Medium - requires understanding current logic
+
+**Experiment 6: Remove All EntryMenuModel State**
+- **Hypothesis**: Complex EntryMenuModel state (filters, selection, etc.) interferes with modal
+- **Method**: Create minimal EntryMenuModel with only modal handling
+- **Effort**: 15 minutes (strip down to essential fields)
+- **Impact**: High - isolates modal from all EntryMenuModel complexity
+- **Risk**: Medium - significant temporary changes
+
+#### **LOW PRIORITY (Complex Implementation)**
+
+**Experiment 7: Replace EntryMenuModel with Prototype Model**
+- **Hypothesis**: Fundamental EntryMenuModel architecture is incompatible with modals
+- **Method**: Replace real EntryMenuModel with simplified prototype Model in vice app
+- **Effort**: 30 minutes (major architectural swap)
+- **Impact**: Very High - definitive test of EntryMenuModel vs prototype differences
+- **Risk**: High - requires significant code changes
+
+**Experiment 8: Add Prototype Modal Closure Logic to Real App**
+- **Hypothesis**: Real app needs simple "quit on modal close" like prototype
+- **Method**: Replace complex state sync with simple `tea.Quit` on modal closure
+- **Effort**: 5 minutes (replace state sync with quit)
+- **Impact**: Medium - tests if complexity itself is the issue
+- **Risk**: Medium - changes app behavior significantly
+
+#### **RESEARCH PRIORITY (Investigation)**
+
+**Experiment 9: Compare Message Flows**
+- **Hypothesis**: Message timing/ordering differs between prototype and real app
+- **Method**: Add comprehensive debug logging to both systems, compare message sequences
+- **Effort**: 20 minutes (add detailed logging)
+- **Impact**: High - could reveal timing or ordering differences
+- **Risk**: Low - just logging
+
+**Experiment 10: Isolate BubbleTea Integration**
+- **Hypothesis**: EntryMenuModel BubbleTea integration has subtle bugs
+- **Method**: Create minimal BubbleTea program with just EntryMenuModel + modal
+- **Effort**: 45 minutes (create isolated test program)
+- **Impact**: High - isolates from full application context
+- **Risk**: Low - separate test program
+
+### Recommended Experimental Sequence
+
+**Phase A (Quick Wins)**: Experiments 1, 2, 3 - Disable state management components
+**Phase B (Moderate Effort)**: Experiments 4, 5, 6 - Simplify EntryMenuModel behavior  
+**Phase C (Deep Investigation)**: Experiments 9, 7 - Compare architectures and message flows
+
+**Start with Experiment 1** - disabling `syncStateAfterEntry()` as it's the most likely candidate with minimal effort required.
+
+### 🎯 BREAKTHROUGH: Root Cause Discovered
+
+**Experiment 1 Results - State Synchronization**
+
+**Hypothesis**: `syncStateAfterEntry()` logic is causing premature modal closure.
+
+**Implementation**: Completely disabled all logic in `syncStateAfterEntry()` method by commenting out the entire function body and returning immediately.
+
+**Changes Made**:
+- Added debug message: "EXPERIMENT 1: State synchronization DISABLED - modal should stay open"
+- Commented out all state management operations:
+  - `StoreEntryResult()` - Entry collector storage
+  - `updateEntriesFromCollector()` - Menu state updates
+  - `SaveEntriesToFile()` - Auto-save file I/O operations
+  - `SelectNextIncompleteGoal()` - Smart navigation logic
+
+**User Testing Result**: ✅ **ROOT CAUSE CONFIRMED**
+- **Modal now stays open correctly** when state synchronization is disabled
+- **Auto-closing behavior eliminated** - modal waits for user input as expected
+- **Form submission works normally** - modal only closes on ESC or completion as intended
+
+**Critical Discovery**: The auto-closing bug is caused by **state synchronization logic** that runs after modal closure, NOT by the modal system itself.
+
+**Root Cause Analysis**:
+- **Working Prototype**: No state synchronization - simply quits when modal closes
+- **Failing Real App**: Complex state sync after modal closure triggers premature closing
+- **Bug Location**: One or more operations in `syncStateAfterEntry()` method
+
+**Specific Suspects** (components of state sync that could cause the issue):
+1. **Entry Collector Storage** (`StoreEntryResult()`) - Complex collector state management
+2. **Menu State Updates** (`updateEntriesFromCollector()`) - UI state synchronization
+3. **Auto-Save File I/O** (`SaveEntriesToFile()`) - File operations with potential timing issues
+4. **Smart Navigation** (`SelectNextIncompleteGoal()`) - Goal selection and menu manipulation
+
+**Why This Makes Sense**:
+- Prototype has **simple modal lifecycle**: Open → User Input → Close → Quit
+- Real app has **complex lifecycle**: Open → User Input → Close → State Sync → Continue Running
+- Something in the "State Sync → Continue Running" phase is interfering with modal closure detection
+
+**Investigation Status**: ✅ **MAJOR BREAKTHROUGH - ROOT CAUSE ISOLATED**
+
+**Next Phase**: Granular investigation to identify which specific state sync operation causes the auto-closing behavior.
+
 ### Development Tool - Vice Prototype Command
 
 **Implementation**: Created `vice prototype` command to execute the modal investigation prototype without interfering with main application builds.
@@ -666,6 +865,22 @@ vice prototype --debug  # Run prototype with debug logging enabled
   - **Eliminated**: huh.Form processing, state transitions, field validation, entry processing
   - **New Focus**: Modal infrastructure - BaseModal lifecycle, ModalManager routing, modal opening/closing logic
   - **Next Steps**: Debug modal system integration differences between working prototype and failing real app
+- `2025-07-16 - AI:` ModalManager bypass experiment eliminates final modal architecture component
+  - **Method**: Completely replaced ModalManager with direct modal handling in real EntryMenuModel
+  - **Implementation**: Removed ModalManager, added directModal field, implemented direct message routing and rendering
+  - **Result**: Bug persists even without ModalManager - auto-closing behavior unchanged
+  - **Breakthrough**: All modal system components systematically eliminated as bug sources
+  - **Final Elimination**: Forms, BaseModal lifecycle, and ModalManager are all confirmed NOT the root cause
+  - **New Focus**: EntryMenuModel state management - bug must be in state sync, auto-save, or navigation logic
+  - **Critical Finding**: Bug exists at application integration level, not modal architecture level
+- `2025-07-16 - AI:` BREAKTHROUGH - Root cause discovered via state synchronization experiment
+  - **Experiment 1**: Disabled all logic in `syncStateAfterEntry()` method 
+  - **Result**: Modal now stays open correctly - auto-closing behavior eliminated
+  - **Root Cause**: State synchronization logic after modal closure causes premature closing
+  - **Components**: Entry storage, menu updates, auto-save file I/O, smart navigation
+  - **Breakthrough**: Issue is NOT in modal system - it's in post-closure state management
+  - **Why**: Prototype quits immediately, real app continues with complex state sync that triggers closure
+  - **Next Phase**: Granular testing to identify specific state sync operation causing the bug
 
 ## Git Commit History
 

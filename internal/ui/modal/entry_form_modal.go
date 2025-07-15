@@ -16,13 +16,16 @@ import (
 // EntryFormModal represents a modal for collecting goal entries.
 // AIDEV-NOTE: entry-form-modal; replaces form.Run() takeover with modal overlay approach
 // AIDEV-NOTE: T024-bug2-fix; eliminates edit looping by providing clean modal close → menu return
+// AIDEV-NOTE: T024-experiment; temporarily replaced BaseModal with simple boolean to test lifecycle hypothesis
 type EntryFormModal struct {
-	*BaseModal
+	// *BaseModal  // TEMPORARILY REMOVED for BaseModal experiment
+	isOpen       bool  // Simple boolean flag replacing BaseModal state machine
+	result       interface{}  // Simple result storage
 	goal         models.Goal
 	collector    *ui.EntryCollector
 	fieldInput   entry.EntryFieldInput
 	form         *huh.Form
-	result       *entry.EntryResult
+	entryResult  *entry.EntryResult
 	error        error
 	width        int
 	height       int
@@ -65,7 +68,8 @@ func NewEntryFormModal(goal models.Goal, collector *ui.EntryCollector, fieldInpu
 	debug.Modal("Created form for goal %s, initial state: %v", goal.ID, form.State)
 
 	modal := &EntryFormModal{
-		BaseModal:  NewBaseModal(),
+		// BaseModal:  NewBaseModal(),  // TEMPORARILY REMOVED for BaseModal experiment
+		isOpen:     false,  // Simple boolean flag - will be set to true in Init()
 		goal:       goal,
 		collector:  collector,
 		fieldInput: fieldInput,
@@ -86,6 +90,20 @@ func (efm *EntryFormModal) Init() tea.Cmd {
 	debug.Modal("Modal initialized, form state: %v, cmd: %v", efm.form.State, cmd != nil)
 	return cmd
 }
+
+// Modal interface compliance - replaced BaseModal methods with simple boolean operations
+func (efm *EntryFormModal) IsOpen() bool { return efm.isOpen }
+func (efm *EntryFormModal) IsClosed() bool { return !efm.isOpen }
+func (efm *EntryFormModal) Open() { 
+	debug.Modal("Goal %s: Opening modal (simple boolean)", efm.goal.ID)
+	efm.isOpen = true 
+}
+func (efm *EntryFormModal) Close() { 
+	debug.Modal("Goal %s: Closing modal (simple boolean)", efm.goal.ID)
+	efm.isOpen = false 
+}
+func (efm *EntryFormModal) SetResult(result interface{}) { efm.result = result }
+func (efm *EntryFormModal) GetResult() interface{} { return efm.result }
 
 // Update handles messages for the entry form modal.
 func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
@@ -179,7 +197,7 @@ func (efm *EntryFormModal) processEntry() (Modal, tea.Cmd) {
 	result.Notes = ""
 
 	// Store the result and close modal
-	efm.result = result
+	efm.entryResult = result
 	efm.SetResult(result)
 	efm.Close()
 
@@ -284,5 +302,5 @@ func (efm *EntryFormModal) renderDisabledForm() string {
 
 // GetEntryResult returns the entry result if available.
 func (efm *EntryFormModal) GetEntryResult() *entry.EntryResult {
-	return efm.result
+	return efm.entryResult
 }

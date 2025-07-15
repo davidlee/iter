@@ -206,7 +206,8 @@ type EntryMenuModel struct {
 	navEnhancer    *NavigationEnhancer
 
 	// Modal system for entry editing
-	modalManager      *modal.ModalManager
+	// modalManager      *modal.ModalManager  // TEMPORARILY REMOVED for ModalManager experiment
+	directModal       modal.Modal            // Direct modal handling like prototype
 	fieldInputFactory *entry.EntryFieldInputFactory
 
 	// Navigation state
@@ -247,7 +248,8 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 		entriesFile:       entriesFile,
 		viewRenderer:      NewViewRenderer(0, 0), // Will be updated on first WindowSizeMsg
 		navEnhancer:       NewNavigationEnhancer(),
-		modalManager:      modal.NewModalManager(0, 0), // Will be updated on first WindowSizeMsg
+		// modalManager:      modal.NewModalManager(0, 0), // TEMPORARILY REMOVED for ModalManager experiment
+		directModal:       nil,                          // Direct modal handling like prototype
 		fieldInputFactory: entry.NewEntryFieldInputFactory(),
 	}
 }
@@ -269,7 +271,8 @@ func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.
 		returnBehavior:    ReturnToMenu,
 		viewRenderer:      NewViewRenderer(80, 24), // Fixed size for testing
 		navEnhancer:       NewNavigationEnhancer(),
-		modalManager:      modal.NewModalManager(80, 24), // Fixed size for testing
+		// modalManager:      modal.NewModalManager(80, 24), // TEMPORARILY REMOVED for ModalManager experiment
+		directModal:       nil,                             // Direct modal handling like prototype
 		fieldInputFactory: entry.NewEntryFieldInputFactory(),
 	}
 }
@@ -305,7 +308,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetWidth(msg.Width)
 		m.list.SetHeight(msg.Height - 4) // Account for progress bar and margins
 		m.viewRenderer = NewViewRenderer(msg.Width, msg.Height)
-		m.modalManager = modal.NewModalManager(msg.Width, msg.Height)
+		// m.modalManager = modal.NewModalManager(msg.Width, msg.Height)  // REMOVED for ModalManager experiment
 
 	case modal.ModalOpenedMsg:
 		// Modal opened - no action needed, just continue
@@ -348,9 +351,18 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		// Route key messages to modal if active
-		if m.modalManager.HasActiveModal() {
-			cmd := m.modalManager.Update(msg)
+		// AIDEV-NOTE: T024-experiment; direct modal handling replacing ModalManager
+		// Route key messages to modal if active (direct handling like prototype)
+		if m.directModal != nil && m.directModal.IsOpen() {
+			var cmd tea.Cmd
+			m.directModal, cmd = m.directModal.Update(msg)
+			
+			// Check if modal was closed and sync state (simple cleanup)
+			if m.directModal.IsClosed() {
+				m.directModal = nil
+				syncCmd := m.syncStateAfterEntry()
+				return m, tea.Batch(cmd, syncCmd)
+			}
 			return m, cmd
 		}
 
@@ -378,9 +390,11 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							return m, nil
 						}
 
-						// Open modal - this returns command to initialize modal
-						cmd := m.modalManager.OpenModal(entryFormModal)
-						debug.EntryMenu("Modal opened for goal %s, command: %v", item.Goal.ID, cmd != nil)
+						// AIDEV-NOTE: T024-experiment; direct modal opening replacing ModalManager
+						// Open modal directly like prototype
+						debug.EntryMenu("Opening modal directly for goal %s (bypassing ModalManager)", item.Goal.ID)
+						m.directModal = entryFormModal
+						cmd := entryFormModal.Init()
 						return m, cmd
 					}
 
@@ -411,9 +425,18 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// Update modal manager if active
-	if m.modalManager.HasActiveModal() {
-		cmd := m.modalManager.Update(msg)
+	// AIDEV-NOTE: T024-experiment; direct modal handling replacing ModalManager
+	// Update modal if active (direct handling like prototype)
+	if m.directModal != nil && m.directModal.IsOpen() {
+		var cmd tea.Cmd
+		m.directModal, cmd = m.directModal.Update(msg)
+		
+		// Check if modal was closed and sync state (simple cleanup)
+		if m.directModal.IsClosed() {
+			m.directModal = nil
+			syncCmd := m.syncStateAfterEntry()
+			return m, tea.Batch(cmd, syncCmd)
+		}
 		return m, cmd
 	}
 
@@ -441,12 +464,81 @@ func (m *EntryMenuModel) View() string {
 		listView,
 	)
 
-	// AIDEV-NOTE: T024-modal-integration; render modal overlay when active
-	if m.modalManager.HasActiveModal() {
-		return m.modalManager.View(baseView)
+	// AIDEV-NOTE: T024-experiment; direct modal rendering replacing ModalManager
+	// Render with modal overlay if modal is active (direct rendering like prototype)
+	if m.directModal != nil && m.directModal.IsOpen() {
+		return m.renderWithDirectModal(baseView, m.directModal.View())
 	}
 
 	return baseView
+}
+
+// syncStateAfterEntry handles state synchronization after modal closes (for ModalManager experiment)
+func (m *EntryMenuModel) syncStateAfterEntry() tea.Cmd {
+	// AIDEV-NOTE: T024-experiment1; TEMPORARILY DISABLED all state sync logic to test if this causes modal auto-closing
+	debug.EntryMenu("EXPERIMENT 1: State synchronization DISABLED - modal should stay open")
+	return nil
+	
+	/* TEMPORARILY COMMENTED OUT FOR EXPERIMENT 1:
+	if m.directModal == nil {
+		return nil
+	}
+	
+	// Get the entry result from the modal
+	if entryFormModal, ok := m.directModal.(*modal.EntryFormModal); ok {
+		result := entryFormModal.GetEntryResult()
+		if result != nil {
+			debug.EntryMenu("Processing entry result for goal %s: value=%v, status=%v", m.selectedGoalID, result.Value, result.Status)
+			
+			// Store the entry result in the collector
+			if m.entryCollector != nil {
+				m.entryCollector.StoreEntryResult(m.selectedGoalID, result)
+			}
+			
+			// Update menu state after entry storage
+			m.updateEntriesFromCollector()
+			
+			// Auto-save entries after collection
+			if m.entriesFile != "" && m.entryCollector != nil {
+				err := m.entryCollector.SaveEntriesToFile(m.entriesFile)
+				if err != nil {
+					debug.EntryMenu("Failed to save entries for goal %s: %v", m.selectedGoalID, err)
+					_ = err // TODO: Consider adding save error handling UI
+				}
+			}
+			
+			// Smart navigation based on return behavior preference
+			if m.returnBehavior == ReturnToNextGoal {
+				m.navEnhancer.SelectNextIncompleteGoal(m)
+			}
+		} else {
+			debug.EntryMenu("Modal closed for goal %s with no result (cancelled)", m.selectedGoalID)
+		}
+	}
+	
+	return nil
+	*/
+}
+
+// renderWithDirectModal renders modal overlay directly (for ModalManager experiment)
+func (m *EntryMenuModel) renderWithDirectModal(background, modalContent string) string {
+	// Simple modal overlay implementation like ModalManager
+	dimmedBg := lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: "#888888", Dark: "#444444"}).
+		Render(background)
+	
+	// Center the modal
+	modalBox := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("#874BFD")).
+		Padding(1, 2).
+		Background(lipgloss.Color("#1a1a1a")).
+		Render(modalContent)
+	
+	centeredModal := lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modalBox)
+	
+	// Overlay the modal on the background
+	return lipgloss.JoinVertical(lipgloss.Left, dimmedBg, centeredModal)
 }
 
 // renderListWithFooter renders the list with return behavior inserted before help.
