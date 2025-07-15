@@ -89,14 +89,7 @@ These diagrams complement the textual architecture descriptions and provide visu
 
 ### Dependencies
 
-**UI Libraries & frameworks**:
-
-charmbracelet/bubbletea, huh, lipgloss & bubbles for CLI/TUI UI
-  - [huh API reference](https://pkg.go.dev/github.com/charmbracelet/huh) - Complete API documentation
-  - [bubbletea API reference](https://pkg.go.dev/github.com/charmbracelet/bubbletea) - complete API documentation
-  - [bubbletea with huh reference example](https://github.com/charmbracelet/huh/blob/main/examples/bubbletea/main.go) - idiomatic example of huh + bubbletea
-
-**AIDEV-NOTE**: UI libraries with example code are checked out as git submodules at [[/charmbracelet]]. Consult these for idiomatic patterns and usage examples.
+**UI Libraries & frameworks**: charmbracelet/bubbletea, huh, lipgloss & bubbles. See `bubbletea_guide.md`.
 
 **Other Dependencies**:
 - **YAML parsing**: goccy/go-yaml
