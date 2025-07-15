@@ -3,12 +3,21 @@ package entry
 
 import (
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
 	"davidlee/vice/internal/models"
 )
+
+// AIDEV-NOTE: T024-debug-logging; field-specific debug logging for modal investigation
+var fieldDebugLogger *log.Logger
+
+func init() {
+	fieldDebugLogger = log.New(os.Stderr, "[FIELD-DEBUG] ", log.LstdFlags|log.Lshortfile)
+}
 
 // AIDEV-NOTE: entry-boolean-input; implements EntryFieldInput for Boolean fields with three-option skip support
 // T012/2.1-complete: Three-way selection (Yes/No/Skip) with EntryStatus integration for skip functionality
@@ -36,6 +45,8 @@ type BooleanEntryInput struct {
 
 // NewBooleanEntryInput creates a new boolean entry input component
 func NewBooleanEntryInput(config EntryFieldInputConfig) *BooleanEntryInput {
+	fieldDebugLogger.Printf("Creating BooleanEntryInput for goal %s", config.Goal.ID)
+	
 	input := &BooleanEntryInput{
 		goal:          config.Goal,
 		fieldType:     config.FieldType,
@@ -43,6 +54,8 @@ func NewBooleanEntryInput(config EntryFieldInputConfig) *BooleanEntryInput {
 		showScoring:   config.ShowScoring,
 		option:        BooleanYes, // Default to Yes
 	}
+	
+	fieldDebugLogger.Printf("BooleanEntryInput created for goal %s, default option: %s", config.Goal.ID, input.option)
 
 	// Set existing value if available
 	if config.ExistingEntry != nil && config.ExistingEntry.Value != nil {
@@ -60,6 +73,7 @@ func NewBooleanEntryInput(config EntryFieldInputConfig) *BooleanEntryInput {
 
 // CreateInputForm creates a three-option select form (Yes/No/Skip)
 func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
+	fieldDebugLogger.Printf("Creating huh.Form for boolean goal %s, current option: %s", goal.ID, bi.option)
 	// Prepare styling
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
@@ -118,6 +132,7 @@ func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 		bi.form = bi.form.WithShowHelp(true)
 	}
 
+	fieldDebugLogger.Printf("Boolean form created for goal %s, initial state: %v", goal.ID, bi.form.State)
 	return bi.form
 }
 
