@@ -271,6 +271,7 @@ The looping occurs in the goal collection flow where:
 
 **All commits related to this task (newest first):**
 
+- `da8d021` - feat(entrymenu)[T024/3.2]: complete goal collection flow refactoring
 - `d3d4cd2` - feat(entrymenu)[T024/3.1]: integrate modal system for entry editing
 - `b9fff9a` - feat(modal)[T024/2.2]: implement modal entry form component
 - `6d7c92a` - docs(anchors)[T024]: add AIDEV-NOTE comments for modal system and bug analysis

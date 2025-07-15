@@ -98,6 +98,7 @@ func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	}
 
 	// Create the form with three-option select
+	// AIDEV-NOTE: T024-modal-fix; simplified to single select field for now
 	bi.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[BooleanOption]().

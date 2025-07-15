@@ -101,12 +101,14 @@ func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
 
 		// Check if form is complete
 		if efm.form.State == huh.StateCompleted {
+			// AIDEV-NOTE: T024-debug; form completed via non-key message, processing entry
 			efm.formComplete = true
 			return efm.processEntry()
 		}
 
 		// Check if form was aborted
 		if efm.form.State == huh.StateAborted {
+			// AIDEV-NOTE: T024-debug; form aborted via non-key message, closing modal
 			efm.Close()
 			return efm, cmd
 		}
@@ -131,12 +133,14 @@ func (efm *EntryFormModal) HandleKey(msg tea.KeyMsg) (Modal, tea.Cmd) {
 
 		// Check if form is complete
 		if efm.form.State == huh.StateCompleted {
+			// AIDEV-NOTE: T024-debug; form completed via key input, processing entry
 			efm.formComplete = true
 			return efm.processEntry()
 		}
 
 		// Check if form was aborted
 		if efm.form.State == huh.StateAborted {
+			// AIDEV-NOTE: T024-debug; form aborted via key input, closing modal
 			efm.Close()
 			return efm, cmd
 		}
