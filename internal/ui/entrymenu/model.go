@@ -14,6 +14,8 @@ import (
 
 	"davidlee/vice/internal/models"
 	"davidlee/vice/internal/ui"
+	"davidlee/vice/internal/ui/entry"
+	"davidlee/vice/internal/ui/modal"
 )
 
 // EntryMenuItem represents a goal as a menu item for entry collection.
@@ -202,6 +204,10 @@ type EntryMenuModel struct {
 	viewRenderer   *ViewRenderer
 	navEnhancer    *NavigationEnhancer
 
+	// Modal system for entry editing
+	modalManager       *modal.ModalManager
+	fieldInputFactory  *entry.EntryFieldInputFactory
+
 	// Navigation state
 	selectedGoalID string // ID of goal selected for entry
 	shouldQuit     bool   // Flag to quit the menu
@@ -240,6 +246,8 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 		entriesFile:    entriesFile,
 		viewRenderer:   NewViewRenderer(0, 0), // Will be updated on first WindowSizeMsg
 		navEnhancer:    NewNavigationEnhancer(),
+		modalManager:   modal.NewModalManager(0, 0), // Will be updated on first WindowSizeMsg
+		fieldInputFactory: entry.NewEntryFieldInputFactory(),
 	}
 }
 
@@ -260,6 +268,8 @@ func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.
 		returnBehavior: ReturnToMenu,
 		viewRenderer:   NewViewRenderer(80, 24), // Fixed size for testing
 		navEnhancer:    NewNavigationEnhancer(),
+		modalManager:   modal.NewModalManager(80, 24), // Fixed size for testing
+		fieldInputFactory: entry.NewEntryFieldInputFactory(),
 	}
 }
 
@@ -294,8 +304,44 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetWidth(msg.Width)
 		m.list.SetHeight(msg.Height - 4) // Account for progress bar and margins
 		m.viewRenderer = NewViewRenderer(msg.Width, msg.Height)
+		m.modalManager = modal.NewModalManager(msg.Width, msg.Height)
+
+	case modal.ModalOpenedMsg:
+		// Modal opened - no action needed, just continue
+		return m, nil
+
+	case modal.ModalClosedMsg:
+		// AIDEV-NOTE: T024-bug-fix; modal closed with result, sync menu state and auto-save
+		// Handle modal result and update menu state
+		if result := msg.Result; result != nil {
+			if entryResult, ok := result.(*entry.EntryResult); ok && entryResult.Status == models.EntryCompleted {
+				// Update menu state after successful entry
+				m.updateEntriesFromCollector()
+				
+				// Auto-save entries after collection
+				if m.entriesFile != "" && m.entryCollector != nil {
+					err := m.entryCollector.SaveEntriesToFile(m.entriesFile)
+					if err != nil {
+						// Log error but continue - could add error display later
+						_ = err // TODO: Consider adding save error handling UI
+					}
+				}
+				
+				// Smart navigation based on return behavior preference
+				if m.returnBehavior == ReturnToNextGoal {
+					m.navEnhancer.SelectNextIncompleteGoal(m)
+				}
+			}
+		}
+		return m, nil
 
 	case tea.KeyMsg:
+		// Route key messages to modal if active
+		if m.modalManager.HasActiveModal() {
+			cmd := m.modalManager.Update(msg)
+			return m, cmd
+		}
+		
 		switch {
 		case key.Matches(msg, m.keys.Quit):
 			m.shouldQuit = true
@@ -306,39 +352,20 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if item, ok := selected.(EntryMenuItem); ok {
 					m.selectedGoalID = item.Goal.ID
 
-					// AIDEV-NOTE: T018/3.1-entry-integration; MAIN INTEGRATION POINT for menu→entry→menu flow
-					// AIDEV-NOTE: T024-modal-integration; TODO - replace with modal system to eliminate looping
-					// AIDEV-NOTE: T024-phase3-todo; replace lines 312-340 with EntryFormModal.OpenModal() call
-					// This is the core implementation that makes goal selection functional
+					// AIDEV-NOTE: T024-modal-integration; replaced form.Run() with modal system to eliminate looping
+					// Launch entry form modal instead of direct collector call
 					if m.entryCollector != nil {
-						// Phase 3.1: Launch entry collection for selected goal
-						err := m.entryCollector.CollectSingleGoalEntry(item.Goal)
+						// Create entry form modal
+						entryFormModal, err := modal.NewEntryFormModal(item.Goal, m.entryCollector, m.fieldInputFactory)
 						if err != nil {
-							// For now, just continue - could add error display later
+							// Log error but continue - could add error display later
 							_ = err // TODO: Consider adding error handling UI
+							return m, nil
 						}
 
-						// Phase 3.1: Sync menu state with collector after entry collection
-						// CRITICAL: This updates menu visual state to reflect new entry data
-						m.updateEntriesFromCollector()
-
-						// AIDEV-NOTE: T018/3.2-auto-save; automatic persistence after each goal completion
-						// Phase 3.2: Auto-save entries after collection for seamless UX
-						if m.entriesFile != "" {
-							err = m.entryCollector.SaveEntriesToFile(m.entriesFile)
-							if err != nil {
-								// Log error but continue - could add error display later
-								_ = err // TODO: Consider adding save error handling UI
-							}
-						}
-
-						// Phase 3.2: Smart navigation based on return behavior preference
-						// AIDEV-NOTE: T018/3.2-navigation; toggle between menu-focus vs goal-focus workflows
-						if m.returnBehavior == ReturnToNextGoal {
-							// Auto-select next incomplete goal for efficient goal completion workflow
-							m.navEnhancer.SelectNextIncompleteGoal(m)
-						}
-						// If ReturnToMenu, stay on current goal for review-focused workflow
+						// Open modal - this returns command to initialize modal
+						cmd := m.modalManager.OpenModal(entryFormModal)
+						return m, cmd
 					}
 
 					return m, nil
@@ -368,6 +395,12 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	// Update modal manager if active
+	if m.modalManager.HasActiveModal() {
+		cmd := m.modalManager.Update(msg)
+		return m, cmd
+	}
+
 	// Update the list component
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
@@ -386,11 +419,18 @@ func (m *EntryMenuModel) View() string {
 	// Get list view with return behavior inserted before help
 	listView := m.renderListWithFooter()
 
-	return lipgloss.JoinVertical(
+	baseView := lipgloss.JoinVertical(
 		lipgloss.Left,
 		header,
 		listView,
 	)
+
+	// AIDEV-NOTE: T024-modal-integration; render modal overlay when active
+	if m.modalManager.HasActiveModal() {
+		return m.modalManager.View(baseView)
+	}
+
+	return baseView
 }
 
 // renderListWithFooter renders the list with return behavior inserted before help.

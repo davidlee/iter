@@ -186,7 +186,7 @@ The looping occurs in the goal collection flow where:
     - *AI Notes:* Ensure modal properly isolates entry form state from menu state
 
 - [ ] **3. Entry Menu Integration**
-  - [ ] **3.1 Modify entry menu for modal integration:** Update menu to support modal overlays
+  - [x] **3.1 Modify entry menu for modal integration:** Update menu to support modal overlays
     - *Design:* Menu model handles modal events, rendering with overlay support
     - *Code/Artifacts:* Modified `internal/ui/entrymenu/model.go` with modal integration
     - *Testing Strategy:* Integration tests for menu + modal rendering
@@ -250,6 +250,14 @@ The looping occurs in the goal collection flow where:
   - **Form States**: Monitor huh.StateCompleted and huh.StateAborted for proper flow control
   - **TODOs Identified**: Scoring integration, notes collection, better error handling UI
   - **Next Developer**: Focus on EntryMenuModel integration at lines 308-340 marked with T024-modal-integration
+- `2025-07-15 - AI:` Phase 3.1 complete - Entry menu modal integration implemented
+  - **Implementation**: EntryMenuModel integrated with modal system
+  - **Key Changes**: Added modalManager and fieldInputFactory fields to EntryMenuModel
+  - **Modal Events**: Proper handling of ModalOpenedMsg and ModalClosedMsg
+  - **Bug 2 Fix**: Replaced form.Run() takeover (lines 312-340) with modal.OpenModal() call
+  - **Rendering**: Modal overlay rendering when active, preserves menu background
+  - **State Management**: Modal close triggers menu state sync and auto-save
+  - **Status**: Phase 3.1 complete, ready for Phase 3.2 (flow refactoring)
 
 ## Git Commit History
 

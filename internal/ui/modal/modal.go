@@ -53,13 +53,11 @@ type ModalClosedMsg struct {
 // ModalManager manages the display and interaction of modals.
 // AIDEV-NOTE: modal-manager; core component orchestrating modal lifecycle and overlay rendering
 type ModalManager struct {
-	activeModal    Modal
-	parentModel    tea.Model
-	backgroundView string
-	overlayStyle   lipgloss.Style
-	dimStyle       lipgloss.Style
-	width          int
-	height         int
+	activeModal  Modal
+	overlayStyle lipgloss.Style
+	dimStyle     lipgloss.Style
+	width        int
+	height       int
 }
 
 // NewModalManager creates a new modal manager.
