@@ -671,6 +671,7 @@ vice prototype --debug  # Run prototype with debug logging enabled
 
 **All commits related to this task (newest first):**
 
+- `742f38e` - feat(investigation)[T024]: systematic prototype investigation isolates bug to modal system
 - `9521817` - feat(debug)[T024-debug-flag]: implement centralized debug logging system
 - `855a0d4` - feat(debug)[T024]: add comprehensive debug logging for modal investigation
 - `9f024b5` - fix(modal)[T024-debug]: add debug logging and simplify boolean form
