@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -489,40 +489,48 @@ func IsValidAchievementLevel(level string) bool {
 func (ge *GoalEntry) MarshalYAML() (interface{}, error) {
 	// Create a temporary struct with the same fields but different time formatting
 	type goalEntryAlias GoalEntry
-	
+
 	// Convert to alias to avoid infinite recursion, then create a map for custom formatting
 	alias := (*goalEntryAlias)(ge)
-	
+
 	// Create a map to control field ordering and custom formatting
 	result := make(map[string]interface{})
 	result["goal_id"] = alias.GoalID
-	
+
 	if alias.Value != nil {
 		// Handle time field values specially - format as HH:MM if it's a time
 		if timeVal, ok := alias.Value.(time.Time); ok && isTimeFieldValue(timeVal) {
 			result["value"] = timeVal.Format("15:04")
+		} else if floatVal, ok := alias.Value.(float64); ok {
+			// Preserve float64 type by ensuring decimal notation
+			if floatVal == float64(int64(floatVal)) {
+				// If it's a whole number, add .0 to preserve float type
+				result["value"] = fmt.Sprintf("%.1f", floatVal)
+			} else {
+				result["value"] = floatVal
+			}
 		} else {
 			result["value"] = alias.Value
 		}
 	}
-	
+
 	if alias.AchievementLevel != nil {
 		result["achievement_level"] = *alias.AchievementLevel
 	}
-	
+
 	if alias.Notes != "" {
 		result["notes"] = alias.Notes
 	}
-	
+
 	// Format timestamps in human-readable format
 	result["created_at"] = alias.CreatedAt.Format("2006-01-02 15:04:05")
-	
+
 	if alias.UpdatedAt != nil {
 		result["updated_at"] = alias.UpdatedAt.Format("2006-01-02 15:04:05")
 	}
-	
+
 	result["status"] = alias.Status
-	
+
 	return result, nil
 }
 
@@ -531,34 +539,34 @@ func (ge *GoalEntry) UnmarshalYAML(node *yaml.Node) error {
 	// Create a temporary struct for standard unmarshaling
 	type goalEntryAlias GoalEntry
 	alias := (*goalEntryAlias)(ge)
-	
+
 	// First unmarshal into a map to handle custom field processing
 	var raw map[string]interface{}
 	if err := node.Decode(&raw); err != nil {
 		return err
 	}
-	
+
 	// Process each field
 	if goalID, ok := raw["goal_id"].(string); ok {
 		alias.GoalID = goalID
 	}
-	
+
 	// Handle value field - could be time, string, number, boolean
 	if rawValue, exists := raw["value"]; exists {
 		alias.Value = parseValueField(rawValue)
 	}
-	
+
 	if achievementLevel, exists := raw["achievement_level"]; exists {
 		if levelStr, ok := achievementLevel.(string); ok {
 			level := AchievementLevel(levelStr)
 			alias.AchievementLevel = &level
 		}
 	}
-	
+
 	if notes, ok := raw["notes"].(string); ok {
 		alias.Notes = notes
 	}
-	
+
 	// Parse created_at with permissive time parsing
 	if createdAt, exists := raw["created_at"]; exists {
 		if parsedTime, err := parseTimeFlexible(createdAt); err == nil {
@@ -567,7 +575,7 @@ func (ge *GoalEntry) UnmarshalYAML(node *yaml.Node) error {
 			return fmt.Errorf("invalid created_at format: %v", err)
 		}
 	}
-	
+
 	// Parse updated_at with permissive time parsing
 	if updatedAt, exists := raw["updated_at"]; exists {
 		if parsedTime, err := parseTimeFlexible(updatedAt); err == nil {
@@ -576,11 +584,11 @@ func (ge *GoalEntry) UnmarshalYAML(node *yaml.Node) error {
 			return fmt.Errorf("invalid updated_at format: %v", err)
 		}
 	}
-	
+
 	if status, ok := raw["status"].(string); ok {
 		alias.Status = EntryStatus(status)
 	}
-	
+
 	return nil
 }
 
@@ -599,8 +607,15 @@ func parseValueField(raw interface{}) interface{} {
 				return parsedTime
 			}
 		}
+		// Try parsing as float if it looks like a decimal number
+		if strings.Contains(str, ".") {
+			if floatVal, err := strconv.ParseFloat(str, 64); err == nil {
+				return floatVal
+			}
+		}
 		return str
 	}
+	// Preserve numeric types as-is to maintain float64 vs int distinction
 	return raw
 }
 
@@ -610,9 +625,57 @@ func parseTimeFlexible(raw interface{}) (time.Time, error) {
 	if timeVal, ok := raw.(time.Time); ok {
 		return timeVal, nil
 	}
-	
+
 	// Otherwise parse as string
 	return parseTimePermissive(raw)
+}
+
+// MarshalYAML implements custom YAML marshaling for DayEntry to ensure GoalEntry custom marshaling is applied
+func (de *DayEntry) MarshalYAML() (interface{}, error) {
+	// Create a map to control field ordering and ensure custom marshaling of goals
+	result := make(map[string]interface{})
+	result["date"] = de.Date
+
+	// Marshal goals individually to ensure custom marshaling is applied
+	if len(de.Goals) > 0 {
+		var goals []interface{}
+		for _, goal := range de.Goals {
+			goalYAML, err := goal.MarshalYAML()
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal goal %s: %w", goal.GoalID, err)
+			}
+			goals = append(goals, goalYAML)
+		}
+		result["goals"] = goals
+	} else {
+		result["goals"] = []interface{}{}
+	}
+
+	return result, nil
+}
+
+// MarshalYAML implements custom YAML marshaling for EntryLog to ensure DayEntry custom marshaling is applied
+func (el *EntryLog) MarshalYAML() (interface{}, error) {
+	// Create a map to control field ordering and ensure custom marshaling of entries
+	result := make(map[string]interface{})
+	result["version"] = el.Version
+
+	// Marshal entries individually to ensure custom marshaling is applied
+	if len(el.Entries) > 0 {
+		var entries []interface{}
+		for _, entry := range el.Entries {
+			entryYAML, err := entry.MarshalYAML()
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal day entry %s: %w", entry.Date, err)
+			}
+			entries = append(entries, entryYAML)
+		}
+		result["entries"] = entries
+	} else {
+		result["entries"] = []interface{}{}
+	}
+
+	return result, nil
 }
 
 // parseTimePermissive accepts various time format inputs and returns time.Time
@@ -621,7 +684,7 @@ func parseTimePermissive(raw interface{}) (time.Time, error) {
 	if !ok {
 		return time.Time{}, fmt.Errorf("time value must be string, got %T", raw)
 	}
-	
+
 	// List of formats to try, in order of preference
 	formats := []string{
 		// Human-readable formats (new)
@@ -642,18 +705,18 @@ func parseTimePermissive(raw interface{}) (time.Time, error) {
 		"2006-01-02T15:04:05-07:00",
 		"2006-01-02T15:04:05.000-07:00",
 	}
-	
+
 	// Try each format
 	for _, format := range formats {
 		if parsed, err := time.Parse(format, str); err == nil {
 			return parsed, nil
 		}
 	}
-	
+
 	// Try parsing as Unix timestamp
 	if unix, err := strconv.ParseInt(str, 10, 64); err == nil {
 		return time.Unix(unix, 0), nil
 	}
-	
+
 	return time.Time{}, fmt.Errorf("unable to parse time value: %s", str)
 }

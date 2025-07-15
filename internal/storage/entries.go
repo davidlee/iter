@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
-	"github.com/goccy/go-yaml"
+	"gopkg.in/yaml.v3"
 
 	"davidlee/vice/internal/models"
 )
@@ -24,8 +25,8 @@ type BackupConfig struct {
 // DefaultBackupConfig returns the default backup configuration
 func DefaultBackupConfig() BackupConfig {
 	return BackupConfig{
-		Enabled:           true,  // Default to enabled for safety
-		CreateBeforeWrite: true,  // Backup before each write
+		Enabled:           true, // Default to enabled for safety
+		CreateBeforeWrite: true, // Backup before each write
 	}
 }
 
@@ -65,7 +66,9 @@ func (es *EntryStorage) ParseYAML(data []byte) (*models.EntryLog, error) {
 	var entryLog models.EntryLog
 
 	// Parse YAML with strict mode to catch unknown fields
-	if err := yaml.UnmarshalWithOptions(data, &entryLog, yaml.Strict()); err != nil {
+	decoder := yaml.NewDecoder(strings.NewReader(string(data)))
+	decoder.KnownFields(true) // Strict mode
+	if err := decoder.Decode(&entryLog); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML: %w", err)
 	}
 
@@ -87,13 +90,14 @@ func (es *EntryStorage) SaveToFile(entryLog *models.EntryLog, filePath string) e
 	}
 
 	// Marshal to YAML with pretty formatting
-	data, err := yaml.MarshalWithOptions(entryLog,
-		yaml.Indent(2),
-		yaml.IndentSequence(true),
-	)
-	if err != nil {
+	var buf strings.Builder
+	encoder := yaml.NewEncoder(&buf)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(entryLog); err != nil {
 		return fmt.Errorf("failed to marshal entry log to YAML: %w", err)
 	}
+	encoder.Close()
+	data := []byte(buf.String())
 
 	// Validate marshalled data by attempting to parse it back
 	// AIDEV-NOTE: T021 marshal-validation; prevents corrupted data from being written
