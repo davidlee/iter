@@ -1,5 +1,4 @@
 # Workflow 
-
 <!-- AIDEV-NOTE: Read this file FIRST before any kanban/ operations - contains task ID assignment rules and workflow --> 
 
 ## Roles & Collaboration Model
@@ -62,10 +61,10 @@ Tasks often have relationships with each other that should be explicitly documen
 
 ## AI Interaction with Task Markdown:
 
-- When planning, AI will propose content for "3. Implementation Plan & Progress".
-- When working, AI will update sub-task statuses (`[ ]`, `[WIP]`, `[x]`, `[blocked]`) in section 3.
-- AI will add entries to "4. Roadblocks" and "5. Notes / Discussion Log".
-- AI may edit task files in place, in which case it will always print the verbatim content of the changes and surrounding context to the user.
+- When planning, AI will propose content for "Implementation Plan & Progress".
+- When working, AI will update sub-task statuses (`[ ]`, `[WIP]`, `[x]`, `[blocked]`).
+- AI will add entries to "Roadblocks" and "Notes / Discussion Log".
+- AI may edit task files in place, unless directed otherwise.
 
 ## Commit Checklist
 
@@ -95,21 +94,12 @@ When asked to "commit" or when work is complete on a task or subtask, follow the
       - `fix(api)[T234]: correct response format in user service`
       - `docs(readme)[T567/2.3]: update installation instructions`
 
-### Core Workflow
+### Workflow
 
 **No Code Before Approved Plan:**
 - You must not begin implementing a (sub)task if the "Implementation Plan &
   Progress" section for that task/sub-task has not been filled out and
-  approved by the User.
-
-**Implementation Phase (Sub-task by Sub-task):**
-1. Update sub-task 1.1 status to `[WIP]` in the Markdown.
-2. Focus on sub-task 1.1: ask clarifying questions if needed, check plan & context is clear and appropriate. If not, STOP.
-3. When satisfied, generate code, documentation, test cases, etc., as per the design.
-3. Update sub-task 1.1 status to `[x]` (done) in the Markdown.
-4. Update "Overall Status" if a major phase is complete.
-5. **STOP.** "Sub-task 1.1 is complete. `T123.md` has been updated. Commit with message `feat(type):[T123/1.1] brief description`?
-- **User**: Reviews work, tests, confirms commit or requests changes.
+  approved by the User
 
 **Handling Roadblocks:**
 - AI (during a sub-task): "I've encountered a roadblock on sub-task X.Y: [description]."
