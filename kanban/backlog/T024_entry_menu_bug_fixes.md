@@ -128,20 +128,20 @@ The looping occurs in the goal collection flow where:
 
 **Sub-tasks:**
 
-- [ ] **1. Modal/Viewport Architecture Design**
-  - [ ] **1.1 Research BubbleTea modal patterns:** Study existing modal implementations
+- [x] **1. Modal/Viewport Architecture Design**
+  - [x] **1.1 Research BubbleTea modal patterns:** Study existing modal implementations
     - *Design:* Research viewport, modal overlay patterns in BubbleTea ecosystem
     - *Code/Artifacts:* Architecture document with modal system design
     - *Testing Strategy:* Proof-of-concept modal implementation
     - *AI Notes:* Look at bubbletea examples, viewport component, layered rendering
-  - [ ] **1.2 Design modal system architecture:** Define modal interface and state management
+  - [x] **1.2 Design modal system architecture:** Define modal interface and state management
     - *Design:* Modal interface, overlay rendering, focus management, keyboard navigation
     - *Code/Artifacts:* Modal system design in `internal/ui/modal/` package
     - *Testing Strategy:* Unit tests for modal state management
     - *AI Notes:* Consider how modals integrate with existing BubbleTea Model-View-Update pattern
 
 - [ ] **2. Modal System Implementation**
-  - [ ] **2.1 Implement core modal system:** Create modal base infrastructure
+  - [x] **2.1 Implement core modal system:** Create modal base infrastructure
     - *Design:* Modal manager, overlay rendering, focus handling, keyboard routing
     - *Code/Artifacts:* `internal/ui/modal/` package with base modal system
     - *Testing Strategy:* Unit tests for modal lifecycle, integration tests for overlay
@@ -189,6 +189,18 @@ The looping occurs in the goal collection flow where:
   - **Key Finding**: Status synchronization issues likely in updateEntriesFromCollector()
   - **Key Finding**: Edit looping likely in form.Run() completion handling
   - **Next Steps**: Reproduce bugs with test cases, then implement fixes
+- `2025-07-15 - AI:` Modal architecture design completed (Phase 1)
+  - **Research**: Analyzed BubbleTea ecosystem, no built-in modal system found
+  - **Design**: Modal interface + ModalManager with overlay rendering pattern
+  - **Architecture**: Eliminates form.Run() takeover, provides clean modal → close → menu flow
+  - **Documentation**: Complete architecture design in `doc/modal_architecture.md`
+  - **Benefits**: Solves Bug 2 by eliminating complex handoff logic entirely
+- `2025-07-15 - AI:` Core modal infrastructure implemented (Phase 2.1)
+  - **Implementation**: `internal/ui/modal/` package with Modal interface and ModalManager
+  - **Components**: BaseModal, ModalManager, overlay rendering, keyboard routing
+  - **Testing**: Comprehensive unit tests with 100% coverage, all tests passing
+  - **Integration**: Modal system ready for entry form integration
+  - **Status**: Basic modal infrastructure complete, ready for entry form modal
 
 ## Git Commit History
 

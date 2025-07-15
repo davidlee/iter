@@ -6,7 +6,8 @@ If dumb ideas were worth shit, we'd all be rich.
 
 # bugs
 
-None I'm especially conscious of
+xx None I'm especially conscious of
+-: UI is 1 line higher than screen (progressbar or key legend cut off); improvement: form controls should be inside modal / viewport
 
 # features 
 
