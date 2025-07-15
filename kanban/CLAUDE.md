@@ -97,62 +97,33 @@ When asked to "commit" or when work is complete on a task or subtask, follow the
 
 ### Core Workflow
 
-1. **Session Start / Context Restoration:**
-   - AI will read all the files in the categories in-progress and all other files that will help building the context for this.
-   - User: "Let's work on `task name`."
-   - AI will move this task in the in progress folder and will create or improve an implementation plan if needed
+**No Code Before Approved Plan:**
+- You must not begin implementing a (sub)task if the "Implementation Plan &
+  Progress" section for that task/sub-task has not been filled out and
+  approved by the User.
 
-2. **Task Creation (when requested)**
-   - AI: Writes a new file (e.g., `kanban/backlog/T001_task_description.md`), based on `kanban/backlog/T000_example.md`, filling out context (Goal, ACs) and an empty Implementation Plan.
-   - Before creating a new task, ALWAYS check existing task IDs using `fd 'T[0-9]{3,3}\w*.md' kanban` to ensure unique, monotonic task IDs.
-   - When a new task, ALWAYS list the `doc/` folder and existing cards to check for relevant prior art / guidance.
-   - Build and record a list of relevant files (code and docs) in the task card.
-   - Read and consider the context, then stop and ask any clarifying questions to ensure the goal, ACs, and intended behaviours are clear. 
-   - User: Reviews, modifies, saves the file to `backlog/`, and commits or can ask AI to proceed to some changes.
+**Implementation Phase (Sub-task by Sub-task):**
+1. Update sub-task 1.1 status to `[WIP]` in the Markdown.
+2. Focus on sub-task 1.1: ask clarifying questions if needed, check plan & context is clear and appropriate. If not, STOP.
+3. When satisfied, generate code, documentation, test cases, etc., as per the design.
+3. Update sub-task 1.1 status to `[x]` (done) in the Markdown.
+4. Update "Overall Status" if a major phase is complete.
+5. **STOP.** "Sub-task 1.1 is complete. `T123.md` has been updated. Commit with message `feat(type):[T123/1.1] brief description`?
+- **User**: Reviews work, tests, confirms commit or requests changes.
 
-3. **Planning Phase (for a selected task):**
-   - User: "Let's plan `T123`."
-   - AI: If card is not already in `kanban/in-progress`, confirm if card should be moved there.
-   - AI: Analyzes Goal & ACs. 
-   - AI: Proposes the "3. Implementation Plan & Progress" section with
-      - detailed sub-tasks
-      - design notes
-      - important files
-      - description of testing approach.
-      - subtask & scope for manual test plan for the user, if necessary to obtain confidence.
-   - AI: **STOPS.** "I have updated `T123.md` with a proposed implementation plan. Please review. Here is the updated content: ... [provides full MD content] ..."
-   - User: Reviews `T123.md`. Makes edits directly or asks AI for revisions.
-   - AI or User: commits.
+**Handling Roadblocks:**
+- AI (during a sub-task): "I've encountered a roadblock on sub-task X.Y: [description]."
+- AI: Updates sub-task X.Y status to `[blocked]` in the Markdown. Adds details to section "Roadblocks".
+- AI: **STOPS.** "Roadblock encountered and noted in `T123.md`. Here is the updated content: ... Please advise."
+- User: Resolves roadblock, provides guidance. Updates task.md if necessary (e.g., unblocks sub-task, modifies plan). Commits. "Okay, you can now proceed with sub-task X.Y."
 
-4. **Implementation Phase (Sub-task by Sub-task):**
-   - User: "Let's start T123/1.1"
-   - AI:
-     1. Updates sub-task 1.1 status to `[WIP]` in the Markdown.
-     2. Focuses on sub-task 1.1: asks clarifying questions if needed, check plan & context is clear and appropriate. If not, stop.
-     3. When satisfied, generates code, documentation, test cases, etc., as per the design.
-     3. Updates sub-task 1.1 status to `[x]` (done) in the Markdown.
-     4. Updates "Overall Status" in section 3 if a major phase is complete.
-     5. **STOPS.** "Sub-task 1.1 is complete. `T123.md` has been updated. Commit with message `feat(T123): Complete sub-task 1.1 - [brief description]`?
-   - **User**: Reviews AI's work, runs tests, confirms commit or requests changes.
+**Task Completion:**
+- (after the last sub-task): "All sub-tasks for `T123.md` are complete. The overall status is now `[done]`."
+- Update the task.md file accordingly.
+- **STOP.** "`T123.md` is now complete. Suggested commit: `feat(T123): Complete [Task Title]`. Should I move it to DONE and commit?"
 
-5. **Handling Roadblocks:**
-   - AI (during a sub-task): "I've encountered a roadblock on sub-task X.Y: [description]."
-   - AI: Updates sub-task X.Y status to `[blocked]` in the Markdown. Adds details to section "4. Roadblocks".
-   - AI: **STOPS.** "Roadblock encountered and noted in `T123.md`. Here is the updated content: ... Please advise."
-   - User: Resolves roadblock, provides guidance. Updates task.md if necessary (e.g., unblocks sub-task, modifies plan). Commits. "Okay, you can now proceed with sub-task X.Y."
-
-6. **Task Completion:**
-   - AI (after the last sub-task): "All sub-tasks for `T123.md` are complete. The overall status is now `[done]`."
-   - AI: Updates the task.md file accordingly.
-   - AI: **STOPS.** "`T123.md` is now complete. Suggested commit: `feat(T123): Complete [Task Title]`. Should I move it to DONE and commit?"
-   - User: Confirm or request changes.
-
-7. **"No Code Before Approved Plan":**
-   - The AI must not begin dev work for a task or sub-task if the "3. Implementation Plan & Progress" section for that task/sub-task has not been filled out and implicitly or explicitly approved by the User (i.e., User says "proceed with this plan" or "start sub-task X").
-
-8. **Stopping Conditions (AI must stop and wait for User):**
-   - After proposing or editing any part of the "Implementation Plan & Progress" section in a task.md.
-   - After marking any sub-task as `[WIP]`, `[x]` (done), or `[blocked]` and providing the associated output/update.
-   - When a roadblock is identified and documented.
-   - When explicitly asked to stop by the User.
-   - After completing all sub-tasks for a main task.
+**Stopping Conditions (AI must stop and wait for User):**
+- After modifying the "Implementation Plan & Progress" section in a task.md, except logging progress or observations.
+- After marking any sub-task as `[WIP]`, `[x]` (done), or `[blocked]` and providing the associated output/update.
+- When a roadblock is identified (once documented).
+- After completing all sub-tasks for a main task.

@@ -1,46 +1,45 @@
 ---
 title: "Descriptive Task Title"
-type: ["feature"] # feature | fix | documentation | testing | refactor | chore
 tags: ["parser"] # optional
 related_tasks: ["depends-on:T123", "blocks:T456", "related-to:T789"] # Optional with relationship type
 context_windows: ["./*.go", Claude.md, "doc/workflow.md", "doc/**/*.md"] # List of glob patterns useful to build the context window required for this task
 ---
-
 # {{ title }}
 
 **Context (Background)**:
 *AI to complete*
 
-**Context (Significant Code Files)**:
+**Type**: `feature` <!-- feature | fix | documentation | testing | refactor | chore -->
+
+**Overall Status:** `Not Started` | `In Progress` | `Completed` | `Blocked`
+*AI updates this based on sub-task progress or user instruction*
+
+## Reference (Relevant Files / URLs)
+
+### Significant Code (Files / Functions)
 *AI to complete*
 
-## Git Commit History
+### Relevant Documentation
+*AI to complete*
 
-**All commits related to this task (newest first):**
+### Related Tasks / History
+*AI to complete*
 
-<!-- Example format:
-- `abc1234` - feat(component)[T000/1.1]: implement feature X for subtask 1.1
-- `def5678` - fix(component)[T000/1.2]: fix bug Y in subtask 1.2
-- `ghi9012` - docs(tasks)[T000]: add task documentation
-
-For tasks without commits yet, use:
-*No commits yet - task is in backlog*
--->
-
-*AI to update after commit or checking commit history*
-
-## 1. Goal / User Story
+## Goal / User Story
 
 Brief description of what needs to be achieved, why, and for whom. Why is this task important?
+*AI to complete, asking questions as appropriate*
 
-## 2. Acceptance Criteria
+## Acceptance Criteria (ACs)
 
 A checklist of conditions that must be met for the task to be considered complete. User-focused.
 
 - [ ] Criterion 1
 - [ ] Criterion 2
 
-## 3. Architecture
+*AI to complete, asking questions as appropriate*
+
+## Architecture
 
 *AI to complete when changes are architecturally significant, or when asked, prior to implementation plan.*
 
@@ -48,10 +47,7 @@ A checklist of conditions that must be met for the task to be considered complet
 
 *Strong preference for appropriate diagrams (e.g. C4; sequence; dependency graph) in github supported mermaid or ASCII format.*
 
-## 4. Implementation Plan & Progress
-
-**Overall Status:** `Not Started` | `In Progress` | `Completed` | `Blocked`
-*AI updates this based on sub-task progress or user instruction*
+## Implementation Plan & Progress
 
 **Sub-tasks:**
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
@@ -68,12 +64,12 @@ A checklist of conditions that must be met for the task to be considered complet
     - *Design:* ...
     - *Testing Strategy:* ...
 
-## 5. Roadblocks
+## Roadblocks
 
 *(Timestamped list of any impediments. AI adds here when a sub-task is marked `[blocked]`)*
 - `YYYY-MM-DD HH:MM - [Sub-task ID/Name]:` Description of roadblock.
 
-## 6. Notes / Discussion Log
+## Notes / Discussion Log
 
 *(Timestamped notes, decisions, clarifications from User or AI during the task's lifecycle)*
 *(May include generated code blocks, references to files, or verbatim terminal output / chains of thought where relevant to understanding; verbosity is acceptable here, we're logging.)*
@@ -81,3 +77,17 @@ A checklist of conditions that must be met for the task to be considered complet
 - `YYYY-MM-DD HH:MM - User:` ...
 - `YYYY-MM-DD HH:MM - AI:` ...
 
+## Git Commit History
+
+**All commits related to this task (newest first):**
+
+<!-- Example format:
+- `abc1234` - feat(component)[T000/1.1]: implement feature X for subtask 1.1
+- `def5678` - fix(component)[T000/1.2]: fix bug Y in subtask 1.2
+- `ghi9012` - docs(tasks)[T000]: add task documentation
+
+For tasks without commits yet, use:
+*No commits yet - task is in backlog*
+-->
+
+*AI to update after commit or checking commit history*
