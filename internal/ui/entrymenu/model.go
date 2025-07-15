@@ -264,6 +264,7 @@ func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.
 }
 
 // createMenuItems converts goals and entries into menu items.
+// AIDEV-NOTE: T024-bug1-analysis; status display logic - check entry status mapping
 func createMenuItems(goals []models.Goal, entries map[string]models.GoalEntry) []list.Item {
 	items := make([]list.Item, len(goals))
 	for i, goal := range goals {
@@ -306,6 +307,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.selectedGoalID = item.Goal.ID
 
 					// AIDEV-NOTE: T018/3.1-entry-integration; MAIN INTEGRATION POINT for menu→entry→menu flow
+					// AIDEV-NOTE: T024-modal-integration; TODO - replace with modal system to eliminate looping
 					// This is the core implementation that makes goal selection functional
 					if m.entryCollector != nil {
 						// Phase 3.1: Launch entry collection for selected goal
@@ -468,6 +470,7 @@ func (m *EntryMenuModel) UpdateEntries(entries map[string]models.GoalEntry) {
 
 // updateEntriesFromCollector updates the entries map with data from the EntryCollector.
 // AIDEV-NOTE: T018/3.1-state-sync; CRITICAL method for syncing collector state to menu after entry collection
+// AIDEV-NOTE: T024-bug1-analysis; potential source of incorrect completion status display
 // Handles type conversion from collector interface{} values to GoalEntry structs for menu display
 // This is what makes the menu visual state update after user completes an entry
 func (m *EntryMenuModel) updateEntriesFromCollector() {

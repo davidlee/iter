@@ -1,5 +1,6 @@
 // Package modal provides a modal/overlay system for BubbleTea applications.
 // AIDEV-NOTE: modal-system; eliminates form.Run() takeover approach with overlay pattern
+// AIDEV-NOTE: T024-solution; architectural fix for entry menu bugs via modal overlay system
 package modal
 
 import (
@@ -50,6 +51,7 @@ type ModalClosedMsg struct {
 }
 
 // ModalManager manages the display and interaction of modals.
+// AIDEV-NOTE: modal-manager; core component orchestrating modal lifecycle and overlay rendering
 type ModalManager struct {
 	activeModal    Modal
 	parentModel    tea.Model
@@ -106,6 +108,7 @@ func (mm *ModalManager) CloseModal() tea.Cmd {
 }
 
 // Update processes messages for the modal manager.
+// AIDEV-NOTE: modal-routing; critical keyboard and message routing to active modal
 func (mm *ModalManager) Update(msg tea.Msg) tea.Cmd {
 	if mm.activeModal == nil {
 		return nil
@@ -153,6 +156,7 @@ func (mm *ModalManager) View(backgroundView string) string {
 }
 
 // renderWithModal renders the modal overlay on top of the background.
+// AIDEV-NOTE: modal-rendering; layered rendering with dimmed background and centered modal
 func (mm *ModalManager) renderWithModal(background, modal string) string {
 	// Dim the background
 	dimmedBg := mm.dimStyle.Render(background)
@@ -178,6 +182,7 @@ func (mm *ModalManager) SetDimensions(width, height int) {
 }
 
 // BaseModal provides common modal functionality.
+// AIDEV-NOTE: modal-base; shared state management and lifecycle for all modal implementations
 type BaseModal struct {
 	state  ModalState
 	result interface{}

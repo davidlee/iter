@@ -13,6 +13,7 @@ import (
 
 // EntryFormModal represents a modal for collecting goal entries.
 // AIDEV-NOTE: entry-form-modal; replaces form.Run() takeover with modal overlay approach
+// AIDEV-NOTE: T024-bug2-fix; eliminates edit looping by providing clean modal close → menu return
 type EntryFormModal struct {
 	*BaseModal
 	goal      models.Goal
@@ -88,6 +89,7 @@ func (efm *EntryFormModal) HandleKey(msg tea.KeyMsg) (Modal, tea.Cmd) {
 }
 
 // processEntry processes the goal entry and closes the modal.
+// AIDEV-NOTE: entry-processing; TODO - needs proper modal form integration replacing flow.CollectEntry()
 func (efm *EntryFormModal) processEntry() (Modal, tea.Cmd) {
 	// Create existing entry data from collector
 	var existing *entry.ExistingEntry
@@ -154,6 +156,7 @@ func (efm *EntryFormModal) renderForm() string {
 	promptText := promptStyle.Render(prompt)
 
 	// TODO: Implement proper form input based on goal type
+	// AIDEV-NOTE: form-integration; next phase needs field input components within modal
 	formContent := "Form input will be implemented here"
 
 	help := helpStyle.Render("Press Enter to save • Press Esc to cancel")

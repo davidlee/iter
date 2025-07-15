@@ -95,6 +95,7 @@ func (f *SimpleGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exis
 	}
 
 	// Create and run the input form
+	// AIDEV-NOTE: T024-bug2-source; form.Run() causes UI takeover and looping issues
 	form := input.CreateInputForm(goal)
 	if err := form.Run(); err != nil {
 		return nil, fmt.Errorf("input form failed: %w", err)
@@ -244,6 +245,7 @@ func (f *ElasticGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exi
 	f.displayCriteriaInformation(goal)
 
 	// Create and run the input form
+	// AIDEV-NOTE: T024-bug2-source; form.Run() causes UI takeover and looping issues
 	form := input.CreateInputForm(goal)
 	if err := form.Run(); err != nil {
 		return nil, fmt.Errorf("input form failed: %w", err)
@@ -442,6 +444,7 @@ func (f *InformationalGoalCollectionFlow) CollectEntry(goal models.Goal, existin
 	f.displayInformationalContext(goal)
 
 	// Create and run the input form
+	// AIDEV-NOTE: T024-bug2-source; form.Run() causes UI takeover and looping issues
 	form := input.CreateInputForm(goal)
 	if err := form.Run(); err != nil {
 		return nil, fmt.Errorf("input form failed: %w", err)

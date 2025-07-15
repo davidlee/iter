@@ -4,6 +4,9 @@
 
 This document outlines the design for a modal/overlay system in the vice application to replace the current `form.Run()` takeover approach for entry forms. The modal system will eliminate the edit looping bug and provide a better user experience.
 
+<!-- AIDEV-NOTE: modal-architecture; comprehensive design document for T024 bug fixes -->
+<!-- AIDEV-NOTE: T024-solution-design; architectural approach eliminates form.Run() complexity -->
+
 ## Research Findings
 
 ### BubbleTea Modal Patterns
@@ -161,6 +164,7 @@ func (m *EntryMenuModel) renderWithModal(background, modal string) string {
 
 ### Key Benefits
 
+<!-- AIDEV-NOTE: modal-benefits; architectural advantages over form.Run() approach -->
 1. **Eliminates Handoff**: No complex state transfer between menu and form
 2. **Natural UX**: Modal close → return to menu (no looping)
 3. **Context Preservation**: User sees menu behind modal
