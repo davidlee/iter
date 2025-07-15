@@ -71,8 +71,8 @@ func TestEntryMenuGoldenFiles_POC(t *testing.T) {
 	expectedContent := []string{
 		"Entry Menu",
 		"Exercise",
-		"Read", 
-		"completed", // Part of progress text 
+		"Read",
+		"completed", // Part of progress text
 		"Return: menu",
 	}
 
@@ -84,7 +84,7 @@ func TestEntryMenuGoldenFiles_POC(t *testing.T) {
 
 	t.Logf("Raw output length: %d characters", len(rawOutput))
 	t.Logf("Contains ANSI sequences: %t", strings.Contains(rawOutput, "\x1b["))
-	
+
 	// Clean output for preview
 	cleanOutput := stripANSI(rawOutput)
 	t.Logf("Clean output preview:\n%s", cleanOutput[:minInt(300, len(cleanOutput))])
@@ -102,7 +102,7 @@ func stripANSI(s string) string {
 	// Simple ANSI stripping - more sophisticated libraries exist
 	result := strings.Builder{}
 	inEscape := false
-	
+
 	for _, r := range s {
 		if r == '\x1b' {
 			inEscape = true
@@ -116,6 +116,6 @@ func stripANSI(s string) string {
 		}
 		result.WriteRune(r)
 	}
-	
+
 	return result.String()
 }

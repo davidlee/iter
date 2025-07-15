@@ -20,9 +20,9 @@ func TestEngine_ScoreSimpleGoal(t *testing.T) {
 			expectedLevel models.AchievementLevel
 			expectedMini  bool
 		}{
-			{5, models.AchievementNone, false},   // Below threshold
-			{10, models.AchievementMini, true},   // At threshold
-			{15, models.AchievementMini, true},   // Above threshold
+			{5, models.AchievementNone, false}, // Below threshold
+			{10, models.AchievementMini, true}, // At threshold
+			{15, models.AchievementMini, true}, // Above threshold
 		}
 
 		for _, tc := range testCases {

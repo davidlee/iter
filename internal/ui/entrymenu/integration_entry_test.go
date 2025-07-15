@@ -25,7 +25,7 @@ func TestEntryIntegration_MenuToEntryFlow(t *testing.T) {
 			FieldType: models.FieldType{Type: "boolean"},
 		},
 		{
-			ID:        "time_goal", 
+			ID:        "time_goal",
 			Title:     "Wake Up Early",
 			GoalType:  models.SimpleGoal,
 			FieldType: models.FieldType{Type: "time"},
@@ -59,7 +59,7 @@ func TestEntryIntegration_MenuToEntryFlow(t *testing.T) {
 
 	// Test 1: Navigate to first goal (Exercise)
 	// The first goal should be selected by default
-	
+
 	// Test 2: Select the goal (pressing Enter)
 	// NOTE: This will try to launch entry collection
 	// For this test, we expect it to work but the entry collection might be minimal
@@ -68,7 +68,7 @@ func TestEntryIntegration_MenuToEntryFlow(t *testing.T) {
 
 	// Test 3: Check if the model is still running (entry collection completed)
 	// If entry collection worked, the model should still be active
-	
+
 	// Test 4: Try to navigate to next incomplete goal
 	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("n")})
 	time.Sleep(50 * time.Millisecond)
@@ -78,7 +78,7 @@ func TestEntryIntegration_MenuToEntryFlow(t *testing.T) {
 
 	// Get final model state
 	finalModel := tm.FinalModel(t, teatest.WithFinalTimeout(2*time.Second))
-	
+
 	if entryMenuModel, ok := finalModel.(*EntryMenuModel); ok {
 		// Verify the model handled the interaction properly
 		if !entryMenuModel.ShouldQuit() {
@@ -121,11 +121,11 @@ func TestEntryIntegration_MenuToEntryFlow(t *testing.T) {
 
 // Helper function for case-insensitive string search
 func containsIgnoreCase(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		   (s == substr || 
-			len(s) > len(substr) && 
-			(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-			 findSubstring(s, substr)))
+	return len(s) >= len(substr) &&
+		(s == substr ||
+			len(s) > len(substr) &&
+				(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
+					findSubstring(s, substr)))
 }
 
 func findSubstring(s, substr string) bool {

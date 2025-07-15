@@ -24,7 +24,6 @@ func NewViewRenderer(width, height int) *ViewRenderer {
 	}
 }
 
-
 // RenderFilters renders the current filter state indicator.
 func (v *ViewRenderer) RenderFilters(filterState FilterState) string {
 	if filterState == FilterNone {
@@ -75,7 +74,7 @@ func (v *ViewRenderer) RenderHeader(goals []models.Goal, entries map[string]mode
 	}
 
 	header := strings.Join(headerParts, "\n")
-	
+
 	// AIDEV-NOTE: layout-spacing; blank line provides visual separation between header and menu
 	return header + "\n"
 }
@@ -88,19 +87,19 @@ func (v *ViewRenderer) renderProgress(goals []models.Goal, entries map[string]mo
 
 	stats := v.calculateProgressStats(goals, entries)
 	completedPct := float64(stats.Completed) / float64(stats.Total) * 100
-	
+
 	// Create visual progress bar
 	progressBarVisual := v.renderProgressBarVisual(completedPct)
-	
+
 	// Create progress text
 	progressText := fmt.Sprintf(
 		"Progress: %d/%d completed (%.1f%%) | %d failed | %d skipped | %d remaining",
 		stats.Completed, stats.Total, completedPct,
 		stats.Failed, stats.Skipped, stats.Remaining,
 	)
-	
+
 	statusLine := progressStyle.Render(progressText)
-	
+
 	// Combine progress bar visual and status line
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
@@ -180,26 +179,24 @@ func (v *ViewRenderer) calculateProgressStats(goals []models.Goal, entries map[s
 	return stats
 }
 
-
-
 // Styling definitions for the view renderer.
 var (
 	// Progress bar styling
 	progressBarStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("15")). // white
-		Bold(true)
+				Foreground(lipgloss.Color("15")). // white
+				Bold(true)
 
 	progressStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("12")). // bright blue
-		Bold(true)
+			Foreground(lipgloss.Color("12")). // bright blue
+			Bold(true)
 
 	// Filter styling
 	filterStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("11")). // bright yellow
-		Italic(true)
+			Foreground(lipgloss.Color("11")). // bright yellow
+			Italic(true)
 
 	// Return behavior styling
 	returnBehaviorStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("14")). // bright cyan
-		Italic(true)
+				Foreground(lipgloss.Color("14")). // bright cyan
+				Italic(true)
 )

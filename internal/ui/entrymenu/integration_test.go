@@ -65,7 +65,7 @@ func TestEntryMenuIntegration_POC(t *testing.T) {
 
 	// Test 4: Verify the model's behavior
 	finalModel := tm.FinalModel(t, teatest.WithFinalTimeout(time.Second))
-	
+
 	if entryMenuModel, ok := finalModel.(*EntryMenuModel); ok {
 		selectedID := entryMenuModel.SelectedGoalID()
 		if selectedID != "goal2" {
@@ -94,4 +94,3 @@ func TestEntryMenuIntegration_POC(t *testing.T) {
 	t.Logf("Final output length: %d characters", len(outputStr))
 	t.Logf("Output preview: %q", outputStr[:minInt(200, len(outputStr))])
 }
-

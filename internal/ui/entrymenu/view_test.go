@@ -84,7 +84,7 @@ func TestViewRenderer_RenderProgressBar(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := renderer.renderProgress(tt.goals, tt.entries)
-			
+
 			for _, expected := range tt.contains {
 				if !strings.Contains(result, expected) {
 					t.Errorf("Expected result to contain %q, got: %s", expected, result)
@@ -127,7 +127,7 @@ func TestViewRenderer_RenderFilters(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := renderer.RenderFilters(tt.filterState)
-			
+
 			if tt.expected == "" {
 				if result != "" {
 					t.Errorf("Expected empty result, got: %s", result)
@@ -164,7 +164,7 @@ func TestViewRenderer_RenderReturnBehavior(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := renderer.RenderReturnBehavior(tt.behavior)
-			
+
 			if !strings.Contains(result, tt.expected) {
 				t.Errorf("Expected result to contain %q, got: %s", tt.expected, result)
 			}
@@ -220,27 +220,27 @@ func TestViewRenderer_RenderProgressBarVisual(t *testing.T) {
 	renderer := NewViewRenderer(80, 24)
 
 	tests := []struct {
-		name         string
-		completedPct float64
-		total        int
+		name          string
+		completedPct  float64
+		total         int
 		shouldContain []string
 	}{
 		{
-			name:         "zero percent",
-			completedPct: 0.0,
-			total:        4,
+			name:          "zero percent",
+			completedPct:  0.0,
+			total:         4,
 			shouldContain: []string{"[", "]", "0.0%"},
 		},
 		{
-			name:         "fifty percent",
-			completedPct: 50.0,
-			total:        4,
+			name:          "fifty percent",
+			completedPct:  50.0,
+			total:         4,
 			shouldContain: []string{"[", "]", "50.0%"},
 		},
 		{
-			name:         "hundred percent",
-			completedPct: 100.0,
-			total:        4,
+			name:          "hundred percent",
+			completedPct:  100.0,
+			total:         4,
 			shouldContain: []string{"[", "]", "100.0%"},
 		},
 	}
@@ -248,7 +248,7 @@ func TestViewRenderer_RenderProgressBarVisual(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := renderer.renderProgressBarVisual(tt.completedPct)
-			
+
 			for _, expected := range tt.shouldContain {
 				if !strings.Contains(result, expected) {
 					t.Errorf("Expected result to contain %q, got: %s", expected, result)
@@ -295,7 +295,7 @@ func TestViewRenderer_ZeroWidth(t *testing.T) {
 	renderer := NewViewRenderer(0, 24)
 
 	result := renderer.renderProgressBarVisual(50.0)
-	
+
 	// Should handle zero width gracefully
 	if result != "" {
 		t.Errorf("Expected empty result for zero width, got: %s", result)
@@ -347,7 +347,7 @@ func TestProgressStats_EdgeCases(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stats := renderer.calculateProgressStats(tt.goals, tt.entries)
-			
+
 			if !tt.check(stats) {
 				t.Errorf("Stats check failed for %s: %+v", tt.name, stats)
 			}

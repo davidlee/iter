@@ -68,32 +68,32 @@ func TestNewEntryMenuModelForTesting(t *testing.T) {
 
 func TestEntryMenuItemStatusColors(t *testing.T) {
 	tests := []struct {
-		name         string
-		hasEntry     bool
-		entryStatus  models.EntryStatus
+		name          string
+		hasEntry      bool
+		entryStatus   models.EntryStatus
 		expectedColor string
 	}{
 		{
-			name:         "no entry",
-			hasEntry:     false,
+			name:          "no entry",
+			hasEntry:      false,
 			expectedColor: "250", // light grey
 		},
 		{
-			name:         "completed",
-			hasEntry:     true,
-			entryStatus:  models.EntryCompleted,
+			name:          "completed",
+			hasEntry:      true,
+			entryStatus:   models.EntryCompleted,
 			expectedColor: "214", // gold
 		},
 		{
-			name:         "failed",
-			hasEntry:     true,
-			entryStatus:  models.EntryFailed,
+			name:          "failed",
+			hasEntry:      true,
+			entryStatus:   models.EntryFailed,
 			expectedColor: "88", // dark red
 		},
 		{
-			name:         "skipped",
-			hasEntry:     true,
-			entryStatus:  models.EntrySkipped,
+			name:          "skipped",
+			hasEntry:      true,
+			entryStatus:   models.EntrySkipped,
 			expectedColor: "240", // dark grey
 		},
 	}
@@ -222,22 +222,22 @@ func TestShouldFilterOut(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a navigation helper to test filtering logic
 			helper := NewNavigationHelper()
-			
+
 			// Create a goal and entry for testing
 			goal := models.Goal{ID: "test", Title: "Test Goal"}
 			entries := make(map[string]models.GoalEntry)
-			
+
 			if tt.hasEntry {
 				entries["test"] = models.GoalEntry{
 					GoalID: "test",
 					Status: tt.entryStatus,
 				}
 			}
-			
+
 			// Get visible goals to test filter logic
 			goals := []models.Goal{goal}
 			visibleGoals := helper.GetVisibleGoalsAfterFilter(goals, entries, tt.filterState)
-			
+
 			shouldFilter := len(visibleGoals) == 0
 			if shouldFilter != tt.shouldFilter {
 				t.Errorf("Expected shouldFilter %v, got %v", tt.shouldFilter, shouldFilter)
@@ -295,14 +295,14 @@ func TestEntryMenuModel_ViewWithFilters(t *testing.T) {
 	}
 
 	model := NewEntryMenuModelForTesting(goals, entries)
-	
+
 	// Set dimensions for proper rendering
 	model.width = 80
 	model.height = 24
-	
+
 	// Enable skipped filter
 	model.toggleSkippedFilter()
-	
+
 	view := model.View()
 
 	// Should show filter information
@@ -351,13 +351,13 @@ func TestEntryMenuModel_NavigationEnhancements(t *testing.T) {
 
 func TestEntryMenuModel_ClearFilters(t *testing.T) {
 	model := NewEntryMenuModelForTesting([]models.Goal{}, map[string]models.GoalEntry{})
-	
+
 	// Set some filters
 	model.filterState = FilterHideSkippedAndPrevious
-	
+
 	// Clear filters
 	model.clearAllFilters()
-	
+
 	if model.filterState != FilterNone {
 		t.Errorf("Expected FilterNone after clearing, got %v", model.filterState)
 	}

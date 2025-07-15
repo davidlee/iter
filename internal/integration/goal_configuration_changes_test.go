@@ -20,12 +20,12 @@ func TestGoalConfigurationChanges(t *testing.T) {
 		// This tests the exact scenario reported by the user:
 		// Goal was originally: simple boolean with manual scoring
 		// User changed to: simple numeric with automatic scoring
-		
+
 		// Create the "after" goal configuration (what user has now)
 		goal := models.Goal{
-			Title:       "Do 10 push-ups",
-			ID:          "do_10_push_ups",
-			GoalType:    models.SimpleGoal,
+			Title:    "Do 10 push-ups",
+			ID:       "do_10_push_ups",
+			GoalType: models.SimpleGoal,
 			FieldType: models.FieldType{
 				Type: models.UnsignedIntFieldType,
 				Unit: "push-ups",
@@ -68,7 +68,7 @@ func TestGoalConfigurationChanges(t *testing.T) {
 
 	t.Run("manual_to_automatic_scoring_conversion", func(t *testing.T) {
 		// Test converting from manual to automatic scoring (different field types)
-		
+
 		testCases := []struct {
 			name      string
 			fieldType string
@@ -133,7 +133,7 @@ func TestGoalConfigurationChanges(t *testing.T) {
 
 	t.Run("different_goal_types_with_automatic_scoring", func(t *testing.T) {
 		// Ensure that all goal types can use automatic scoring appropriately
-		
+
 		factory := entry.NewEntryFieldInputFactory()
 		scoringEngine := scoring.NewEngine()
 

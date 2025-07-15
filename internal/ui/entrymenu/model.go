@@ -18,12 +18,13 @@ import (
 
 // EntryMenuItem represents a goal as a menu item for entry collection.
 // AIDEV-NOTE: entry-menu-item; extends GoalItem pattern with entry status tracking
+//
 //revive:disable-next-line:exported // descriptive name preferred over stuttering avoidance
 type EntryMenuItem struct {
-	Goal         models.Goal
-	EntryStatus  models.EntryStatus
-	HasEntry     bool
-	Value        interface{}
+	Goal             models.Goal
+	EntryStatus      models.EntryStatus
+	HasEntry         bool
+	Value            interface{}
 	AchievementLevel *models.AchievementLevel
 }
 
@@ -36,7 +37,7 @@ func (e EntryMenuItem) FilterValue() string {
 func (e EntryMenuItem) Title() string {
 	emoji := e.getGoalStatusEmoji()
 	statusColor := e.getStatusColor()
-	
+
 	titleStyle := lipgloss.NewStyle().Foreground(statusColor)
 	return fmt.Sprintf("%s %s", emoji, titleStyle.Render(e.Goal.Title))
 }
@@ -55,7 +56,7 @@ func (e EntryMenuItem) getGoalStatusEmoji() string {
 	if !e.HasEntry {
 		return "☐" // incomplete - empty box
 	}
-	
+
 	switch e.EntryStatus {
 	case models.EntryCompleted:
 		return "✓" // completed - checkmark
@@ -73,19 +74,18 @@ func (e EntryMenuItem) getStatusColor() lipgloss.Color {
 	if !e.HasEntry {
 		return lipgloss.Color("250") // light grey - incomplete
 	}
-	
+
 	switch e.EntryStatus {
 	case models.EntryCompleted:
 		return lipgloss.Color("214") // gold - success
 	case models.EntryFailed:
-		return lipgloss.Color("88")  // dark red - failed
+		return lipgloss.Color("88") // dark red - failed
 	case models.EntrySkipped:
 		return lipgloss.Color("240") // dark grey - skipped
 	default:
 		return lipgloss.Color("250") // light grey - incomplete
 	}
 }
-
 
 // FilterState represents the current filtering state of the menu.
 type FilterState int
@@ -109,6 +109,7 @@ const (
 
 // EntryMenuKeyMap defines the keybindings for the entry menu interface.
 // AIDEV-NOTE: entry-menu-keybinding; extends GoalListKeyMap with entry-specific actions
+//
 //revive:disable-next-line:exported // descriptive name preferred over stuttering avoidance
 type EntryMenuKeyMap struct {
 	// Navigation
@@ -185,6 +186,7 @@ func DefaultEntryMenuKeyMap() EntryMenuKeyMap {
 
 // EntryMenuModel represents the state of the entry menu interface.
 // AIDEV-NOTE: entry-menu-model; adapts GoalListModel patterns for entry workflow
+//
 //revive:disable-next-line:exported // descriptive name preferred over stuttering avoidance
 type EntryMenuModel struct {
 	list           list.Model
@@ -196,19 +198,19 @@ type EntryMenuModel struct {
 	filterState    FilterState
 	returnBehavior ReturnBehavior
 	entryCollector *ui.EntryCollector
-	entriesFile    string          // Path to entries file for auto-save
+	entriesFile    string // Path to entries file for auto-save
 	viewRenderer   *ViewRenderer
 	navEnhancer    *NavigationEnhancer
-	
+
 	// Navigation state
-	selectedGoalID string  // ID of goal selected for entry
-	shouldQuit     bool    // Flag to quit the menu
+	selectedGoalID string // ID of goal selected for entry
+	shouldQuit     bool   // Flag to quit the menu
 }
 
 // NewEntryMenuModel creates a new entry menu model with the provided goals and entries.
 func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry, collector *ui.EntryCollector, entriesFile string) *EntryMenuModel {
 	items := createMenuItems(goals, entries)
-	
+
 	// Create list with default delegate
 	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
 	l.Title = "Entry Menu"
@@ -222,7 +224,7 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 	keyMap := DefaultEntryMenuKeyMap()
 	l.AdditionalShortHelpKeys = func() []key.Binding {
 		return []key.Binding{
-			keyMap.NextIncomplete, keyMap.ToggleReturnBehavior, 
+			keyMap.NextIncomplete, keyMap.ToggleReturnBehavior,
 			keyMap.FilterSkipped, keyMap.FilterPrevious, keyMap.ClearFilters,
 		}
 	}
@@ -244,11 +246,11 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 // NewEntryMenuModelForTesting creates a headless entry menu model for testing.
 func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.GoalEntry) *EntryMenuModel {
 	items := createMenuItems(goals, entries)
-	
+
 	// Create minimal list for testing
 	l := list.New(items, list.NewDefaultDelegate(), 80, 24)
 	l.Title = "Entry Menu"
-	
+
 	return &EntryMenuModel{
 		list:           l,
 		goals:          goals,
@@ -302,7 +304,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				selected := m.list.SelectedItem()
 				if item, ok := selected.(EntryMenuItem); ok {
 					m.selectedGoalID = item.Goal.ID
-					
+
 					// AIDEV-NOTE: T018/3.1-entry-integration; MAIN INTEGRATION POINT for menu→entry→menu flow
 					// This is the core implementation that makes goal selection functional
 					if m.entryCollector != nil {
@@ -312,11 +314,11 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							// For now, just continue - could add error display later
 							_ = err // TODO: Consider adding error handling UI
 						}
-						
+
 						// Phase 3.1: Sync menu state with collector after entry collection
 						// CRITICAL: This updates menu visual state to reflect new entry data
 						m.updateEntriesFromCollector()
-						
+
 						// AIDEV-NOTE: T018/3.2-auto-save; automatic persistence after each goal completion
 						// Phase 3.2: Auto-save entries after collection for seamless UX
 						if m.entriesFile != "" {
@@ -326,7 +328,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 								_ = err // TODO: Consider adding save error handling UI
 							}
 						}
-						
+
 						// Phase 3.2: Smart navigation based on return behavior preference
 						// AIDEV-NOTE: T018/3.2-navigation; toggle between menu-focus vs goal-focus workflows
 						if m.returnBehavior == ReturnToNextGoal {
@@ -335,7 +337,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 						// If ReturnToMenu, stay on current goal for review-focused workflow
 					}
-					
+
 					return m, nil
 				}
 			}
@@ -374,13 +376,13 @@ func (m *EntryMenuModel) View() string {
 	if m.width == 0 {
 		return "Loading..."
 	}
-	
+
 	header := m.viewRenderer.RenderHeader(m.goals, m.entries, m.filterState)
 	m.list.Title = "Entry Menu"
-	
+
 	// Get list view with return behavior inserted before help
 	listView := m.renderListWithFooter()
-	
+
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		header,
@@ -394,12 +396,12 @@ func (m *EntryMenuModel) renderListWithFooter() string {
 	// Temporarily disable list help to render it manually
 	showHelp := m.list.ShowHelp()
 	m.list.SetShowHelp(false)
-	
+
 	listContent := m.list.View()
-	
+
 	// Restore help setting
 	m.list.SetShowHelp(showHelp)
-	
+
 	// Create return behavior line
 	var returnText string
 	switch m.returnBehavior {
@@ -410,20 +412,20 @@ func (m *EntryMenuModel) renderListWithFooter() string {
 	default:
 		returnText = "Return: menu"
 	}
-	
+
 	returnLine := returnBehaviorStyle.Render(returnText)
-	
+
 	// Add help if it was enabled
 	var parts []string
 	parts = append(parts, listContent)
 	parts = append(parts, returnLine)
-	
+
 	if showHelp {
 		// Get the list's help text by temporarily restoring help and getting just that part
 		m.list.SetShowHelp(true)
 		fullView := m.list.View()
 		m.list.SetShowHelp(false)
-		
+
 		// Extract help text from the bottom of the full view
 		lines := strings.Split(fullView, "\n")
 		if len(lines) > 0 {
@@ -433,7 +435,7 @@ func (m *EntryMenuModel) renderListWithFooter() string {
 			}
 		}
 	}
-	
+
 	return lipgloss.JoinVertical(lipgloss.Left, parts...)
 }
 
@@ -472,7 +474,7 @@ func (m *EntryMenuModel) updateEntriesFromCollector() {
 	if m.entryCollector == nil {
 		return
 	}
-	
+
 	// Update entries for all goals based on collector state
 	for _, goal := range m.goals {
 		value, notes, achievement, status, hasEntry := m.entryCollector.GetGoalEntry(goal.ID)
@@ -485,7 +487,7 @@ func (m *EntryMenuModel) updateEntriesFromCollector() {
 				AchievementLevel: achievement,
 				CreatedAt:        time.Now(),
 			}
-			
+
 			// Set value based on type
 			switch v := value.(type) {
 			case string:
@@ -501,11 +503,11 @@ func (m *EntryMenuModel) updateEntriesFromCollector() {
 			default:
 				goalEntry.Value = fmt.Sprintf("%v", v)
 			}
-			
+
 			m.entries[goal.ID] = goalEntry
 		}
 	}
-	
+
 	// Recreate menu items with updated entry data
 	items := createMenuItems(m.goals, m.entries)
 	m.list.SetItems(items)
@@ -553,19 +555,17 @@ func (m *EntryMenuModel) clearAllFilters() {
 	m.filterState = FilterNone
 }
 
-
-
 // Styles for the entry menu interface.
 var (
 	titleStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("205")).
-		Background(lipgloss.Color("235")).
-		Padding(0, 1).
-		Bold(true)
+			Foreground(lipgloss.Color("205")).
+			Background(lipgloss.Color("235")).
+			Padding(0, 1).
+			Bold(true)
 
 	paginationStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("8"))
+			Foreground(lipgloss.Color("8"))
 
 	helpStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("8"))
+			Foreground(lipgloss.Color("8"))
 )

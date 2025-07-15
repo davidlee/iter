@@ -123,41 +123,41 @@ func TestNavigationHelper_GetVisibleGoalsAfterFilter(t *testing.T) {
 	}
 
 	tests := []struct {
-		name         string
-		filterState  FilterState
-		expectedIDs  []string
+		name        string
+		filterState FilterState
+		expectedIDs []string
 	}{
 		{
-			name:         "no filter",
-			filterState:  FilterNone,
-			expectedIDs:  []string{"goal1", "goal2", "goal3", "goal4"},
+			name:        "no filter",
+			filterState: FilterNone,
+			expectedIDs: []string{"goal1", "goal2", "goal3", "goal4"},
 		},
 		{
-			name:         "hide skipped",
-			filterState:  FilterHideSkipped,
-			expectedIDs:  []string{"goal1", "goal2", "goal4"},
+			name:        "hide skipped",
+			filterState: FilterHideSkipped,
+			expectedIDs: []string{"goal1", "goal2", "goal4"},
 		},
 		{
-			name:         "hide previous",
-			filterState:  FilterHidePrevious,
-			expectedIDs:  []string{"goal3", "goal4"},
+			name:        "hide previous",
+			filterState: FilterHidePrevious,
+			expectedIDs: []string{"goal3", "goal4"},
 		},
 		{
-			name:         "hide skipped and previous",
-			filterState:  FilterHideSkippedAndPrevious,
-			expectedIDs:  []string{"goal4"},
+			name:        "hide skipped and previous",
+			filterState: FilterHideSkippedAndPrevious,
+			expectedIDs: []string{"goal4"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := helper.GetVisibleGoalsAfterFilter(goals, entries, tt.filterState)
-			
+
 			if len(result) != len(tt.expectedIDs) {
 				t.Errorf("Expected %d visible goals, got %d", len(tt.expectedIDs), len(result))
 				return
 			}
-			
+
 			for i, goal := range result {
 				if goal.ID != tt.expectedIDs[i] {
 					t.Errorf("Expected goal ID %s at index %d, got %s", tt.expectedIDs[i], i, goal.ID)
@@ -295,13 +295,13 @@ func TestNavigationEnhancer_UpdateListAfterFilterChange(t *testing.T) {
 
 func TestGoalInfo_StatusMethods(t *testing.T) {
 	tests := []struct {
-		name       string
-		hasEntry   bool
-		status     models.EntryStatus
-		isComplete bool
+		name         string
+		hasEntry     bool
+		status       models.EntryStatus
+		isComplete   bool
 		isIncomplete bool
-		isSkipped  bool
-		isFailed   bool
+		isSkipped    bool
+		isFailed     bool
 	}{
 		{
 			name:         "no entry",
@@ -345,7 +345,7 @@ func TestGoalInfo_StatusMethods(t *testing.T) {
 			goalInfo := &GoalInfo{
 				HasEntry: tt.hasEntry,
 			}
-			
+
 			if tt.hasEntry {
 				goalInfo.Entry = models.GoalEntry{Status: tt.status}
 			}
@@ -380,17 +380,17 @@ func TestEntryMenuKeyMap_HelpMethods(t *testing.T) {
 	if len(fullHelp) != 3 {
 		t.Errorf("Expected 3 groups in full help, got %d", len(fullHelp))
 	}
-	
+
 	// Check navigation group has 3 bindings (up, down, select)
 	if len(fullHelp[0]) != 3 {
 		t.Errorf("Expected 3 navigation bindings, got %d", len(fullHelp[0]))
 	}
-	
+
 	// Check menu controls group has 4 bindings (return, filter skipped, filter previous, clear filters)
 	if len(fullHelp[1]) != 4 {
 		t.Errorf("Expected 4 menu control bindings, got %d", len(fullHelp[1]))
 	}
-	
+
 	// Check exit group has 1 binding
 	if len(fullHelp[2]) != 1 {
 		t.Errorf("Expected 1 exit binding, got %d", len(fullHelp[2]))

@@ -91,10 +91,10 @@ func runEntryMenu(paths *config.Paths) error {
 	// AIDEV-NOTE: T018/3.2-auto-save; pass entriesFile path for automatic persistence
 	// Create and run entry menu with complete integration: collector + auto-save + return behavior
 	model := entrymenu.NewEntryMenuModel(schema.Goals, entries, collector, paths.EntriesFile)
-	
+
 	program := tea.NewProgram(model, tea.WithAltScreen())
 	_, err = program.Run()
-	
+
 	return err
 }
 

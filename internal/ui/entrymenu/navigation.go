@@ -24,14 +24,14 @@ func (n *NavigationHelper) FindNextIncompleteGoal(goals []models.Goal, entries m
 			return i
 		}
 	}
-	
+
 	// Wrap around to the beginning
 	for i := 0; i <= currentIndex; i++ {
 		if _, hasEntry := entries[goals[i].ID]; !hasEntry {
 			return i
 		}
 	}
-	
+
 	// No incomplete goals found
 	return currentIndex
 }
@@ -44,14 +44,14 @@ func (n *NavigationHelper) FindPreviousIncompleteGoal(goals []models.Goal, entri
 			return i
 		}
 	}
-	
+
 	// Wrap around to the end
 	for i := len(goals) - 1; i >= currentIndex; i-- {
 		if _, hasEntry := entries[goals[i].ID]; !hasEntry {
 			return i
 		}
 	}
-	
+
 	// No incomplete goals found
 	return currentIndex
 }
@@ -61,26 +61,26 @@ func (n *NavigationHelper) GetVisibleGoalsAfterFilter(goals []models.Goal, entri
 	if filterState == FilterNone {
 		return goals
 	}
-	
+
 	var visibleGoals []models.Goal
 	hideSkipped := filterState == FilterHideSkipped || filterState == FilterHideSkippedAndPrevious
 	hidePrevious := filterState == FilterHidePrevious || filterState == FilterHideSkippedAndPrevious
-	
+
 	for _, goal := range goals {
 		entry, hasEntry := entries[goal.ID]
-		
+
 		// Apply filter logic
 		if hideSkipped && hasEntry && entry.Status == models.EntrySkipped {
 			continue
 		}
-		
+
 		if hidePrevious && hasEntry && (entry.Status == models.EntryCompleted || entry.Status == models.EntryFailed) {
 			continue
 		}
-		
+
 		visibleGoals = append(visibleGoals, goal)
 	}
-	
+
 	return visibleGoals
 }
 
@@ -143,10 +143,10 @@ func (e *NavigationEnhancer) SelectNextIncompleteGoal(model *EntryMenuModel) {
 	if len(model.goals) == 0 {
 		return
 	}
-	
+
 	currentIndex := model.list.Index()
 	nextIndex := e.helper.FindNextIncompleteGoal(model.goals, model.entries, currentIndex)
-	
+
 	if nextIndex != currentIndex {
 		model.list.Select(nextIndex)
 	}
@@ -157,10 +157,10 @@ func (e *NavigationEnhancer) SelectPreviousIncompleteGoal(model *EntryMenuModel)
 	if len(model.goals) == 0 {
 		return
 	}
-	
+
 	currentIndex := model.list.Index()
 	prevIndex := e.helper.FindPreviousIncompleteGoal(model.goals, model.entries, currentIndex)
-	
+
 	if prevIndex != currentIndex {
 		model.list.Select(prevIndex)
 	}
@@ -170,7 +170,7 @@ func (e *NavigationEnhancer) SelectPreviousIncompleteGoal(model *EntryMenuModel)
 func (e *NavigationEnhancer) UpdateListAfterFilterChange(model *EntryMenuModel) {
 	// Get visible goals after filter
 	visibleGoals := e.helper.GetVisibleGoalsAfterFilter(model.goals, model.entries, model.filterState)
-	
+
 	// Create menu items for visible goals
 	var items []list.Item
 	for _, goal := range visibleGoals {
@@ -183,10 +183,10 @@ func (e *NavigationEnhancer) UpdateListAfterFilterChange(model *EntryMenuModel) 
 			AchievementLevel: entry.AchievementLevel,
 		})
 	}
-	
+
 	// Update the list
 	model.list.SetItems(items)
-	
+
 	// Auto-select first incomplete goal if list is not empty
 	if len(items) > 0 {
 		model.SelectFirstIncompleteGoal()
@@ -204,7 +204,7 @@ func (m *EntryMenuModel) SelectFirstIncompleteGoal() {
 			}
 		}
 	}
-	
+
 	// If no incomplete goals, select first item
 	if len(items) > 0 {
 		m.list.Select(0)
@@ -216,7 +216,7 @@ func (m *EntryMenuModel) GetCurrentGoalInfo() *GoalInfo {
 	if len(m.goals) == 0 {
 		return nil
 	}
-	
+
 	selected := m.list.SelectedItem()
 	if item, ok := selected.(EntryMenuItem); ok {
 		entry, hasEntry := m.entries[item.Goal.ID]
@@ -227,7 +227,7 @@ func (m *EntryMenuModel) GetCurrentGoalInfo() *GoalInfo {
 			Index:    m.list.Index(),
 		}
 	}
-	
+
 	return nil
 }
 

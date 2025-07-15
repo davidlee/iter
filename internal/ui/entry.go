@@ -325,7 +325,7 @@ func (ec *EntryCollector) GetGoalEntry(goalID string) (interface{}, string, *mod
 	notes := ec.notes[goalID]
 	achievement := ec.achievements[goalID]
 	status, hasStatus := ec.statuses[goalID]
-	
+
 	return value, notes, achievement, status, hasValue && hasStatus
 }
 
@@ -334,13 +334,13 @@ func (ec *EntryCollector) GetGoalEntry(goalID string) (interface{}, string, *mod
 // Converts GoalEntry format to internal collector format (interface{} values)
 func (ec *EntryCollector) InitializeForMenu(goals []models.Goal, entries map[string]models.GoalEntry) {
 	ec.goals = goals
-	
+
 	// Initialize maps
 	ec.entries = make(map[string]interface{})
 	ec.achievements = make(map[string]*models.AchievementLevel)
 	ec.notes = make(map[string]string)
 	ec.statuses = make(map[string]models.EntryStatus)
-	
+
 	// Load existing entries into collector format
 	for _, entry := range entries {
 		ec.entries[entry.GoalID] = entry.Value
