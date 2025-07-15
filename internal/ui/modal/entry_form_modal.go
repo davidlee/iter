@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
 	"davidlee/vice/internal/models"
@@ -16,31 +17,57 @@ import (
 // AIDEV-NOTE: T024-bug2-fix; eliminates edit looping by providing clean modal close → menu return
 type EntryFormModal struct {
 	*BaseModal
-	goal      models.Goal
-	collector *ui.EntryCollector
-	flow      entry.GoalCollectionFlow
-	input     entry.EntryFieldInput
-	result    *entry.EntryResult
-	error     error
-	width     int
-	height    int
+	goal         models.Goal
+	collector    *ui.EntryCollector
+	fieldInput   entry.EntryFieldInput
+	form         *huh.Form
+	result       *entry.EntryResult
+	error        error
+	width        int
+	height       int
+	formComplete bool
 }
 
 // NewEntryFormModal creates a new entry form modal.
-func NewEntryFormModal(goal models.Goal, collector *ui.EntryCollector, flowFactory *entry.GoalCollectionFlowFactory) (*EntryFormModal, error) {
-	// Create the appropriate collection flow for this goal type
-	flow, err := flowFactory.CreateFlow(string(goal.GoalType))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create collection flow: %w", err)
+func NewEntryFormModal(goal models.Goal, collector *ui.EntryCollector, fieldInputFactory *entry.EntryFieldInputFactory) (*EntryFormModal, error) {
+	// Create existing entry data from collector
+	var existing *entry.ExistingEntry
+	if collector != nil {
+		value, notes, achievement, _, hasEntry := collector.GetGoalEntry(goal.ID)
+		if hasEntry {
+			existing = &entry.ExistingEntry{
+				Value:            value,
+				Notes:            notes,
+				AchievementLevel: achievement,
+			}
+		}
 	}
 
+	// Create field input configuration
+	config := entry.EntryFieldInputConfig{
+		Goal:          goal,
+		FieldType:     goal.FieldType,
+		ExistingEntry: existing,
+		ShowScoring:   goal.ScoringType == models.AutomaticScoring,
+	}
+
+	// Create field input component
+	fieldInput, err := fieldInputFactory.CreateInput(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create field input: %w", err)
+	}
+
+	// Create the form
+	form := fieldInput.CreateInputForm(goal)
+
 	modal := &EntryFormModal{
-		BaseModal: NewBaseModal(),
-		goal:      goal,
-		collector: collector,
-		flow:      flow,
-		width:     80,
-		height:    24,
+		BaseModal:  NewBaseModal(),
+		goal:       goal,
+		collector:  collector,
+		fieldInput: fieldInput,
+		form:       form,
+		width:      80,
+		height:     24,
 	}
 
 	return modal, nil
@@ -49,7 +76,7 @@ func NewEntryFormModal(goal models.Goal, collector *ui.EntryCollector, flowFacto
 // Init initializes the entry form modal.
 func (efm *EntryFormModal) Init() tea.Cmd {
 	efm.Open()
-	return nil
+	return efm.form.Init()
 }
 
 // Update handles messages for the entry form modal.
@@ -61,11 +88,28 @@ func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
 		return efm, nil
 
 	case tea.KeyMsg:
-		// Handle modal-specific keys
+		// Handle modal-specific keys first
 		return efm.HandleKey(msg)
 
 	default:
-		return efm, nil
+		// Let the form handle other messages
+		var cmd tea.Cmd
+		formModel, cmd := efm.form.Update(msg)
+		efm.form = formModel.(*huh.Form)
+
+		// Check if form is complete
+		if efm.form.State == huh.StateCompleted {
+			efm.formComplete = true
+			return efm.processEntry()
+		}
+
+		// Check if form was aborted
+		if efm.form.State == huh.StateAborted {
+			efm.Close()
+			return efm, cmd
+		}
+
+		return efm, cmd
 	}
 }
 
@@ -77,40 +121,57 @@ func (efm *EntryFormModal) HandleKey(msg tea.KeyMsg) (Modal, tea.Cmd) {
 		efm.Close()
 		return efm, nil
 
-	case "enter":
-		// Process the entry
-		return efm.processEntry()
-
 	default:
-		// For now, just close on any other key
-		// TODO: Implement proper form input handling
-		return efm, nil
+		// Let the form handle all other keys
+		var cmd tea.Cmd
+		formModel, cmd := efm.form.Update(msg)
+		efm.form = formModel.(*huh.Form)
+
+		// Check if form is complete
+		if efm.form.State == huh.StateCompleted {
+			efm.formComplete = true
+			return efm.processEntry()
+		}
+
+		// Check if form was aborted
+		if efm.form.State == huh.StateAborted {
+			efm.Close()
+			return efm, cmd
+		}
+
+		return efm, cmd
 	}
 }
 
 // processEntry processes the goal entry and closes the modal.
-// AIDEV-NOTE: entry-processing; TODO - needs proper modal form integration replacing flow.CollectEntry()
+// AIDEV-NOTE: entry-processing; processes form completion and creates EntryResult
 func (efm *EntryFormModal) processEntry() (Modal, tea.Cmd) {
-	// Create existing entry data from collector
-	var existing *entry.ExistingEntry
-	if efm.collector != nil {
-		value, notes, achievement, _, hasEntry := efm.collector.GetGoalEntry(efm.goal.ID)
-		if hasEntry {
-			existing = &entry.ExistingEntry{
-				Value:            value,
-				Notes:            notes,
-				AchievementLevel: achievement,
-			}
-		}
-	}
-
-	// Use the flow to collect the entry
-	// TODO: Replace this with proper modal form handling
-	result, err := efm.flow.CollectEntry(efm.goal, existing)
-	if err != nil {
-		efm.error = err
+	// Validate the input
+	if err := efm.fieldInput.Validate(); err != nil {
+		efm.error = fmt.Errorf("validation failed: %w", err)
 		return efm, nil
 	}
+
+	// Get the collected value and status
+	value := efm.fieldInput.GetValue()
+	status := efm.fieldInput.GetStatus()
+
+	// Create the entry result
+	result := &entry.EntryResult{
+		Value:  value,
+		Status: status,
+	}
+
+	// Handle scoring if needed
+	if efm.goal.ScoringType == models.AutomaticScoring {
+		// TODO: Implement scoring integration
+		// For now, just set achievement level to nil
+		result.AchievementLevel = nil
+	}
+
+	// TODO: Collect notes if needed
+	// For now, just set empty notes
+	result.Notes = ""
 
 	// Store the result and close modal
 	efm.result = result
@@ -137,35 +198,25 @@ func (efm *EntryFormModal) renderForm() string {
 		Align(lipgloss.Center).
 		Margin(0, 0, 1, 0)
 
-	promptStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("7")).
-		Margin(0, 0, 1, 0)
-
 	helpStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("241")).
 		Italic(true).
 		Align(lipgloss.Center).
 		Margin(1, 0, 0, 0)
 
-	title := titleStyle.Render(efm.goal.Title)
-	
-	prompt := efm.goal.Prompt
-	if prompt == "" {
-		prompt = "Enter your progress for this goal:"
-	}
-	promptText := promptStyle.Render(prompt)
+	title := titleStyle.Render(fmt.Sprintf("Entry: %s", efm.goal.Title))
 
-	// TODO: Implement proper form input based on goal type
-	// AIDEV-NOTE: form-integration; next phase needs field input components within modal
-	formContent := "Form input will be implemented here"
+	// Render the form
+	formContent := efm.form.View()
 
-	help := helpStyle.Render("Press Enter to save • Press Esc to cancel")
+	help := helpStyle.Render("Press Esc to cancel")
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		title,
-		promptText,
+		"",
 		formContent,
+		"",
 		help,
 	)
 }

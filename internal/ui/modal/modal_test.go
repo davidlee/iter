@@ -41,9 +41,9 @@ func TestModalManager_SetDimensions(t *testing.T) {
 func TestModalManager_ViewWithoutModal(t *testing.T) {
 	mm := NewModalManager(80, 24)
 	background := "test background"
-	
+
 	result := mm.View(background)
-	
+
 	if result != background {
 		t.Errorf("Expected background unchanged, got %s", result)
 	}
@@ -245,7 +245,7 @@ func TestModalManager_ViewWithModal(t *testing.T) {
 	modal := NewMockModal()
 
 	background := "test background"
-	
+
 	// Without modal
 	result := mm.View(background)
 	if result != background {
@@ -255,7 +255,7 @@ func TestModalManager_ViewWithModal(t *testing.T) {
 	// With modal
 	mm.OpenModal(modal)
 	result = mm.View(background)
-	
+
 	if result == background {
 		t.Error("Expected different view with modal")
 	}
