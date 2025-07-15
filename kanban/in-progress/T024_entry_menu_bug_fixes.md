@@ -15,7 +15,7 @@ Two bugs identified in the entry menu interface (T018) that affect user experien
 
 **Type**: `fix`
 
-**Overall Status:** `In Progress`
+**Overall Status:** `In Progress - Debug Phase`
 
 ## Reference (Relevant Files / URLs)
 
@@ -209,6 +209,47 @@ The looping occurs in the goal collection flow where:
     - *Testing Strategy:* Compare with original bug reports, verify user experience
     - *AI Notes:* Modal architecture should naturally solve Bug 2, verify Bug 1 status sync
 
+## Investigation Findings
+
+### Modal Closing Issue (T024-debug)
+
+**Problem Statement**: Modal opens briefly (1-2 seconds) then closes automatically without user interaction.
+
+**Field Type Behavior Analysis**:
+- **Variable Duration**: Some field types stay open longer than others
+- **Flicker Behavior**: Some goals "only flicker open" (immediate closing)
+- **Consistent Pattern**: Deletion of day's entries does not resolve issue
+
+**Technical Hypotheses**:
+
+1. **Field-Specific Auto-Completion**:
+   - Boolean fields with default values may trigger immediate form completion
+   - Different field types have different completion triggers
+   - Form validation or state management varies by field type
+
+2. **Message/Event Timing**:
+   - Form receives messages after initialization that trigger completion
+   - BubbleTea event cycle causing unintended state transitions
+   - Modal lifecycle integration issues with form event handling
+
+3. **huh Library Integration**:
+   - Single-field forms may complete automatically when pre-populated
+   - Form state transitions happening during initialization
+   - Default values causing immediate validation success
+
+**Investigation Status**:
+- ✅ **Debug Logging Implemented**: Comprehensive logging across modal system, entry menu, and field inputs
+- ✅ **Logging Coverage**: Modal lifecycle, form state changes, field creation, message handling
+- ⏳ **Next Steps**: Field testing with debug output to identify specific completion triggers
+- ⏳ **Root Cause**: Pending debug log analysis from user interaction
+
+**Debug Log Points**:
+- Modal creation and initialization
+- Form state transitions (StateNormal → StateCompleted/StateAborted)
+- Field input creation with default values
+- Message handling (KeyMsg, WindowSizeMsg, etc.)
+- Entry menu modal open/close events
+
 ## Roadblocks
 
 *(No roadblocks identified yet)*
@@ -266,11 +307,20 @@ The looping occurs in the goal collection flow where:
   - **Anchor Updates**: Updated comments to reflect new architecture - flows no longer cause looping
   - **Testing**: Goal collection flow tests still pass, confirming CLI functionality intact
   - **Status**: Phase 3 complete, ready for Phase 4 (testing & validation)
+- `2025-07-15 - AI:` Modal closing investigation - comprehensive debug logging implemented
+  - **Problem Report**: Modal opens briefly (1-2 seconds) then closes automatically
+  - **Field Type Variation**: Some field types stay open longer than others, some "only flicker open"
+  - **Persistence**: Deleting day's entries does not resolve the issue
+  - **Debug Infrastructure**: Added comprehensive logging to modal system, entry menu, and field inputs
+  - **Logging Coverage**: Modal lifecycle, form state changes, field creation, message handling
+  - **Status**: Debug logging deployed, ready for field testing to identify root cause
 
 ## Git Commit History
 
 **All commits related to this task (newest first):**
 
+- `855a0d4` - feat(debug)[T024]: add comprehensive debug logging for modal investigation
+- `9f024b5` - fix(modal)[T024-debug]: add debug logging and simplify boolean form
 - `da8d021` - feat(entrymenu)[T024/3.2]: complete goal collection flow refactoring
 - `d3d4cd2` - feat(entrymenu)[T024/3.1]: integrate modal system for entry editing
 - `b9fff9a` - feat(modal)[T024/2.2]: implement modal entry form component
