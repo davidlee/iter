@@ -37,6 +37,13 @@ Two bugs identified in the entry menu interface (T018) that affect user experien
 - `internal/ui/entrymenu/model.go:55-70` - getGoalStatusEmoji() determines status emojis
 - `internal/ui/entrymenu/model.go:72-88` - getStatusColor() determines status colors
 
+**Modal System Files (Phase 2 Complete)**:
+- `internal/ui/modal/modal.go` - Core modal infrastructure with ModalManager
+- `internal/ui/modal/entry_form_modal.go` - EntryFormModal implementation (KEY FILE)
+- `internal/ui/modal/entry_form_modal_test.go` - Comprehensive test suite
+- `internal/ui/modal/integration_test.go` - Integration tests for modal manager
+- `internal/ui/modal/modal_test.go` - Unit tests for base modal system
+
 NOTE: `charmbracelet/` contains reference checkouts of key repos. 
 also refer to API docs: https://pkg.go.dev/github.com/charmbracelet/bubbletea (./huh, etc) 
 
@@ -123,6 +130,32 @@ The looping occurs in the goal collection flow where:
 - File storage (entries.yml)
 - EntryCollector state (interface{} values)  
 - EntryMenuModel display (GoalEntry structs)
+
+## Future Improvements & Refactoring Advisable
+
+### High Priority (Phase 3 Integration)
+- **Modal Integration**: Replace EntryMenuModel.Update() lines 308-340 with modal approach
+- **Scoring Integration**: Complete TODO in EntryFormModal.processEntry() for automatic scoring
+- **Notes Collection**: Implement proper notes collection in modal form
+- **Error Handling**: Add user-friendly error display UI within modal
+
+### Medium Priority (Post-Integration)
+- **Form Validation**: Add real-time validation feedback in modal
+- **Modal Animations**: Smooth open/close transitions for better UX
+- **Keyboard Navigation**: Enhanced accessibility with proper focus management
+- **Testing**: Enable golden file testing when UI stabilizes
+
+### Low Priority (Future Enhancements)
+- **Modal Theming**: Configurable modal colors and styles
+- **Form Persistence**: Save draft entries on accidental close
+- **Multi-Step Forms**: Support for complex goal types requiring multiple screens
+- **Form Plugins**: Extensible form system for custom field types
+
+### Refactoring Opportunities
+- **Extract Constants**: Move modal styling to shared theme system
+- **Type Safety**: Replace `interface{}` with proper type unions where possible
+- **Error Centralization**: Unified error handling across modal system
+- **State Management**: Consider reducing collector ↔ menu state conversion complexity
 
 ## Implementation Plan & Progress
 
@@ -212,11 +245,17 @@ The looping occurs in the goal collection flow where:
   - **Architecture**: Replaces form.Run() takeover with modal overlay approach
   - **Testing**: Comprehensive unit tests + integration tests, all passing
   - **Status**: Phase 2 complete, ready for Phase 3 (entry menu integration)
+  - **Key Insight**: Instead of form.Run() takeover, integrate form into BubbleTea model lifecycle
+  - **Critical Discovery**: Type assertion needed for form updates: `formModel.(*huh.Form)`
+  - **Form States**: Monitor huh.StateCompleted and huh.StateAborted for proper flow control
+  - **TODOs Identified**: Scoring integration, notes collection, better error handling UI
+  - **Next Developer**: Focus on EntryMenuModel integration at lines 308-340 marked with T024-modal-integration
 
 ## Git Commit History
 
 **All commits related to this task (newest first):**
 
+- `b9fff9a` - feat(modal)[T024/2.2]: implement modal entry form component
 - `6d7c92a` - docs(anchors)[T024]: add AIDEV-NOTE comments for modal system and bug analysis
 - `33d461f` - feat(modal)[T024/2.1]: implement core modal system infrastructure  
 - `72ed015` - feat(kanban)[T024]: add entry menu bug fixes task with modal architecture approach

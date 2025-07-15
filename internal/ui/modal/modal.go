@@ -85,6 +85,7 @@ func (mm *ModalManager) HasActiveModal() bool {
 }
 
 // OpenModal opens a modal and returns the initialization command.
+// AIDEV-NOTE: modal-open; entry point for launching modals from parent components
 func (mm *ModalManager) OpenModal(modal Modal) tea.Cmd {
 	mm.activeModal = modal
 	return tea.Batch(
@@ -94,6 +95,7 @@ func (mm *ModalManager) OpenModal(modal Modal) tea.Cmd {
 }
 
 // CloseModal closes the current modal.
+// AIDEV-NOTE: modal-close; returns result and cleans up modal state
 func (mm *ModalManager) CloseModal() tea.Cmd {
 	if mm.activeModal == nil {
 		return nil

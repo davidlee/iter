@@ -29,6 +29,7 @@ type EntryFormModal struct {
 }
 
 // NewEntryFormModal creates a new entry form modal.
+// AIDEV-NOTE: modal-factory; key factory method integrating existing entry field input system
 func NewEntryFormModal(goal models.Goal, collector *ui.EntryCollector, fieldInputFactory *entry.EntryFieldInputFactory) (*EntryFormModal, error) {
 	// Create existing entry data from collector
 	var existing *entry.ExistingEntry
@@ -93,6 +94,7 @@ func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
 
 	default:
 		// Let the form handle other messages
+		// AIDEV-NOTE: form-integration; critical type assertion and state monitoring
 		var cmd tea.Cmd
 		formModel, cmd := efm.form.Update(msg)
 		efm.form = formModel.(*huh.Form)
@@ -165,11 +167,13 @@ func (efm *EntryFormModal) processEntry() (Modal, tea.Cmd) {
 	// Handle scoring if needed
 	if efm.goal.ScoringType == models.AutomaticScoring {
 		// TODO: Implement scoring integration
+		// AIDEV-NOTE: scoring-todo; needs integration with existing scoring engine
 		// For now, just set achievement level to nil
 		result.AchievementLevel = nil
 	}
 
 	// TODO: Collect notes if needed
+	// AIDEV-NOTE: notes-todo; needs integration with collectStandardOptionalNotes pattern
 	// For now, just set empty notes
 	result.Notes = ""
 

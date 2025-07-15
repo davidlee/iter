@@ -308,6 +308,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					// AIDEV-NOTE: T018/3.1-entry-integration; MAIN INTEGRATION POINT for menu→entry→menu flow
 					// AIDEV-NOTE: T024-modal-integration; TODO - replace with modal system to eliminate looping
+					// AIDEV-NOTE: T024-phase3-todo; replace lines 312-340 with EntryFormModal.OpenModal() call
 					// This is the core implementation that makes goal selection functional
 					if m.entryCollector != nil {
 						// Phase 3.1: Launch entry collection for selected goal
