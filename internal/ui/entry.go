@@ -359,6 +359,19 @@ func (ec *EntryCollector) SaveEntriesToFile(entriesFile string) error {
 	return ec.saveEntries(entriesFile)
 }
 
+// StoreEntryResult stores an entry result from modal processing into the collector.
+// AIDEV-NOTE: T024-modal-integration; stores modal results in collector for menu state sync
+func (ec *EntryCollector) StoreEntryResult(goalID string, result *entry.EntryResult) {
+	ec.entries[goalID] = result.Value
+	ec.notes[goalID] = result.Notes
+	ec.statuses[goalID] = result.Status
+	
+	// Store achievement level if present (for elastic goals)
+	if result.AchievementLevel != nil {
+		ec.achievements[goalID] = result.AchievementLevel
+	}
+}
+
 // Testing helpers - these methods are only used in tests
 
 // SetGoalsForTesting sets the goals for testing purposes.

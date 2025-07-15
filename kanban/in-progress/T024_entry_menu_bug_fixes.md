@@ -185,13 +185,13 @@ The looping occurs in the goal collection flow where:
     - *Testing Strategy:* teatest integration tests for modal form interactions
     - *AI Notes:* Ensure modal properly isolates entry form state from menu state
 
-- [ ] **3. Entry Menu Integration**
+- [x] **3. Entry Menu Integration**
   - [x] **3.1 Modify entry menu for modal integration:** Update menu to support modal overlays
     - *Design:* Menu model handles modal events, rendering with overlay support
     - *Code/Artifacts:* Modified `internal/ui/entrymenu/model.go` with modal integration
     - *Testing Strategy:* Integration tests for menu + modal rendering
     - *AI Notes:* Menu stays active, modal appears as overlay, proper event routing
-  - [ ] **3.2 Refactor goal collection flows:** Update flows to use modal instead of takeover
+  - [x] **3.2 Refactor goal collection flows:** Update flows to use modal instead of takeover
     - *Design:* Remove form.Run() calls, use modal form component instead
     - *Code/Artifacts:* Modified `internal/ui/entry/goal_collection_flows.go`
     - *Testing Strategy:* Flow tests with modal form component
@@ -258,11 +258,20 @@ The looping occurs in the goal collection flow where:
   - **Rendering**: Modal overlay rendering when active, preserves menu background
   - **State Management**: Modal close triggers menu state sync and auto-save
   - **Status**: Phase 3.1 complete, ready for Phase 3.2 (flow refactoring)
+- `2025-07-15 - AI:` Phase 3.2 complete - Goal collection flows updated for modal compatibility
+  - **Architecture Analysis**: Entry menu now bypasses goal collection flows entirely via modal system
+  - **Bug 2 Resolution**: Modal system eliminates handoff complexity - entry menu no longer calls flow.CollectEntry()
+  - **Flow Architecture**: CLI entry collection still uses flows with form.Run() (works correctly)
+  - **Modal Integration**: EntryCollector.StoreEntryResult() method added to store modal results
+  - **Anchor Updates**: Updated comments to reflect new architecture - flows no longer cause looping
+  - **Testing**: Goal collection flow tests still pass, confirming CLI functionality intact
+  - **Status**: Phase 3 complete, ready for Phase 4 (testing & validation)
 
 ## Git Commit History
 
 **All commits related to this task (newest first):**
 
+- `d3d4cd2` - feat(entrymenu)[T024/3.1]: integrate modal system for entry editing
 - `b9fff9a` - feat(modal)[T024/2.2]: implement modal entry form component
 - `6d7c92a` - docs(anchors)[T024]: add AIDEV-NOTE comments for modal system and bug analysis
 - `33d461f` - feat(modal)[T024/2.1]: implement core modal system infrastructure  

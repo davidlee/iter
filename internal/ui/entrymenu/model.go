@@ -314,8 +314,13 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// AIDEV-NOTE: T024-bug-fix; modal closed with result, sync menu state and auto-save
 		// Handle modal result and update menu state
 		if result := msg.Result; result != nil {
-			if entryResult, ok := result.(*entry.EntryResult); ok && entryResult.Status == models.EntryCompleted {
-				// Update menu state after successful entry
+			if entryResult, ok := result.(*entry.EntryResult); ok {
+				// Store the entry result in the collector
+				if m.entryCollector != nil {
+					m.entryCollector.StoreEntryResult(m.selectedGoalID, entryResult)
+				}
+				
+				// Update menu state after entry storage
 				m.updateEntriesFromCollector()
 				
 				// Auto-save entries after collection
