@@ -103,11 +103,13 @@ func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 		description = descStyle.Render(goal.Description)
 	}
 
-	// Create the form with three-option select
-	// AIDEV-NOTE: T024-modal-fix; simplified to single select field for now
+	// Create the form with boolean select and notes field
+	// AIDEV-NOTE: T024-fix; add notes field to prevent single-field auto-completion
+	var notes string
 	bi.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[BooleanOption]().
+				Key("option").
 				Title(prompt).
 				Description(description).
 				Options(
@@ -116,6 +118,11 @@ func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 					huh.NewOption("⏭️ Skip - Unable to complete", BooleanSkip),
 				).
 				Value(&bi.option),
+			huh.NewInput().
+				Key("notes").
+				Title("Notes (optional)").
+				Description("Add any notes about this entry").
+				Value(&notes),
 		).Title(title),
 	)
 

@@ -93,11 +93,13 @@ func (ni *NumericEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	ni.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
+				Key("numeric_value").
 				Title(prompt+" (or press 's' to skip)").
 				Description(description).
 				Value(&ni.value).
 				Validate(ni.validateInput),
 			huh.NewSelect[InputAction]().
+				Key("action").
 				Title("Action").
 				Options(
 					huh.NewOption("✅ Submit Value", ActionSubmit),

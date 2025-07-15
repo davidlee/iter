@@ -19,9 +19,6 @@ type Modal interface {
 	IsOpen() bool
 	IsClosed() bool
 
-	// Focus management
-	HandleKey(msg tea.KeyMsg) (Modal, tea.Cmd)
-
 	// Integration
 	GetResult() interface{}
 }
@@ -120,20 +117,9 @@ func (mm *ModalManager) Update(msg tea.Msg) tea.Cmd {
 		mm.height = msg.Height
 		return nil
 
-	case tea.KeyMsg:
-		// Route key messages to the active modal
-		var cmd tea.Cmd
-		mm.activeModal, cmd = mm.activeModal.HandleKey(msg)
-
-		// Check if modal closed itself
-		if mm.activeModal.IsClosed() {
-			return tea.Batch(cmd, mm.CloseModal())
-		}
-
-		return cmd
-
 	default:
-		// Route other messages to the active modal
+		// Route all messages to the active modal (including KeyMsg)
+		// AIDEV-NOTE: T024-fix; simplified routing, let modal handle all messages directly
 		var cmd tea.Cmd
 		mm.activeModal, cmd = mm.activeModal.Update(msg)
 

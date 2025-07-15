@@ -51,6 +51,7 @@ also refer to API docs: https://pkg.go.dev/github.com/charmbracelet/bubbletea (.
 - `kanban/done/T018_entry_menu_interface.md` - Original entry menu implementation
 - `doc/specifications/entries_storage.md` - Entry storage format specification
 - `doc/specifications/goal_schema.md` - Goal schema and field type definitions
+- `doc/bubbletea_guide.md` - BubbleTea ecosystem guidance and patterns
 
 ### Related Tasks / History
 - **T018**: Entry menu interface implementation (recently completed)
@@ -250,6 +251,337 @@ The looping occurs in the goal collection flow where:
 - Message handling (KeyMsg, WindowSizeMsg, etc.)
 - Entry menu modal open/close events
 
+**Critical Log Analysis & Investigation Log (2025-07-16)**:
+
+**Phase 1 - Initial Analysis**:
+- **Symptom**: Multiple modal creation events for same goal within seconds
+- **Evidence**: `wake_up` modal created 3 times in 3 seconds, `lights_out` 2 times in 1 second
+- **Form State**: All forms stuck at state `0` (huh.StateNormal), never progress to completion
+- **Missing Events**: No `ModalClosedMsg` events logged, confirming modals don't complete properly
+- **Initial Hypothesis**: Entry menu repeatedly creates new modals instead of maintaining active modal
+
+**Phase 2 - Double-Processing Discovery**:
+- **Root Cause Found**: huh.Form integration issue - EntryFormModal was processing KeyMsg twice
+- **Evidence**: KeyMsg processed in `HandleKey()` then again in default case of `Update()`
+- **Fix Applied**: Rewrote EntryFormModal.Update() to follow canonical huh+bubbletea pattern
+- **Result**: No improvement - same behavior persists
+
+**Phase 3 - Missing Field Keys Discovery**:
+- **Analysis**: Canonical huh example shows `.Key()` method required for all form fields
+- **Issue**: All form fields lacked proper `.Key()` identifiers for state management
+- **Fix Applied**: Added `.Key()` methods to boolean, time, and numeric input forms
+- **Result**: No discernible change in behavior - modals still auto-close immediately
+
+**Current Status**:
+- **Problem Persists**: Forms still stuck at state 0, no KeyMsg events reach modal
+- **Pattern Unchanged**: Multiple modal creation events continue (lines 29, 57, 109 in latest log)
+- **Fundamental Issue**: huh.Form state machine not functioning in modal context despite canonical pattern compliance
+
+**Remaining Hypotheses**:
+1. **Version Incompatibility**: huh library version mismatch with usage patterns
+2. **Rendering Integration**: Modal rendering interfering with form focus/input handling
+3. **Event Routing**: BubbleTea message routing preventing form from receiving proper events
+4. **Form Configuration**: Additional required configuration beyond `.Key()` methods
+
+**Investigation Depth**: Exhausted canonical pattern compliance, field configuration, and message routing fixes. Issue appears to be fundamental incompatibility between huh.Form and modal overlay system.
+
+## BREAKTHROUGH: Root Cause Discovered via Prototype
+
+**Investigation Method**: Built incremental prototype from canonical huh example → identified exact failure point.
+
+**Key Discovery**: Single-field huh.Form groups auto-complete when user makes selection (no next field to navigate to).
+
+**Evidence from prototype debug logs**:
+```
+[MODAL] EntryFormModal.Update: received huh.nextGroupMsg, form state: 0
+[MODAL] EntryFormModal: Form state changed from 0 to 1
+[MODAL] EntryFormModal: Form completed, closing modal
+```
+
+**Root Cause**: Boolean forms with single select field complete immediately - huh interprets selection as form completion since no additional fields exist.
+
+**Solution Identified**: Add second field (notes) to boolean forms to prevent auto-completion.
+
+**Fix Ready**: Modify `internal/ui/entry/boolean_input.go` to include notes field in form group.
+
+**Status**: Ready to apply fix and test in real application.
+
+## Investigation Summary
+
+### Method: Incremental Prototype Development
+Built working huh+bubbletea modal from scratch by incrementally adding complexity until failure point identified.
+
+**Step-by-step approach:**
+1. **Canonical Example**: Copied working huh/examples/bubbletea → ✅ works
+2. **Single Boolean Field**: Simplified to match our use case → ✅ works 
+3. **Custom Enum Types**: Added BooleanOption enum → ✅ works
+4. **Modal Overlay**: Added basic modal rendering → ✅ works
+5. **Field Input Factory**: Added BooleanEntryInput abstraction → ✅ works
+6. **EntryFormModal Wrapper**: Added modal lifecycle wrapper → ❌ **FAILS**
+
+### Critical Discovery: Single-Field Auto-Completion
+**Root Cause**: huh.Form with single field in group auto-completes on selection - no navigation target triggers immediate StateCompleted transition.
+
+**Evidence**: Debug logs show `huh.nextGroupMsg` → state 0→1 → completion
+**Solution**: Add second field (notes) to prevent auto-completion
+**Result**: Multi-field prototype works perfectly, real application still fails
+
+### Hypotheses Discounted
+1. ~~Double KeyMsg processing~~ - Fixed via canonical pattern, no improvement
+2. ~~Missing .Key() field identifiers~~ - Added keys, no improvement  
+3. ~~Single-field auto-completion~~ - Fixed in prototype, real app still broken
+4. ~~Form configuration issues~~ - Prototype uses identical huh.Form setup
+
+### Known Differences: Prototype vs Real Application
+
+**Architecture Differences:**
+- **Prototype**: Simple EntryFormModal struct with direct lifecycle
+- **Real**: Complex inheritance via BaseModal + Modal interface + ModalManager
+
+**Integration Differences:**
+- **Prototype**: Direct BubbleTea Program → EntryFormModal
+- **Real**: BubbleTea → EntryMenuModel → ModalManager → EntryFormModal
+
+**Form Lifecycle:**
+- **Prototype**: Direct form.Update() with canonical pattern
+- **Real**: Routed through Modal interface + ESC key handling + validation layers
+
+**Current Status**: Prototype investigation reveals auto-closing bug exists only in real application, not in simplified prototype.
+
+**Key Finding**: Prototype modal works correctly (stays open, waits for user input), but real application modal auto-closes after form completion.
+
+**Next**: Systematic integration of real application complexity into prototype to isolate failure point.
+
+### Incremental Changes Log
+
+**Step 7 - BaseModal Integration**: ✅ **WORKS**
+- Added ModalState enum and BaseModal class to prototype
+- EntryFormModal now inherits from BaseModal with proper lifecycle methods
+- Uses Open()/Close() instead of direct boolean flags
+- Result: Prototype still functions correctly with BaseModal architecture
+
+**Step 8 - Modal Interface**: ✅ **WORKS**
+- Added Modal interface with standard lifecycle methods
+- EntryFormModal.Update() now returns (Modal, tea.Cmd) for interface compliance
+- Main model uses Modal interface for type-safe polymorphism
+- Result: Prototype still functions correctly with full Modal interface
+
+**Step 9 - ModalManager Integration**: ❌ **INCORRECT ANALYSIS**
+- Initial testing suggested ModalManager broke functionality 
+- **CORRECTION**: User testing confirms prototype modal works correctly with ModalManager
+- **Real Issue**: Bug exists only in real application, not in prototype
+- **Key Discovery**: Prototype stays open waiting for input, real app auto-closes
+
+### Implementation Priority Analysis
+
+**Known Differences Between Prototype and Real Application** (by implementation effort):
+
+**MINIMAL EFFORT (Copy patterns)**:
+1. **Event Handling** (5 mins) - Copy EntryMenuModel keyboard shortcuts
+2. **Message Routing Layers** (10 mins) - Add EntryMenuModel.Update() layer
+
+**LOW EFFORT (Import application code)**:
+3. **Field Input Factory** (15 mins) - Import FieldInputFactory abstraction  
+4. **Entry Collection Context** (20 mins) - Import GoalEntry with collector state
+
+**MODERATE EFFORT (Significant refactoring)**:
+5. **State Management** (30 mins) - Add menu state persistence, auto-save
+6. **Architecture Complexity** (45 mins) - Full EntryMenuModel integration
+
+**HIGH EFFORT (Complex integration)**:
+7. **Result Processing** (60 mins) - EntryCollector.StoreEntryResult() integration
+8. **Error Handling** (90 mins) - User-facing error display, validation
+9. **Field Input Creation** (120 mins) - Dynamic field creation based on goal schema
+
+**Recommended Investigation Approach**:
+- **Phase 1**: Start with #3 (Field Input Factory) - likely source of auto-completion bugs
+- **Phase 2**: Add #6 (Architecture Complexity) - EntryMenuModel integration layer  
+- **Phase 3**: Add #4 (Entry Collection Context) - complex state management
+
+**Rationale**: Factory and dynamic field creation most likely to contain state management bugs causing auto-completion.
+
+### Phase 1 Results - Field Input Factory Integration
+
+**Implementation**: Replaced prototype's direct `BooleanEntryInput` with real `EntryFieldInputFactory` and `BooleanEntryInput` from application.
+
+**Changes**:
+- Added imports for `internal/models` and `internal/ui/entry`
+- Removed prototype's custom `BooleanEntryInput` implementation
+- Added `EntryFieldInputFactory` instantiation in `NewEntryFormModal()`
+- Used `EntryFieldInputConfig` with real `models.Goal` and `models.FieldType`
+- Updated result processing to use `fieldInput.GetValue()` and `fieldInput.GetStringValue()`
+
+**User Testing Results**: ✅ **FIELD INPUT FACTORY IS NOT THE BUG SOURCE**
+- Prototype still works correctly with real Field Input Factory integration
+- Modal stays open, waits for user input, closes normally on form completion
+- Debug logs show normal message processing, no auto-closing behavior
+- Form completion sequence: `huh.nextFieldMsg` → `huh.nextGroupMsg` → state 0→1 → completion (normal user interaction)
+
+**Conclusion**: Field Input Factory layer does not cause the auto-closing bug. Bug must be in higher-level architecture layers.
+
+### Phase 2 Results - EntryMenuModel Integration Layer
+
+**Implementation**: Added `EntryMenuModel` struct that wraps `ModalManager` and `FieldInputFactory`, simulating real application's architecture.
+
+**Changes**:
+- Added `EntryMenuModel` struct with `modalManager` and `fieldInputFactory` fields
+- Added intermediate message routing: `Model` → `EntryMenuModel` → `ModalManager` → `EntryFormModal`
+- Updated debug logging to show "Entry menu has active modal" messages
+- Modal initialization now goes through `entryMenu.OpenModal()` instead of direct `modalManager.OpenModal()`
+
+**User Testing Results**: ✅ **ENTRY MENU MODEL INTEGRATION IS NOT THE BUG SOURCE**
+- Prototype still works correctly with EntryMenuModel integration layer
+- Modal stays open, waits for user input, closes normally on form completion
+- Debug logs show normal message processing: `huh.nextFieldMsg` → `huh.nextGroupMsg` → state 0→1 → completion (normal user interaction)
+- Architecture now closer to real application: Main → EntryMenuModel → ModalManager → EntryFormModal
+
+**Side Note**: Prototype has UI bug - exits on "q" even when typing in text entry field (shows message routing issue but not related to auto-closing bug)
+
+**Conclusion**: EntryMenuModel integration layer does not cause the auto-closing bug. Bug must be in remaining complex layers.
+
+### Phase 3 Results - Entry Collection Context Layer
+
+**Implementation**: Added complex `EntryCollector` with existing entry state, `GoalEntry` with achievement levels, notes, timestamps, and status management.
+
+**Changes**:
+- Added `EntryCollector` instantiation with `InitializeForMenu()` call
+- Added existing `GoalEntry` with complex state: `value=true`, `AchievementLevel=midi`, `notes="Previous completion with notes"`, `status=completed`
+- Updated `NewEntryFormModal()` to accept `EntryCollector` and use existing entry context
+- Added `ExistingEntry` configuration with achievement level and notes
+- Enabled `ShowScoring=true` for scoring feedback with complex state
+- Added debug logging to show existing entry usage
+
+**User Testing Results**: ✅ **ENTRY COLLECTION CONTEXT IS NOT THE BUG SOURCE**
+- Prototype still works correctly with complex Entry Collection Context
+- Modal stays open, waits for user input, closes normally on form completion
+- Debug logs show existing entry loaded: "Using existing entry for goal test_goal: value=true, notes=Previous completion with notes, status=completed"
+- Form completion sequence: `huh.nextFieldMsg` → `huh.nextGroupMsg` → state 0→1 → completion (normal user interaction)
+- Complex state management (collector, existing entries, achievement levels) does not trigger auto-closing
+
+**Conclusion**: Entry Collection Context layer does not cause the auto-closing bug. All three high-priority architectural layers have been tested and eliminated as bug sources.
+
+### Investigation Summary - Systematic Architecture Integration
+
+**Method**: Incremental integration of real application complexity into working prototype to isolate auto-closing bug.
+
+**Results**: All three high-priority architectural layers integrated successfully without reproducing the auto-closing bug:
+
+1. **✅ Field Input Factory** - Real `EntryFieldInputFactory` and `BooleanEntryInput` integration
+2. **✅ EntryMenuModel Integration** - Intermediate message routing layer: `Model` → `EntryMenuModel` → `ModalManager` → `EntryFormModal`  
+3. **✅ Entry Collection Context** - Complex state with `EntryCollector`, existing entries, achievement levels, notes
+
+**Key Finding**: The auto-closing bug exists only in the real application, not in any of the architectural layers we've tested.
+
+**Remaining Differences** (Medium/High effort):
+- **State Management** - Menu state persistence, auto-save timing
+- **Architecture Complexity** - Full EntryMenuModel with list.Model, filtering, navigation
+- **Result Processing** - File operations, state sync timing
+- **Error Handling** - Validation, error display UI
+- **Dynamic Field Creation** - Goal schema-based form generation
+
+**Next Investigation Direction**: Focus on timing-sensitive operations like auto-save, file operations, or state synchronization that could trigger unintended form completion.
+
+### Critical Discovery - Bug is in Modal System, Not Forms
+
+**Test**: Temporarily disabled all form processing in `EntryFormModal.Update()` and form rendering in `EntryFormModal.View()`
+
+**Changes Made**:
+- Commented out all `form.Update()` calls and state checking
+- Replaced form rendering with static debug message
+- Modal should stay open indefinitely without form processing
+
+**User Testing Result**: ❌ **Bug still exists even with forms completely disabled**
+
+**Critical Insight**: The auto-closing bug is NOT in form processing logic. The bug is in the modal system itself - specifically in:
+- Modal lifecycle management
+- ModalManager → EntryFormModal interaction
+- BaseModal state transitions
+- Modal opening/closing logic
+
+**Eliminated from investigation**:
+- ✅ huh.Form processing logic
+- ✅ Form state transitions (StateCompleted, StateAborted)
+- ✅ Field input validation and processing
+- ✅ Entry result processing
+
+**New Focus**: Modal infrastructure debugging - the bug exists at the modal architecture level, not the form content level.
+
+### Development Tool - Vice Prototype Command
+
+**Implementation**: Created `vice prototype` command to execute the modal investigation prototype without interfering with main application builds.
+
+**Features**:
+- `vice prototype` - runs the modal investigation prototype
+- `vice prototype --debug` - enables debug logging to config directory  
+- Prototype moved to `prototype/` directory to avoid build conflicts
+- Command shows helpful information about execution path and debug logging status
+
+**Usage**:
+```bash
+vice prototype          # Run prototype in normal mode
+vice prototype --debug  # Run prototype with debug logging enabled
+```
+
+**Benefits**:
+- No build conflicts with main application
+- Consistent debug logging integration
+- Easy access for continued investigation
+- Clean separation of prototype and production code
+
+**Debug Flag Usage**:
+- Run with `vice --debug <command>` to enable debug logging
+- Creates `vice-debug.log` in config directory (`~/.config/vice/`)
+- Centralized logging via `internal/debug/logger.go` with categories:
+  - `[GENERAL]` - Application-level events
+  - `[MODAL]` - Modal lifecycle and state changes
+  - `[ENTRYMENU]` - Entry menu operations
+  - `[FIELD]` - Field input creation and validation
+- Debug logging only active when `--debug` flag is used
+- Automatic cleanup and session tracking with timestamps
+
+## BubbleTea-Overlay Library Analysis
+
+### Current Implementation vs bubbletea-overlay
+
+**Our Custom Modal System**:
+- **Components**: ModalManager, Modal interface, BaseModal, EntryFormModal
+- **Lifecycle**: Complex state management (Opening → Active → Closing → Closed)
+- **Integration**: Tight coupling with huh.Form and EntryCollector
+- **Rendering**: Custom lipgloss overlay with centering and dimming
+- **Message Routing**: Direct keyboard/message routing to active modal
+
+**bubbletea-overlay Library**:
+- **Simplicity**: Two-model compositing (background + foreground)
+- **Positioning**: Flexible positioning system (Top/Right/Bottom/Left/Center + offsets)
+- **Philosophy**: Minimal compositing library, not full modal lifecycle
+- **Integration**: Generic tea.Model wrapping, no form-specific logic
+
+### Utility Assessment for T024
+
+**Potential Benefits**:
+1. **Simplified Rendering**: Replace our custom `renderWithModal()` with battle-tested compositing
+2. **Positioning Flexibility**: Better modal placement control than current center-only
+3. **Maintenance**: External library maintenance vs internal modal system upkeep
+4. **Community Patterns**: Aligns with emerging BubbleTea ecosystem standards
+
+**Migration Complexity**:
+1. **State Management**: Would still need our ModalManager for lifecycle
+2. **Integration**: EntryFormModal complexity remains (huh.Form integration)
+3. **Event Routing**: Our keyboard/message routing logic still required
+4. **Form Lifecycle**: Core issue likely in huh.Form state management, not rendering
+
+### Recommendation for T024
+
+**Short-term**: Continue with current modal system for T024 resolution
+- Root cause appears to be huh.Form state transitions, not overlay rendering
+- Debug logging infrastructure already in place for current system
+- Migration would add complexity without addressing core auto-closing issue
+
+**Future Consideration**: Evaluate bubbletea-overlay for post-T024 refactoring
+- Could simplify rendering layer while keeping lifecycle management
+- Useful for additional modal types beyond entry forms
+- Consider after T024 bugs are resolved and system is stable
+
 ## Roadblocks
 
 *(No roadblocks identified yet)*
@@ -314,11 +646,32 @@ The looping occurs in the goal collection flow where:
   - **Debug Infrastructure**: Added comprehensive logging to modal system, entry menu, and field inputs
   - **Logging Coverage**: Modal lifecycle, form state changes, field creation, message handling
   - **Status**: Debug logging deployed, ready for field testing to identify root cause
+- `2025-07-15 - AI:` BubbleTea modal ecosystem analysis and architecture evaluation
+  - **External Library**: Analyzed `bubbletea-overlay` (v0.4.0, July 2025) - specialized modal library
+  - **Current Implementation**: Custom modal system with ModalManager, BaseModal, EntryFormModal
+  - **Architecture Comparison**: Our system has similar overlay rendering but more complex lifecycle management
+  - **Key Insight**: BubbleTea ecosystem confirms modals are non-trivial - external libraries emerging
+  - **BubbleTea Guide**: Documents Elm architecture principles, recommends flat state model over submodels
+- `2025-07-16 - AI:` Systematic prototype investigation eliminates major architectural layers
+  - **Method**: Incremental integration of real application complexity into working prototype
+  - **Phase 1**: Field Input Factory integration - ✅ Works correctly, not the bug source
+  - **Phase 2**: EntryMenuModel integration layer - ✅ Works correctly, not the bug source  
+  - **Phase 3**: Entry Collection Context (complex state) - ✅ Works correctly, not the bug source
+  - **Key Finding**: Auto-closing bug exists only in real application, not in tested architectural layers
+  - **Tool Created**: `vice prototype` command for easy testing without build conflicts
+- `2025-07-16 - AI:` Critical discovery - bug is in modal system, not forms
+  - **Test**: Temporarily disabled all form processing and rendering in EntryFormModal
+  - **Result**: Bug still exists even with forms completely disabled
+  - **Breakthrough**: Auto-closing bug is in modal system architecture, NOT in form processing logic
+  - **Eliminated**: huh.Form processing, state transitions, field validation, entry processing
+  - **New Focus**: Modal infrastructure - BaseModal lifecycle, ModalManager routing, modal opening/closing logic
+  - **Next Steps**: Debug modal system integration differences between working prototype and failing real app
 
 ## Git Commit History
 
 **All commits related to this task (newest first):**
 
+- `9521817` - feat(debug)[T024-debug-flag]: implement centralized debug logging system
 - `855a0d4` - feat(debug)[T024]: add comprehensive debug logging for modal investigation
 - `9f024b5` - fix(modal)[T024-debug]: add debug logging and simplify boolean form
 - `da8d021` - feat(entrymenu)[T024/3.2]: complete goal collection flow refactoring

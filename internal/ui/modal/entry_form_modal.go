@@ -100,83 +100,46 @@ func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
 		return efm, nil
 
 	case tea.KeyMsg:
+		// Handle modal-specific keys (ESC) before passing to form
+		if msg.String() == "esc" {
+			debug.Modal("Goal %s: ESC pressed, closing modal without saving", efm.goal.ID)
+			efm.Close()
+			return efm, nil
+		}
 		debug.Modal("Goal %s: KeyMsg %s", efm.goal.ID, msg.String())
-		// Handle modal-specific keys first
-		return efm.HandleKey(msg)
-
-	default:
-		// Let the form handle other messages
-		// AIDEV-NOTE: form-integration; critical type assertion and state monitoring
-		oldState := efm.form.State
-		var cmd tea.Cmd
-		formModel, cmd := efm.form.Update(msg)
-		efm.form = formModel.(*huh.Form)
-
-		if efm.form.State != oldState {
-			debug.Modal("Goal %s: Form state changed from %v to %v after %s", efm.goal.ID, oldState, efm.form.State, msgType)
-		}
-
-		// Check if form is complete
-		if efm.form.State == huh.StateCompleted {
-			// AIDEV-NOTE: T024-debug; form completed via non-key message, processing entry
-			debug.Modal("Goal %s: Form completed via non-key message (%s), processing entry", efm.goal.ID, msgType)
-			efm.formComplete = true
-			return efm.processEntry()
-		}
-
-		// Check if form was aborted
-		if efm.form.State == huh.StateAborted {
-			// AIDEV-NOTE: T024-debug; form aborted via non-key message, closing modal
-			debug.Modal("Goal %s: Form aborted via non-key message (%s), closing modal", efm.goal.ID, msgType)
-			efm.Close()
-			return efm, cmd
-		}
-
-		return efm, cmd
 	}
-}
 
-// HandleKey handles keyboard input for the entry form modal.
-func (efm *EntryFormModal) HandleKey(msg tea.KeyMsg) (Modal, tea.Cmd) {
-	debug.Modal("Goal %s: HandleKey %s, form state: %v", efm.goal.ID, msg.String(), efm.form.State)
+	// Process the form using canonical pattern from huh/examples/bubbletea
+	// AIDEV-NOTE: T024-fix; following canonical huh+bubbletea integration pattern to fix double-processing
+	oldState := efm.form.State
+	var cmd tea.Cmd
+	formModel, cmd := efm.form.Update(msg)
+	if f, ok := formModel.(*huh.Form); ok {
+		efm.form = f
+	}
 
-	switch msg.String() {
-	case "esc":
-		// Close modal without saving
-		debug.Modal("Goal %s: ESC pressed, closing modal without saving", efm.goal.ID)
+	if efm.form.State != oldState {
+		debug.Modal("Goal %s: Form state changed from %v to %v after %s", efm.goal.ID, oldState, efm.form.State, msgType)
+	}
+
+	// Check if form is complete
+	if efm.form.State == huh.StateCompleted {
+		debug.Modal("Goal %s: Form completed, processing entry", efm.goal.ID)
+		efm.formComplete = true
+		return efm.processEntry()
+	}
+
+	// Check if form was aborted
+	if efm.form.State == huh.StateAborted {
+		debug.Modal("Goal %s: Form aborted, closing modal", efm.goal.ID)
 		efm.Close()
-		return efm, nil
-
-	default:
-		// Let the form handle all other keys
-		oldState := efm.form.State
-		var cmd tea.Cmd
-		formModel, cmd := efm.form.Update(msg)
-		efm.form = formModel.(*huh.Form)
-
-		if efm.form.State != oldState {
-			debug.Modal("Goal %s: Form state changed from %v to %v after key %s", efm.goal.ID, oldState, efm.form.State, msg.String())
-		}
-
-		// Check if form is complete
-		if efm.form.State == huh.StateCompleted {
-			// AIDEV-NOTE: T024-debug; form completed via key input, processing entry
-			debug.Modal("Goal %s: Form completed via key input (%s), processing entry", efm.goal.ID, msg.String())
-			efm.formComplete = true
-			return efm.processEntry()
-		}
-
-		// Check if form was aborted
-		if efm.form.State == huh.StateAborted {
-			// AIDEV-NOTE: T024-debug; form aborted via key input, closing modal
-			debug.Modal("Goal %s: Form aborted via key input (%s), closing modal", efm.goal.ID, msg.String())
-			efm.Close()
-			return efm, cmd
-		}
-
 		return efm, cmd
 	}
+
+	return efm, cmd
 }
+
+// AIDEV-NOTE: T024-fix; removed HandleKey method - using canonical huh+bubbletea pattern instead
 
 // processEntry processes the goal entry and closes the modal.
 // AIDEV-NOTE: entry-processing; processes form completion and creates EntryResult
@@ -284,6 +247,37 @@ func (efm *EntryFormModal) renderError() string {
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		errorText,
+		help,
+	)
+}
+
+// renderDisabledForm renders a static message when form is disabled for testing
+func (efm *EntryFormModal) renderDisabledForm() string {
+	titleStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("12")).
+		Align(lipgloss.Center).
+		Margin(0, 0, 1, 0)
+
+	messageStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("11")).
+		Align(lipgloss.Center).
+		Margin(1, 0, 1, 0)
+
+	helpStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("241")).
+		Italic(true).
+		Align(lipgloss.Center).
+		Margin(1, 0, 0, 0)
+
+	title := titleStyle.Render(efm.goal.Title)
+	message := messageStyle.Render("🔬 T024 DEBUG: Form processing disabled")
+	help := helpStyle.Render("Press Esc to close • Modal should stay open indefinitely")
+
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		title,
+		message,
 		help,
 	)
 }

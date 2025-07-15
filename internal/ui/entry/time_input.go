@@ -88,12 +88,14 @@ func (ti *TimeEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	ti.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
+				Key("time_value").
 				Title(prompt+" (or press 's' to skip)").
 				Description(description).
 				Placeholder("14:30").
 				Value(&ti.value).
 				Validate(ti.validateTime),
 			huh.NewSelect[InputAction]().
+				Key("action").
 				Title("Action").
 				Options(
 					huh.NewOption("✅ Submit Value", ActionSubmit),
