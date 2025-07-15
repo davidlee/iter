@@ -418,7 +418,8 @@ SaveEntriesToFile(path) error               // Auto-save capability
 - **TECHNICAL EXCELLENCE**: Clean architecture, loose coupling via interfaces, comprehensive test coverage including integration tests
 - **CLI ENHANCEMENT**: Added Fang for beautiful styling, updated help text to reflect full feature capabilities
 - **DISCOVERY**: Sub-tasks 5.1 and 5.2 were already implemented but not properly tracked - this demonstrates the need for better progress documentation during implementation
-- **NEXT STEPS**: T018 ready to move to done/, consider T017 or other priorities
+- **FUTURE WORK**: Identified improvements and refactoring opportunities documented in **T023 Entry UI Architecture and Enhancement Planning**
+- **NEXT STEPS**: T018 ready to move to done/, T023 provides comprehensive planning for architectural improvements and UI enhancements
 
 **Future improvements identified**:
 - **Goal type indication**: Need alternative way to show goal types (simple/elastic/informational) since status emojis replaced type emojis
