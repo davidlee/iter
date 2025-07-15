@@ -15,7 +15,7 @@ Two bugs identified in the entry menu interface (T018) that affect user experien
 
 **Type**: `fix`
 
-**Overall Status:** `Not Started`
+**Overall Status:** `In Progress`
 
 ## Reference (Relevant Files / URLs)
 
@@ -201,7 +201,16 @@ The looping occurs in the goal collection flow where:
   - **Testing**: Comprehensive unit tests with 100% coverage, all tests passing
   - **Integration**: Modal system ready for entry form integration
   - **Status**: Basic modal infrastructure complete, ready for entry form modal
+- `2025-07-15 - AI:` Task moved to in-progress and progress commits added
+  - **Commits**: 3 commits implementing modal system architecture and infrastructure
+  - **Current Phase**: Phase 2.1 complete, starting Phase 2.2 (modal entry form component)
+  - **Next Steps**: Integrate entry field input components with modal system
+  - **Status**: Ready for Phase 2.2 implementation
 
 ## Git Commit History
 
-*No commits yet - task is in backlog*
+**All commits related to this task (newest first):**
+
+- `6d7c92a` - docs(anchors)[T024]: add AIDEV-NOTE comments for modal system and bug analysis
+- `33d461f` - feat(modal)[T024/2.1]: implement core modal system infrastructure  
+- `72ed015` - feat(kanban)[T024]: add entry menu bug fixes task with modal architecture approach
