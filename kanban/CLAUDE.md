@@ -102,23 +102,34 @@ When asked to "commit" or when work is complete on a task or subtask, follow the
    - User: "Let's work on `task name`."
    - AI will move this task in the in progress folder and will create or improve an implementation plan if needed
 
-2. **Task Creation (Optional - If AI assists):**
-   - User: "Suggest a task for implementing X."
-   - AI: Proposes a new task by drafting the full Markdown content for a new file (e.g., `kanban/backlog/new_task.md`), including basic sections (Goal, ACs) and an empty Implementation Plan.
-   - IMPORTANT: before creating a new task, AI will ALWAYS check existing task IDs using `fd 'T[0-9]{3,3}\w*.md' kanban` to ensure unique, monotonic task IDs.
+2. **Task Creation (when requested)**
+   - AI: Writes a new file (e.g., `kanban/backlog/T001_task_description.md`), based on `kanban/backlog/T000_example.md`, filling out context (Goal, ACs) and an empty Implementation Plan.
+   - Before creating a new task, ALWAYS check existing task IDs using `fd 'T[0-9]{3,3}\w*.md' kanban` to ensure unique, monotonic task IDs.
+   - When a new task, ALWAYS list the `doc/` folder and existing cards to check for relevant prior art / guidance.
+   - Build and record a list of relevant files (code and docs) in the task card.
+   - Read and consider the context, then stop and ask any clarifying questions to ensure the goal, ACs, and intended behaviours are clear. 
    - User: Reviews, modifies, saves the file to `backlog/`, and commits or can ask AI to proceed to some changes.
 
 3. **Planning Phase (for a selected task):**
-   - User: "Let's plan `in-progress/T123.md`." (User typically moves file to `in-progress/` before/during planning).
-   - AI: Analyzes Goal & ACs. Proposes the "3. Implementation Plan & Progress" section with detailed sub-tasks, design notes, and testing strategies.
+   - User: "Let's plan `T123`."
+   - AI: If card is not already in `kanban/in-progress`, confirm if card should be moved there.
+   - AI: Analyzes Goal & ACs. 
+   - AI: Proposes the "3. Implementation Plan & Progress" section with
+      - detailed sub-tasks
+      - design notes
+      - important files
+      - description of testing approach.
+      - subtask & scope for manual test plan for the user, if necessary to obtain confidence.
    - AI: **STOPS.** "I have updated `T123.md` with a proposed implementation plan. Please review. Here is the updated content: ... [provides full MD content] ..."
-   - User: Reviews the plan *within the task.md file*. Makes edits directly or asks AI for revisions. Commits changes to the task.md file.
+   - User: Reviews `T123.md`. Makes edits directly or asks AI for revisions.
+   - AI or User: commits.
 
 4. **Implementation Phase (Sub-task by Sub-task):**
-   - User: "The plan for `T123.md` is approved. Let's start with sub-task 1.1: [Sub-task description]."
+   - User: "Let's start T123/1.1"
    - AI:
      1. Updates sub-task 1.1 status to `[WIP]` in the Markdown.
-     2. Focuses on sub-task 1.1: asks clarifying questions if needed, then generates code, documentation, test cases, etc., as per the design.
+     2. Focuses on sub-task 1.1: asks clarifying questions if needed, check plan & context is clear and appropriate. If not, stop.
+     3. When satisfied, generates code, documentation, test cases, etc., as per the design.
      3. Updates sub-task 1.1 status to `[x]` (done) in the Markdown.
      4. Updates "Overall Status" in section 3 if a major phase is complete.
      5. **STOPS.** "Sub-task 1.1 is complete. `T123.md` has been updated. Commit with message `feat(T123): Complete sub-task 1.1 - [brief description]`?
@@ -137,7 +148,7 @@ When asked to "commit" or when work is complete on a task or subtask, follow the
    - User: Confirm or request changes.
 
 7. **"No Code Before Approved Plan":**
-   - The AI must not generate implementation code or detailed artifacts for a task or sub-task if the "3. Implementation Plan & Progress" section for that task/sub-task has not been filled out and implicitly or explicitly approved by the User (i.e., User says "proceed with this plan" or "start sub-task X").
+   - The AI must not begin dev work for a task or sub-task if the "3. Implementation Plan & Progress" section for that task/sub-task has not been filled out and implicitly or explicitly approved by the User (i.e., User says "proceed with this plan" or "start sub-task X").
 
 8. **Stopping Conditions (AI must stop and wait for User):**
    - After proposing or editing any part of the "Implementation Plan & Progress" section in a task.md.

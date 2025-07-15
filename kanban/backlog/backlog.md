@@ -55,8 +55,9 @@ Affinity:
 ## Scoring
 
 - [ ] time of day : before conditions spanning midnight - how can this be adressed?
+  (optional)
 
-## reporting / analytics
+## reporting / analytics (necessary, soonish)
 
 - it's a whole thing.
 - loosely coupled, but reuse a decent chunk of entry parsing / error handling
