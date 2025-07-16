@@ -57,6 +57,141 @@ This enables professional users to maintain clear boundaries between different a
 
 ## Architecture
 
+> user: review and create an ascii diagram of the existing structs / interfaces which handle data loading and persistence for user data. Then consider potential
+> architectural improvements (e.g. repository pattern); enumerate any options worth consideration and analysis of tradeoffs. note we likely have to track
+> state of which data is loaded somewhere in order to load on demand; where will we manage that state and what's the best approach to information hiding?
+> consider whether any investigation into UI layer / patterns (bubbletea) is necessary
+
+### Current Data Loading & Persistence Architecture
+
+```
+CURRENT DATA ARCHITECTURE:
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           CLI Entry Point                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                       cmd/entry.go                                  ││
+│  │  • runEntryMenu(paths) - orchestrates data loading                  ││
+│  │  • LoadFromFile() - habit schema loading                           ││
+│  │  • loadTodayEntries() - existing entry loading                     ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Data Layer                                      │
+│  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐│
+│  │   Parser Layer      │  │   Storage Layer     │  │   Config Layer      ││
+│  │ ┌─────────────────┐ │  │ ┌─────────────────┐ │  │ ┌─────────────────┐ ││
+│  │ │  HabitParser    │ │  │ │  EntryStorage   │ │  │ │  Paths          │ ││
+│  │ │• LoadFromFile() │ │  │ │• Load/Save()    │ │  │ │• File paths     │ ││
+│  │ │• SaveToFile()   │ │  │ │• Atomic writes  │ │  │ │• XDG compliance │ ││
+│  │ │• ID persistence │ │  │ │• Backup config  │ │  │ │                 │ ││
+│  │ └─────────────────┘ │  │ └─────────────────┘ │  │ └─────────────────┘ ││
+│  │ ┌─────────────────┐ │  │                     │  │                     ││
+│  │ │ChecklistParser  │ │  │                     │ │                     ││
+│  │ │ChecklistEntries │ │  │                     │ │                     ││
+│  │ └─────────────────┘ │  │                     │ │                     ││
+│  └─────────────────────┘  └─────────────────────┘  └─────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      Models & Validation                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                      models/ Package                                ││
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ ││
+│  │  │   Schema    │  │ EntryLog    │  │ Checklist   │  │ HabitEntry  │ ││
+│  │  │• Habits[]   │  │• DayEntry[] │  │• Items[]    │  │• Value      │ ││
+│  │  │• Validate() │  │• Version    │  │• Template   │  │• Status     │ ││
+│  │  │• Version    │  │             │  │• Metadata   │  │• Timestamps │ ││
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘ ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         UI State Management                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                      EntryCollector                                 ││
+│  │  ┌─────────────────────────────────────────────────────────────────┐││
+│  │  │               Central State Coordinator                        │││
+│  │  │  • habitParser: *parser.HabitParser                           │││
+│  │  │  • entryStorage: *storage.EntryStorage                        │││
+│  │  │  • habits: []models.Habit                                     │││
+│  │  │  • entries: map[string]interface{}                            │││
+│  │  │  • achievements: map[string]*models.AchievementLevel         │││
+│  │  │  • notes: map[string]string                                   │││
+│  │  │  • statuses: map[string]models.EntryStatus                   │││
+│  │  └─────────────────────────────────────────────────────────────────┘││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        BubbleTea UI Layer                               │
+│  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐│
+│  │  EntryMenuModel     │  │  EntryFormModal     │  │ Field Input         ││
+│  │ ┌─────────────────┐ │  │ ┌─────────────────┐ │  │ Components          ││
+│  │ │• habits []      │ │  │ │• habit config   │ │  │ ┌─────────────────┐ ││
+│  │ │• entries map    │ │  │ │• input factory  │ │  │ │ BooleanEntry    │ ││
+│  │ │• entryCollector │ │  │ │• field inputs   │ │  │ │ TextEntry       │ ││
+│  │ │• directModal    │ │  │ │• validation     │ │  │ │ NumericEntry    │ ││
+│  │ │• selectedID     │ │  │ └─────────────────┘ │  │ │ ChecklistEntry  │ ││
+│  │ └─────────────────┘ │  │                     │  │ └─────────────────┘ ││
+│  └─────────────────────┘  └─────────────────────┘  └─────────────────────┘│
+│                                       │                                   │
+│                              ┌─────────────────┐                         │
+│                              │   Data Flow     │                         │
+│                              │• Key messages   │                         │
+│                              │• State sync     │                         │
+│                              │• Modal lifecycle│                         │
+│                              │• Deferred cmds  │                         │
+│                              └─────────────────┘                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+DATA LOADING PATTERNS:
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Current Loading Strategy                         │
+│                                                                         │
+│  1. CLI Orchestration (cmd/entry.go):                                  │
+│     • Load habits.yml → Schema validation                              │
+│     • Load entries.yml → Today's entries                               │
+│     • Create EntryCollector with loaded data                           │
+│                                                                         │
+│  2. State Management (EntryCollector):                                 │
+│     • In-memory maps for all data types                                │
+│     • Interface{} values for type flexibility                          │
+│     • Separate maps for different data aspects                         │
+│                                                                         │
+│  3. File-based Persistence:                                            │
+│     • Load-modify-save pattern                                         │
+│     • Atomic writes with backups                                       │
+│     • YAML serialization with custom time handling                     │
+│                                                                         │
+│  4. UI Data Binding:                                                   │
+│     • Factory pattern for field inputs                                 │
+│     • Type-specific validation and conversion                          │
+│     • Deferred state synchronization                                   │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### File Structure & Data Flow
+
+```
+DATA FILES:                    COMPONENTS:
+├── habits.yml                ├── parser/habits.go          (HabitParser)
+├── entries.yml               ├── storage/entries.go        (EntryStorage)
+├── checklists.yml            ├── parser/checklists.go      (ChecklistParser)
+└── checklist_entries.yml     └── parser/checklist_entries.go
+
+STATE MANAGEMENT:              UI COMPONENTS:
+├── EntryCollector             ├── entrymenu/model.go        (EntryMenuModel)
+│   ├── entries map[string]interface{}   ├── modal/entry_form_modal.go (EntryFormModal)
+│   ├── achievements map       └── entry/field_inputs.go     (Field Components)
+│   ├── notes map
+│   └── statuses map
+```
+
 ### Current vs Target Architecture
 
 ```
@@ -173,6 +308,187 @@ TARGET ARCHITECTURE:
 4. **TOML Configuration**: App settings moved from code defaults to config.toml
 5. **Layered Overrides**: ENV vars → CLI flags → config.toml → XDG defaults
 
+### Architectural Analysis: Context-Aware Data Loading
+
+#### Current State Issues:
+1. **No Context Switching Support**: All data loading assumes single context
+2. **Eager Loading**: CLI orchestration loads all data upfront 
+3. **In-Memory State**: EntryCollector holds all data in memory maps
+4. **File Path Coupling**: Direct dependency on config.Paths throughout
+
+#### Architectural Options for Context-Aware Data Loading
+
+```
+OPTION 1: Repository Pattern with Context Manager
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      DataRepository Interface                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │  LoadHabits(ctx Context) (*Schema, error)                          ││
+│  │  LoadEntries(ctx Context, date Date) (*EntryLog, error)            ││
+│  │  SaveEntries(ctx Context, entries *EntryLog) error                 ││
+│  │  LoadChecklists(ctx Context) (*ChecklistSchema, error)             ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+│                                   │                                     │
+│                           ┌─────────────────┐                          │
+│                           │ ContextManager  │                          │
+│                           │• activeContext  │                          │
+│                           │• SwitchContext()│                          │
+│                           │• UnloadData()   │                          │
+│                           └─────────────────┘                          │
+│                                   │                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │              FileRepository Implementation                          ││
+│  │  • Uses ViceEnv for context-aware paths                            ││
+│  │  • Delegates to existing parsers/storage                           ││
+│  │  • Handles context switching and data unloading                    ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+
+Pros: Clean abstraction, testable, context-agnostic UI layer
+Cons: Major refactoring required, potential over-engineering
+
+``` 
+--- 
+
+**User notes**: "over-engineering" feels warranted here, it's core data and I
+expect a lot of dependencies inbound - as long as it's not at odds with (good,
+appropriate) bubbletea usage patterns or fighting the needs of the UI framework.
+We can expect reloading context to be infrequent and a "full page reload"
+appropriate in such cases, so perhaps we can make some simplifying assumptions
+/ establish some conventions which let us keep things easy to reason about
+without fighting the framework? (e.g. in case of context change "turn it off
+and on again")
+
+```
+OPTION 2: Enhanced EntryCollector with Context Support
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    ContextAwareEntryCollector                          │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │  • currentContext: string                                          ││
+│  │  • viceEnv: *ViceEnv                                               ││
+│  │  • dataState: map[string]*ContextData                              ││
+│  │  • LoadForContext(context string) error                           ││
+│  │  • SwitchContext(context string) error                            ││
+│  │  • UnloadCurrentData()                                             ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+│                                   │                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                        ContextData                                  ││
+│  │  • habits: []models.Habit                                          ││
+│  │  • entries: map[string]interface{}                                 ││
+│  │  • achievements: map[string]*models.AchievementLevel               ││
+│  │  • loaded: bool                                                    ││
+│  │  • lastAccess: time.Time                                           ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+
+Pros: Minimal changes to existing code, maintains BubbleTea patterns
+Cons: EntryCollector becomes more complex, mixed responsibilities
+```
+
+**User notes**: Nahh. I don't like it. Discount this.
+
+```
+OPTION 3: Lazy-Loading Data Services
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         DataServiceManager                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │  • viceEnv: *ViceEnv                                               ││
+│  │  • loadedData: map[string]*LazyDataCache                           ││
+│  │  • GetHabits() (*Schema, error)                                    ││
+│  │  • GetEntries(date Date) (*EntryLog, error)                       ││
+│  │  • SaveEntries(entries *EntryLog) error                           ││
+│  │  • SwitchContext(context string)                                   ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+│                                   │                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                        LazyDataCache                                ││
+│  │  • habits: *Schema (nil until loaded)                              ││
+│  │  • entries: map[Date]*EntryLog                                     ││
+│  │  • checklists: *ChecklistSchema                                    ││
+│  │  • loadOnDemand(dataType string) error                             ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+
+Pros: True lazy loading, minimal memory usage, context isolation
+Cons: Complex cache invalidation, potential race conditions
+```
+
+***User Notes***: Recent experience with actual race conditions (T024) tempers
+my enthusiasm substantially for this approach. See above note about context
+change; maybe there's a way to look at usage patterns which lets us keep things
+simple if we establish and follow some rules. That said, at least for
+analytics, and probably for several other cases involving historical data or
+e.g search use cases, use cases I don't think we want to load all data
+available into RAM. Consider T026 & fuzzy search over a large corpus of notes,
+for example (if we have an in-memory search implementation instead of shelling
+out to say fzf running over markdown files; tag/link based search and other
+semantically aware discovery operations would probably want a DB with its own
+memory management if we're to avoid this kind of memory management complexity
+ourselves)
+
+#### State Management Analysis
+
+**Current EntryCollector State:**
+- 5 separate maps for different data aspects
+- `interface{}` values require type assertions
+- No context awareness
+- Direct parser/storage dependencies
+
+**State Tracking Requirements for Context Switching:**
+1. **Loaded Data Tracking**: Which data is currently in memory per context
+2. **Dirty State Tracking**: Which data has unsaved changes  
+3. **Context Isolation**: Ensure no data bleeding between contexts
+4. **Unload Orchestration**: Clean unload of all data on context switch
+
+**Information Hiding Options:**
+
+```
+OPTION A: Internal State Maps (Current Pattern)
+• Pro: Familiar pattern, existing code works
+• Con: No encapsulation, type safety issues
+
+OPTION B: Typed Data Containers
+• Pro: Type safety, clear data boundaries  
+• Con: More verbose, requires data mapping
+
+OPTION C: Interface-Based Data Access
+• Pro: Abstraction, testability, future-proofing
+• Con: Complexity, potential over-engineering for current needs
+```
+
+#### BubbleTea Integration Considerations
+
+**Message Flow Impact:**
+- Context switches must trigger UI state updates
+- Modal lifecycle needs context awareness  
+- Deferred state synchronization becomes more complex
+
+**State Synchronization:**
+- Current pattern relies on EntryCollector as single source of truth
+- Context switching requires careful state invalidation
+- UI components need notification of context changes
+
+**Error Handling:**
+- Context switches can fail (invalid context, file access issues)
+- UI needs graceful degradation for context switch failures
+- Partial loading scenarios need handling
+
+#### Recommended Approach: Enhanced EntryCollector (Option 2)
+
+**Rationale:**
+1. **Minimal Disruption**: Preserves existing BubbleTea patterns
+2. **Incremental Migration**: Can evolve toward repository pattern later
+3. **Context Isolation**: Clear separation of data by context
+4. **State Management**: Natural fit with existing UI state patterns
+
+**Implementation Strategy:**
+1. Add context awareness to EntryCollector
+2. Implement ContextData containers for type safety
+3. Add lazy loading with on-demand data access
+4. Integrate with ViceEnv for context-aware file paths
+5. Preserve existing UI interfaces during transition
+
 ## Implementation Plan & Progress
 
 **Sub-tasks:**
@@ -240,6 +556,7 @@ TARGET ARCHITECTURE:
     - *AI Notes:* Maintain --config-dir flag behavior, add environment variable support
   - [ ] **3.2: Add transient --context CLI flag**
     - *Design:* Global --context flag for non-interactive operations, no state persistence
+    - NEEDS CONSIDERATION: non-interactive commands must be explicitly understood as such by code handling --context flag
     - *Code/Artifacts:* Update root command flags, context resolution logic
     - *Testing Strategy:* CLI tests with --context flag, verify no state persistence
     - *AI Notes:* Transient override for CLI ops, doesn't modify $VICE_STATE/vice.yml
@@ -286,7 +603,15 @@ TARGET ARCHITECTURE:
   - 1.2: Added pelletier/go-toml dependency and TOML parsing infrastructure
   - 1.3: Integrated config.toml creation and loading into ViceEnv initialization
   - All functionality tested with comprehensive unit and integration tests
+- `2025-07-16 - AI:` Completed architectural analysis of data loading/persistence:
+  - Created comprehensive ASCII diagrams of current architecture
+  - Analyzed EntryCollector state management and BubbleTea integration patterns
+  - Evaluated 3 architectural options for context-aware data loading
+  - Recommended Enhanced EntryCollector approach (Option 2) for Phase 2
 
 ## Git Commit History
 
 - `9c87759` - docs(kanban)[T028]: create file paths & runtime environment implementation plan
+- `b8feecc` - docs(kanban)[T028]: update plan based on user clarifications
+- `7486b46` - docs(kanban)[T028]: add comprehensive Phase 1 pre-flight analysis
+- `1f80ede` - feat(config)[T028/1.1-1.3]: implement ViceEnv with full XDG compliance and TOML config
