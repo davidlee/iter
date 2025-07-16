@@ -10,6 +10,7 @@ import (
 
 // Config represents the structure of config.toml file.
 // AIDEV-NOTE: toml-config-structure; defines app settings (not user data)
+// AIDEV-NOTE: T028-toml-config; separation of concerns - config.toml for app settings, YAML for user data
 type Config struct {
 	Core CoreConfig `toml:"core"`
 }
@@ -107,6 +108,7 @@ func validateConfig(config *Config) error {
 
 // LoadViceEnvConfig loads ViceEnv with configuration from config.toml.
 // This replaces the stub default loading in ViceEnv with actual TOML parsing.
+// AIDEV-NOTE: T028-config-integration; bridges TOML configuration with ViceEnv runtime state
 func LoadViceEnvConfig(env *ViceEnv) error {
 	configPath := env.GetConfigTomlPath()
 

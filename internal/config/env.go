@@ -11,6 +11,7 @@ import (
 
 // ViceEnv holds the complete runtime environment configuration for the application.
 // AIDEV-NOTE: file-paths-central; replaces config.Paths with full XDG compliance and context support
+// AIDEV-NOTE: T028-xdg-compliance; implements full XDG Base Directory Specification with context awareness
 type ViceEnv struct {
 	// XDG Base Directory paths
 	ConfigDir string // $VICE_CONFIG || $XDG_CONFIG_HOME/vice || ~/.config/vice
@@ -75,6 +76,7 @@ func GetDefaultViceEnv() (*ViceEnv, error) {
 
 // GetViceEnvWithOverrides creates a ViceEnv with CLI flag overrides applied.
 // Priority order: CLI flags → ENV vars → config.toml → XDG defaults
+// AIDEV-NOTE: T028-initialization-flow; complete ViceEnv setup with context initialization and directory creation
 func GetViceEnvWithOverrides(configDirOverride, contextOverride string) (*ViceEnv, error) {
 	env, err := GetDefaultViceEnv()
 	if err != nil {

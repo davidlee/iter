@@ -11,6 +11,7 @@ import (
 
 // ContextState represents the persisted state in vice.yml.
 // AIDEV-NOTE: T028/2.1-state-persistence; tracks active context between invocations
+// AIDEV-NOTE: T028-state-yaml-structure; simple version + active_context for future extensibility
 type ContextState struct {
 	Version       string `yaml:"version"`
 	ActiveContext string `yaml:"active_context"`
@@ -119,6 +120,7 @@ func SwitchContext(env *ViceEnv, newContext string) error {
 
 // InitializeContext sets up the context in ViceEnv based on overrides and persisted state.
 // Priority: ContextOverride (CLI/ENV) → Persisted State → Default (first context)
+// AIDEV-NOTE: T028-priority-resolution; implements ENV vars → CLI flags → config.toml → XDG defaults hierarchy
 func InitializeContext(env *ViceEnv) error {
 	var activeContext string
 	var err error

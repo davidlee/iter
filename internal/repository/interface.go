@@ -9,6 +9,7 @@ import (
 
 // DataRepository defines the interface for data access operations.
 // AIDEV-NOTE: T028/2.1-repository-pattern; abstraction for context-aware data loading with clear migration path
+// AIDEV-NOTE: T028-repository-interface; enables staged evolution from simple file access to sophisticated lazy loading
 type DataRepository interface {
 	// Context management
 	GetCurrentContext() string

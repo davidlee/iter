@@ -13,6 +13,7 @@ import (
 
 // FileRepository implements DataRepository with file-based storage.
 // AIDEV-NOTE: T028/2.1-simple-repository; "turn off and on again" approach for context switching
+// AIDEV-NOTE: T028-race-condition-avoidance; complete data unload prevents T024-style concurrency issues
 type FileRepository struct {
 	viceEnv       *config.ViceEnv
 	habitParser   *parser.HabitParser
@@ -43,6 +44,7 @@ func (r *FileRepository) GetCurrentContext() string {
 
 // SwitchContext switches to a new context with complete data unload.
 // AIDEV-NOTE: T028/2.1-turn-off-on-again; unloads all data, switches context, data loads on next access
+// AIDEV-NOTE: T028-context-validation; ensures context exists before switching to prevent invalid states
 func (r *FileRepository) SwitchContext(context string) error {
 	// Validate context exists in available contexts
 	available := r.ListAvailableContexts()
