@@ -36,7 +36,8 @@ func init() {
 func runPrototype(cmd *cobra.Command, args []string) error {
 	// Initialize debug logging if requested
 	if debugMode {
-		err := debug.GetInstance().Initialize(paths.ConfigDir)
+		env := GetViceEnv()
+		err := debug.GetInstance().Initialize(env.ConfigDir)
 		if err != nil {
 			return fmt.Errorf("failed to initialize debug logging: %w", err)
 		}
@@ -63,7 +64,8 @@ func runPrototype(cmd *cobra.Command, args []string) error {
 	fmt.Println("🔬 Running T024 modal investigation prototype...")
 	fmt.Printf("📂 Prototype path: %s\n", prototypePath)
 	if debugMode {
-		fmt.Printf("📝 Debug logging enabled: %s/vice-debug.log\n", paths.ConfigDir)
+		env := GetViceEnv()
+		fmt.Printf("📝 Debug logging enabled: %s/vice-debug.log\n", env.ConfigDir)
 	}
 	fmt.Println()
 

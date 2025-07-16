@@ -33,8 +33,8 @@ func init() {
 }
 
 func runHabitAdd(cmd *cobra.Command, _ []string) error {
-	// Get the resolved paths
-	paths := GetPaths()
+	// Get the resolved environment
+	env := GetViceEnv()
 
 	// Check if dry-run flag is set
 	dryRun, err := cmd.Flags().GetBool("dry-run")
@@ -42,18 +42,18 @@ func runHabitAdd(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to get dry-run flag: %w", err)
 	}
 
-	// Ensure config files exist, creating samples if missing
+	// Ensure context files exist, creating samples if missing
 	initializer := initpkg.NewFileInitializer()
-	if err := initializer.EnsureConfigFiles(paths.HabitsFile, paths.EntriesFile); err != nil {
+	if err := initializer.EnsureContextFiles(env); err != nil {
 		return err
 	}
 
 	// Create habit configurator
-	configurator := habitconfig.NewHabitConfigurator().WithChecklistsFile(paths.ChecklistsFile)
+	configurator := habitconfig.NewHabitConfigurator().WithChecklistsFile(env.GetChecklistsFile())
 
 	if dryRun {
 		// Dry-run mode: output YAML to stdout
-		yamlOutput, err := configurator.AddHabitWithYAMLOutput(paths.HabitsFile)
+		yamlOutput, err := configurator.AddHabitWithYAMLOutput(env.GetHabitsFile())
 		if err != nil {
 			return err
 		}
@@ -63,5 +63,5 @@ func runHabitAdd(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Normal mode: save to file
-	return configurator.AddHabit(paths.HabitsFile)
+	return configurator.AddHabit(env.GetHabitsFile())
 }

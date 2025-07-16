@@ -26,16 +26,16 @@ func init() {
 }
 
 func runHabitRemove(_ *cobra.Command, _ []string) error {
-	// Get the resolved paths
-	paths := GetPaths()
+	// Get the resolved environment
+	env := GetViceEnv()
 
-	// Ensure config files exist, creating samples if missing
+	// Ensure context files exist, creating samples if missing
 	initializer := initpkg.NewFileInitializer()
-	if err := initializer.EnsureConfigFiles(paths.HabitsFile, paths.EntriesFile); err != nil {
+	if err := initializer.EnsureContextFiles(env); err != nil {
 		return err
 	}
 
 	// Create habit configurator and run remove UI
 	configurator := habitconfig.NewHabitConfigurator()
-	return configurator.RemoveHabit(paths.HabitsFile)
+	return configurator.RemoveHabit(env.GetHabitsFile())
 }

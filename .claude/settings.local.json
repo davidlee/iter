@@ -39,7 +39,8 @@
       "Bash(gofmt:*)",
       "Bash(just test:*)",
       "Bash(just format)",
-      "Bash(perl:*)"
+      "Bash(perl:*)",
+      "Bash(just lint-single:*)"
     ],
     "deny": []
   }

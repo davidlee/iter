@@ -11,7 +11,7 @@ import (
 
 func createTestViceEnv(t *testing.T) *config.ViceEnv {
 	tempDir := t.TempDir()
-	
+
 	env := &config.ViceEnv{
 		ConfigDir:   filepath.Join(tempDir, "config"),
 		DataDir:     filepath.Join(tempDir, "data"),
@@ -21,19 +21,19 @@ func createTestViceEnv(t *testing.T) *config.ViceEnv {
 		ContextData: filepath.Join(tempDir, "data", "test"),
 		Contexts:    []string{"test", "work", "personal"},
 	}
-	
+
 	if err := env.EnsureDirectories(); err != nil {
 		t.Fatalf("Failed to create test directories: %v", err)
 	}
-	
+
 	return env
 }
 
 func TestNewFileRepository(t *testing.T) {
 	env := createTestViceEnv(t)
-	
+
 	repo := NewFileRepository(env)
-	
+
 	if repo.viceEnv != env {
 		t.Error("ViceEnv not properly set")
 	}
@@ -51,7 +51,7 @@ func TestNewFileRepository(t *testing.T) {
 func TestGetCurrentContext(t *testing.T) {
 	env := createTestViceEnv(t)
 	repo := NewFileRepository(env)
-	
+
 	if repo.GetCurrentContext() != "test" {
 		t.Errorf("GetCurrentContext() = %q, want %q", repo.GetCurrentContext(), "test")
 	}
@@ -60,10 +60,10 @@ func TestGetCurrentContext(t *testing.T) {
 func TestListAvailableContexts(t *testing.T) {
 	env := createTestViceEnv(t)
 	repo := NewFileRepository(env)
-	
+
 	contexts := repo.ListAvailableContexts()
 	expected := []string{"test", "work", "personal"}
-	
+
 	if len(contexts) != len(expected) {
 		t.Errorf("ListAvailableContexts() length = %d, want %d", len(contexts), len(expected))
 	}
@@ -77,23 +77,23 @@ func TestListAvailableContexts(t *testing.T) {
 func TestSwitchContext(t *testing.T) {
 	env := createTestViceEnv(t)
 	repo := NewFileRepository(env)
-	
+
 	// Test switching to valid context
 	err := repo.SwitchContext("work")
 	if err != nil {
 		t.Fatalf("SwitchContext() failed: %v", err)
 	}
-	
+
 	if repo.GetCurrentContext() != "work" {
 		t.Errorf("Context not switched, got %q, want %q", repo.GetCurrentContext(), "work")
 	}
-	
+
 	// Verify ContextData was updated
 	expectedContextData := filepath.Join(env.DataDir, "work")
 	if env.ContextData != expectedContextData {
 		t.Errorf("ContextData not updated, got %q, want %q", env.ContextData, expectedContextData)
 	}
-	
+
 	// Verify directory was created
 	if _, err := os.Stat(env.ContextData); os.IsNotExist(err) {
 		t.Error("Work context directory was not created")
@@ -103,12 +103,12 @@ func TestSwitchContext(t *testing.T) {
 func TestSwitchContextInvalid(t *testing.T) {
 	env := createTestViceEnv(t)
 	repo := NewFileRepository(env)
-	
+
 	err := repo.SwitchContext("invalid")
 	if err == nil {
 		t.Error("SwitchContext() should fail for invalid context")
 	}
-	
+
 	// Verify context didn't change
 	if repo.GetCurrentContext() != "test" {
 		t.Errorf("Context changed on invalid switch, got %q, want %q", repo.GetCurrentContext(), "test")
@@ -118,18 +118,18 @@ func TestSwitchContextInvalid(t *testing.T) {
 func TestSwitchContextDataUnload(t *testing.T) {
 	env := createTestViceEnv(t)
 	repo := NewFileRepository(env)
-	
+
 	// Simulate some loaded data
 	repo.dataLoaded = true
 	repo.currentSchema = &models.Schema{Version: "1.0"}
 	repo.currentEntries = &models.EntryLog{Version: "1.0"}
-	
+
 	// Switch context
 	err := repo.SwitchContext("work")
 	if err != nil {
 		t.Fatalf("SwitchContext() failed: %v", err)
 	}
-	
+
 	// Verify data was unloaded
 	if repo.dataLoaded {
 		t.Error("Data should be unloaded after context switch")
@@ -145,20 +145,20 @@ func TestSwitchContextDataUnload(t *testing.T) {
 func TestUnloadAllData(t *testing.T) {
 	env := createTestViceEnv(t)
 	repo := NewFileRepository(env)
-	
+
 	// Set up some loaded state
 	repo.dataLoaded = true
 	repo.currentSchema = &models.Schema{Version: "1.0"}
 	repo.currentEntries = &models.EntryLog{Version: "1.0"}
 	repo.currentChecklists = &models.ChecklistSchema{Version: "1.0"}
 	repo.currentChecklistEntries = &models.ChecklistEntriesSchema{Version: "1.0"}
-	
+
 	// Unload data
 	err := repo.UnloadAllData()
 	if err != nil {
 		t.Fatalf("UnloadAllData() failed: %v", err)
 	}
-	
+
 	// Verify everything is cleared
 	if repo.dataLoaded {
 		t.Error("dataLoaded should be false after unload")
@@ -180,24 +180,24 @@ func TestUnloadAllData(t *testing.T) {
 func TestIsDataLoaded(t *testing.T) {
 	env := createTestViceEnv(t)
 	repo := NewFileRepository(env)
-	
+
 	// Initially no data loaded
 	if repo.IsDataLoaded() {
 		t.Error("IsDataLoaded() should return false initially")
 	}
-	
+
 	// Set dataLoaded but no actual data
 	repo.dataLoaded = true
 	if repo.IsDataLoaded() {
 		t.Error("IsDataLoaded() should return false when dataLoaded=true but no data")
 	}
-	
+
 	// Add some data
 	repo.currentSchema = &models.Schema{Version: "1.0"}
 	if !repo.IsDataLoaded() {
 		t.Error("IsDataLoaded() should return true when data is loaded")
 	}
-	
+
 	// Unload data
 	repo.UnloadAllData()
 	if repo.IsDataLoaded() {
@@ -205,27 +205,35 @@ func TestIsDataLoaded(t *testing.T) {
 	}
 }
 
-func TestLoadHabitsFileNotFound(t *testing.T) {
+func TestLoadHabitsAutoCreateFiles(t *testing.T) {
 	env := createTestViceEnv(t)
 	repo := NewFileRepository(env)
-	
-	// Try to load habits when file doesn't exist
-	_, err := repo.LoadHabits()
-	if err == nil {
-		t.Error("LoadHabits() should fail when file doesn't exist")
+
+	// LoadHabits should automatically create context files and load successfully
+	schema, err := repo.LoadHabits()
+	if err != nil {
+		t.Errorf("LoadHabits() should auto-create files and succeed, got error: %v", err)
 	}
-	
-	// Verify it's a RepositoryError
-	var repoErr *RepositoryError
-	if !errorAs(err, &repoErr) {
-		t.Errorf("Expected RepositoryError, got %T", err)
+
+	if schema == nil {
+		t.Error("Expected non-nil schema")
 	}
-	
-	if repoErr.Operation != "LoadHabits" {
-		t.Errorf("Expected operation 'LoadHabits', got %q", repoErr.Operation)
+
+	// Verify habits file was created with sample data
+	if len(schema.Habits) == 0 {
+		t.Error("Expected sample habits to be created")
 	}
-	if repoErr.Context != "test" {
-		t.Errorf("Expected context 'test', got %q", repoErr.Context)
+
+	// Verify habits file was created
+	habitsPath := env.GetHabitsFile()
+	if _, err := os.Stat(habitsPath); os.IsNotExist(err) {
+		t.Errorf("Habits file should have been created at %s", habitsPath)
+	}
+
+	// Verify other context files were created
+	entriesPath := env.GetEntriesFile()
+	if _, err := os.Stat(entriesPath); os.IsNotExist(err) {
+		t.Errorf("Entries file should have been created at %s", entriesPath)
 	}
 }
 
@@ -235,12 +243,12 @@ func TestRepositoryError(t *testing.T) {
 		Context:   "TestContext",
 		Err:       os.ErrNotExist,
 	}
-	
+
 	expected := "repository error in TestOp for context 'TestContext': file does not exist"
 	if baseErr.Error() != expected {
 		t.Errorf("Error() = %q, want %q", baseErr.Error(), expected)
 	}
-	
+
 	if baseErr.Unwrap() != os.ErrNotExist {
 		t.Errorf("Unwrap() = %v, want %v", baseErr.Unwrap(), os.ErrNotExist)
 	}

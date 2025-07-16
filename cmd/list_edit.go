@@ -37,14 +37,14 @@ func runListEdit(_ *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid checklist ID '%s': %w", checklistID, err)
 	}
 
-	// Get the resolved paths
-	paths := GetPaths()
+	// Get the resolved environment
+	env := GetViceEnv()
 
 	// Initialize checklist parser
 	checklistParser := parser.NewChecklistParser()
 
 	// Load existing checklists
-	schema, err := checklistParser.LoadFromFile(paths.ChecklistsFile)
+	schema, err := checklistParser.LoadFromFile(env.GetChecklistsFile())
 	if err != nil {
 		return fmt.Errorf("failed to load checklists: %w", err)
 	}
@@ -81,7 +81,7 @@ func runListEdit(_ *cobra.Command, args []string) error {
 	}
 
 	// Save the updated schema
-	if err := checklistParser.SaveToFile(schema, paths.ChecklistsFile); err != nil {
+	if err := checklistParser.SaveToFile(schema, env.GetChecklistsFile()); err != nil {
 		return fmt.Errorf("failed to save checklists: %w", err)
 	}
 

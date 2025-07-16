@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"davidlee/vice/internal/config"
 	"davidlee/vice/internal/models"
 	"davidlee/vice/internal/parser"
 	"davidlee/vice/internal/storage"
@@ -13,15 +14,19 @@ import (
 
 // FileInitializer handles creation of sample configuration files.
 type FileInitializer struct {
-	habitParser  *parser.HabitParser
-	entryStorage *storage.EntryStorage
+	habitParser            *parser.HabitParser
+	entryStorage           *storage.EntryStorage
+	checklistParser        *parser.ChecklistParser
+	checklistEntriesParser *parser.ChecklistEntriesParser
 }
 
 // NewFileInitializer creates a new file initializer instance.
 func NewFileInitializer() *FileInitializer {
 	return &FileInitializer{
-		habitParser:  parser.NewHabitParser(),
-		entryStorage: storage.NewEntryStorage(),
+		habitParser:            parser.NewHabitParser(),
+		entryStorage:           storage.NewEntryStorage(),
+		checklistParser:        parser.NewChecklistParser(),
+		checklistEntriesParser: parser.NewChecklistEntriesParser(),
 	}
 }
 
@@ -49,6 +54,78 @@ func (fi *FileInitializer) EnsureConfigFiles(habitsFile, entriesFile string) err
 		fmt.Printf("📋 Created empty entries file: %s\n", entriesFile)
 	}
 
+	return nil
+}
+
+// EnsureContextFiles checks if all context data files exist, creating samples if missing.
+// AIDEV-NOTE: T028-context-files; context-aware file initialization replacing hardcoded paths
+func (fi *FileInitializer) EnsureContextFiles(env *config.ViceEnv) error {
+	// Ensure context data directory exists
+	if err := env.EnsureDirectories(); err != nil {
+		return fmt.Errorf("failed to ensure context directories: %w", err)
+	}
+
+	// Initialize all 4 data files for the context
+	if err := fi.ensureHabitsFile(env.GetHabitsFile()); err != nil {
+		return fmt.Errorf("failed to ensure habits file: %w", err)
+	}
+
+	if err := fi.ensureEntriesFile(env.GetEntriesFile()); err != nil {
+		return fmt.Errorf("failed to ensure entries file: %w", err)
+	}
+
+	if err := fi.ensureChecklistsFile(env.GetChecklistsFile()); err != nil {
+		return fmt.Errorf("failed to ensure checklists file: %w", err)
+	}
+
+	if err := fi.ensureChecklistEntriesFile(env.GetChecklistEntriesFile()); err != nil {
+		return fmt.Errorf("failed to ensure checklist entries file: %w", err)
+	}
+
+	return nil
+}
+
+// ensureHabitsFile creates habits.yml if missing.
+func (fi *FileInitializer) ensureHabitsFile(habitsFile string) error {
+	if !fileExists(habitsFile) {
+		if err := fi.createSampleHabitsFile(habitsFile); err != nil {
+			return fmt.Errorf("failed to create sample habits file: %w", err)
+		}
+		fmt.Printf("📝 Created sample habits file: %s\n", habitsFile)
+	}
+	return nil
+}
+
+// ensureEntriesFile creates entries.yml if missing.
+func (fi *FileInitializer) ensureEntriesFile(entriesFile string) error {
+	if !fileExists(entriesFile) {
+		if err := fi.createEmptyEntriesFile(entriesFile); err != nil {
+			return fmt.Errorf("failed to create entries file: %w", err)
+		}
+		fmt.Printf("📋 Created empty entries file: %s\n", entriesFile)
+	}
+	return nil
+}
+
+// ensureChecklistsFile creates checklists.yml if missing.
+func (fi *FileInitializer) ensureChecklistsFile(checklistsFile string) error {
+	if !fileExists(checklistsFile) {
+		if err := fi.createEmptyChecklistsFile(checklistsFile); err != nil {
+			return fmt.Errorf("failed to create checklists file: %w", err)
+		}
+		fmt.Printf("📋 Created empty checklists file: %s\n", checklistsFile)
+	}
+	return nil
+}
+
+// ensureChecklistEntriesFile creates checklist_entries.yml if missing.
+func (fi *FileInitializer) ensureChecklistEntriesFile(checklistEntriesFile string) error {
+	if !fileExists(checklistEntriesFile) {
+		if err := fi.createEmptyChecklistEntriesFile(checklistEntriesFile); err != nil {
+			return fmt.Errorf("failed to create checklist entries file: %w", err)
+		}
+		fmt.Printf("📋 Created empty checklist entries file: %s\n", checklistEntriesFile)
+	}
 	return nil
 }
 
@@ -142,6 +219,22 @@ func floatPtr(f float64) *float64 {
 func (fi *FileInitializer) createEmptyEntriesFile(entriesFile string) error {
 	entryLog := models.CreateEmptyEntryLog()
 	return fi.entryStorage.SaveToFile(entryLog, entriesFile)
+}
+
+// createEmptyChecklistsFile creates a checklists.yml file with empty schema.
+func (fi *FileInitializer) createEmptyChecklistsFile(checklistsFile string) error {
+	schema := &models.ChecklistSchema{
+		Version:     "1.0.0",
+		CreatedDate: "",
+		Checklists:  []models.Checklist{},
+	}
+	return fi.checklistParser.SaveToFile(schema, checklistsFile)
+}
+
+// createEmptyChecklistEntriesFile creates a checklist_entries.yml file with empty schema.
+func (fi *FileInitializer) createEmptyChecklistEntriesFile(checklistEntriesFile string) error {
+	schema := fi.checklistEntriesParser.CreateEmptySchema()
+	return fi.checklistEntriesParser.SaveToFile(schema, checklistEntriesFile)
 }
 
 // fileExists checks if a file exists and is not a directory.

@@ -634,71 +634,120 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
 - Ensure backward compatibility during transition
 - Ensure good Anchor comments and grep codebase to ensure no access bypassing new design. 
 
-- [ ] **Phase 2: Context Management System**
+- [x] **Phase 2: Context Management System**
   - [x] **2.1: Implement context switching with immediate data unload**
     - *Design:* Context manager unloads all data immediately, loads on-demand per UI needs
     - *Code/Artifacts:* `internal/config/context.go` (new), state file management
     - *Testing Strategy:* Unit tests for context switching, data unloading behavior
     - *AI Notes:* No eager loading - load data only when UI components request it
-  - [ ] **2.2: Add context-aware data directory management**
+  - [x] **2.2: Add context-aware data directory management**
     - *Design:* Auto-create $VICE_DATA/$CONTEXT directories, populate with minimal YAML files
     - *Code/Artifacts:* Update `ViceEnv` struct, directory creation logic
     - *Testing Strategy:* Integration tests for context directory creation
     - *AI Notes:* First context in array is default, create dirs on first access
+    - **Completed Steps:**
+      - [x] Step 2.2.1: Context-Aware FileInitializer - Added `EnsureContextFiles(env *ViceEnv)` and checklist initialization
+        - *Artifacts:* `internal/init/files.go` - Added ViceEnv support and checklist file creation
+        - *Testing:* Unit tests pass, FileInitializer creates all 4 data files per context
+      - [x] Step 2.2.2: CMD Layer Integration - Updated `cmd/root.go` and `cmd/entry.go` to use ViceEnv 
+        - *Artifacts:* `cmd/root.go`, `cmd/entry.go` - Replaced `initializePaths` with `initializeViceEnv`
+        - *Testing:* CMD tests updated and passing, maintains backward compatibility
+      - [x] Step 2.2.3: Context Data File Templates - Implemented checklist file creation methods
+        - *Artifacts:* Added `createEmptyChecklistsFile()` and `createEmptyChecklistEntriesFile()` 
+        - *Testing:* Integration with parser layer verified
+      - [x] Step 2.2.4: CLI Updates - Updated all 9 remaining cmd files to use ViceEnv instead of config.Paths
+        - *Artifacts:* Updated `habit_add.go`, `habit_list.go`, `habit_edit.go`, `habit_remove.go`, `list_add.go`, `list_edit.go`, `list_entry.go`, `todo.go`
+        - *Testing:* All commands build and run successfully
+      - [x] Step 2.2.5: Repository Integration - Integrated FileInitializer with Repository pattern for automatic file creation
+        - *Artifacts:* `internal/repository/file_repository.go` - Added FileInitializer to LoadHabits, LoadEntries, LoadChecklists
+        - *Testing:* Repository tests updated, automatic file creation verified
 
 ### Phase 2.2 Detailed Implementation Steps
 
-**Current State Analysis:**
+**Initial State Analysis:**
 - `internal/init/files.go`: Creates habits.yml + entries.yml with hardcoded paths
 - 11 cmd files use `GetPaths()` from legacy config.Paths system
 - Sample data: 4 comprehensive habits (2 simple, 2 elastic) + empty entries
 - Missing: checklist file initialization, context awareness
 
-**Step-by-Step Implementation:**
+**Step-by-Step Implementation Completed:**
 
-**Step 2.2.1: Create Context-Aware FileInitializer**
+**Step 2.2.1: Create Context-Aware FileInitializer** ✅
 - *Files:* `internal/init/files.go`
-- *Changes:* 
-  - Add `EnsureContextFiles(env *ViceEnv)` method
-  - Replace path parameters with ViceEnv integration
-  - Add checklist initialization methods: `createEmptyChecklistsFile()`, `createEmptyChecklistEntriesFile()`
-  - Update existing methods to work with ViceEnv paths
-- *Backward Compatibility:* Keep existing `EnsureConfigFiles()` for transition
+- *Detailed Sub-tasks Completed:*
+  - [x] Add import for `internal/config` package
+  - [x] Add FileInitializer struct fields for checklist parsers (`checklistParser`, `checklistEntriesParser`)
+  - [x] Update `NewFileInitializer()` to initialize checklist parsers
+  - [x] Create `EnsureContextFiles(env *ViceEnv)` method with ViceEnv integration
+  - [x] Create helper methods: `ensureHabitsFile()`, `ensureEntriesFile()`, `ensureChecklistsFile()`, `ensureChecklistEntriesFile()`
+  - [x] Implement `createEmptyChecklistsFile()` with proper ChecklistSchema structure
+  - [x] Implement `createEmptyChecklistEntriesFile()` using `parser.CreateEmptySchema()`
+  - [x] Add ANCHOR comment: T028-context-files for future reference
+  - [x] Unit tests pass for file initialization functionality
 
-**Step 2.2.2: Update CMD Layer Integration**
+**Step 2.2.2: Update CMD Layer Integration** ✅
 - *Files:* `cmd/root.go`, `cmd/entry.go`
-- *Changes:*
-  - Replace `GetPaths()` calls with ViceEnv usage
-  - Update `runDefaultCommand()` and `runEntry()` to use context-aware initialization
-  - Replace `config.Paths` parameters with ViceEnv in `runEntryMenu()`
-- *Testing:* Verify entry menu and default command work with new context system
+- *Detailed Sub-tasks Completed:*
+  - [x] Replace global `paths *config.Paths` with `viceEnv *config.ViceEnv` in root.go
+  - [x] Rename `initializePaths` to `initializeViceEnv` with ViceEnv initialization logic
+  - [x] Update `GetPaths()` to return legacy config.Paths for backward compatibility
+  - [x] Create new `GetViceEnv()` function for modern usage
+  - [x] Update `runDefaultCommand()` to use `EnsureContextFiles(env)` instead of hardcoded paths
+  - [x] Move `runEntryMenu()` from entry.go to root.go for shared access
+  - [x] Move `loadTodayEntries()` function to root.go and add required imports
+  - [x] Update `runEntry()` in entry.go to use ViceEnv and `EnsureContextFiles()`
+  - [x] Clean up unused imports in entry.go
+  - [x] Update cmd tests to use `initializeViceEnv` and fix path expectations for context structure
+  - [x] Add ANCHOR comment: T028-cmd-integration for future reference
 
-**Step 2.2.3: Add Context Data File Templates**
+**Step 2.2.3: Add Context Data File Templates** ✅
 - *Files:* `internal/init/files.go` (template methods)
-- *Changes:*
-  - `createEmptyChecklistsFile()`: Basic checklist schema structure
-  - `createEmptyChecklistEntriesFile()`: Empty checklist entries
-  - Ensure all 4 data files (habits, entries, checklists, checklist_entries) initialized per context
-- *Data Consistency:* Same sample habits across all contexts for consistent UX
+- *Detailed Sub-tasks Completed:*
+  - [x] Implement `createEmptyChecklistsFile()` with basic ChecklistSchema (version "1.0.0", empty checklists array)
+  - [x] Implement `createEmptyChecklistEntriesFile()` using ChecklistEntriesParser.CreateEmptySchema()
+  - [x] Ensure all 4 data files initialized per context: habits.yml, entries.yml, checklists.yml, checklist_entries.yml
+  - [x] Maintain consistent sample habits across all contexts (4 comprehensive habits: 2 simple, 2 elastic)
+  - [x] Integration testing with parser layer verified
 
-**Step 2.2.4: Integration Testing & CLI Updates**
+**Step 2.2.4: Integration Testing & CLI Updates** ✅
 - *Files:* All remaining cmd files using `GetPaths()` (9 files)
-- *Priority Order:* 
-  1. Core commands: `habit_add.go`, `habit_list.go`, `todo.go`
-  2. Secondary: `habit_edit.go`, `habit_remove.go`, `list_*.go`
-- *Changes:* Replace `config.Paths` with ViceEnv usage throughout
-- *Testing:* Verify all commands work with context-aware paths
+- *Detailed Sub-tasks Completed:*
+  - [x] **Core Commands Priority 1:**
+    - [x] `habit_add.go`: Replace `GetPaths()` with `GetViceEnv()`, update `EnsureConfigFiles()` to `EnsureContextFiles()`
+    - [x] `habit_list.go`: Replace paths with env, update file initialization calls
+    - [x] `todo.go`: Replace with ViceEnv (kept backward compatibility for TodoDashboard)
+  - [x] **Secondary Commands Priority 2:**
+    - [x] `habit_edit.go`: Update to use `env.GetHabitsFile()` and context-aware initialization
+    - [x] `habit_remove.go`: Replace paths with env for habit removal operations
+    - [x] `list_add.go`: Update to use `env.GetChecklistsFile()` for all checklist operations
+    - [x] `list_edit.go`: Replace `paths.ChecklistsFile` with `env.GetChecklistsFile()`
+    - [x] `list_entry.go`: Update all checklist file paths to use ViceEnv methods
+  - [x] Fix `prototype.go` to use ViceEnv for debug logging paths
+  - [x] Resolve compilation errors and unused variables
+  - [x] All commands build successfully and maintain CLI compatibility
+  - [x] Dry-run functionality preserved across all habit and list commands
 
-**Step 2.2.5: Repository Integration**
-- *Files:* Update repository to use context-aware file initialization
-- *Changes:* Integrate FileInitializer with Repository pattern for automatic context setup
-- *Testing:* Verify repository operations trigger file creation for new contexts
+**Step 2.2.5: Repository Integration** ✅
+- *Files:* `internal/repository/file_repository.go`, `internal/repository/file_repository_test.go`
+- *Detailed Sub-tasks Completed:*
+  - [x] Add `init_pkg "davidlee/vice/internal/init"` import to repository
+  - [x] Add `fileInitializer *init_pkg.FileInitializer` field to FileRepository struct
+  - [x] Update `NewFileRepository()` to initialize FileInitializer
+  - [x] Add `EnsureContextFiles()` call to `LoadHabits()` method with error handling
+  - [x] Add `EnsureContextFiles()` call to `LoadEntries()` method with error handling  
+  - [x] Add `EnsureContextFiles()` call to `LoadChecklists()` method with error handling
+  - [x] Add ANCHOR comment: T028/2.2-file-init for automatic file creation behavior
+  - [x] Update repository test `TestLoadHabitsFileNotFound` to `TestLoadHabitsAutoCreateFiles`
+  - [x] Verify automatic file creation behavior in repository tests
+  - [x] Add import for `os` package in repository tests for file existence verification
+  - [x] All repository tests pass with new automatic file creation behavior
 
-**Dependencies & Integration Points:**
-- **ViceEnv Methods:** Use existing `GetHabitsFile()`, `GetEntriesFile()`, etc.
-- **Directory Creation:** Leverage `env.EnsureDirectories()` from Phase 2.1
-- **Context Switching:** Files created automatically when switching to new context
-- **Backward Compatibility:** Legacy FileInitializer methods preserved during transition
+**Integration Points Verified:**
+- **ViceEnv Methods:** Successfully using `GetHabitsFile()`, `GetEntriesFile()`, `GetChecklistsFile()`, `GetChecklistEntriesFile()`
+- **Directory Creation:** Leveraging `env.EnsureDirectories()` from Phase 2.1 working correctly
+- **Context Switching:** Files created automatically when switching to new context via repository
+- **Backward Compatibility:** Legacy `GetPaths()` function maintained for transition period
+- **Testing:** All unit tests, integration tests, and build verification passing
 
 - [ ] **Phase 3: CLI Integration & Context Flags**
   - [ ] **3.1: Update CLI to use ViceEnv throughout**
@@ -786,6 +835,23 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
   - Identified 11 cmd files using legacy config.Paths system
   - Broke down Phase 2.2 into 5 detailed implementation steps
   - Defined integration points with ViceEnv and Repository pattern
+- `2025-07-16 - AI:` Completed Phase 2.2 implementation:
+  - **Step 2.2.1:** Extended FileInitializer with context-aware `EnsureContextFiles(env *ViceEnv)` method
+    - Added checklist parser integration for complete 4-file initialization per context
+    - ANCHOR: T028-context-files in internal/init/files.go
+  - **Step 2.2.2:** Updated core CMD layer (root.go, entry.go) to use ViceEnv 
+    - Replaced `initializePaths` with `initializeViceEnv` and `GetPaths()` with `GetViceEnv()`
+    - Moved `runEntryMenu` to root.go for shared access, added backward compatibility
+  - **Step 2.2.3:** Implemented checklist file creation templates
+    - Added `createEmptyChecklistsFile()` and `createEmptyChecklistEntriesFile()` methods
+    - Integrated with existing parser.ChecklistParser and parser.ChecklistEntriesParser
+  - **Step 2.2.4:** Updated all remaining cmd files to use ViceEnv
+    - Migrated 9 remaining cmd files from config.Paths to ViceEnv pattern
+    - Maintained CLI compatibility and dry-run functionality throughout
+  - **Step 2.2.5:** Integrated FileInitializer with Repository pattern
+    - Added automatic file creation to LoadHabits, LoadEntries, and LoadChecklists methods
+    - Updated repository tests to verify automatic file creation behavior
+    - ANCHOR: T028/2.2-file-init in internal/repository/file_repository.go
 
 ## Git Commit History
 
@@ -793,3 +859,8 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
 - `b8feecc` - docs(kanban)[T028]: update plan based on user clarifications
 - `7486b46` - docs(kanban)[T028]: add comprehensive Phase 1 pre-flight analysis
 - `1f80ede` - feat(config)[T028/1.1-1.3]: implement ViceEnv with full XDG compliance and TOML config
+- **Ready for commit:** feat(init)[T028/2.2]: implement context-aware data directory management
+  - Added EnsureContextFiles(env *ViceEnv) method with full 4-file initialization per context
+  - Updated all cmd files to use ViceEnv instead of config.Paths with backward compatibility
+  - Integrated FileInitializer with Repository pattern for automatic file creation on data access
+  - Updated Justfile with lint-single command and all tests passing

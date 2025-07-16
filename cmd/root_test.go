@@ -32,7 +32,7 @@ func TestRootCommand(t *testing.T) {
 	})
 }
 
-func TestInitializePaths(t *testing.T) {
+func TestInitializeViceEnv(t *testing.T) {
 	t.Run("uses default paths when no config-dir flag", func(t *testing.T) {
 		// Setup
 		tempDir := t.TempDir()
@@ -56,18 +56,20 @@ func TestInitializePaths(t *testing.T) {
 		}()
 
 		// Test
-		err := initializePaths(rootCmd, []string{})
+		err := initializeViceEnv(rootCmd, []string{})
 		require.NoError(t, err)
 
-		// Verify paths were set correctly
-		require.NotNil(t, paths)
-		expected := filepath.Join(tempDir, "vice")
-		assert.Equal(t, expected, paths.ConfigDir)
-		assert.Equal(t, filepath.Join(expected, "habits.yml"), paths.HabitsFile)
-		assert.Equal(t, filepath.Join(expected, "entries.yml"), paths.EntriesFile)
+		// Verify environment was set correctly
+		env := GetViceEnv()
+		require.NotNil(t, env)
+		expectedConfig := filepath.Join(tempDir, "vice")
+		assert.Equal(t, expectedConfig, env.ConfigDir)
+		// Data files go in DataDir/Context, not ConfigDir
+		assert.Contains(t, env.GetHabitsFile(), "habits.yml")
+		assert.Contains(t, env.GetEntriesFile(), "entries.yml")
 
 		// Verify directory was created
-		info, err := os.Stat(expected)
+		info, err := os.Stat(expectedConfig)
 		require.NoError(t, err)
 		assert.True(t, info.IsDir())
 	})
@@ -85,14 +87,16 @@ func TestInitializePaths(t *testing.T) {
 		}()
 
 		// Test
-		err := initializePaths(rootCmd, []string{})
+		err := initializeViceEnv(rootCmd, []string{})
 		require.NoError(t, err)
 
-		// Verify paths were set correctly
-		require.NotNil(t, paths)
-		assert.Equal(t, customConfigDir, paths.ConfigDir)
-		assert.Equal(t, filepath.Join(customConfigDir, "habits.yml"), paths.HabitsFile)
-		assert.Equal(t, filepath.Join(customConfigDir, "entries.yml"), paths.EntriesFile)
+		// Verify environment was set correctly
+		env := GetViceEnv()
+		require.NotNil(t, env)
+		assert.Equal(t, customConfigDir, env.ConfigDir)
+		// Data files go in DataDir/Context, not ConfigDir
+		assert.Contains(t, env.GetHabitsFile(), "habits.yml")
+		assert.Contains(t, env.GetEntriesFile(), "entries.yml")
 
 		// Verify directory was created
 		info, err := os.Stat(customConfigDir)
@@ -103,7 +107,7 @@ func TestInitializePaths(t *testing.T) {
 
 func TestGetPaths(t *testing.T) {
 	t.Run("returns paths after initialization", func(t *testing.T) {
-		// Setup - ensure paths is initialized
+		// Setup - ensure viceEnv is initialized
 		tempDir := t.TempDir()
 
 		originalConfigDir := configDir
@@ -112,7 +116,7 @@ func TestGetPaths(t *testing.T) {
 			configDir = originalConfigDir
 		}()
 
-		err := initializePaths(rootCmd, []string{})
+		err := initializeViceEnv(rootCmd, []string{})
 		require.NoError(t, err)
 
 		// Test

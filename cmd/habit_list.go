@@ -26,16 +26,16 @@ func init() {
 }
 
 func runHabitList(_ *cobra.Command, _ []string) error {
-	// Get the resolved paths
-	paths := GetPaths()
+	// Get the resolved environment
+	env := GetViceEnv()
 
-	// Ensure config files exist, creating samples if missing
+	// Ensure context files exist, creating samples if missing
 	initializer := initpkg.NewFileInitializer()
-	if err := initializer.EnsureConfigFiles(paths.HabitsFile, paths.EntriesFile); err != nil {
+	if err := initializer.EnsureContextFiles(env); err != nil {
 		return err
 	}
 
 	// Create habit configurator and run list display
 	configurator := habitconfig.NewHabitConfigurator()
-	return configurator.ListHabits(paths.HabitsFile)
+	return configurator.ListHabits(env.GetHabitsFile())
 }

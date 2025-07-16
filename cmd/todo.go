@@ -37,10 +37,8 @@ func init() {
 }
 
 func runTodo(_ *cobra.Command, _ []string) error {
-	// Get the resolved paths
+	// Create todo dashboard with backward compatibility
 	paths := GetPaths()
-
-	// Create todo dashboard
 	dashboard := ui.NewTodoDashboard(paths)
 
 	// Display in requested format

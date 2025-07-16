@@ -11,6 +11,9 @@ format:
 lint:
   golangci-lint run
 
+lint-single file:
+  golangci-lint run {{file}}
+
 run:
   go run . # [subcommand]
 

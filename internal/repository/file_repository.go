@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"davidlee/vice/internal/config"
+	init_pkg "davidlee/vice/internal/init"
 	"davidlee/vice/internal/models"
 	"davidlee/vice/internal/parser"
 	"davidlee/vice/internal/storage"
@@ -15,25 +16,27 @@ import (
 // AIDEV-NOTE: T028/2.1-simple-repository; "turn off and on again" approach for context switching
 // AIDEV-NOTE: T028-race-condition-avoidance; complete data unload prevents T024-style concurrency issues
 type FileRepository struct {
-	viceEnv       *config.ViceEnv
-	habitParser   *parser.HabitParser
-	entryStorage  *storage.EntryStorage
-	
+	viceEnv         *config.ViceEnv
+	habitParser     *parser.HabitParser
+	entryStorage    *storage.EntryStorage
+	fileInitializer *init_pkg.FileInitializer
+
 	// Simple state tracking - no complex caching
-	dataLoaded    bool
-	currentSchema *models.Schema
-	currentEntries *models.EntryLog
-	currentChecklists *models.ChecklistSchema
+	dataLoaded              bool
+	currentSchema           *models.Schema
+	currentEntries          *models.EntryLog
+	currentChecklists       *models.ChecklistSchema
 	currentChecklistEntries *models.ChecklistEntriesSchema
 }
 
 // NewFileRepository creates a new file-based repository.
 func NewFileRepository(viceEnv *config.ViceEnv) *FileRepository {
 	return &FileRepository{
-		viceEnv:      viceEnv,
-		habitParser:  parser.NewHabitParser(),
-		entryStorage: storage.NewEntryStorage(),
-		dataLoaded:   false,
+		viceEnv:         viceEnv,
+		habitParser:     parser.NewHabitParser(),
+		entryStorage:    storage.NewEntryStorage(),
+		fileInitializer: init_pkg.NewFileInitializer(),
+		dataLoaded:      false,
 	}
 }
 
@@ -79,7 +82,7 @@ func (r *FileRepository) SwitchContext(context string) error {
 	// Ensure new context directory exists
 	if err := r.viceEnv.EnsureDirectories(); err != nil {
 		return &RepositoryError{
-			Operation: "SwitchContext", 
+			Operation: "SwitchContext",
 			Context:   context,
 			Err:       fmt.Errorf("failed to create context directories: %w", err),
 		}
@@ -94,9 +97,19 @@ func (r *FileRepository) ListAvailableContexts() []string {
 }
 
 // LoadHabits loads the habit schema for the current context.
+// AIDEV-NOTE: T028/2.2-file-init; automatically ensures context files exist before loading
 func (r *FileRepository) LoadHabits() (*models.Schema, error) {
 	if r.currentSchema != nil && r.dataLoaded {
 		return r.currentSchema, nil
+	}
+
+	// Ensure context files exist before loading
+	if err := r.fileInitializer.EnsureContextFiles(r.viceEnv); err != nil {
+		return nil, &RepositoryError{
+			Operation: "LoadHabits",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to ensure context files: %w", err),
+		}
 	}
 
 	habitsPath := r.viceEnv.GetHabitsFile()
@@ -130,7 +143,17 @@ func (r *FileRepository) SaveHabits(schema *models.Schema) error {
 }
 
 // LoadEntries loads entries for the specified date in the current context.
+// AIDEV-NOTE: T028/2.2-file-init; automatically ensures context files exist before loading
 func (r *FileRepository) LoadEntries(date time.Time) (*models.EntryLog, error) {
+	// Ensure context files exist before loading
+	if err := r.fileInitializer.EnsureContextFiles(r.viceEnv); err != nil {
+		return nil, &RepositoryError{
+			Operation: "LoadEntries",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to ensure context files: %w", err),
+		}
+	}
+
 	entriesPath := r.viceEnv.GetEntriesFile()
 	entries, err := r.entryStorage.LoadFromFile(entriesPath)
 	if err != nil {
@@ -161,9 +184,19 @@ func (r *FileRepository) SaveEntries(entries *models.EntryLog) error {
 }
 
 // LoadChecklists loads checklist templates for the current context.
+// AIDEV-NOTE: T028/2.2-file-init; automatically ensures context files exist before loading
 func (r *FileRepository) LoadChecklists() (*models.ChecklistSchema, error) {
+	// Ensure context files exist before loading
+	if err := r.fileInitializer.EnsureContextFiles(r.viceEnv); err != nil {
+		return nil, &RepositoryError{
+			Operation: "LoadChecklists",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to ensure context files: %w", err),
+		}
+	}
+
 	checklistsPath := r.viceEnv.GetChecklistsFile()
-	
+
 	// Use checklist parser - need to implement this based on existing patterns
 	checklistParser := parser.NewChecklistParser()
 	checklists, err := checklistParser.LoadFromFile(checklistsPath)
@@ -182,7 +215,7 @@ func (r *FileRepository) LoadChecklists() (*models.ChecklistSchema, error) {
 // SaveChecklists saves checklist templates for the current context.
 func (r *FileRepository) SaveChecklists(checklists *models.ChecklistSchema) error {
 	checklistsPath := r.viceEnv.GetChecklistsFile()
-	
+
 	checklistParser := parser.NewChecklistParser()
 	if err := checklistParser.SaveToFile(checklists, checklistsPath); err != nil {
 		return &RepositoryError{
@@ -199,7 +232,7 @@ func (r *FileRepository) SaveChecklists(checklists *models.ChecklistSchema) erro
 // LoadChecklistEntries loads checklist entry data for the current context.
 func (r *FileRepository) LoadChecklistEntries() (*models.ChecklistEntriesSchema, error) {
 	entriesPath := r.viceEnv.GetChecklistEntriesFile()
-	
+
 	entriesParser := parser.NewChecklistEntriesParser()
 	entries, err := entriesParser.LoadFromFile(entriesPath)
 	if err != nil {
@@ -217,7 +250,7 @@ func (r *FileRepository) LoadChecklistEntries() (*models.ChecklistEntriesSchema,
 // SaveChecklistEntries saves checklist entry data for the current context.
 func (r *FileRepository) SaveChecklistEntries(entries *models.ChecklistEntriesSchema) error {
 	entriesPath := r.viceEnv.GetChecklistEntriesFile()
-	
+
 	entriesParser := parser.NewChecklistEntriesParser()
 	if err := entriesParser.SaveToFile(entries, entriesPath); err != nil {
 		return &RepositoryError{
@@ -243,6 +276,6 @@ func (r *FileRepository) UnloadAllData() error {
 
 // IsDataLoaded returns whether any data is currently loaded.
 func (r *FileRepository) IsDataLoaded() bool {
-	return r.dataLoaded && (r.currentSchema != nil || r.currentEntries != nil || 
+	return r.dataLoaded && (r.currentSchema != nil || r.currentEntries != nil ||
 		r.currentChecklists != nil || r.currentChecklistEntries != nil)
 }

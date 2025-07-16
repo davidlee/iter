@@ -32,15 +32,15 @@ func init() {
 }
 
 func runListEntry(_ *cobra.Command, args []string) error {
-	// Get the resolved paths
-	paths := GetPaths()
+	// Get the resolved environment
+	env := GetViceEnv()
 
 	// Initialize parsers
 	checklistParser := parser.NewChecklistParser()
 	entriesParser := parser.NewChecklistEntriesParser()
 
 	// Load existing checklists
-	schema, err := checklistParser.LoadFromFile(paths.ChecklistsFile)
+	schema, err := checklistParser.LoadFromFile(env.GetChecklistsFile())
 	if err != nil {
 		return fmt.Errorf("failed to load checklists: %w", err)
 	}
@@ -68,7 +68,7 @@ func runListEntry(_ *cobra.Command, args []string) error {
 	}
 
 	// Load or create checklist entries schema
-	entriesSchema, err := entriesParser.EnsureSchemaExists(paths.ChecklistEntriesFile)
+	entriesSchema, err := entriesParser.EnsureSchemaExists(env.GetChecklistEntriesFile())
 	if err != nil {
 		return fmt.Errorf("failed to load checklist entries: %w", err)
 	}
@@ -122,7 +122,7 @@ func runListEntry(_ *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to save checklist entry: %w", err)
 	}
 
-	if err := entriesParser.SaveToFile(entriesSchema, paths.ChecklistEntriesFile); err != nil {
+	if err := entriesParser.SaveToFile(entriesSchema, env.GetChecklistEntriesFile()); err != nil {
 		return fmt.Errorf("failed to save checklist entries file: %w", err)
 	}
 
