@@ -66,46 +66,46 @@ This enables professional users to maintain clear boundaries between different a
 
 - [ ] **Phase 1: Core ViceEnv Structure & XDG Compliance**
   - [ ] **1.1: Create ViceEnv struct with full XDG support**
-    - *Design:* Extend current `config.Paths` to `ViceEnv` struct with XDG_DATA_HOME, XDG_STATE_HOME, XDG_CACHE_HOME support
-    - *Code/Artifacts:* `internal/config/env.go` (new), update `internal/config/paths.go`
+    - *Design:* New `ViceEnv` struct with all XDG directories (CONFIG/DATA/STATE/CACHE), context-aware data paths
+    - *Code/Artifacts:* `internal/config/env.go` (new), replace `config.Paths` usage
     - *Testing Strategy:* Unit tests for env variable resolution, XDG path construction
     - *AI Notes:* Priority override: ENV vars → CLI flags → XDG defaults
   - [ ] **1.2: Add pelletier/go-toml dependency and TOML parsing**
-    - *Design:* Add go-toml to go.mod, create TOML config parser with contexts support
+    - *Design:* Add go-toml to go.mod, parse config.toml from $VICE_CONFIG for app settings
     - *Code/Artifacts:* `internal/config/toml.go` (new), update go.mod
-    - *Testing Strategy:* Unit tests for TOML parsing, invalid config handling
-    - *AI Notes:* Start with minimal [core] contexts = ["personal", "work"] support
+    - *Testing Strategy:* Unit tests for TOML parsing, invalid config handling, defaults
+    - *AI Notes:* config.toml = app settings (keybindings, themes, contexts array), not user data
 
 - [ ] **Phase 2: Context Management System**
-  - [ ] **2.1: Implement context switching logic**
-    - *Design:* Context manager with active context tracking, state persistence
+  - [ ] **2.1: Implement context switching with immediate data unload**
+    - *Design:* Context manager unloads all data immediately, loads on-demand per UI needs
     - *Code/Artifacts:* `internal/config/context.go` (new), state file management
-    - *Testing Strategy:* Unit tests for context switching, state persistence
-    - *AI Notes:* Must handle missing contexts gracefully, create data dirs on demand
+    - *Testing Strategy:* Unit tests for context switching, data unloading behavior
+    - *AI Notes:* No eager loading - load data only when UI components request it
   - [ ] **2.2: Add context-aware data directory management**
-    - *Design:* Extend ViceEnv with context_data path, auto-create context directories
+    - *Design:* Auto-create $VICE_DATA/$CONTEXT directories, populate with minimal YAML files
     - *Code/Artifacts:* Update `ViceEnv` struct, directory creation logic
     - *Testing Strategy:* Integration tests for context directory creation
-    - *AI Notes:* Create minimal YAML files in new context directories
+    - *AI Notes:* First context in array is default, create dirs on first access
 
-- [ ] **Phase 3: CLI Integration & Backward Compatibility**
+- [ ] **Phase 3: CLI Integration & Context Flags**
   - [ ] **3.1: Update CLI to use ViceEnv throughout**
     - *Design:* Replace config.Paths usage with ViceEnv in cmd/root.go and subcommands
     - *Code/Artifacts:* `cmd/root.go`, all subcommand files
     - *Testing Strategy:* CLI integration tests, existing command compatibility
     - *AI Notes:* Maintain --config-dir flag behavior, add environment variable support
-  - [ ] **3.2: Add backward compatibility layer**
-    - *Design:* Auto-migrate existing YAML configs, graceful degradation for missing TOML
-    - *Code/Artifacts:* `internal/config/migration.go` (new), update initialization
-    - *Testing Strategy:* Migration tests with existing config directories
-    - *AI Notes:* Don't break existing users, warn about missing config.toml
+  - [ ] **3.2: Add transient --context CLI flag**
+    - *Design:* Global --context flag for non-interactive operations, no state persistence
+    - *Code/Artifacts:* Update root command flags, context resolution logic
+    - *Testing Strategy:* CLI tests with --context flag, verify no state persistence
+    - *AI Notes:* Transient override for CLI ops, doesn't modify $VICE_STATE/vice.yml
 
 - [ ] **Phase 4: Runtime Context Operations**
   - [ ] **4.1: Add context switching commands**
-    - *Design:* Add `vice context` subcommand with list/switch operations
+    - *Design:* Add `vice context` subcommand with list/switch operations for persistence
     - *Code/Artifacts:* `cmd/context.go` (new), context CLI interface
     - *Testing Strategy:* Manual testing with multiple contexts, state persistence
-    - *AI Notes:* Consider adding context indicator to existing commands
+    - *AI Notes:* Interactive context switching persists to state file
   - [ ] **4.2: Add environment variable override support**
     - *Design:* VICE_CONTEXT override, runtime context switching capability
     - *Code/Artifacts:* Update ViceEnv initialization, context resolution
@@ -125,7 +125,14 @@ This enables professional users to maintain clear boundaries between different a
   2. Context switching scope (immediate vs lazy reload)
   3. Default context behavior 
   4. CLI integration for context switching
+- `2025-07-16 - User:` Clarified design decisions:
+  1. config.toml = app settings ($VICE_CONFIG), YAML = user data ($VICE_DATA) - no migration needed
+  2. Context switching: unload all data immediately, load on-demand per UI needs
+  3. First context in array is default
+  4. --context CLI flag should be transient (no state persistence) for non-interactive ops
+- `2025-07-16 - AI:` Updated implementation plan to reflect correct separation of concerns
+- `2025-07-16 - User:` Noted migration concern: contexts will change user data paths but user will handle manual migration
 
 ## Git Commit History
 
-*No commits yet - task is in backlog*
+- `9c87759` - docs(kanban)[T028]: create file paths & runtime environment implementation plan
