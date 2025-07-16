@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -15,13 +16,27 @@ import (
 
 // TodoDashboard displays today's habit status in a table format
 type TodoDashboard struct {
-	paths *config.Paths
+	env *config.ViceEnv
 }
 
 // NewTodoDashboard creates a new todo dashboard instance
-func NewTodoDashboard(paths *config.Paths) *TodoDashboard {
+func NewTodoDashboard(env *config.ViceEnv) *TodoDashboard {
 	return &TodoDashboard{
-		paths: paths,
+		env: env,
+	}
+}
+
+// NewTodoDashboardLegacy creates a new todo dashboard instance with legacy config.Paths
+// AIDEV-NOTE: T028/3.1-backward-compatibility; maintains legacy support during transition
+func NewTodoDashboardLegacy(paths *config.Paths) *TodoDashboard {
+	// Convert legacy paths to minimal ViceEnv for compatibility
+	env := &config.ViceEnv{
+		ConfigDir:   paths.ConfigDir,
+		Context:     "personal", // assume personal context for legacy usage
+		ContextData: filepath.Dir(paths.HabitsFile),
+	}
+	return &TodoDashboard{
+		env: env,
 	}
 }
 
@@ -200,14 +215,14 @@ func (td *TodoDashboard) displaySimpleTable(statuses []HabitStatus) error {
 func (td *TodoDashboard) loadTodayStatuses() ([]HabitStatus, error) {
 	// Load habits
 	habitParser := parser.NewHabitParser()
-	schema, err := habitParser.LoadFromFile(td.paths.HabitsFile)
+	schema, err := habitParser.LoadFromFile(td.env.GetHabitsFile())
 	if err != nil {
 		return nil, fmt.Errorf("failed to load habits: %w", err)
 	}
 
 	// Load today's entries
 	entryStorage := storage.NewEntryStorage()
-	entryLog, err := entryStorage.LoadFromFile(td.paths.EntriesFile)
+	entryLog, err := entryStorage.LoadFromFile(td.env.GetEntriesFile())
 	if err != nil {
 		return nil, fmt.Errorf("failed to load entries: %w", err)
 	}

@@ -40,6 +40,7 @@ func LoadConfig(configPath string) (*Config, error) {
 	}
 
 	// Read the file
+	// #nosec G304 -- configPath is controlled and validated
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file %s: %w", configPath, err)
@@ -73,7 +74,7 @@ func SaveConfig(configPath string, config *Config) error {
 	}
 
 	// Write to file with appropriate permissions
-	if err := os.WriteFile(configPath, data, 0o644); err != nil {
+	if err := os.WriteFile(configPath, data, 0o600); err != nil {
 		return fmt.Errorf("failed to write config file %s: %w", configPath, err)
 	}
 

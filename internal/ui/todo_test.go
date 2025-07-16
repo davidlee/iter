@@ -9,22 +9,22 @@ import (
 )
 
 func TestTodoDashboard(t *testing.T) {
-	// Create test paths
-	paths := &config.Paths{
+	// Create test ViceEnv
+	env := &config.ViceEnv{
 		ConfigDir:   "/tmp/test-config",
-		HabitsFile:  "testdata/habits.yml",
-		EntriesFile: "testdata/entries.yml",
+		Context:     "personal",
+		ContextData: "testdata",
 	}
 
-	dashboard := NewTodoDashboard(paths)
+	dashboard := NewTodoDashboard(env)
 
 	// Test dashboard creation
 	if dashboard == nil {
 		t.Fatal("NewTodoDashboard returned nil")
 	}
 
-	if dashboard.paths != paths {
-		t.Error("Dashboard paths not set correctly")
+	if dashboard.env != env {
+		t.Error("Dashboard env not set correctly")
 	}
 }
 

@@ -750,17 +750,16 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
 - **Testing:** All unit tests, integration tests, and build verification passing
 
 - [ ] **Phase 3: CLI Integration & Context Flags**
-  - [ ] **3.1: Update CLI to use ViceEnv throughout**
-    - *Design:* Replace config.Paths usage with ViceEnv in cmd/root.go and subcommands
-    - *Code/Artifacts:* `cmd/root.go`, all subcommand files
-    - *Testing Strategy:* CLI integration tests, existing command compatibility
-    - *AI Notes:* Maintain --config-dir flag behavior, add environment variable support
+  - [x] **3.1: Update CLI to use ViceEnv throughout and add XDG directory flags**
+    - *Design:* Replace config.Paths usage with ViceEnv in cmd/root.go and subcommands, add --data-dir, --cache-dir, --state-dir flags alongside existing --config-dir
+    - *Code/Artifacts:* `cmd/root.go`, all subcommand files, flag definitions and ViceEnv integration
+    - *Testing Strategy:* CLI integration tests, existing command compatibility, flag override verification
+    - *AI Notes:* Maintain --config-dir flag behavior, add --data-dir/--cache-dir/--state-dir flags, environment variable support
   - [ ] **3.2: Add transient --context CLI flag**
-    - *Design:* Global --context flag for non-interactive operations, no state persistence
-    - NEEDS CONSIDERATION: non-interactive commands must be explicitly understood as such by code handling --context flag
+    - *Design:* Global --context flag for all operations, always transient (no state persistence)
     - *Code/Artifacts:* Update root command flags, context resolution logic
     - *Testing Strategy:* CLI tests with --context flag, verify no state persistence
-    - *AI Notes:* Transient override for CLI ops, doesn't modify $VICE_STATE/vice.yml
+    - *AI Notes:* Transient override for all operations, doesn't modify $VICE_STATE/vice.yml
 
 - [ ] **Phase 4: Runtime Context Operations**
   - [ ] **4.1: Add context switching commands**

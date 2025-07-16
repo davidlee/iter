@@ -28,6 +28,9 @@ type ViceEnv struct {
 
 	// Override flags (for priority resolution)
 	ConfigDirOverride string // from CLI --config-dir flag
+	DataDirOverride   string // from CLI --data-dir flag
+	StateDirOverride  string // from CLI --state-dir flag
+	CacheDirOverride  string // from CLI --cache-dir flag
 	ContextOverride   string // from CLI --context flag (transient)
 }
 
@@ -74,19 +77,41 @@ func GetDefaultViceEnv() (*ViceEnv, error) {
 	return env, nil
 }
 
+// DirectoryOverrides holds CLI flag overrides for all XDG directories.
+// AIDEV-NOTE: T028/3.1-directory-flags; consolidates CLI flag overrides for clean function signature
+type DirectoryOverrides struct {
+	ConfigDir string
+	DataDir   string
+	StateDir  string
+	CacheDir  string
+	Context   string
+}
+
 // GetViceEnvWithOverrides creates a ViceEnv with CLI flag overrides applied.
 // Priority order: CLI flags → ENV vars → config.toml → XDG defaults
 // AIDEV-NOTE: T028-initialization-flow; complete ViceEnv setup with context initialization and directory creation
-func GetViceEnvWithOverrides(configDirOverride, contextOverride string) (*ViceEnv, error) {
+func GetViceEnvWithOverrides(overrides DirectoryOverrides) (*ViceEnv, error) {
 	env, err := GetDefaultViceEnv()
 	if err != nil {
 		return nil, err
 	}
 
 	// Apply CLI flag overrides
-	if configDirOverride != "" {
-		env.ConfigDirOverride = configDirOverride
-		env.ConfigDir = configDirOverride
+	if overrides.ConfigDir != "" {
+		env.ConfigDirOverride = overrides.ConfigDir
+		env.ConfigDir = overrides.ConfigDir
+	}
+	if overrides.DataDir != "" {
+		env.DataDirOverride = overrides.DataDir
+		env.DataDir = overrides.DataDir
+	}
+	if overrides.StateDir != "" {
+		env.StateDirOverride = overrides.StateDir
+		env.StateDir = overrides.StateDir
+	}
+	if overrides.CacheDir != "" {
+		env.CacheDirOverride = overrides.CacheDir
+		env.CacheDir = overrides.CacheDir
 	}
 
 	// Ensure directories exist before loading config
@@ -106,8 +131,8 @@ func GetViceEnvWithOverrides(configDirOverride, contextOverride string) (*ViceEn
 	}
 
 	// Apply context override after config loading
-	if contextOverride != "" {
-		env.ContextOverride = contextOverride
+	if overrides.Context != "" {
+		env.ContextOverride = overrides.Context
 	}
 
 	// Initialize context based on overrides and persisted state
@@ -122,7 +147,7 @@ func GetViceEnvWithOverrides(configDirOverride, contextOverride string) (*ViceEn
 // Creates directories with appropriate permissions (0750).
 func (env *ViceEnv) EnsureDirectories() error {
 	dirs := []string{env.ConfigDir, env.DataDir, env.StateDir, env.CacheDir, env.ContextData}
-	
+
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0o750); err != nil {
 			return fmt.Errorf("failed to create directory %s: %w", dir, err)

@@ -59,7 +59,7 @@ func (r *FileRepository) SwitchContext(context string) error {
 		}
 	}
 	if !contextValid {
-		return &RepositoryError{
+		return &Error{
 			Operation: "SwitchContext",
 			Context:   context,
 			Err:       fmt.Errorf("context '%s' not found in available contexts %v", context, available),
@@ -68,7 +68,7 @@ func (r *FileRepository) SwitchContext(context string) error {
 
 	// Unload all current data
 	if err := r.UnloadAllData(); err != nil {
-		return &RepositoryError{
+		return &Error{
 			Operation: "SwitchContext",
 			Context:   context,
 			Err:       fmt.Errorf("failed to unload data: %w", err),
@@ -81,7 +81,7 @@ func (r *FileRepository) SwitchContext(context string) error {
 
 	// Ensure new context directory exists
 	if err := r.viceEnv.EnsureDirectories(); err != nil {
-		return &RepositoryError{
+		return &Error{
 			Operation: "SwitchContext",
 			Context:   context,
 			Err:       fmt.Errorf("failed to create context directories: %w", err),
@@ -105,7 +105,7 @@ func (r *FileRepository) LoadHabits() (*models.Schema, error) {
 
 	// Ensure context files exist before loading
 	if err := r.fileInitializer.EnsureContextFiles(r.viceEnv); err != nil {
-		return nil, &RepositoryError{
+		return nil, &Error{
 			Operation: "LoadHabits",
 			Context:   r.viceEnv.Context,
 			Err:       fmt.Errorf("failed to ensure context files: %w", err),
@@ -115,7 +115,7 @@ func (r *FileRepository) LoadHabits() (*models.Schema, error) {
 	habitsPath := r.viceEnv.GetHabitsFile()
 	schema, err := r.habitParser.LoadFromFile(habitsPath)
 	if err != nil {
-		return nil, &RepositoryError{
+		return nil, &Error{
 			Operation: "LoadHabits",
 			Context:   r.viceEnv.Context,
 			Err:       err,
@@ -131,7 +131,7 @@ func (r *FileRepository) LoadHabits() (*models.Schema, error) {
 func (r *FileRepository) SaveHabits(schema *models.Schema) error {
 	habitsPath := r.viceEnv.GetHabitsFile()
 	if err := r.habitParser.SaveToFile(schema, habitsPath); err != nil {
-		return &RepositoryError{
+		return &Error{
 			Operation: "SaveHabits",
 			Context:   r.viceEnv.Context,
 			Err:       err,
@@ -144,10 +144,10 @@ func (r *FileRepository) SaveHabits(schema *models.Schema) error {
 
 // LoadEntries loads entries for the specified date in the current context.
 // AIDEV-NOTE: T028/2.2-file-init; automatically ensures context files exist before loading
-func (r *FileRepository) LoadEntries(date time.Time) (*models.EntryLog, error) {
+func (r *FileRepository) LoadEntries(_ time.Time) (*models.EntryLog, error) {
 	// Ensure context files exist before loading
 	if err := r.fileInitializer.EnsureContextFiles(r.viceEnv); err != nil {
-		return nil, &RepositoryError{
+		return nil, &Error{
 			Operation: "LoadEntries",
 			Context:   r.viceEnv.Context,
 			Err:       fmt.Errorf("failed to ensure context files: %w", err),
@@ -157,7 +157,7 @@ func (r *FileRepository) LoadEntries(date time.Time) (*models.EntryLog, error) {
 	entriesPath := r.viceEnv.GetEntriesFile()
 	entries, err := r.entryStorage.LoadFromFile(entriesPath)
 	if err != nil {
-		return nil, &RepositoryError{
+		return nil, &Error{
 			Operation: "LoadEntries",
 			Context:   r.viceEnv.Context,
 			Err:       err,
@@ -172,7 +172,7 @@ func (r *FileRepository) LoadEntries(date time.Time) (*models.EntryLog, error) {
 func (r *FileRepository) SaveEntries(entries *models.EntryLog) error {
 	entriesPath := r.viceEnv.GetEntriesFile()
 	if err := r.entryStorage.SaveToFile(entries, entriesPath); err != nil {
-		return &RepositoryError{
+		return &Error{
 			Operation: "SaveEntries",
 			Context:   r.viceEnv.Context,
 			Err:       err,
@@ -188,7 +188,7 @@ func (r *FileRepository) SaveEntries(entries *models.EntryLog) error {
 func (r *FileRepository) LoadChecklists() (*models.ChecklistSchema, error) {
 	// Ensure context files exist before loading
 	if err := r.fileInitializer.EnsureContextFiles(r.viceEnv); err != nil {
-		return nil, &RepositoryError{
+		return nil, &Error{
 			Operation: "LoadChecklists",
 			Context:   r.viceEnv.Context,
 			Err:       fmt.Errorf("failed to ensure context files: %w", err),
@@ -201,7 +201,7 @@ func (r *FileRepository) LoadChecklists() (*models.ChecklistSchema, error) {
 	checklistParser := parser.NewChecklistParser()
 	checklists, err := checklistParser.LoadFromFile(checklistsPath)
 	if err != nil {
-		return nil, &RepositoryError{
+		return nil, &Error{
 			Operation: "LoadChecklists",
 			Context:   r.viceEnv.Context,
 			Err:       err,
@@ -218,7 +218,7 @@ func (r *FileRepository) SaveChecklists(checklists *models.ChecklistSchema) erro
 
 	checklistParser := parser.NewChecklistParser()
 	if err := checklistParser.SaveToFile(checklists, checklistsPath); err != nil {
-		return &RepositoryError{
+		return &Error{
 			Operation: "SaveChecklists",
 			Context:   r.viceEnv.Context,
 			Err:       err,
@@ -236,7 +236,7 @@ func (r *FileRepository) LoadChecklistEntries() (*models.ChecklistEntriesSchema,
 	entriesParser := parser.NewChecklistEntriesParser()
 	entries, err := entriesParser.LoadFromFile(entriesPath)
 	if err != nil {
-		return nil, &RepositoryError{
+		return nil, &Error{
 			Operation: "LoadChecklistEntries",
 			Context:   r.viceEnv.Context,
 			Err:       err,
@@ -253,7 +253,7 @@ func (r *FileRepository) SaveChecklistEntries(entries *models.ChecklistEntriesSc
 
 	entriesParser := parser.NewChecklistEntriesParser()
 	if err := entriesParser.SaveToFile(entries, entriesPath); err != nil {
-		return &RepositoryError{
+		return &Error{
 			Operation: "SaveChecklistEntries",
 			Context:   r.viceEnv.Context,
 			Err:       err,

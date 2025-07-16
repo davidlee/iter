@@ -21,21 +21,21 @@ func TestViceEnvIntegration(t *testing.T) {
 	defer func() {
 		for key, value := range originalEnvs {
 			if value == "" {
-				os.Unsetenv(key)
+				_ = os.Unsetenv(key)
 			} else {
-				os.Setenv(key, value)
+				_ = os.Setenv(key, value)
 			}
 		}
 	}()
 
 	// Set test environment
-	os.Setenv("VICE_CONFIG", filepath.Join(tempDir, "config"))
-	os.Setenv("VICE_DATA", filepath.Join(tempDir, "data"))
-	os.Setenv("VICE_STATE", filepath.Join(tempDir, "state"))
-	os.Setenv("VICE_CACHE", filepath.Join(tempDir, "cache"))
+	_ = os.Setenv("VICE_CONFIG", filepath.Join(tempDir, "config"))
+	_ = os.Setenv("VICE_DATA", filepath.Join(tempDir, "data"))
+	_ = os.Setenv("VICE_STATE", filepath.Join(tempDir, "state"))
+	_ = os.Setenv("VICE_CACHE", filepath.Join(tempDir, "cache"))
 
 	// Test complete ViceEnv setup
-	env, err := GetViceEnvWithOverrides("", "")
+	env, err := GetViceEnvWithOverrides(DirectoryOverrides{})
 	if err != nil {
 		t.Fatalf("GetViceEnvWithOverrides() failed: %v", err)
 	}
@@ -103,24 +103,24 @@ func TestViceEnvWithCustomConfig(t *testing.T) {
 contexts = ["home", "office", "travel"]
 `
 	configPath := filepath.Join(configDir, "config.toml")
-	if err := os.WriteFile(configPath, []byte(customTOML), 0o644); err != nil {
+	if err := os.WriteFile(configPath, []byte(customTOML), 0o600); err != nil {
 		t.Fatalf("Failed to write custom config: %v", err)
 	}
 
 	// Set environment to use temp directory
-	os.Setenv("VICE_CONFIG", configDir)
-	os.Setenv("VICE_DATA", filepath.Join(tempDir, "data"))
-	os.Setenv("VICE_STATE", filepath.Join(tempDir, "state"))
-	os.Setenv("VICE_CACHE", filepath.Join(tempDir, "cache"))
+	_ = os.Setenv("VICE_CONFIG", configDir)
+	_ = os.Setenv("VICE_DATA", filepath.Join(tempDir, "data"))
+	_ = os.Setenv("VICE_STATE", filepath.Join(tempDir, "state"))
+	_ = os.Setenv("VICE_CACHE", filepath.Join(tempDir, "cache"))
 	defer func() {
-		os.Unsetenv("VICE_CONFIG")
-		os.Unsetenv("VICE_DATA")
-		os.Unsetenv("VICE_STATE")
-		os.Unsetenv("VICE_CACHE")
+		_ = os.Unsetenv("VICE_CONFIG")
+		_ = os.Unsetenv("VICE_DATA")
+		_ = os.Unsetenv("VICE_STATE")
+		_ = os.Unsetenv("VICE_CACHE")
 	}()
 
 	// Test ViceEnv setup with existing config
-	env, err := GetViceEnvWithOverrides("", "")
+	env, err := GetViceEnvWithOverrides(DirectoryOverrides{})
 	if err != nil {
 		t.Fatalf("GetViceEnvWithOverrides() with custom config failed: %v", err)
 	}
@@ -153,19 +153,19 @@ func TestViceEnvWithContextOverride(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Set environment
-	os.Setenv("VICE_CONFIG", filepath.Join(tempDir, "config"))
-	os.Setenv("VICE_DATA", filepath.Join(tempDir, "data"))
-	os.Setenv("VICE_STATE", filepath.Join(tempDir, "state"))
-	os.Setenv("VICE_CACHE", filepath.Join(tempDir, "cache"))
+	_ = os.Setenv("VICE_CONFIG", filepath.Join(tempDir, "config"))
+	_ = os.Setenv("VICE_DATA", filepath.Join(tempDir, "data"))
+	_ = os.Setenv("VICE_STATE", filepath.Join(tempDir, "state"))
+	_ = os.Setenv("VICE_CACHE", filepath.Join(tempDir, "cache"))
 	defer func() {
-		os.Unsetenv("VICE_CONFIG")
-		os.Unsetenv("VICE_DATA")
-		os.Unsetenv("VICE_STATE")
-		os.Unsetenv("VICE_CACHE")
+		_ = os.Unsetenv("VICE_CONFIG")
+		_ = os.Unsetenv("VICE_DATA")
+		_ = os.Unsetenv("VICE_STATE")
+		_ = os.Unsetenv("VICE_CACHE")
 	}()
 
 	// Test with context override
-	env, err := GetViceEnvWithOverrides("", "work")
+	env, err := GetViceEnvWithOverrides(DirectoryOverrides{Context: "work"})
 	if err != nil {
 		t.Fatalf("GetViceEnvWithOverrides() with context override failed: %v", err)
 	}

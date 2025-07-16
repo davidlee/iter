@@ -23,16 +23,16 @@ func TestGetDefaultViceEnv(t *testing.T) {
 	defer func() {
 		for key, value := range originalEnvs {
 			if value == "" {
-				os.Unsetenv(key)
+				_ = os.Unsetenv(key)
 			} else {
-				os.Setenv(key, value)
+				_ = os.Setenv(key, value)
 			}
 		}
 	}()
 
 	// Clear all environment variables
 	for key := range originalEnvs {
-		os.Unsetenv(key)
+		_ = os.Unsetenv(key)
 	}
 
 	env, err := GetDefaultViceEnv()
@@ -94,18 +94,18 @@ func TestViceEnvWithXDGOverrides(t *testing.T) {
 	defer func() {
 		for key, value := range originalEnvs {
 			if value == "" {
-				os.Unsetenv(key)
+				_ = os.Unsetenv(key)
 			} else {
-				os.Setenv(key, value)
+				_ = os.Setenv(key, value)
 			}
 		}
 	}()
 
 	// Set XDG environment variables
-	os.Setenv("XDG_CONFIG_HOME", "/custom/config")
-	os.Setenv("XDG_DATA_HOME", "/custom/data")
-	os.Setenv("XDG_STATE_HOME", "/custom/state")
-	os.Setenv("XDG_CACHE_HOME", "/custom/cache")
+	_ = os.Setenv("XDG_CONFIG_HOME", "/custom/config")
+	_ = os.Setenv("XDG_DATA_HOME", "/custom/data")
+	_ = os.Setenv("XDG_STATE_HOME", "/custom/state")
+	_ = os.Setenv("XDG_CACHE_HOME", "/custom/cache")
 
 	env, err := GetDefaultViceEnv()
 	if err != nil {
@@ -139,19 +139,19 @@ func TestViceEnvWithViceOverrides(t *testing.T) {
 	defer func() {
 		for key, value := range originalEnvs {
 			if value == "" {
-				os.Unsetenv(key)
+				_ = os.Unsetenv(key)
 			} else {
-				os.Setenv(key, value)
+				_ = os.Setenv(key, value)
 			}
 		}
 	}()
 
 	// Set VICE environment variables
-	os.Setenv("VICE_CONFIG", "/vice/config")
-	os.Setenv("VICE_DATA", "/vice/data")
-	os.Setenv("VICE_STATE", "/vice/state")
-	os.Setenv("VICE_CACHE", "/vice/cache")
-	os.Setenv("VICE_CONTEXT", "work")
+	_ = os.Setenv("VICE_CONFIG", "/vice/config")
+	_ = os.Setenv("VICE_DATA", "/vice/data")
+	_ = os.Setenv("VICE_STATE", "/vice/state")
+	_ = os.Setenv("VICE_CACHE", "/vice/cache")
+	_ = os.Setenv("VICE_CONTEXT", "work")
 
 	env, err := GetDefaultViceEnv()
 	if err != nil {
@@ -186,14 +186,18 @@ func TestViceEnvWithViceOverrides(t *testing.T) {
 
 func TestGetViceEnvWithOverrides(t *testing.T) {
 	// Clear environment
-	os.Unsetenv("VICE_CONFIG")
-	os.Unsetenv("VICE_CONTEXT")
+	_ = os.Unsetenv("VICE_CONFIG")
+	_ = os.Unsetenv("VICE_CONTEXT")
 
 	// Use temp directory for testing
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 
-	env, err := GetViceEnvWithOverrides(configDir, "testing")
+	overrides := DirectoryOverrides{
+		ConfigDir: configDir,
+		Context:   "testing",
+	}
+	env, err := GetViceEnvWithOverrides(overrides)
 	if err != nil {
 		t.Fatalf("GetViceEnvWithOverrides() failed: %v", err)
 	}

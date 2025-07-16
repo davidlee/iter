@@ -35,17 +35,17 @@ type DataRepository interface {
 	IsDataLoaded() bool
 }
 
-// RepositoryError represents errors from repository operations.
-type RepositoryError struct {
+// Error represents errors from repository operations.
+type Error struct {
 	Operation string
 	Context   string
 	Err       error
 }
 
-func (e *RepositoryError) Error() string {
+func (e *Error) Error() string {
 	return "repository error in " + e.Operation + " for context '" + e.Context + "': " + e.Err.Error()
 }
 
-func (e *RepositoryError) Unwrap() error {
+func (e *Error) Unwrap() error {
 	return e.Err
 }

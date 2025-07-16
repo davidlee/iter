@@ -37,9 +37,11 @@ func init() {
 }
 
 func runTodo(_ *cobra.Command, _ []string) error {
-	// Create todo dashboard with backward compatibility
-	paths := GetPaths()
-	dashboard := ui.NewTodoDashboard(paths)
+	// Get the resolved environment
+	env := GetViceEnv()
+
+	// Create todo dashboard with ViceEnv
+	dashboard := ui.NewTodoDashboard(env)
 
 	// Display in requested format
 	if markdownOutput {

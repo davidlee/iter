@@ -199,7 +199,7 @@ func TestIsDataLoaded(t *testing.T) {
 	}
 
 	// Unload data
-	repo.UnloadAllData()
+	_ = repo.UnloadAllData()
 	if repo.IsDataLoaded() {
 		t.Error("IsDataLoaded() should return false after unload")
 	}
@@ -216,7 +216,7 @@ func TestLoadHabitsAutoCreateFiles(t *testing.T) {
 	}
 
 	if schema == nil {
-		t.Error("Expected non-nil schema")
+		t.Fatal("Expected non-nil schema")
 	}
 
 	// Verify habits file was created with sample data
@@ -237,8 +237,8 @@ func TestLoadHabitsAutoCreateFiles(t *testing.T) {
 	}
 }
 
-func TestRepositoryError(t *testing.T) {
-	baseErr := &RepositoryError{
+func TestError(t *testing.T) {
+	baseErr := &Error{
 		Operation: "TestOp",
 		Context:   "TestContext",
 		Err:       os.ErrNotExist,
@@ -254,16 +254,3 @@ func TestRepositoryError(t *testing.T) {
 	}
 }
 
-// Helper function to check error type (similar to errors.As)
-func errorAs(err error, target interface{}) bool {
-	if err == nil {
-		return false
-	}
-	if repoErr, ok := err.(*RepositoryError); ok {
-		if targetPtr, ok := target.(**RepositoryError); ok {
-			*targetPtr = repoErr
-			return true
-		}
-	}
-	return false
-}

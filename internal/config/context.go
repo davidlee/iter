@@ -21,7 +21,7 @@ type ContextState struct {
 // Returns default context (first in contexts array) if state file doesn't exist.
 func LoadContextState(env *ViceEnv) (string, error) {
 	stateFile := env.GetStateFilePath()
-	
+
 	// Check if state file exists
 	if _, err := os.Stat(stateFile); os.IsNotExist(err) {
 		// No state file, return default context (first in array)
@@ -32,6 +32,7 @@ func LoadContextState(env *ViceEnv) (string, error) {
 	}
 
 	// Read state file
+	// #nosec G304 -- stateFile path is controlled and validated
 	data, err := os.ReadFile(stateFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to read state file %s: %w", stateFile, err)
@@ -77,7 +78,7 @@ func SaveContextState(env *ViceEnv, activeContext string) error {
 	}
 
 	// Write to file
-	if err := os.WriteFile(stateFile, data, 0o644); err != nil {
+	if err := os.WriteFile(stateFile, data, 0o600); err != nil {
 		return fmt.Errorf("failed to write state file %s: %w", stateFile, err)
 	}
 

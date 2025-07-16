@@ -22,10 +22,18 @@ import (
 )
 
 var (
-	// configDir holds the custom config directory path from CLI flag
-	configDir string
-	// debugMode enables debug logging to file
-	debugMode bool
+	// Directory override flags
+	configDir string // custom config directory path from CLI flag
+	dataDir   string // custom data directory path from CLI flag
+	cacheDir  string // custom cache directory path from CLI flag
+	stateDir  string // custom state directory path from CLI flag
+
+	// Context override flag
+	contextFlag string // transient context override from CLI flag
+
+	// Other flags
+	debugMode bool // enables debug logging to file
+
 	// viceEnv holds the resolved configuration environment
 	viceEnv *config.ViceEnv
 )
@@ -42,9 +50,16 @@ success criteria evaluation and stores data in local YAML files for portability.
 Examples:
   vice                # Launch interactive entry menu (default)
   vice entry          # Record today's habit completion
-  vice habit add       # Add new habits (simple/elastic/informational/checklist)
+  vice habit add      # Add new habits (simple/elastic/informational/checklist)
   vice todo           # View today's completion status dashboard
-  vice --config-dir /path/to/config entry  # Use custom config directory`,
+  
+  # Directory overrides:
+  vice --config-dir /path/to/config entry  # Use custom config directory
+  vice --data-dir /path/to/data todo       # Use custom data directory
+  
+  # Context switching (transient):
+  vice --context work entry               # Use work context for this command
+  vice --context personal habit list      # Use personal context for this command`,
 	PersistentPreRunE: initializeViceEnv,
 	RunE:              runDefaultCommand,
 }
@@ -69,8 +84,22 @@ func Execute() {
 
 func init() {
 	// Add persistent flags that apply to all commands
+
+	// XDG directory overrides
 	rootCmd.PersistentFlags().StringVar(&configDir, "config-dir", "",
 		"custom config directory (default: XDG_CONFIG_HOME/vice or ~/.config/vice)")
+	rootCmd.PersistentFlags().StringVar(&dataDir, "data-dir", "",
+		"custom data directory (default: XDG_DATA_HOME/vice or ~/.local/share/vice)")
+	rootCmd.PersistentFlags().StringVar(&cacheDir, "cache-dir", "",
+		"custom cache directory (default: XDG_CACHE_HOME/vice or ~/.cache/vice)")
+	rootCmd.PersistentFlags().StringVar(&stateDir, "state-dir", "",
+		"custom state directory (default: XDG_STATE_HOME/vice or ~/.local/state/vice)")
+
+	// Context override (always transient)
+	rootCmd.PersistentFlags().StringVar(&contextFlag, "context", "",
+		"use specific context for this command (transient, does not persist)")
+
+	// Other flags
 	rootCmd.PersistentFlags().BoolVar(&debugMode, "debug", false,
 		"enable debug logging to file (creates vice-debug.log in config directory)")
 }
@@ -82,7 +111,14 @@ func initializeViceEnv(_ *cobra.Command, _ []string) error {
 	var err error
 
 	// Initialize ViceEnv with CLI flag overrides
-	viceEnv, err = config.GetViceEnvWithOverrides(configDir, "")
+	overrides := config.DirectoryOverrides{
+		ConfigDir: configDir,
+		DataDir:   dataDir,
+		StateDir:  stateDir,
+		CacheDir:  cacheDir,
+		Context:   contextFlag,
+	}
+	viceEnv, err = config.GetViceEnvWithOverrides(overrides)
 	if err != nil {
 		return fmt.Errorf("failed to initialize ViceEnv: %w", err)
 	}

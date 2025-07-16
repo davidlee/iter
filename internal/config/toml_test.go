@@ -44,7 +44,7 @@ func TestLoadConfigValidFile(t *testing.T) {
 	validTOML := `[core]
 contexts = ["home", "office", "travel"]
 `
-	if err := os.WriteFile(configPath, []byte(validTOML), 0o644); err != nil {
+	if err := os.WriteFile(configPath, []byte(validTOML), 0o600); err != nil {
 		t.Fatalf("Failed to write test config file: %v", err)
 	}
 
@@ -72,7 +72,7 @@ func TestLoadConfigInvalidTOML(t *testing.T) {
 	invalidTOML := `[core
 contexts = ["invalid"
 `
-	if err := os.WriteFile(configPath, []byte(invalidTOML), 0o644); err != nil {
+	if err := os.WriteFile(configPath, []byte(invalidTOML), 0o600); err != nil {
 		t.Fatalf("Failed to write test config file: %v", err)
 	}
 
@@ -165,6 +165,7 @@ func TestSaveConfig(t *testing.T) {
 	}
 
 	// Read back and verify
+	// #nosec G304 -- configPath is controlled test file
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		t.Fatalf("Failed to read saved config: %v", err)
@@ -199,7 +200,7 @@ func TestLoadViceEnvConfig(t *testing.T) {
 	customTOML := `[core]
 contexts = ["custom1", "custom2", "custom3"]
 `
-	if err := os.WriteFile(configPath, []byte(customTOML), 0o644); err != nil {
+	if err := os.WriteFile(configPath, []byte(customTOML), 0o600); err != nil {
 		t.Fatalf("Failed to write test config: %v", err)
 	}
 
@@ -254,7 +255,7 @@ func TestEnsureConfigToml(t *testing.T) {
 	customTOML := `[core]
 contexts = ["existing"]
 `
-	if err := os.WriteFile(configPath, []byte(customTOML), 0o644); err != nil {
+	if err := os.WriteFile(configPath, []byte(customTOML), 0o600); err != nil {
 		t.Fatalf("Failed to write custom config: %v", err)
 	}
 
