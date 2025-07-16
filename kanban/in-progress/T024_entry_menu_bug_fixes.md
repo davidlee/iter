@@ -15,7 +15,7 @@ Two bugs identified in the entry menu interface (T018) that affect user experien
 
 **Type**: `fix`
 
-**Overall Status:** `Completed - Bugs Resolved`
+**Overall Status:** `Partially Complete - Bug 2 Resolved, Bug 1 Remains`
 
 ## Reference (Relevant Files / URLs)
 
@@ -67,10 +67,10 @@ also refer to API docs: https://pkg.go.dev/github.com/charmbracelet/bubbletea (.
 ## Acceptance Criteria (ACs)
 
 ### Bug 1 - Incorrect completion status
-- [x] Entry menu correctly displays task completion status matching entries.yml data
-- [x] Progress bar shows accurate completion statistics
-- [x] Status emojis (✓ ✗ ~ ☐) correctly reflect actual entry status
-- [x] Status colors match the actual entry status (gold/red/grey/light grey)
+- [ ] Entry menu correctly displays task completion status matching entries.yml data
+- [ ] Progress bar shows accurate completion statistics
+- [ ] Status emojis (✓ ✗ ~ ☐) correctly reflect actual entry status
+- [ ] Status colors match the actual entry status (gold/red/grey/light grey)
 
 ### Bug 2 - Edit looping  
 - [x] When editing a task, user is returned to entry menu after completion
@@ -843,6 +843,8 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 - ✅ **BubbleTea Best Practices**: Uses command pattern for deferred operations
 
 **Testing Results**: All individual operations work correctly, combination now works without timing conflicts.
+
+**IMPORTANT NOTE**: This fix resolved **Bug 2 (Edit Looping)** completely, but **Bug 1 (Incorrect Completion Status)** remains unresolved. The modal system implementation focused on the architectural issues causing edit looping. The status display synchronization issue still needs investigation and resolution.
 
 ### Development Tool - Vice Prototype Command
 
