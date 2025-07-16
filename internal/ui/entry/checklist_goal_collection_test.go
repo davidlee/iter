@@ -36,7 +36,7 @@ checklists:
     created_date: "2024-01-01"
     modified_date: "2024-01-01"`
 
-	err := os.WriteFile(checklistsPath, []byte(testChecklistData), 0600)
+	err := os.WriteFile(checklistsPath, []byte(testChecklistData), 0o600)
 	if err != nil {
 		t.Fatalf("Failed to create test checklist file: %v", err)
 	}
@@ -98,7 +98,7 @@ checklists:
     created_date: "2024-01-01"
     modified_date: "2024-01-01"`
 
-	err := os.WriteFile(checklistsPath, []byte(testChecklistData), 0600)
+	err := os.WriteFile(checklistsPath, []byte(testChecklistData), 0o600)
 	if err != nil {
 		t.Fatalf("Failed to create test checklist file: %v", err)
 	}
@@ -173,7 +173,7 @@ checklists:
     title: "Different Checklist"
     items: []`
 
-	err = os.WriteFile(checklistsPath, []byte(testChecklistData), 0600)
+	err = os.WriteFile(checklistsPath, []byte(testChecklistData), 0o600)
 	if err != nil {
 		t.Fatalf("Failed to create test checklist file: %v", err)
 	}
@@ -205,7 +205,7 @@ checklists:
     created_date: "2024-01-01"
     modified_date: "2024-01-01"`
 
-	err := os.WriteFile(checklistsPath, []byte(testChecklistData), 0600)
+	err := os.WriteFile(checklistsPath, []byte(testChecklistData), 0o600)
 	if err != nil {
 		t.Fatalf("Failed to create test checklist file: %v", err)
 	}
@@ -341,7 +341,7 @@ checklists:
     created_date: "2024-01-01"
     modified_date: "2024-01-01"`
 
-	err := os.WriteFile(checklistsPath, []byte(testChecklistData), 0600)
+	err := os.WriteFile(checklistsPath, []byte(testChecklistData), 0o600)
 	if err != nil {
 		t.Fatalf("Failed to create test checklist file: %v", err)
 	}
@@ -458,7 +458,7 @@ checklists:
     created_date: "2024-01-01"
     modified_date: "2024-01-01"`
 
-	err := os.WriteFile(checklistsPath, []byte(testChecklistData), 0600)
+	err := os.WriteFile(checklistsPath, []byte(testChecklistData), 0o600)
 	if err != nil {
 		t.Fatalf("Failed to create test checklist file: %v", err)
 	}

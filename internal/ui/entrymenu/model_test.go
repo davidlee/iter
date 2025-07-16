@@ -167,7 +167,6 @@ func TestReturnBehaviorToggling(t *testing.T) {
 }
 
 func TestShouldFilterOut(t *testing.T) {
-
 	tests := []struct {
 		name         string
 		filterState  FilterState
