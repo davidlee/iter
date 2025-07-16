@@ -646,6 +646,60 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
     - *Testing Strategy:* Integration tests for context directory creation
     - *AI Notes:* First context in array is default, create dirs on first access
 
+### Phase 2.2 Detailed Implementation Steps
+
+**Current State Analysis:**
+- `internal/init/files.go`: Creates habits.yml + entries.yml with hardcoded paths
+- 11 cmd files use `GetPaths()` from legacy config.Paths system
+- Sample data: 4 comprehensive habits (2 simple, 2 elastic) + empty entries
+- Missing: checklist file initialization, context awareness
+
+**Step-by-Step Implementation:**
+
+**Step 2.2.1: Create Context-Aware FileInitializer**
+- *Files:* `internal/init/files.go`
+- *Changes:* 
+  - Add `EnsureContextFiles(env *ViceEnv)` method
+  - Replace path parameters with ViceEnv integration
+  - Add checklist initialization methods: `createEmptyChecklistsFile()`, `createEmptyChecklistEntriesFile()`
+  - Update existing methods to work with ViceEnv paths
+- *Backward Compatibility:* Keep existing `EnsureConfigFiles()` for transition
+
+**Step 2.2.2: Update CMD Layer Integration**
+- *Files:* `cmd/root.go`, `cmd/entry.go`
+- *Changes:*
+  - Replace `GetPaths()` calls with ViceEnv usage
+  - Update `runDefaultCommand()` and `runEntry()` to use context-aware initialization
+  - Replace `config.Paths` parameters with ViceEnv in `runEntryMenu()`
+- *Testing:* Verify entry menu and default command work with new context system
+
+**Step 2.2.3: Add Context Data File Templates**
+- *Files:* `internal/init/files.go` (template methods)
+- *Changes:*
+  - `createEmptyChecklistsFile()`: Basic checklist schema structure
+  - `createEmptyChecklistEntriesFile()`: Empty checklist entries
+  - Ensure all 4 data files (habits, entries, checklists, checklist_entries) initialized per context
+- *Data Consistency:* Same sample habits across all contexts for consistent UX
+
+**Step 2.2.4: Integration Testing & CLI Updates**
+- *Files:* All remaining cmd files using `GetPaths()` (9 files)
+- *Priority Order:* 
+  1. Core commands: `habit_add.go`, `habit_list.go`, `todo.go`
+  2. Secondary: `habit_edit.go`, `habit_remove.go`, `list_*.go`
+- *Changes:* Replace `config.Paths` with ViceEnv usage throughout
+- *Testing:* Verify all commands work with context-aware paths
+
+**Step 2.2.5: Repository Integration**
+- *Files:* Update repository to use context-aware file initialization
+- *Changes:* Integrate FileInitializer with Repository pattern for automatic context setup
+- *Testing:* Verify repository operations trigger file creation for new contexts
+
+**Dependencies & Integration Points:**
+- **ViceEnv Methods:** Use existing `GetHabitsFile()`, `GetEntriesFile()`, etc.
+- **Directory Creation:** Leverage `env.EnsureDirectories()` from Phase 2.1
+- **Context Switching:** Files created automatically when switching to new context
+- **Backward Compatibility:** Legacy FileInitializer methods preserved during transition
+
 - [ ] **Phase 3: CLI Integration & Context Flags**
   - [ ] **3.1: Update CLI to use ViceEnv throughout**
     - *Design:* Replace config.Paths usage with ViceEnv in cmd/root.go and subcommands
@@ -723,6 +777,15 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
   - Added context state persistence in vice.yml with priority handling
   - Integrated context initialization into ViceEnv setup
   - Full test coverage for repository and context management
+- `2025-07-16 - AI:` Added comprehensive ANCHOR comments for future reference:
+  - T028-repository-interface, T028-race-condition-avoidance, T028-context-validation
+  - T028-xdg-compliance, T028-priority-resolution, T028-initialization-flow
+  - T028-toml-config, T028-config-integration, T028-state-yaml-structure
+- `2025-07-16 - AI:` Completed pre-flight analysis and detailed Phase 2.2 planning:
+  - Analyzed current file initialization patterns (internal/init/files.go)
+  - Identified 11 cmd files using legacy config.Paths system
+  - Broke down Phase 2.2 into 5 detailed implementation steps
+  - Defined integration points with ViceEnv and Repository pattern
 
 ## Git Commit History
 
