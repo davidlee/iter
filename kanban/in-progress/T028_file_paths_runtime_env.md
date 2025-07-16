@@ -755,23 +755,45 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
     - *Code/Artifacts:* `cmd/root.go`, all subcommand files, flag definitions and ViceEnv integration
     - *Testing Strategy:* CLI integration tests, existing command compatibility, flag override verification
     - *AI Notes:* Maintain --config-dir flag behavior, add --data-dir/--cache-dir/--state-dir flags, environment variable support
-  - [ ] **3.2: Add transient --context CLI flag**
+    - **Implementation Summary:**
+      - Added --data-dir, --cache-dir, --state-dir, --context flags with comprehensive help text
+      - Created DirectoryOverrides struct for clean function signatures
+      - Updated GetViceEnvWithOverrides() to handle all directory overrides
+      - Migrated TodoDashboard from legacy config.Paths to ViceEnv with backward compatibility
+      - Fixed all linting issues (errcheck, gosec, revive, staticcheck, unused)
+      - Improved security with 0600 file permissions and proper error handling
+      - All tests pass, application builds successfully, CLI functionality verified
+  - [x] **3.2: Add transient --context CLI flag**
     - *Design:* Global --context flag for all operations, always transient (no state persistence)
     - *Code/Artifacts:* Update root command flags, context resolution logic
     - *Testing Strategy:* CLI tests with --context flag, verify no state persistence
     - *AI Notes:* Transient override for all operations, doesn't modify $VICE_STATE/vice.yml
+    - **Already Implemented:** Completed as part of Phase 3.1 - --context flag is fully functional with transient behavior
 
-- [ ] **Phase 4: Runtime Context Operations**
-  - [ ] **4.1: Add context switching commands**
+- [x] **Phase 4: Runtime Context Operations**
+  - [x] **4.1: Add context switching commands**
     - *Design:* Add `vice context` subcommand with list/switch operations for persistence
     - *Code/Artifacts:* `cmd/context.go` (new), context CLI interface
     - *Testing Strategy:* Manual testing with multiple contexts, state persistence
     - *AI Notes:* Interactive context switching persists to state file
-  - [ ] **4.2: Add environment variable override support**
+    - **Implementation Summary:**
+      - Created comprehensive `vice context` command with list/show/switch subcommands
+      - Context switching validates available contexts and persists changes to state file
+      - Added proper error handling for invalid contexts and edge cases
+      - Updated main help with context management examples
+      - Added ANCHOR comments for future reference: T028/4.1-context-list, T028/4.1-context-switch
+      - Full test coverage with context command validation
+  - [x] **4.2: Add environment variable override support**
     - *Design:* VICE_CONTEXT override, runtime context switching capability
     - *Code/Artifacts:* Update ViceEnv initialization, context resolution
     - *Testing Strategy:* Environment variable integration tests
     - *AI Notes:* ENV var should override persisted state but not modify it
+    - **Already Implemented:** VICE_CONTEXT environment variable support was completed in earlier phases
+    - **Implementation Summary:**
+      - VICE_CONTEXT environment variable provides transient context override
+      - Works alongside --context CLI flag for temporary context switching
+      - Updated CLI help to document environment variable usage with examples
+      - Priority order: CLI flag → ENV var → persisted state → default context
 
 - [ ] **Phase 5: Documentation & Specification Updates**
   - [ ] **5.1: Extract implementation details to specification**
@@ -851,6 +873,115 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
     - Added automatic file creation to LoadHabits, LoadEntries, and LoadChecklists methods
     - Updated repository tests to verify automatic file creation behavior
     - ANCHOR: T028/2.2-file-init in internal/repository/file_repository.go
+- `2025-07-17 - AI:` Completed Phase 3.1 implementation:
+  - Added comprehensive XDG directory flags (--data-dir, --cache-dir, --state-dir, --context)
+  - Completed ViceEnv migration throughout application, including TodoDashboard
+  - Fixed all linting issues for production-ready code quality
+  - All functionality tested and verified working correctly
+  - Ready to proceed with Phase 3.2 or Phase 4 as requested
+- `2025-07-17 - AI:` Completed Phase 4 implementation:
+  - **Context Management System:** Comprehensive context switching with three methods:
+    1. **Persistent:** `vice context switch <name>` - persists to state file
+    2. **CLI Flag:** `--context <name>` - transient override per command
+    3. **Environment:** `VICE_CONTEXT=<name>` - transient override via env var
+  - **Priority Resolution:** CLI flag → ENV var → persisted state → default context
+  - **Data Isolation:** Each context maintains completely separate data directories
+  - **User Experience:** Clear help documentation with examples for all methods
+  - **Quality:** Full test coverage, proper error handling, ANCHOR comments added
+
+## Implementation Details & System Behavior
+
+### Directory Structure & File Management
+- **XDG Compliance:** Full implementation of XDG Base Directory Specification
+  - CONFIG: `$XDG_CONFIG_HOME/vice` or `~/.config/vice` - stores config.toml
+  - DATA: `$XDG_DATA_HOME/vice` or `~/.local/share/vice` - stores user data by context
+  - STATE: `$XDG_STATE_HOME/vice` or `~/.local/state/vice` - stores vice.yml (active context)
+  - CACHE: `$XDG_CACHE_HOME/vice` or `~/.cache/vice` - reserved for future caching
+
+### Context Data Isolation
+- **Per-context directories:** `$VICE_DATA/{context}/` containing:
+  - `habits.yml` - habit definitions (4 sample habits created automatically)
+  - `entries.yml` - daily habit completion data  
+  - `checklists.yml` - checklist templates
+  - `checklist_entries.yml` - checklist completion data
+- **Automatic file creation:** Repository pattern ensures files exist before data operations
+- **Sample data consistency:** All contexts get identical 4-habit sample set (2 simple, 2 elastic)
+
+### Configuration System Architecture
+- **config.toml structure:** 
+  ```toml
+  [core]
+  contexts = ["personal", "work"]  # defines available contexts
+  ```
+- **State persistence in vice.yml:**
+  ```yaml
+  version: "1.0"
+  active_context: "personal"  # last context set via 'vice context switch'
+  ```
+- **Priority resolution order:** CLI --context flag → VICE_CONTEXT env var → vice.yml state → first context in config.toml → "personal" fallback
+
+### Context Switching Behavior
+- **Persistent switching** (`vice context switch`):
+  - Validates context exists in config.toml contexts array
+  - Updates ViceEnv.Context and recomputes ContextData path
+  - Calls EnsureDirectories() to create context directory structure
+  - Persists change to $VICE_STATE/vice.yml for future sessions
+  - Auto-creates data files via Repository.LoadHabits/LoadEntries/LoadChecklists
+- **Transient overrides** (--context flag, VICE_CONTEXT env):
+  - Override active context for single command execution only
+  - Do NOT modify vice.yml state file
+  - CLI flag takes precedence over environment variable
+  - Temporary ContextData path computation for the override context
+
+### Repository Pattern & Data Loading
+- **"Turn off and on again" approach:** Complete data unload on context switch for simplicity
+- **Lazy loading:** Data loaded on-demand when UI components request it
+- **Automatic initialization:** FileInitializer.EnsureContextFiles() called by repository methods
+- **Error handling:** Repository.Error type provides context-aware error messages
+
+### ViceEnv Migration Strategy
+- **Backward compatibility:** Legacy GetPaths() function maintained during transition
+- **TodoDashboard migration:** Updated to use ViceEnv with NewTodoDashboardLegacy() for compatibility
+- **Gradual replacement:** All cmd files migrated from config.Paths to ViceEnv pattern
+- **DirectoryOverrides struct:** Clean abstraction for CLI flag handling
+
+### Security & File Permissions
+- **Configuration files:** 0600 permissions (user read/write only) for config.toml and vice.yml
+- **Data directories:** 0750 permissions (user read/write/execute, group read/execute)
+- **Controlled file paths:** All os.ReadFile operations use validated, controlled paths
+
+### Testing Strategy
+- **Unit tests:** ViceEnv creation, configuration loading, context switching logic
+- **Integration tests:** Complete environment setup with temporary directories
+- **Command tests:** Context command validation and error handling
+- **Manual verification:** All flag combinations tested with real data operations
+
+### Performance Considerations
+- **Minimal overhead:** Directory flag parsing only affects startup initialization
+- **Efficient context switching:** No data migration, just path recomputation
+- **File system operations:** Directories created lazily only when needed
+- **Memory usage:** No eager loading of data across contexts
+
+### Operational Behavior & Edge Cases
+- **Missing config.toml:** Automatically created with default contexts ["personal", "work"]
+- **Invalid context in vice.yml:** Falls back to first context in config.toml array
+- **Context not in config.toml:** `vice context switch` validates and rejects with clear error
+- **Empty contexts array:** Falls back to "personal" default context
+- **Directory creation failures:** Clear error messages with specific paths and permissions info
+- **File permission issues:** Error messages guide user to check directory permissions
+
+### CLI Integration Points
+- **Global flags:** All directory flags (--config-dir, --data-dir, etc.) available to all commands
+- **Flag precedence:** CLI flags override environment variables override XDG defaults
+- **Help system:** Context examples integrated into main help and context-specific help
+- **Command discovery:** `vice context` appears in main command list with proper description
+- **Error consistency:** All context-related errors follow repository.Error pattern for consistency
+
+### Migration & Compatibility Notes
+- **Legacy support:** GetPaths() function maintained for any remaining legacy code
+- **TodoDashboard bridge:** NewTodoDashboardLegacy() provides compatibility during transition
+- **No breaking changes:** All existing functionality preserved while adding new capabilities
+- **Gradual adoption:** New features can be adopted incrementally without disrupting existing workflows
 
 ## Git Commit History
 
@@ -861,3 +992,4 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
 - `0e06438` - docs(kanban)[T028]: detailed Phase 2.2 pre-flight analysis and step-by-step plan
 - `f922930` - docs(anchor)[T028]: add comprehensive ANCHOR comments for future reference
 - `bc71812` - feat(init)[T028/2.2]: implement context-aware data directory management
+- `56655cd` - feat(cli)[T028/3.1]: add comprehensive XDG directory flags and complete ViceEnv migration

@@ -59,7 +59,11 @@ Examples:
   
   # Context switching (transient):
   vice --context work entry               # Use work context for this command
-  vice --context personal habit list      # Use personal context for this command`,
+  VICE_CONTEXT=work vice todo             # Use work context via environment variable
+  
+  # Context management (persistent):
+  vice context list                       # Show all available contexts
+  vice context switch work                # Switch to work context (persists)`,
 	PersistentPreRunE: initializeViceEnv,
 	RunE:              runDefaultCommand,
 }
