@@ -7,7 +7,9 @@ context_windows: ["internal/**/*.go", "CLAUDE.md", "doc/**/*.md", "kanban/**/*.m
 # Flotsam Note System
 
 **Context (Background)**:
-Implement a "flotsam" note system inspired by Notational Velocity, digital zettelkasten, markdown wikis, and spaced repetition systems. Notes "resurface" periodically and can be edited gradually over time, interlinked with wiki-style links, fuzzy searched, and attached to habits/entries.
+
+Implement a "flotsam" note system inspired by Notational Velocity, digital zettelkasten, markdown wikis, and spaced repetition systems. 
+Notes "resurface" periodically and can be edited gradually over time, interlinked with wiki-style links, fuzzy searched, and attached to habits/entries.
 
 **Type**: `feature`
 
@@ -60,7 +62,15 @@ This supports reflective practice, knowledge management, and incremental learnin
 
 ## Architecture
 
-### Data Model (flotsam.yml)
+**EDITOR's NOTE:** it feels like you'd need a pretty compelling reason not to
+opt for Markdown given the benefit of interop ($EDITOR, Obsidian or zk, etc).
+The question might be ... which set of conventions to adopt (Obsidian or zk, or ...).
+
+zk feels more appealing tbh, partly for the ID scheme, but Obsidian can be set
+up to work comparably.
+
+### Data Model: option 1 (flotsam.yml)
+
 ```yaml
 flotsam:
   - id: "abc123"  # short ID (sqids or ulid)
@@ -82,6 +92,23 @@ flotsam:
     type: "idea"  # idea | flashcard | script | log
 ```
 
+### Data Model: option 2 (markdown file per note)
+frontmatter:
+```Markdown
+---
+id: n10k
+title: Model Context Protocol (MCP)
+created-at: "2025-06-25 09:06:56" 
+tags: [draft, 'to/review', 'vice:idea']
+---
+```
+
+Open question: should spaced repetition metadata live in frontmatter, or in a separate db which refers to the note by [context, ID]?
+Open question: should links / backlinks? it's reasonable to consider them cache rather than primary data.
+Open question: should periodic notes store special data in e.g. `tags` (e.g. `vice:periodic:daily:2024-11-19`); another metadata attribute; or rely on e.g. title convention?
+
+**Note**: see https://github.com/matze/zk-spaced, maybe worth hewing to its conventions
+
 ### UI Architecture
 - Full-width fuzzy search input (top)
 - Left pane: matching titles list
@@ -89,8 +116,8 @@ flotsam:
 - Modal for editing with live preview
 
 ### Storage Strategy
-- YAML persistence following existing patterns
-- Optional: Badger/skate for read performance, YAML as source of truth
+- YAML persistence following existing patterns OR Markdown files (TBD)
+- Optional: Badger/skate for read performance, YAML (or Markdown) as source of truth
 - Wiki link extraction and backlink computation
 - Incremental indexing for search
 
