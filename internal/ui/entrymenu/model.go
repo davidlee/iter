@@ -365,8 +365,9 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// Check if modal was closed and sync state (simple cleanup)
 			if m.directModal.IsClosed() {
-				m.directModal = nil
+				// AIDEV-NOTE: T024-bugfix; get sync command BEFORE nulling modal to preserve result access
 				syncCmd := m.syncStateAfterEntry()
+				m.directModal = nil
 				return m, tea.Batch(cmd, syncCmd)
 			}
 			return m, cmd
@@ -439,8 +440,9 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Check if modal was closed and sync state (simple cleanup)
 		if m.directModal.IsClosed() {
-			m.directModal = nil
+			// AIDEV-NOTE: T024-bugfix; get sync command BEFORE nulling modal to preserve result access
 			syncCmd := m.syncStateAfterEntry()
+			m.directModal = nil
 			return m, tea.Batch(cmd, syncCmd)
 		}
 		return m, cmd
@@ -482,11 +484,9 @@ func (m *EntryMenuModel) View() string {
 // syncStateAfterEntry handles state synchronization after modal closes using deferred command pattern
 // AIDEV-NOTE: T024-fix; Uses BubbleTea command to defer state sync, preventing timing conflicts with modal closure
 func (m *EntryMenuModel) syncStateAfterEntry() tea.Cmd {
-	if m.directModal == nil {
-		return nil
-	}
+	// AIDEV-NOTE: T024-bugfix; called with valid directModal before nulling, no need to check for nil
 
-	// Get the entry result from the modal
+	// Get the entry result from the modal (called before directModal is nulled)
 	if entryFormModal, ok := m.directModal.(*modal.EntryFormModal); ok {
 		result := entryFormModal.GetEntryResult()
 		if result != nil {

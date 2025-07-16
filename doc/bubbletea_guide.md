@@ -43,9 +43,71 @@ Files & patterns in this project worth knowing about:
 
 ### Examples to follow
 
-*AI to complete*
+**Modal System Architecture** (`internal/ui/modal/`):
+- Clean separation of modal lifecycle and parent state management
+- Proper use of BubbleTea command pattern for deferred operations
+- Modal interface design for polymorphic modal types
+
+**Deferred State Synchronization** (`internal/ui/entrymenu/model.go:482-547`):
+- Custom message types for timing-sensitive operations
+- Command pattern to defer heavy operations until next BubbleTea cycle
+- Prevents timing conflicts between UI state changes and data processing
+
 ### Known issues / technical debt
-*AI to complete*
+
+**Modal Lifecycle Timing** (Resolved in T024):
+- Critical: Always get data from modal BEFORE nulling reference
+- Pattern: `result := modal.GetData(); modal = nil; return ProcessData(result)`
+- Anti-pattern: `modal = nil; return ProcessData(modal.GetData())` (nil pointer!)
+
+**State Synchronization Complexity**:
+- Entry menu state sync between file storage, EntryCollector, and UI display
+- Multiple type conversions (interface{} → GoalEntry) can hide bugs
+- Consider simplifying the state management chain
+
+### BubbleTea Patterns & Best Practices
+
+**1. Modal Data Flow Pattern**
+```go
+// CORRECT: Get data before nulling reference
+if modal.IsClosed() {
+    result := modal.GetData()
+    modal = nil
+    return ProcessData(result)
+}
+
+// INCORRECT: Null reference before getting data  
+if modal.IsClosed() {
+    modal = nil
+    return ProcessData(modal.GetData()) // nil pointer!
+}
+```
+
+**2. Deferred Command Pattern**
+Use for operations that must happen after current BubbleTea cycle:
+```go
+// Return command to defer operation
+return tea.Cmd(func() tea.Msg {
+    return CustomMsg{data: complexData}
+})
+
+// Handle in Update method
+case CustomMsg:
+    m.processComplexOperation(msg.data)
+    return m, nil
+```
+
+**3. Debug Infrastructure Requirements**
+- Comprehensive logging for UI lifecycle events
+- Clear categorization: [MODAL], [ENTRYMENU], [FIELD], etc.
+- Conditional debug logging that can be easily disabled
+- Centralized debug system (see `internal/debug/logger.go`)
+
+**4. Investigation Methodology for Complex UI Bugs**
+- Build incremental prototypes to isolate problems
+- Systematic elimination of architectural layers
+- Granular testing (individual vs. combined operations)
+- Comprehensive debug logging with clear categories
 
 # Sources / further reading
 

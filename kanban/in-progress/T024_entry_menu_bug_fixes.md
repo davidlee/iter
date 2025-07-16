@@ -15,7 +15,7 @@ Two bugs identified in the entry menu interface (T018) that affect user experien
 
 **Type**: `fix`
 
-**Overall Status:** `Partially Complete - Bug 2 Resolved, Bug 1 Remains`
+**Overall Status:** `Complete - Both Bugs Resolved`
 
 ## Reference (Relevant Files / URLs)
 
@@ -67,10 +67,10 @@ also refer to API docs: https://pkg.go.dev/github.com/charmbracelet/bubbletea (.
 ## Acceptance Criteria (ACs)
 
 ### Bug 1 - Incorrect completion status
-- [ ] Entry menu correctly displays task completion status matching entries.yml data
-- [ ] Progress bar shows accurate completion statistics
-- [ ] Status emojis (✓ ✗ ~ ☐) correctly reflect actual entry status
-- [ ] Status colors match the actual entry status (gold/red/grey/light grey)
+- [x] Entry menu correctly displays task completion status matching entries.yml data
+- [x] Progress bar shows accurate completion statistics
+- [x] Status emojis (✓ ✗ ~ ☐) correctly reflect actual entry status
+- [x] Status colors match the actual entry status (gold/red/grey/light grey)
 
 ### Bug 2 - Edit looping  
 - [x] When editing a task, user is returned to entry menu after completion
@@ -844,7 +844,9 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 
 **Testing Results**: All individual operations work correctly, combination now works without timing conflicts.
 
-**IMPORTANT NOTE**: This fix resolved **Bug 2 (Edit Looping)** completely, but **Bug 1 (Incorrect Completion Status)** remains unresolved. The modal system implementation focused on the architectural issues causing edit looping. The status display synchronization issue still needs investigation and resolution.
+**IMPORTANT NOTE**: This fix resolved **Bug 2 (Edit Looping)** completely, but **Bug 1 (Incorrect Completion Status)** remained unresolved due to a modal lifecycle bug.
+
+**FINAL RESOLUTION**: Bug 1 was subsequently resolved by fixing the modal lifecycle timing issue. The `directModal` reference was being nulled before the state synchronization could access the entry result, causing the deferred sync to fail silently. Reordering the operations (get sync command before nulling modal) resolved both entry persistence and status display issues.
 
 ### Development Tool - Vice Prototype Command
 
@@ -1086,3 +1088,114 @@ All that beautiful modal architecture I built? Still there, still working. All t
 Sometimes the bug isn't where you think it is. Sometimes you have to build half a fucking architecture to understand why the other half is broken. And sometimes, just sometimes, the universe makes you earn every single working line of code through blood, sweat, and an unhealthy amount of profanity.
 
 Would I do it again? Probably. Do I hate myself for it? Absolutely. Is the code better now? Fuck yes it is.
+
+## Post-Mortem & Lessons Learned
+
+### What Went Right
+
+**1. Systematic Investigation Methodology**
+- Incremental prototype development isolated the problem effectively
+- Granular testing (individual vs. combined operations) revealed timing conflicts
+- Debug logging infrastructure provided crucial visibility into system behavior
+- Methodical elimination of architectural layers prevented wild goose chases
+
+**2. Architectural Improvements**
+- Modal system architecture is genuinely better than form.Run() takeovers
+- Deferred command pattern follows BubbleTea best practices
+- Clean separation between modal lifecycle and state management
+- Comprehensive test coverage for modal system components
+
+**3. Documentation & Knowledge Capture**
+- Extensive investigation notes preserved methodology for future debugging
+- AIDEV-NOTE anchors mark critical code sections for future developers
+- Task card serves as complete archaeological record of the debugging journey
+
+### What Went Wrong
+
+**1. Initial Overengineering**
+- Jumped to complex architectural solution without fully understanding the problem
+- Could have investigated simpler state sync fixes before building modal system
+- Spent significant time on beautiful architecture that wasn't the core issue
+
+**2. Debugging Tunnel Vision**
+- Focused intensely on modal/form integration complexity
+- Missed simple lifecycle timing bug for far too long
+- Classic case of looking for complex solutions to simple problems
+
+**3. Premature Solution Commitment**
+- Decided on modal approach before confirming it would solve both bugs
+- Should have isolated and fixed Bug 1 separately before architectural changes
+
+### Critical Lessons
+
+**1. Order of Operations Matters in UI Frameworks**
+- BubbleTea command execution and state management have strict timing requirements
+- Always preserve object references until dependent operations complete
+- Modal lifecycle: `get_data() → close() → process_data()`, not `close() → get_data()`
+
+**2. Deferred Operations Pattern**
+- Use BubbleTea commands for operations that must happen after current cycle
+- Prevents timing conflicts between UI state changes and data processing
+- Essential pattern for modal systems and complex state synchronization
+
+**3. Investigation Methodology**
+- Prototype-driven debugging is extremely effective for complex UI issues
+- Systematic elimination beats intuitive debugging for architectural problems
+- Debug logging should be comprehensive but categorized for clarity
+
+### Systemic Improvements Needed
+
+**1. Modal Lifecycle Standards**
+- Establish clear patterns for modal data extraction before closure
+- Create reusable modal base classes with proper lifecycle management
+- Document timing requirements for modal → parent data flow
+
+**2. Testing Infrastructure**
+- Need integration tests for modal → menu state synchronization
+- teatest framework should cover full user interaction flows
+- Golden file testing when UI behavior stabilizes
+
+**3. BubbleTea Architecture Guidelines**
+- Standardize command patterns for deferred operations
+- Document timing-sensitive operations and their proper sequencing
+- Create architectural decision records (ADRs) for UI patterns
+
+### Guidance for Future Modal Development
+
+**1. Modal Data Flow Pattern**
+```go
+// CORRECT: Get data before nulling reference
+if modal.IsClosed() {
+    result := modal.GetData()
+    modal = nil
+    return ProcessData(result)
+}
+
+// INCORRECT: Null reference before getting data
+if modal.IsClosed() {
+    modal = nil
+    return ProcessData(modal.GetData()) // nil pointer!
+}
+```
+
+**2. State Synchronization Pattern**
+- Use commands to defer heavy operations until next BubbleTea cycle
+- Separate modal closure from data processing to prevent conflicts
+- Always test modal → parent data flow thoroughly
+
+**3. Debug Infrastructure Requirements**
+- Comprehensive logging for modal lifecycle events
+- Clear categorization: [MODAL], [ENTRYMENU], [FIELD], etc.
+- Debug logging should be conditional and easily disabled
+
+### Recommendations for BubbleTea Guide
+
+These patterns should be documented in `doc/bubbletea_guide.md`:
+
+1. **Modal Lifecycle Management**: Proper sequence for data extraction and closure
+2. **Deferred Command Pattern**: When and how to use commands for timing-sensitive operations  
+3. **State Synchronization**: Best practices for complex parent ↔ child data flows
+4. **Debug Infrastructure**: Systematic approach to debugging UI timing issues
+5. **Testing Strategy**: Integration testing requirements for modal systems
+
+The modal system architecture is solid and will serve the project well. The debugging methodology revealed important timing patterns that apply beyond this specific issue. Most importantly, the systematic investigation approach and comprehensive documentation will accelerate resolution of similar issues in the future.
