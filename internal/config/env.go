@@ -106,13 +106,11 @@ func GetViceEnvWithOverrides(configDirOverride, contextOverride string) (*ViceEn
 	// Apply context override after config loading
 	if contextOverride != "" {
 		env.ContextOverride = contextOverride
-		env.Context = contextOverride
-		env.ContextData = filepath.Join(env.DataDir, env.Context)
 	}
 
-	// Ensure context data directory exists
-	if err := env.EnsureDirectories(); err != nil {
-		return nil, fmt.Errorf("failed to ensure context directories: %w", err)
+	// Initialize context based on overrides and persisted state
+	if err := InitializeContext(env); err != nil {
+		return nil, fmt.Errorf("failed to initialize context: %w", err)
 	}
 
 	return env, nil
