@@ -17,10 +17,8 @@ import (
 	"davidlee/vice/internal/ui/entrymenu"
 )
 
-var (
-	// menuFlag indicates whether to launch the interactive menu interface
-	menuFlag bool
-)
+// menuFlag indicates whether to launch the interactive menu interface
+var menuFlag bool
 
 // entryCmd represents the entry command
 // AIDEV-NOTE: T018/5.3-help-update; comprehensive help text reflects full feature set (simple/elastic/informational/checklist goals)

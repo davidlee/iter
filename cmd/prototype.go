@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/spf13/cobra"
 	"davidlee/vice/internal/debug"
+	"github.com/spf13/cobra"
 )
 
 // prototypeCmd represents the prototype command for T024 modal investigation

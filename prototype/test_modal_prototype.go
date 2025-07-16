@@ -8,11 +8,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
-	
+
 	"davidlee/vice/internal/debug"
 	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/ui/entry"
 	"davidlee/vice/internal/ui"
+	"davidlee/vice/internal/ui/entry"
 )
 
 // Goal represents a simplified goal structure
@@ -102,10 +102,10 @@ func NewEntryFormModal(goal Goal, entryCollector *ui.EntryCollector) *EntryFormM
 		Title:    goal.Title,
 		GoalType: "simple",
 	}
-	
+
 	// Get existing entry from collector
 	value, notes, achievement, status, hasEntry := entryCollector.GetGoalEntry(goal.ID)
-	
+
 	var existingEntry *entry.ExistingEntry
 	if hasEntry {
 		existingEntry = &entry.ExistingEntry{
@@ -113,15 +113,15 @@ func NewEntryFormModal(goal Goal, entryCollector *ui.EntryCollector) *EntryFormM
 			Notes:            notes,
 			AchievementLevel: achievement,
 		}
-		debug.Modal("Using existing entry for goal %s: value=%v, notes=%s, status=%s", 
+		debug.Modal("Using existing entry for goal %s: value=%v, notes=%s, status=%s",
 			goal.ID, value, notes, status)
 	} else {
 		debug.Modal("No existing entry for goal %s", goal.ID)
 	}
-	
+
 	// Create real field input factory
 	inputFactory := entry.NewEntryFieldInputFactory()
-	
+
 	// Create field input config with existing entry context
 	config := entry.EntryFieldInputConfig{
 		Goal:          modelsGoal,
@@ -129,17 +129,17 @@ func NewEntryFormModal(goal Goal, entryCollector *ui.EntryCollector) *EntryFormM
 		ExistingEntry: existingEntry,
 		ShowScoring:   true, // Enable scoring for complex state
 	}
-	
+
 	// Create field input using factory
 	fieldInput, err := inputFactory.CreateInput(config)
 	if err != nil {
 		debug.Modal("Error creating field input: %v", err)
 		return nil
 	}
-	
+
 	// Create form using field input
 	form := fieldInput.CreateInputForm(modelsGoal)
-	
+
 	return &EntryFormModal{
 		BaseModal:    NewBaseModal(),
 		goal:         goal,
@@ -155,14 +155,13 @@ func (efm *EntryFormModal) Init() tea.Cmd {
 	return efm.form.Init()
 }
 
-
 // View renders the entry form modal content
 func (efm *EntryFormModal) View() string {
 	if efm.form.State == huh.StateCompleted && efm.result != nil {
 		value := efm.fieldInput.GetStringValue()
 		return fmt.Sprintf("You selected: %s", value)
 	}
-	
+
 	return efm.form.View()
 }
 
@@ -185,7 +184,7 @@ type Modal interface {
 func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
 	msgType := fmt.Sprintf("%T", msg)
 	debug.Modal("EntryFormModal.Update(Modal): received %s, form state: %d", msgType, efm.form.State)
-	
+
 	// Process the form using canonical pattern
 	oldState := efm.form.State
 	var cmd tea.Cmd
@@ -388,7 +387,7 @@ func NewEntryMenuModel(width, height int) *EntryMenuModel {
 			GoalType: "simple",
 		},
 	}
-	
+
 	// Create existing entries with achievement levels and notes
 	achievementLevel := models.AchievementMidi
 	entries := map[string]models.GoalEntry{
@@ -402,11 +401,11 @@ func NewEntryMenuModel(width, height int) *EntryMenuModel {
 			Status:           models.EntryCompleted,
 		},
 	}
-	
+
 	// Create entry collector with complex state
 	entryCollector := ui.NewEntryCollector("/tmp/test_entries.yml")
 	entryCollector.InitializeForMenu(goals, entries)
-	
+
 	return &EntryMenuModel{
 		modalManager:      NewModalManager(width, height),
 		fieldInputFactory: entry.NewEntryFieldInputFactory(),
@@ -425,7 +424,7 @@ func (em *EntryMenuModel) Update(msg tea.Msg) tea.Cmd {
 		em.width = msg.Width
 		em.height = msg.Height
 	}
-	
+
 	// Route to modal manager
 	return em.modalManager.Update(msg)
 }
@@ -463,7 +462,7 @@ type Model struct {
 func NewModel() Model {
 	m := Model{width: maxWidth, height: 24}
 	m.lg = lipgloss.DefaultRenderer()
-	
+
 	// Setup entry menu model (simulates real app architecture)
 	m.entryMenu = NewEntryMenuModel(m.width, m.height)
 
@@ -550,7 +549,7 @@ func main() {
 	defer debug.GetInstance().Close()
 
 	debug.General("Starting test modal prototype")
-	
+
 	_, err = tea.NewProgram(NewModel()).Run()
 	if err != nil {
 		fmt.Println("Oh no:", err)
