@@ -37,7 +37,8 @@
       "Bash(go list:*)",
       "Bash(go vet:*)",
       "Bash(gofmt:*)",
-      "Bash(just test:*)"
+      "Bash(just test:*)",
+      "Bash(just format)"
     ],
     "deny": []
   }
