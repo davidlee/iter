@@ -11,7 +11,7 @@ Current configuration system uses basic XDG compliance for config directory only
 
 **Type**: `feature`
 
-**Overall Status:** `In Progress`
+**Overall Status:** `Done`
 
 ## Reference (Relevant Files / URLs)
 
@@ -795,7 +795,7 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
       - Updated CLI help to document environment variable usage with examples
       - Priority order: CLI flag → ENV var → persisted state → default context
 
-- [ ] **Phase 5: Documentation & Specification Updates**
+- [x] **Phase 5: Documentation & Specification Updates**
   - [x] **5.1: Extract implementation details to specification**
     - *Design:* Update `doc/specifications/file_paths_runtime_env.md` with implementation learnings
     - *Code/Artifacts:* Update specification with architectural decisions, data loading patterns
