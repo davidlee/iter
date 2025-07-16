@@ -1,7 +1,7 @@
 ---
 title: "Flotsam Data Layer Implementation"
 tags: ["data", "yaml", "models", "storage"]
-related_tasks: ["part-of:T026"]
+related_tasks: ["part-of:T026", "depends-on:T028"]
 context_windows: ["internal/models/*.go", "internal/storage/*.go", "doc/specifications/*.md", "CLAUDE.md"]
 ---
 # Flotsam Data Layer Implementation
@@ -21,36 +21,42 @@ Implement the core data layer for the flotsam note system, including Go structs,
 - `internal/storage/habits.go` - YAML persistence patterns
 - `internal/storage/entries.go` - Storage layer operations
 - `internal/storage/backup.go` - Backup and atomic operations
+- `internal/repository/file_repository.go` - Repository Pattern implementation (T028)
+- `internal/config/env.go` - ViceEnv and context-aware paths (T028)
 
 ### Relevant Documentation
 - `doc/specifications/habit_schema.md` - YAML schema patterns
 - `doc/specifications/entries_storage.md` - Storage specifications
+- `doc/specifications/file_paths_runtime_env.md` - Repository Pattern and context-aware storage (T028)
 - `doc/architecture.md` - Data architecture section (4.1-4.4)
 
 ### Related Tasks / History
 - **Parent Task**: T026 - Flotsam Note System (epic)
+- **Dependency**: T028 - File Paths & Runtime Environment (Repository Pattern foundation)
 - T001-T025 - Established YAML persistence and model patterns
 
 ## Habit / User Story
 
 As a developer implementing the flotsam system, I need a robust data layer that:
 - Defines Go structs for flotsam notes with proper validation
-- Persists data to YAML files following project conventions
-- Provides CRUD operations with atomic writes and backups
-- Supports wiki link extraction and backlink computation
-- Handles ID generation and metadata tracking
+- Integrates with T028 Repository Pattern for context-aware persistence
+- Persists data to `$VICE_DATA/{context}/flotsam.yml` following ViceEnv conventions
+- Provides CRUD operations through DataRepository interface extension
+- Supports wiki link extraction and backlink computation within context boundaries
+- Handles ID generation and metadata tracking with context isolation
 
 ## Acceptance Criteria (ACs)
 
 - [ ] `internal/models/flotsam.go` with complete data structures
-- [ ] `internal/storage/flotsam.go` with CRUD operations
+- [ ] Extend DataRepository interface for flotsam operations (T028 integration)
+- [ ] `internal/repository/flotsam_repository.go` with context-aware CRUD operations
 - [ ] YAML schema validation and marshaling
-- [ ] Wiki link extraction from markdown content
-- [ ] Backlink computation and indexing
-- [ ] ID generation using sqids or ulid
-- [ ] Atomic file operations with backup
+- [ ] Context-scoped wiki link extraction and backlink computation
+- [ ] ID generation using sqids or ulid with context awareness
+- [ ] Integration with ViceEnv for context-specific file paths
+- [ ] Atomic file operations leveraging T028 Repository Pattern
 - [ ] Comprehensive unit tests for all operations
-- [ ] Integration with existing storage patterns
+- [ ] Integration tests with context switching scenarios
 
 ## Architecture
 
@@ -81,13 +87,47 @@ type SRSData struct {
 }
 ```
 
-### Storage Operations
-- `CreateFlotsam(flotsam *Flotsam) error`
-- `GetFlotsam(id string) (*Flotsam, error)`
-- `UpdateFlotsam(flotsam *Flotsam) error`
-- `DeleteFlotsam(id string) error`
-- `ListFlotsam() ([]*Flotsam, error)`
-- `SearchFlotsam(query string) ([]*Flotsam, error)`
+### Repository Integration (T028)
+Extend DataRepository interface for flotsam operations:
+```go
+type DataRepository interface {
+    // Existing methods from T028
+    LoadHabits(ctx string) (*models.Schema, error)
+    LoadEntries(ctx string, date time.Time) (*models.EntryLog, error)
+    SaveEntries(ctx string, entries *models.EntryLog) error
+    LoadChecklists(ctx string) (*models.ChecklistSchema, error)
+    SwitchContext(newContext string) error
+    
+    // New flotsam methods
+    LoadFlotsam(ctx string) (*FlotsamCollection, error)
+    SaveFlotsam(ctx string, flotsam *FlotsamCollection) error
+    CreateFlotsamNote(ctx string, flotsam *Flotsam) error
+    GetFlotsamNote(ctx string, id string) (*Flotsam, error)
+    UpdateFlotsamNote(ctx string, flotsam *Flotsam) error
+    DeleteFlotsamNote(ctx string, id string) error
+    SearchFlotsam(ctx string, query string) ([]*Flotsam, error)
+}
+```
+
+### Storage Strategy Options
+Two storage approaches to evaluate:
+
+**Option A: YAML Collection** 
+- **File**: `$VICE_DATA/{context}/flotsam.yml`
+- **Structure**: Single YAML file with array of flotsam objects
+- **Benefits**: Atomic operations, existing YAML patterns, structured metadata
+- **Drawbacks**: Large file growth, less git-friendly
+
+**Option B: Individual Markdown Files**
+- **Directory**: `$VICE_DATA/{context}/flotsam/`
+- **Structure**: One `.md` file per note with YAML frontmatter
+- **Benefits**: Git-friendly, external editor support, natural markdown handling
+- **Drawbacks**: More complex atomic operations, directory management
+
+**Common Elements**:
+- **Context isolation**: Both approaches respect context boundaries via ViceEnv
+- **Repository Pattern**: Leverage existing T028 FileRepository infrastructure
+- **Atomic operations**: Follow "turn off and on again" pattern for context switching
 
 ## Implementation Plan & Progress
 
@@ -108,29 +148,39 @@ type SRSData struct {
     - *Code/Artifacts:* Type definitions in `internal/models/flotsam.go`
     - *Testing Strategy:* Test type validation and defaults
 
-- [ ] **Storage Layer Implementation**: YAML persistence and CRUD operations
-  - [ ] **Create FlotsamStorage struct**: Following existing storage patterns
-    - *Design:* Embed common storage functionality, file path management
-    - *Code/Artifacts:* `internal/storage/flotsam.go`
-    - *Testing Strategy:* Test file operations and error handling
-  - [ ] **Implement CRUD operations**: Create, Read, Update, Delete
-    - *Design:* Atomic operations with backup, following entries.go patterns
-    - *Code/Artifacts:* CRUD methods in `internal/storage/flotsam.go`
-    - *Testing Strategy:* Integration tests for file persistence
-  - [ ] **Add search functionality**: Title and content search
-    - *Design:* Simple string matching, future: consider indexing
-    - *Code/Artifacts:* Search methods in storage layer
-    - *Testing Strategy:* Test search accuracy and performance
+- [ ] **Storage Strategy Decision**: Evaluate and choose between YAML vs Markdown files
+  - [ ] **Research and prototype both approaches**: Compare YAML collection vs individual markdown files
+    - *Design:* Build small prototypes of both storage methods
+    - *Code/Artifacts:* Proof-of-concept implementations
+    - *Testing Strategy:* Benchmark performance, git-friendliness, developer experience
+  - [ ] **Choose storage approach**: Based on prototype evaluation and user requirements
+    - *Design:* Document decision rationale and trade-offs
+    - *Code/Artifacts:* ADR (Architecture Decision Record) if needed
+    - *Testing Strategy:* Validate chosen approach meets all requirements
 
-- [ ] **Wiki Link Processing**: Extract links and compute backlinks
-  - [ ] **Implement link extraction**: Parse [[wiki links]] from markdown
-    - *Design:* Regex-based extraction, validate link targets
-    - *Code/Artifacts:* Link processing functions
-    - *Testing Strategy:* Test various link formats and edge cases
-  - [ ] **Build backlink index**: Compute reverse links
-    - *Design:* Maintain index of which notes link to each note
-    - *Code/Artifacts:* Backlink computation and storage
-    - *Testing Strategy:* Test backlink accuracy and updates
+- [ ] **Repository Integration**: Extend T028 Repository Pattern for flotsam
+  - [ ] **Extend DataRepository interface**: Add flotsam methods to existing interface
+    - *Design:* Context-aware methods following T028 patterns
+    - *Code/Artifacts:* Update `internal/repository/repository.go`
+    - *Testing Strategy:* Test interface compliance and context isolation
+  - [ ] **Implement FlotsambMethods in FileRepository**: Add to existing FileRepository
+    - *Design:* Use chosen storage approach (YAML file or markdown directory)
+    - *Code/Artifacts:* Extend `internal/repository/file_repository.go`
+    - *Testing Strategy:* Integration tests with context switching
+  - [ ] **Add ViceEnv path methods**: Context-aware file/directory path resolution
+    - *Design:* GetFlotsamFile() for YAML OR GetFlotsamDir() for markdown approach
+    - *Code/Artifacts:* Update `internal/config/env.go`
+    - *Testing Strategy:* Test path resolution for different contexts
+
+- [ ] **Wiki Link Processing**: Context-scoped link extraction and backlink computation
+  - [ ] **Implement context-aware link extraction**: Parse [[wiki links]] within context boundaries
+    - *Design:* Regex-based extraction, validate link targets exist in current context
+    - *Code/Artifacts:* Link processing functions with context parameter
+    - *Testing Strategy:* Test link resolution across context boundaries (should fail)
+  - [ ] **Build context-scoped backlink index**: Compute reverse links within context
+    - *Design:* Maintain per-context index of which notes link to each note
+    - *Code/Artifacts:* Backlink computation respecting context isolation
+    - *Testing Strategy:* Test backlink accuracy and context isolation
 
 - [ ] **ID Generation and Utilities**: Short ID generation and helpers
   - [ ] **Implement ID generation**: Using sqids or ulid
@@ -149,6 +199,14 @@ type SRSData struct {
 ## Notes / Discussion Log
 
 - `2025-07-16 - AI:` Created child task for data layer implementation as part of T026 epic.
+- `2025-07-17 - AI:` Updated task architecture and dependencies based on T028 completion:
+  - Added dependency on T028 (file paths & runtime environment)
+  - Updated architecture to leverage Repository Pattern and ViceEnv for context isolation
+  - Added storage strategy evaluation: YAML collection vs individual markdown files
+  - Extended DataRepository interface design for flotsam operations
+  - Updated wiki link processing to respect context boundaries
+  - Modified implementation plan to integrate with existing T028 infrastructure
+  - Added storage decision as first implementation step to choose optimal approach
 
 ## Git Commit History
 

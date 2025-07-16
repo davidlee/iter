@@ -1,7 +1,7 @@
 ---
 title: "Flotsam Note System"
 tags: ["feature", "notes", "zettelkasten", "search"]
-related_tasks: ["blocks:T027"]
+related_tasks: ["blocks:T027", "depends-on:T028"]
 context_windows: ["internal/**/*.go", "CLAUDE.md", "doc/**/*.md", "kanban/**/*.md", "cmd/**/*.go"]
 ---
 # Flotsam Note System
@@ -26,10 +26,12 @@ Implement a "flotsam" note system inspired by Notational Velocity, digital zette
 - `doc/architecture.md` - Core architecture patterns and UI framework guidance
 - `doc/specifications/habit_schema.md` - YAML schema patterns for data modeling
 - `doc/specifications/entries_storage.md` - File storage patterns
+- `doc/specifications/file_paths_runtime_env.md` - Context-aware file system and Repository Pattern (T028)
 - `doc/bubbletea_guide.md` - UI development guidelines
 
 ### Related Tasks / History
 - **Child Task**: T027 - Flotsam Data Layer Implementation
+- **Dependency**: T028 - File Paths & Runtime Environment (Repository Pattern, context-aware storage)
 - Previous storage and UI patterns established in T001-T025
 - YAML-based data persistence patterns from habit/entry system
 - Bubbletea UI patterns from entry collection system
@@ -90,10 +92,14 @@ flotsam:
 - Modal for editing with live preview
 
 ### Storage Strategy
-- YAML persistence following existing patterns
-- Optional: Badger/skate for read performance, YAML as source of truth
-- Wiki link extraction and backlink computation
-- Incremental indexing for search
+- **Context-aware persistence**: Leverage T028 Repository Pattern for context isolation
+- **Primary storage options**:
+  - **YAML collection**: `$VICE_DATA/{context}/flotsam.yml` (structured metadata + body)
+  - **Markdown files**: `$VICE_DATA/{context}/flotsam/*.md` (individual note files with frontmatter)
+- **Repository integration**: Extend DataRepository interface for flotsam operations
+- **Wiki link processing**: Extract [[links]] and compute backlinks within context boundaries
+- **Search indexing**: Context-scoped search to maintain data isolation (file content or YAML body)
+- **Optional enhancement**: Badger/skate for read performance with chosen storage as source of truth
 
 ## Implementation Plan & Progress
 
@@ -108,6 +114,13 @@ flotsam:
 
 - `2025-07-16 - User:` Initial feature request with detailed data model and UI specifications
 - `2025-07-16 - AI:` Created task card with architecture outline. Ready for implementation planning after user review.
+- `2025-07-17 - AI:` Updated task dependencies and architecture based on T028 completion:
+  - Added dependency on T028 (file paths & runtime environment)
+  - Updated storage strategy to leverage Repository Pattern and context-aware file system
+  - Added storage options: YAML collection OR individual markdown files with frontmatter
+  - Repository interface will be extended to support flotsam operations
+  - Wiki links and search will respect context boundaries for proper data isolation
+  - T027 will evaluate both storage approaches for implementation
 
 ## Git Commit History
 

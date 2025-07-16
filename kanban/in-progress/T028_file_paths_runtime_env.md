@@ -1002,3 +1002,4 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
 - `bc71812` - feat(init)[T028/2.2]: implement context-aware data directory management
 - `56655cd` - feat(cli)[T028/3.1]: add comprehensive XDG directory flags and complete ViceEnv migration
 - `a7cda7d` - feat(context)[T028/4.1-4.2]: implement comprehensive context management system
+- `8ec3e4b` - docs(spec)[T028/5.1]: extract comprehensive implementation details to specification
