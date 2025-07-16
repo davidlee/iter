@@ -1199,3 +1199,70 @@ These patterns should be documented in `doc/bubbletea_guide.md`:
 5. **Testing Strategy**: Integration testing requirements for modal systems
 
 The modal system architecture is solid and will serve the project well. The debugging methodology revealed important timing patterns that apply beyond this specific issue. Most importantly, the systematic investigation approach and comprehensive documentation will accelerate resolution of similar issues in the future.
+
+## Outstanding Work - Lint Error Resolution
+
+**Status**: All tests passing ✅, core functionality working ✅, lint errors remain ❌
+
+**Total Lint Issues**: 37 across 4 linter types (as of commit d6a3b82)
+
+### Issue Breakdown:
+- **revive: 25 issues** - Documentation/export comments, naming conventions  
+- **unused: 6 issues** - Debug code in prototype/ directory
+- **gocritic: 4 issues** - Style issues (single-case switch, exitAfterDefer)
+- **gosec: 2 issues** - Security warnings (subprocess, file inclusion)
+
+### Detailed Resolution Plan (Est. 40 minutes):
+
+#### Phase 1: High Priority Production Code (15 min)
+**gocritic issues (4)**:
+- Fix `singleCaseSwitch` in modal test files: Replace `switch msg := msg.(type)` with `if keyMsg, ok := msg.(tea.KeyMsg)` pattern
+- Fix `exitAfterDefer` in cmd/root.go and prototype: Move `os.Exit(1)` outside defer scope or use different error handling
+
+**gosec issues (2)**:
+- `G204: Subprocess launched with variable` in cmd/prototype.go:68 - Add `//gosec:disable G204 // Prototype command execution required` with rationale
+- `G304: Potential file inclusion via variable` in internal/debug/logger.go:60 - Add `//gosec:disable G304 // Config directory path validated` with rationale
+
+#### Phase 2: Documentation Issues (20 min)  
+**revive issues (25)** - Use targeted suppressions per CLAUDE.md guidance:
+
+**Files requiring attention**:
+- `internal/debug/logger.go` (6 issues): Exported functions without comments
+  - Add `//revive:disable-next-line:exported // Debug utility functions, names are self-documenting`
+- `internal/ui/modal/entry_form_modal.go` (6 issues): Modal interface methods  
+  - Add `//revive:disable-next-line:exported // Modal interface compliance methods` 
+- `internal/ui/modal/modal.go` (4 issues): Type name stuttering
+  - Add `//revive:disable-next-line:exported // Clear naming important for modal system`
+- `prototype/test_modal_prototype.go` (9 issues): Debug prototype exports
+  - Add `//revive:disable-next-line:exported // Debug prototype, exports for testing only`
+
+#### Phase 3: Debug Code Cleanup (5 min)
+**unused issues (6)** - All in prototype/ directory:
+- Add `//revive:disable-next-line:unused // Debug prototype code` to unused functions
+- Or remove unused debug code if no longer needed for investigation
+
+### Implementation Commands:
+```bash
+# View current issues
+just lint
+
+# After fixes, verify
+just lint && just test
+
+# Expected result: 0 lint issues, all tests passing
+```
+
+### Files to Modify:
+- `cmd/root.go` - exitAfterDefer fix
+- `cmd/prototype.go` - gosec suppression  
+- `internal/debug/logger.go` - revive suppressions
+- `internal/ui/modal/entry_form_modal.go` - revive suppressions
+- `internal/ui/modal/modal.go` - revive suppressions  
+- `internal/ui/modal/modal_test.go` - gocritic fix
+- `prototype/test_modal_prototype.go` - multiple suppressions
+
+### Success Criteria:
+- `just lint` returns 0 issues
+- `just test` continues to pass  
+- All suppressions include rationale per CLAUDE.md guidance
+- Production code quality maintained
