@@ -8,6 +8,8 @@ A command-line habit tracker that supports flexible habit types and stores data 
 - **Elastic Habits**: Multi-level achievement tracking with mini/midi/maxi levels
 - **Informational Habits**: Data collection without pass/fail scoring
 - **Automatic Scoring**: Habits can be automatically scored based on defined criteria
+- **Context Management**: Separate personal/work contexts with isolated data
+- **XDG Compliance**: Follows Unix filesystem conventions with proper directory structure
 - **Local Storage**: All data stored in local YAML files for version control and portability
 - **Interactive CLI**: User-friendly forms with field-specific input validation
 
@@ -29,7 +31,7 @@ go install .
    ```bash
    vice entry
    ```
-   This creates sample configuration files in `~/.config/vice/` on first run.
+   This creates sample configuration and data files in XDG directories on first run.
 
 2. **Record today's habits**:
    ```bash
@@ -37,19 +39,49 @@ go install .
    ```
    Answer the interactive prompts to record your progress.
 
-3. **Use custom config directory**:
+3. **Use context switching**:
    ```bash
-   vice --config-dir /path/to/config entry
+   # Switch context persistently
+   vice context switch work
+   
+   # Use temporary context for one command
+   vice --context personal entry
+   
+   # Use environment variable
+   VICE_CONTEXT=work vice entry
+   ```
+
+4. **Use custom directories**:
+   ```bash
+   vice --config-dir /path/to/config --data-dir /path/to/data entry
    ```
 
 ## Configuration
 
-vice stores configuration in two files:
+vice uses XDG Base Directory specification for configuration and data storage:
 
-- `habits.yml` - defines your habit habits and criteria
-- `entries.yml` - stores your daily progress entries
+### Configuration Files
+- **Application config**: `config.toml` in `$XDG_CONFIG_HOME/vice/` (default: `~/.config/vice/`)
+- **Context state**: `vice.yml` in `$XDG_STATE_HOME/vice/` (default: `~/.local/state/vice/`)
 
-Default location: `~/.config/vice/` (follows XDG Base Directory specification)
+### Data Files (per context)
+- **Habit definitions**: `habits.yml` in `$XDG_DATA_HOME/vice/{context}/` 
+- **Daily entries**: `entries.yml` in `$XDG_DATA_HOME/vice/{context}/`
+- **Checklists**: `checklists.yml` and `checklist_entries.yml` in `$XDG_DATA_HOME/vice/{context}/`
+
+Default data location: `~/.local/share/vice/{context}/` (where context is "personal" or "work" by default)
+
+### Context Management
+
+Contexts allow complete isolation of habit data for different life areas:
+
+```toml
+# config.toml
+[core]
+contexts = ["personal", "work"]  # Define available contexts
+```
+
+Each context maintains completely separate data files, enabling users to track personal habits separately from work habits.
 
 ## Habit Types
 
@@ -280,24 +312,78 @@ habits:
 
 Record today's habit completion. Presents an interactive form for each defined habit.
 
-**Options:**
-- `--config-dir PATH` - Use custom configuration directory
+**Examples:**
+```bash
+vice entry                              # Use current context
+vice --context work entry              # Use work context temporarily
+VICE_CONTEXT=personal vice entry       # Use environment variable
+```
+
+### `vice context`
+
+Manage contexts for data isolation.
 
 **Examples:**
 ```bash
-vice entry                           # Use default config directory
-vice --config-dir ~/habits entry    # Use custom config directory
+vice context list                       # List available contexts
+vice context show                       # Show current context
+vice context switch work               # Switch to work context (persistent)
+```
+
+### Global Options
+
+All commands support these global flags:
+
+```bash
+--config-dir PATH      # Override $XDG_CONFIG_HOME/vice
+--data-dir PATH        # Override $XDG_DATA_HOME/vice  
+--state-dir PATH       # Override $XDG_STATE_HOME/vice
+--cache-dir PATH       # Override $XDG_CACHE_HOME/vice
+--context NAME         # Use context temporarily (no state change)
+```
+
+**Examples:**
+```bash
+vice entry                                              # Use defaults
+vice --config-dir ~/custom entry                       # Custom config
+vice --data-dir /work/habits --context work entry      # Custom data + context
 ```
 
 ## Data Storage
 
-### Habits File (`habits.yml`)
+### Directory Structure
 
-Contains your habit definitions and scoring criteria.
+```
+XDG directories:
+├── ~/.config/vice/
+│   └── config.toml              # Application configuration
+├── ~/.local/state/vice/
+│   └── vice.yml                 # Active context state
+├── ~/.local/share/vice/
+│   ├── personal/                # Personal context data
+│   │   ├── habits.yml          # Habit definitions
+│   │   ├── entries.yml         # Daily entries
+│   │   ├── checklists.yml      # Checklist templates
+│   │   └── checklist_entries.yml # Checklist completions
+│   └── work/                   # Work context data
+│       ├── habits.yml          # Separate habit definitions
+│       ├── entries.yml         # Separate daily entries
+│       ├── checklists.yml      # Separate checklists
+│       └── checklist_entries.yml # Separate completions
+└── ~/.cache/vice/              # Future: performance caching
+```
 
-### Entries File (`entries.yml`)
+### Context Isolation
 
-Stores daily progress entries:
+Each context maintains completely separate data:
+- **Personal habits** tracked in `~/.local/share/vice/personal/`
+- **Work habits** tracked in `~/.local/share/vice/work/`
+- **No data bleeding** between contexts
+- **Context switching** changes which data files are active
+
+### Entries File Format
+
+Daily progress entries in each context:
 
 ```yaml
 version: "1.0.0"
@@ -314,9 +400,12 @@ entries:
         completed_at: "2024-01-15T07:30:00Z"
 ```
 
-## Specification
+## Specifications
 
-For complete technical details, see [Habit Schema Specification](doc/specifications/habit_schema.md).
+For complete technical details, see:
+
+- [Habit Schema Specification](doc/specifications/habit_schema.md) - YAML structure and validation
+- [File Paths & Runtime Environment](doc/specifications/file_paths_runtime_env.md) - XDG compliance and context management
 
 ## Development
 
