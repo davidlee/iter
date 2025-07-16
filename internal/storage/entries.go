@@ -218,9 +218,9 @@ func (es *EntryStorage) GetTodayEntry(filePath string) (*models.DayEntry, error)
 	return es.GetDayEntry(filePath, today)
 }
 
-// AddGoalEntry adds a goal entry to a specific day in the entry log file.
+// AddHabitEntry adds a habit entry to a specific day in the entry log file.
 // If the day doesn't exist, it creates a new day entry.
-func (es *EntryStorage) AddGoalEntry(filePath string, date string, goalEntry models.GoalEntry) error {
+func (es *EntryStorage) AddHabitEntry(filePath string, date string, goalEntry models.HabitEntry) error {
 	// Load existing entry log
 	entryLog, err := es.LoadFromFile(filePath)
 	if err != nil {
@@ -232,8 +232,8 @@ func (es *EntryStorage) AddGoalEntry(filePath string, date string, goalEntry mod
 	if !found {
 		// Create new day entry
 		newDayEntry := models.DayEntry{
-			Date:  date,
-			Goals: []models.GoalEntry{},
+			Date:   date,
+			Habits: []models.HabitEntry{},
 		}
 		if err := entryLog.AddDayEntry(newDayEntry); err != nil {
 			return fmt.Errorf("failed to create day entry for %s: %w", date, err)
@@ -241,9 +241,9 @@ func (es *EntryStorage) AddGoalEntry(filePath string, date string, goalEntry mod
 		dayEntry, _ = entryLog.GetDayEntry(date)
 	}
 
-	// Add the goal entry
-	if err := dayEntry.AddGoalEntry(goalEntry); err != nil {
-		return fmt.Errorf("failed to add goal entry: %w", err)
+	// Add the habit entry
+	if err := dayEntry.AddHabitEntry(goalEntry); err != nil {
+		return fmt.Errorf("failed to add habit entry: %w", err)
 	}
 
 	// Save the updated log
@@ -254,9 +254,9 @@ func (es *EntryStorage) AddGoalEntry(filePath string, date string, goalEntry mod
 	return nil
 }
 
-// UpdateGoalEntry updates or creates a goal entry for a specific day in the entry log file.
+// UpdateHabitEntry updates or creates a habit entry for a specific day in the entry log file.
 // If the day doesn't exist, it creates a new day entry.
-func (es *EntryStorage) UpdateGoalEntry(filePath string, date string, goalEntry models.GoalEntry) error {
+func (es *EntryStorage) UpdateHabitEntry(filePath string, date string, goalEntry models.HabitEntry) error {
 	// Load existing entry log
 	entryLog, err := es.LoadFromFile(filePath)
 	if err != nil {
@@ -268,8 +268,8 @@ func (es *EntryStorage) UpdateGoalEntry(filePath string, date string, goalEntry 
 	if !found {
 		// Create new day entry
 		newDayEntry := models.DayEntry{
-			Date:  date,
-			Goals: []models.GoalEntry{},
+			Date:   date,
+			Habits: []models.HabitEntry{},
 		}
 		if err := entryLog.UpdateDayEntry(newDayEntry); err != nil {
 			return fmt.Errorf("failed to create day entry for %s: %w", date, err)
@@ -277,9 +277,9 @@ func (es *EntryStorage) UpdateGoalEntry(filePath string, date string, goalEntry 
 		dayEntry, _ = entryLog.GetDayEntry(date)
 	}
 
-	// Update the goal entry
-	if err := dayEntry.UpdateGoalEntry(goalEntry); err != nil {
-		return fmt.Errorf("failed to update goal entry: %w", err)
+	// Update the habit entry
+	if err := dayEntry.UpdateHabitEntry(goalEntry); err != nil {
+		return fmt.Errorf("failed to update habit entry: %w", err)
 	}
 
 	// Save the updated log
@@ -290,10 +290,10 @@ func (es *EntryStorage) UpdateGoalEntry(filePath string, date string, goalEntry 
 	return nil
 }
 
-// UpdateTodayGoalEntry updates or creates a goal entry for today.
-func (es *EntryStorage) UpdateTodayGoalEntry(filePath string, goalEntry models.GoalEntry) error {
+// UpdateTodayHabitEntry updates or creates a habit entry for today.
+func (es *EntryStorage) UpdateTodayHabitEntry(filePath string, goalEntry models.HabitEntry) error {
 	today := models.CreateTodayEntry().Date
-	return es.UpdateGoalEntry(filePath, today, goalEntry)
+	return es.UpdateHabitEntry(filePath, today, goalEntry)
 }
 
 // GetEntriesForDateRange retrieves all entries within the specified date range.
@@ -350,15 +350,15 @@ func (es *EntryStorage) CreateSampleEntryLog() *models.EntryLog {
 	entryLog := models.CreateEmptyEntryLog()
 
 	// Add a sample day entry
-	meditation := models.CreateBooleanGoalEntry("morning_meditation", true)
+	meditation := models.CreateBooleanHabitEntry("morning_meditation", true)
 	meditation.Notes = "Had a peaceful 10-minute session"
 
-	exercise := models.CreateBooleanGoalEntry("daily_exercise", false)
+	exercise := models.CreateBooleanHabitEntry("daily_exercise", false)
 	exercise.Notes = "Planned to go to gym but got busy with work"
 
 	sampleDay := models.DayEntry{
 		Date: "2024-01-01",
-		Goals: []models.GoalEntry{
+		Habits: []models.HabitEntry{
 			meditation,
 			exercise,
 		},

@@ -7,7 +7,7 @@ import (
 )
 
 // AIDEV-NOTE: entry-field-input-factory; creates appropriate input components for entry collection with scoring integration
-// Extends goalconfig.FieldValueInputFactory patterns for entry-specific needs with immediate feedback
+// Extends habitconfig.FieldValueInputFactory patterns for entry-specific needs with immediate feedback
 
 // EntryFieldInputFactory creates appropriate field input components for entry collection
 //

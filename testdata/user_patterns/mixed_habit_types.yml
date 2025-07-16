@@ -1,0 +1,25 @@
+version: "1.0.0"
+created_date: "2024-01-01"
+habits:
+  - title: "Daily Exercise"
+    habit_type: "simple"
+    field_type:
+      type: "boolean"
+    scoring_type: "manual"
+    prompt: "Did you exercise today?"
+
+  - title: "Water Intake"
+    habit_type: "informational"
+    field_type:
+      type: "unsigned_int"
+      unit: "glasses"
+    direction: "higher_better"
+    prompt: "How many glasses of water did you drink?"
+
+  - title: "Reading Time"
+    habit_type: "elastic"
+    field_type:
+      type: "duration"
+      format: "minutes"
+    scoring_type: "manual"
+    prompt: "How many minutes did you read today?"

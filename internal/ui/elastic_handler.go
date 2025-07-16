@@ -12,41 +12,41 @@ import (
 	"davidlee/vice/internal/scoring"
 )
 
-// ElasticGoalHandler handles entry collection for elastic goals with mini/midi/maxi achievement levels.
-type ElasticGoalHandler struct {
+// ElasticHabitHandler handles entry collection for elastic habits with mini/midi/maxi achievement levels.
+type ElasticHabitHandler struct {
 	scoringEngine *scoring.Engine
 }
 
-// NewElasticGoalHandler creates a new elastic goal handler with scoring integration.
-func NewElasticGoalHandler(scoringEngine *scoring.Engine) *ElasticGoalHandler {
-	return &ElasticGoalHandler{
+// NewElasticHabitHandler creates a new elastic habit handler with scoring integration.
+func NewElasticHabitHandler(scoringEngine *scoring.Engine) *ElasticHabitHandler {
+	return &ElasticHabitHandler{
 		scoringEngine: scoringEngine,
 	}
 }
 
-// CollectEntry collects an entry for an elastic goal including automatic scoring and achievement display.
-// AIDEV-NOTE: elastic-goal-entry-handler; current bubbletea+huh implementation pattern for field type adaptation (reference for T010)
-func (h *ElasticGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error) {
-	// Prepare the form title with goal information
+// CollectEntry collects an entry for an elastic habit including automatic scoring and achievement display.
+// AIDEV-NOTE: elastic-habit-entry-handler; current bubbletea+huh implementation pattern for field type adaptation (reference for T010)
+func (h *ElasticHabitHandler) CollectEntry(habit models.Habit, existing *ExistingEntry) (*EntryResult, error) {
+	// Prepare the form title with habit information
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("12")). // Bright blue
 		Margin(1, 0)
 
-	_ = titleStyle.Render(goal.Title) // Title styling available for future use
+	_ = titleStyle.Render(habit.Title) // Title styling available for future use
 
 	// Prepare description if available
 	var description string
-	if goal.Description != "" {
+	if habit.Description != "" {
 		descStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("8")). // Gray
 			Italic(true)
-		description = descStyle.Render(goal.Description)
+		description = descStyle.Render(habit.Description)
 	}
 
 	// Add criteria information to description for motivation
-	if goal.RequiresAutomaticScoring() {
-		criteriaInfo := h.formatCriteriaInfo(goal)
+	if habit.RequiresAutomaticScoring() {
+		criteriaInfo := h.formatCriteriaInfo(habit)
 		if criteriaInfo != "" {
 			if description != "" {
 				description += "\n"
@@ -57,18 +57,18 @@ func (h *ElasticGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEn
 	_ = description // Description used in field type collection
 
 	// Collect value based on field type
-	value, err := h.collectValueByFieldType(goal, existing)
+	value, err := h.collectValueByFieldType(habit, existing)
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect value: %w", err)
 	}
 
 	// Score the value if automatic scoring is enabled
 	var achievementLevel *models.AchievementLevel
-	if goal.RequiresAutomaticScoring() {
-		scoreResult, err := h.scoringEngine.ScoreElasticGoal(&goal, value)
+	if habit.RequiresAutomaticScoring() {
+		scoreResult, err := h.scoringEngine.ScoreElasticHabit(&habit, value)
 		if err != nil {
 			// Fall back to manual scoring if automatic scoring fails
-			manualLevel, err := h.collectManualAchievementLevel(goal, value)
+			manualLevel, err := h.collectManualAchievementLevel(habit, value)
 			if err != nil {
 				return nil, fmt.Errorf("automatic scoring failed and manual scoring failed: %w", err)
 			}
@@ -76,11 +76,11 @@ func (h *ElasticGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEn
 		} else {
 			achievementLevel = &scoreResult.AchievementLevel
 			// Display the achievement result
-			h.displayAchievementResult(scoreResult, goal)
+			h.displayAchievementResult(scoreResult, habit)
 		}
 	} else {
-		// Manual scoring for elastic goals without automatic criteria
-		manualLevel, err := h.collectManualAchievementLevel(goal, value)
+		// Manual scoring for elastic habits without automatic criteria
+		manualLevel, err := h.collectManualAchievementLevel(habit, value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to collect manual achievement level: %w", err)
 		}
@@ -88,7 +88,7 @@ func (h *ElasticGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEn
 	}
 
 	// Collect optional notes
-	notes, err := h.collectOptionalNotes(goal, value, existing)
+	notes, err := h.collectOptionalNotes(habit, value, existing)
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect notes: %w", err)
 	}
@@ -100,26 +100,26 @@ func (h *ElasticGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEn
 	}, nil
 }
 
-// collectValueByFieldType collects a value based on the goal's field type.
-func (h *ElasticGoalHandler) collectValueByFieldType(goal models.Goal, existing *ExistingEntry) (interface{}, error) {
-	switch goal.FieldType.Type {
+// collectValueByFieldType collects a value based on the habit's field type.
+func (h *ElasticHabitHandler) collectValueByFieldType(habit models.Habit, existing *ExistingEntry) (interface{}, error) {
+	switch habit.FieldType.Type {
 	case models.BooleanFieldType:
-		return h.collectBooleanValue(goal, existing)
+		return h.collectBooleanValue(habit, existing)
 	case models.UnsignedIntFieldType, models.UnsignedDecimalFieldType, models.DecimalFieldType:
-		return h.collectNumericValue(goal, existing)
+		return h.collectNumericValue(habit, existing)
 	case models.DurationFieldType:
-		return h.collectDurationValue(goal, existing)
+		return h.collectDurationValue(habit, existing)
 	case models.TimeFieldType:
-		return h.collectTimeValue(goal, existing)
+		return h.collectTimeValue(habit, existing)
 	case models.TextFieldType:
-		return h.collectTextValue(goal, existing)
+		return h.collectTextValue(habit, existing)
 	default:
-		return nil, fmt.Errorf("unsupported field type: %s", goal.FieldType.Type)
+		return nil, fmt.Errorf("unsupported field type: %s", habit.FieldType.Type)
 	}
 }
 
 // collectBooleanValue collects a boolean value using a confirmation dialog.
-func (h *ElasticGoalHandler) collectBooleanValue(goal models.Goal, existing *ExistingEntry) (bool, error) {
+func (h *ElasticHabitHandler) collectBooleanValue(habit models.Habit, existing *ExistingEntry) (bool, error) {
 	var currentValue bool
 	var hasExisting bool
 	if existing != nil && existing.Value != nil {
@@ -130,9 +130,9 @@ func (h *ElasticGoalHandler) collectBooleanValue(goal models.Goal, existing *Exi
 	}
 
 	var completed bool
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Did you complete: %s?", goal.Title)
+		prompt = fmt.Sprintf("Did you complete: %s?", habit.Title)
 	}
 
 	if hasExisting {
@@ -161,20 +161,20 @@ func (h *ElasticGoalHandler) collectBooleanValue(goal models.Goal, existing *Exi
 }
 
 // collectNumericValue collects a numeric value with validation.
-func (h *ElasticGoalHandler) collectNumericValue(goal models.Goal, existing *ExistingEntry) (float64, error) {
+func (h *ElasticHabitHandler) collectNumericValue(habit models.Habit, existing *ExistingEntry) (float64, error) {
 	var currentValue string
 	if existing != nil && existing.Value != nil {
 		currentValue = fmt.Sprintf("%v", existing.Value)
 	}
 
 	valueStr := currentValue
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		unit := goal.FieldType.Unit
+		unit := habit.FieldType.Unit
 		if unit != "" {
-			prompt = fmt.Sprintf("Enter value for %s (%s):", goal.Title, unit)
+			prompt = fmt.Sprintf("Enter value for %s (%s):", habit.Title, unit)
 		} else {
-			prompt = fmt.Sprintf("Enter value for %s:", goal.Title)
+			prompt = fmt.Sprintf("Enter value for %s:", habit.Title)
 		}
 	}
 
@@ -204,16 +204,16 @@ func (h *ElasticGoalHandler) collectNumericValue(goal models.Goal, existing *Exi
 }
 
 // collectDurationValue collects a duration value with format hints.
-func (h *ElasticGoalHandler) collectDurationValue(goal models.Goal, existing *ExistingEntry) (string, error) {
+func (h *ElasticHabitHandler) collectDurationValue(habit models.Habit, existing *ExistingEntry) (string, error) {
 	var currentValue string
 	if existing != nil && existing.Value != nil {
 		currentValue = fmt.Sprintf("%v", existing.Value)
 	}
 
 	valueStr := currentValue
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Enter duration for %s:", goal.Title)
+		prompt = fmt.Sprintf("Enter duration for %s:", habit.Title)
 	}
 
 	if currentValue != "" {
@@ -238,16 +238,16 @@ func (h *ElasticGoalHandler) collectDurationValue(goal models.Goal, existing *Ex
 }
 
 // collectTimeValue collects a time value with format hints.
-func (h *ElasticGoalHandler) collectTimeValue(goal models.Goal, existing *ExistingEntry) (string, error) {
+func (h *ElasticHabitHandler) collectTimeValue(habit models.Habit, existing *ExistingEntry) (string, error) {
 	var currentValue string
 	if existing != nil && existing.Value != nil {
 		currentValue = fmt.Sprintf("%v", existing.Value)
 	}
 
 	valueStr := currentValue
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Enter time for %s:", goal.Title)
+		prompt = fmt.Sprintf("Enter time for %s:", habit.Title)
 	}
 
 	if currentValue != "" {
@@ -272,16 +272,16 @@ func (h *ElasticGoalHandler) collectTimeValue(goal models.Goal, existing *Existi
 }
 
 // collectTextValue collects a text value.
-func (h *ElasticGoalHandler) collectTextValue(goal models.Goal, existing *ExistingEntry) (string, error) {
+func (h *ElasticHabitHandler) collectTextValue(habit models.Habit, existing *ExistingEntry) (string, error) {
 	var currentValue string
 	if existing != nil && existing.Value != nil {
 		currentValue = fmt.Sprintf("%v", existing.Value)
 	}
 
 	valueStr := currentValue
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Enter text for %s:", goal.Title)
+		prompt = fmt.Sprintf("Enter text for %s:", habit.Title)
 	}
 
 	if currentValue != "" {
@@ -305,13 +305,13 @@ func (h *ElasticGoalHandler) collectTextValue(goal models.Goal, existing *Existi
 }
 
 // collectManualAchievementLevel allows manual selection of achievement level.
-func (h *ElasticGoalHandler) collectManualAchievementLevel(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
+func (h *ElasticHabitHandler) collectManualAchievementLevel(habit models.Habit, value interface{}) (*models.AchievementLevel, error) {
 	level := models.AchievementNone
 
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[models.AchievementLevel]().
-				Title(fmt.Sprintf("Select achievement level for %s (value: %v):", goal.Title, value)).
+				Title(fmt.Sprintf("Select achievement level for %s (value: %v):", habit.Title, value)).
 				Options(
 					huh.NewOption("None", models.AchievementNone),
 					huh.NewOption("Mini", models.AchievementMini),
@@ -330,7 +330,7 @@ func (h *ElasticGoalHandler) collectManualAchievementLevel(goal models.Goal, val
 }
 
 // displayAchievementResult shows the scoring result with appropriate styling.
-func (h *ElasticGoalHandler) displayAchievementResult(result *scoring.ScoreResult, _ models.Goal) {
+func (h *ElasticHabitHandler) displayAchievementResult(result *scoring.ScoreResult, _ models.Habit) {
 	// Choose styling based on achievement level
 	var style lipgloss.Style
 	var emoji string
@@ -382,26 +382,26 @@ func (h *ElasticGoalHandler) displayAchievementResult(result *scoring.ScoreResul
 }
 
 // formatCriteriaInfo formats the criteria information for display as motivation.
-func (h *ElasticGoalHandler) formatCriteriaInfo(goal models.Goal) string {
-	if !goal.RequiresAutomaticScoring() {
+func (h *ElasticHabitHandler) formatCriteriaInfo(habit models.Habit) string {
+	if !habit.RequiresAutomaticScoring() {
 		return ""
 	}
 
 	var parts []string
 	criteriaStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Faint(true)
 
-	if goal.MiniCriteria != nil {
-		if value := extractDisplayValue(goal.MiniCriteria); value != "" {
+	if habit.MiniCriteria != nil {
+		if value := extractDisplayValue(habit.MiniCriteria); value != "" {
 			parts = append(parts, fmt.Sprintf("Mini: %s", value))
 		}
 	}
-	if goal.MidiCriteria != nil {
-		if value := extractDisplayValue(goal.MidiCriteria); value != "" {
+	if habit.MidiCriteria != nil {
+		if value := extractDisplayValue(habit.MidiCriteria); value != "" {
 			parts = append(parts, fmt.Sprintf("Midi: %s", value))
 		}
 	}
-	if goal.MaxiCriteria != nil {
-		if value := extractDisplayValue(goal.MaxiCriteria); value != "" {
+	if habit.MaxiCriteria != nil {
+		if value := extractDisplayValue(habit.MaxiCriteria); value != "" {
 			parts = append(parts, fmt.Sprintf("Maxi: %s", value))
 		}
 	}
@@ -437,8 +437,8 @@ func extractDisplayValue(criteria *models.Criteria) string {
 	return ""
 }
 
-// collectOptionalNotes allows the user to optionally add notes for an elastic goal.
-func (h *ElasticGoalHandler) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {
+// collectOptionalNotes allows the user to optionally add notes for an elastic habit.
+func (h *ElasticHabitHandler) collectOptionalNotes(_ models.Habit, _ interface{}, existing *ExistingEntry) (string, error) {
 	// Get existing notes
 	var existingNotes string
 	if existing != nil {
@@ -480,7 +480,7 @@ func (h *ElasticGoalHandler) collectOptionalNotes(_ models.Goal, _ interface{}, 
 		huh.NewGroup(
 			huh.NewText().
 				Title("Notes:").
-				Description("Optional notes about this goal (press Enter when done)").
+				Description("Optional notes about this habit (press Enter when done)").
 				Value(&notes).
 				Placeholder("How did it go? Any observations?"),
 		),

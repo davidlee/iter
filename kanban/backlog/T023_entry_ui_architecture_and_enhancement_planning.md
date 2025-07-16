@@ -24,7 +24,7 @@ T018 identified extensive future improvements and refactoring opportunities acro
 
 *No commits yet - task is in backlog*
 
-## 1. Goal / User Story
+## 1. Habit / User Story
 
 As a developer, I want a comprehensive analysis and plan for improving the entry UI system architecture to address technical debt, improve maintainability, and enable enhanced user experience features, ensuring refactoring work is completed before implementing new UI improvements.
 
@@ -37,7 +37,7 @@ As a developer, I want a comprehensive analysis and plan for improving the entry
 - [ ] **Task Integration Analysis**: Consolidated plan considering T011, T007 Phase 5.3, T012, T016 improvements
 
 ### Analysis Coverage
-- [ ] **T018 Future Improvements**: Goal type indication, error handling UI, progress bar enhancements, entry editing, bulk operations
+- [ ] **T018 Future Improvements**: Habit type indication, error handling UI, progress bar enhancements, entry editing, bulk operations
 - [ ] **T018 Refactoring Opportunities**: Emoji constants, ViewRenderer modularity, error handling centralization, state management optimization, navigation abstraction
 - [ ] **Cross-System Integration**: T011 session navigation, T007 statistics, T012 skip functionality visual feedback, T016 configuration resilience
 - [ ] **Architecture Assessment**: Component coupling analysis, code reuse opportunities, testing strategy improvements
@@ -56,7 +56,7 @@ As a developer, I want a comprehensive analysis and plan for improving the entry
 
 ### Phase 1: Comprehensive Analysis (Planning)
 - [ ] **1.1: T018 Future Improvements Analysis**
-  - [ ] Analyze goal type indication alternatives (status emojis replaced type emojis)
+  - [ ] Analyze habit type indication alternatives (status emojis replaced type emojis)
   - [ ] Evaluate error handling UI requirements (modal/status bar for collection errors, save failures)
   - [ ] Assess progress bar enhancement opportunities (intelligent sizing, customizable colors)
   - [ ] Review entry editing for non-current days (mentioned in original requirements)
@@ -83,7 +83,7 @@ As a developer, I want a comprehensive analysis and plan for improving the entry
   - [ ] Code reuse opportunities between entry menu, collection flows, and field inputs
   - [ ] Testing strategy gaps and improvement opportunities
   - [ ] Performance considerations for UI responsiveness and data handling
-  - [ ] Extensibility requirements for future goal types and field types
+  - [ ] Extensibility requirements for future habit types and field types
 
 ### Phase 2: Prioritization and Sequencing (Planning)
 - [ ] **2.1: Impact and Effort Assessment**
@@ -128,7 +128,7 @@ As a developer, I want a comprehensive analysis and plan for improving the entry
 ### T018 Identified Improvements
 
 **Future Improvements (from T018 lines 423-431):**
-- Goal type indication: Need alternative to show goal types since status emojis replaced type emojis
+- Habit type indication: Need alternative to show habit types since status emojis replaced type emojis
 - Error handling UI: Add user feedback for entry collection and save failures with modal or status bar
 - Progress bar enhancements: More intelligent sizing for different terminal widths, customizable colors
 - Entry editing: Support editing entries for days other than today (mentioned in original requirements)
@@ -149,7 +149,7 @@ As a developer, I want a comprehensive analysis and plan for improving the entry
 ### Related Task Considerations
 
 **T011 Entry User Experience Enhancements:**
-- Progress indication (current goal position)
+- Progress indication (current habit position)
 - Session navigation (skip, edit, review)
 - Enhanced completion summary
 - Session state management and recovery
@@ -169,7 +169,7 @@ As a developer, I want a comprehensive analysis and plan for improving the entry
 
 **T016 Configuration Change Resilience:**
 - Configuration change management system
-- Warning and validation system for goal editing
+- Warning and validation system for habit editing
 - Data migration strategies for configuration changes
 - Type assumption audit findings integration
 
@@ -179,7 +179,7 @@ As a developer, I want a comprehensive analysis and plan for improving the entry
 1. **Coupling Assessment**: Identify tight coupling between components and opportunities for decoupling
 2. **Code Duplication**: Find repeated patterns that could be extracted to shared utilities
 3. **Responsibility Clarity**: Assess single responsibility principle adherence and separation of concerns
-4. **Extensibility**: Evaluate ease of adding new features and goal types
+4. **Extensibility**: Evaluate ease of adding new features and habit types
 
 **User Experience Analysis:**
 1. **Workflow Efficiency**: Identify friction points in user workflows and interaction patterns
@@ -208,7 +208,7 @@ As a developer, I want a comprehensive analysis and plan for improving the entry
 
 **Planning Scope Summary:**
 - **Architectural Refactoring**: Component separation, state management, error handling, navigation patterns
-- **UI Enhancements**: Goal type indication, progress bars, bulk operations, entry editing, theme support  
+- **UI Enhancements**: Habit type indication, progress bars, bulk operations, entry editing, theme support  
 - **Experience Improvements**: Session navigation, progress tracking, enhanced summaries, achievement analytics
 - **System Integration**: Cross-component consistency, testing strategy, configuration resilience
 

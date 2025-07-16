@@ -25,7 +25,7 @@ context_windows: ["./*.go", Claude.md, "doc/workflow.md", "doc/**/*.md"] # List 
 ### Related Tasks / History
 *AI to complete*
 
-## Goal / User Story
+## Habit / User Story
 
 Brief description of what needs to be achieved, why, and for whom. Why is this task important?
 *AI to complete, asking questions as appropriate*

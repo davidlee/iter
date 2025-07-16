@@ -41,8 +41,8 @@ func runPrototype(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("failed to initialize debug logging: %w", err)
 		}
 		defer func() {
-		_ = debug.GetInstance().Close()
-	}()
+			_ = debug.GetInstance().Close()
+		}()
 	}
 
 	// Get the root directory of the project

@@ -14,35 +14,35 @@ import (
 )
 
 // TestEntryIntegration_MenuToEntryFlow tests the complete menu→entry→menu integration.
-// This test verifies that goal selection launches entry collection and updates menu state.
+// This test verifies that habit selection launches entry collection and updates menu state.
 // TEMPORARILY DISABLED: Test needs updating for modal architecture (T024)
 func TestEntryIntegration_MenuToEntryFlow_DISABLED(t *testing.T) {
 	t.Skip("Test disabled pending modal architecture integration - see T024")
-	// Create test goals with different types
-	goals := []models.Goal{
+	// Create test habits with different types
+	habits := []models.Habit{
 		{
 			ID:        "simple_goal",
 			Title:     "Exercise",
-			GoalType:  models.SimpleGoal,
+			HabitType: models.SimpleHabit,
 			FieldType: models.FieldType{Type: "boolean"},
 		},
 		{
 			ID:        "time_goal",
 			Title:     "Wake Up Early",
-			GoalType:  models.SimpleGoal,
+			HabitType: models.SimpleHabit,
 			FieldType: models.FieldType{Type: "time"},
 		},
 	}
 
 	// Start with no entries (all incomplete)
-	entries := make(map[string]models.GoalEntry)
+	entries := make(map[string]models.HabitEntry)
 
 	// Create and initialize EntryCollector
 	collector := ui.NewEntryCollector("") // Empty path for test
-	collector.InitializeForMenu(goals, entries)
+	collector.InitializeForMenu(habits, entries)
 
 	// Create the entry menu model with collector (no file for test)
-	model := NewEntryMenuModel(goals, entries, collector, "")
+	model := NewEntryMenuModel(habits, entries, collector, "")
 
 	// Create teatest model
 	tm := teatest.NewTestModel(
@@ -59,10 +59,10 @@ func TestEntryIntegration_MenuToEntryFlow_DISABLED(t *testing.T) {
 	// Give UI time to initialize
 	time.Sleep(100 * time.Millisecond)
 
-	// Test 1: Navigate to first goal (Exercise)
-	// The first goal should be selected by default
+	// Test 1: Navigate to first habit (Exercise)
+	// The first habit should be selected by default
 
-	// Test 2: Select the goal (pressing Enter)
+	// Test 2: Select the habit (pressing Enter)
 	// NOTE: This will try to launch entry collection
 	// For this test, we expect it to work but the entry collection might be minimal
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
@@ -71,7 +71,7 @@ func TestEntryIntegration_MenuToEntryFlow_DISABLED(t *testing.T) {
 	// Test 3: Check if the model is still running (entry collection completed)
 	// If entry collection worked, the model should still be active
 
-	// Test 4: Try to navigate to next incomplete goal
+	// Test 4: Try to navigate to next incomplete habit
 	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("n")})
 	time.Sleep(50 * time.Millisecond)
 
@@ -87,13 +87,13 @@ func TestEntryIntegration_MenuToEntryFlow_DISABLED(t *testing.T) {
 			t.Error("Expected model to quit after Esc press")
 		}
 
-		// The selectedGoalID should be set from the Enter press
-		selectedID := entryMenuModel.SelectedGoalID()
+		// The selectedHabitID should be set from the Enter press
+		selectedID := entryMenuModel.SelectedHabitID()
 		if selectedID == "" {
-			t.Error("Expected selectedGoalID to be set after goal selection")
+			t.Error("Expected selectedHabitID to be set after habit selection")
 		}
 
-		t.Logf("Selected goal ID: %s", selectedID)
+		t.Logf("Selected habit ID: %s", selectedID)
 		t.Logf("Model quit properly: %v", entryMenuModel.ShouldQuit())
 	} else {
 		t.Errorf("Expected *EntryMenuModel, got %T", finalModel)

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The entries storage system manages persistent data for daily goal tracking in YAML format. This document specifies the file format, operations, and data integrity patterns.
+The entries storage system manages persistent data for daily habit tracking in YAML format. This document specifies the file format, operations, and data integrity patterns.
 
 ## File Format
 
@@ -18,7 +18,7 @@ The entries storage system manages persistent data for daily goal tracking in YA
 version: "1.0.0"
 entries:
   - date: "2025-07-15"          # ISO date format (YYYY-MM-DD)
-    goals:
+    habits:
       - goal_id: "wake_up"
         value: "08:30"          # Human-readable time format (HH:MM)
         achievement_level: mini # Optional: none|mini|midi|maxi
@@ -30,7 +30,7 @@ entries:
 
 ### Value Field Types
 
-The `value` field supports multiple data types based on goal field configuration:
+The `value` field supports multiple data types based on habit field configuration:
 
 | Field Type | Storage Format | Example |
 |------------|----------------|---------|
@@ -81,8 +81,8 @@ All write operations follow the same pattern:
 | **Read** | `LoadFromFile()` | Load entire file, return empty if missing | Load only |
 | **Update Day** | `UpdateDayEntry()` | Most common - update single day's entries | ✅ |
 | **Add Day** | `AddDayEntry()` | Create new day entry | ✅ |
-| **Update Goal** | `UpdateGoalEntry()` | Update single goal within day | ✅ |
-| **Add Goal** | `AddGoalEntry()` | Add goal to existing/new day | ✅ |
+| **Update Habit** | `UpdateGoalEntry()` | Update single habit within day | ✅ |
+| **Add Habit** | `AddGoalEntry()` | Add habit to existing/new day | ✅ |
 | **Backup** | `BackupFile()` | Copy to .backup suffix | Read only |
 
 ### Data Validation
@@ -91,7 +91,7 @@ All write operations follow the same pattern:
 - Strict YAML parsing (unknown fields rejected)
 - Schema validation via `EntryLog.Validate()`
 - Date format validation (YYYY-MM-DD)
-- Goal ID uniqueness within day
+- Habit ID uniqueness within day
 
 **Save-time validation:**
 - Pre-save validation of entire data structure
@@ -160,8 +160,8 @@ The system accepts multiple input formats for flexibility:
 - **Current typical size**: ~100KB for year of daily entries
 
 ### Operation Frequency
-- **Most common**: `UpdateDayEntry()` - once per goal entry session
-- **Less common**: Individual goal updates during entry editing
+- **Most common**: `UpdateDayEntry()` - once per habit entry session
+- **Less common**: Individual habit updates during entry editing
 - **Rare**: Bulk operations, date range queries
 
 ## Error Handling
@@ -174,7 +174,7 @@ The system accepts multiple input formats for flexibility:
 
 ### Data Validation Errors
 - Invalid dates: Reject with specific error
-- Duplicate goal IDs: Validation failure
+- Duplicate habit IDs: Validation failure
 - Missing required fields: Schema validation
 - Type mismatches: YAML unmarshaling errors
 

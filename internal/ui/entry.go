@@ -15,16 +15,16 @@ import (
 )
 
 // EntryCollector handles the interactive collection of today's habit entries.
-// AIDEV-NOTE: T010-entry-system-complete; All goal collection flows with field input components and scoring integration
-// Architecture: Uses goal collection flows from internal/ui/entry/ package with complete scoring engine integration
+// AIDEV-NOTE: T010-entry-system-complete; All habit collection flows with field input components and scoring integration
+// Architecture: Uses habit collection flows from internal/ui/entry/ package with complete scoring engine integration
 type EntryCollector struct {
-	goalParser    *parser.GoalParser
+	goalParser    *parser.HabitParser
 	entryStorage  *storage.EntryStorage
 	scoringEngine *scoring.Engine
-	flowFactory   *entry.GoalCollectionFlowFactory
-	goals         []models.Goal
-	entries       map[string]interface{}              // Stores raw values for all goal types
-	achievements  map[string]*models.AchievementLevel // Stores achievement levels for elastic goals
+	flowFactory   *entry.HabitCollectionFlowFactory
+	habits        []models.Habit
+	entries       map[string]interface{}              // Stores raw values for all habit types
+	achievements  map[string]*models.AchievementLevel // Stores achievement levels for elastic habits
 	notes         map[string]string
 	statuses      map[string]models.EntryStatus // T012/2.1-enhanced: Stores entry completion status for skip functionality
 }
@@ -33,10 +33,10 @@ type EntryCollector struct {
 func NewEntryCollector(checklistsPath string) *EntryCollector {
 	scoringEngine := scoring.NewEngine()
 	fieldInputFactory := entry.NewEntryFieldInputFactory()
-	flowFactory := entry.NewGoalCollectionFlowFactory(fieldInputFactory, scoringEngine, checklistsPath)
+	flowFactory := entry.NewHabitCollectionFlowFactory(fieldInputFactory, scoringEngine, checklistsPath)
 
 	return &EntryCollector{
-		goalParser:    parser.NewGoalParser(),
+		goalParser:    parser.NewHabitParser(),
 		entryStorage:  storage.NewEntryStorage(),
 		scoringEngine: scoringEngine,
 		flowFactory:   flowFactory,
@@ -48,17 +48,17 @@ func NewEntryCollector(checklistsPath string) *EntryCollector {
 }
 
 // CollectTodayEntries runs the interactive UI to collect today's habit entries.
-func (ec *EntryCollector) CollectTodayEntries(goalsFile, entriesFile string) error {
-	// Load goal schema
-	schema, err := ec.goalParser.LoadFromFile(goalsFile)
+func (ec *EntryCollector) CollectTodayEntries(habitsFile, entriesFile string) error {
+	// Load habit schema
+	schema, err := ec.goalParser.LoadFromFile(habitsFile)
 	if err != nil {
-		return fmt.Errorf("failed to load goals: %w", err)
+		return fmt.Errorf("failed to load habits: %w", err)
 	}
 
-	// Get all goals (simple, elastic, and informational)
-	ec.goals = schema.Goals
-	if len(ec.goals) == 0 {
-		return fmt.Errorf("no goals found in %s", goalsFile)
+	// Get all habits (simple, elastic, and informational)
+	ec.habits = schema.Habits
+	if len(ec.habits) == 0 {
+		return fmt.Errorf("no habits found in %s", habitsFile)
 	}
 
 	// Load existing entries for today (if any)
@@ -69,10 +69,10 @@ func (ec *EntryCollector) CollectTodayEntries(goalsFile, entriesFile string) err
 	// Display welcome message
 	ec.displayWelcome()
 
-	// Collect entries for each goal
-	for _, goal := range ec.goals {
-		if err := ec.collectGoalEntry(goal); err != nil {
-			return fmt.Errorf("failed to collect entry for goal %s: %w", goal.ID, err)
+	// Collect entries for each habit
+	for _, habit := range ec.habits {
+		if err := ec.collectHabitEntry(habit); err != nil {
+			return fmt.Errorf("failed to collect entry for habit %s: %w", habit.ID, err)
 		}
 	}
 
@@ -98,53 +98,53 @@ func (ec *EntryCollector) loadExistingEntries(entriesFile string) error {
 	}
 
 	// Load existing entries into our maps
-	for _, goalEntry := range dayEntry.Goals {
-		ec.entries[goalEntry.GoalID] = goalEntry.Value
-		ec.notes[goalEntry.GoalID] = goalEntry.Notes
-		ec.statuses[goalEntry.GoalID] = goalEntry.Status
+	for _, goalEntry := range dayEntry.Habits {
+		ec.entries[goalEntry.HabitID] = goalEntry.Value
+		ec.notes[goalEntry.HabitID] = goalEntry.Notes
+		ec.statuses[goalEntry.HabitID] = goalEntry.Status
 
-		// Load achievement level for elastic goals
+		// Load achievement level for elastic habits
 		if goalEntry.AchievementLevel != nil {
-			ec.achievements[goalEntry.GoalID] = goalEntry.AchievementLevel
+			ec.achievements[goalEntry.HabitID] = goalEntry.AchievementLevel
 		}
 	}
 
 	return nil
 }
 
-// AIDEV-NOTE: T010/4.1-scoring-integration-complete; uses goal collection flows with full scoring engine integration
-// collectGoalEntry collects the entry for a single goal using the appropriate collection flow.
-func (ec *EntryCollector) collectGoalEntry(goal models.Goal) error {
+// AIDEV-NOTE: T010/4.1-scoring-integration-complete; uses habit collection flows with full scoring engine integration
+// collectHabitEntry collects the entry for a single habit using the appropriate collection flow.
+func (ec *EntryCollector) collectHabitEntry(habit models.Habit) error {
 	// Create existing entry data from our maps
 	var existing *entry.ExistingEntry
-	if value, hasValue := ec.entries[goal.ID]; hasValue {
+	if value, hasValue := ec.entries[habit.ID]; hasValue {
 		existing = &entry.ExistingEntry{
 			Value:            value,
-			Notes:            ec.notes[goal.ID],
-			AchievementLevel: ec.achievements[goal.ID],
+			Notes:            ec.notes[habit.ID],
+			AchievementLevel: ec.achievements[habit.ID],
 		}
 	}
 
-	// Create the appropriate collection flow for this goal type
-	flow, err := ec.flowFactory.CreateFlow(string(goal.GoalType))
+	// Create the appropriate collection flow for this habit type
+	flow, err := ec.flowFactory.CreateFlow(string(habit.HabitType))
 	if err != nil {
-		return fmt.Errorf("failed to create collection flow for goal %s: %w", goal.ID, err)
+		return fmt.Errorf("failed to create collection flow for habit %s: %w", habit.ID, err)
 	}
 
 	// Use the flow to collect the entry with full scoring integration
-	result, err := flow.CollectEntry(goal, existing)
+	result, err := flow.CollectEntry(habit, existing)
 	if err != nil {
-		return fmt.Errorf("failed to collect entry for goal %s: %w", goal.ID, err)
+		return fmt.Errorf("failed to collect entry for habit %s: %w", habit.ID, err)
 	}
 
 	// Store the results in our maps
-	ec.entries[goal.ID] = result.Value
-	ec.notes[goal.ID] = result.Notes
-	ec.statuses[goal.ID] = result.Status
+	ec.entries[habit.ID] = result.Value
+	ec.notes[habit.ID] = result.Notes
+	ec.statuses[habit.ID] = result.Status
 
-	// Store achievement level if present (for elastic goals)
+	// Store achievement level if present (for elastic habits)
 	if result.AchievementLevel != nil {
-		ec.achievements[goal.ID] = result.AchievementLevel
+		ec.achievements[habit.ID] = result.AchievementLevel
 	}
 
 	return nil
@@ -154,20 +154,20 @@ func (ec *EntryCollector) collectGoalEntry(goal models.Goal) error {
 func (ec *EntryCollector) saveEntries(entriesFile string) error {
 	today := time.Now().Format("2006-01-02")
 
-	// Create goal entries from collected data
-	var goalEntries []models.GoalEntry
-	for _, goal := range ec.goals {
-		value, exists := ec.entries[goal.ID]
+	// Create habit entries from collected data
+	var goalEntries []models.HabitEntry
+	for _, habit := range ec.habits {
+		value, exists := ec.entries[habit.ID]
 		if !exists {
-			continue // Skip goals that weren't processed
+			continue // Skip habits that weren't processed
 		}
 
-		goalEntry := models.GoalEntry{
-			GoalID:           goal.ID,
+		goalEntry := models.HabitEntry{
+			HabitID:          habit.ID,
 			Value:            value,
-			AchievementLevel: ec.achievements[goal.ID], // Will be nil for simple/informational goals
-			Notes:            ec.notes[goal.ID],
-			Status:           ec.statuses[goal.ID], // Use collected status
+			AchievementLevel: ec.achievements[habit.ID], // Will be nil for simple/informational habits
+			Notes:            ec.notes[habit.ID],
+			Status:           ec.statuses[habit.ID], // Use collected status
 		}
 		goalEntry.MarkCreated()
 
@@ -176,8 +176,8 @@ func (ec *EntryCollector) saveEntries(entriesFile string) error {
 
 	// Create day entry
 	dayEntry := models.DayEntry{
-		Date:  today,
-		Goals: goalEntries,
+		Date:   today,
+		Habits: goalEntries,
 	}
 
 	// Save to storage
@@ -204,7 +204,7 @@ func (ec *EntryCollector) displayWelcome() {
 		Foreground(lipgloss.Color("8")). // Gray
 		Margin(0, 0, 1, 0)
 
-	goalCount := goalCountStyle.Render(fmt.Sprintf("Ready to track %d goals for today!", len(ec.goals)))
+	goalCount := goalCountStyle.Render(fmt.Sprintf("Ready to track %d habits for today!", len(ec.habits)))
 
 	fmt.Println(headerStyle.Render(welcome))
 	fmt.Println(goalCount)
@@ -213,37 +213,37 @@ func (ec *EntryCollector) displayWelcome() {
 // displayCompletion shows a completion message with summary.
 func (ec *EntryCollector) displayCompletion() {
 	completedCount := 0
-	totalCount := len(ec.goals)
+	totalCount := len(ec.habits)
 
-	// Count completions based on goal type and value
+	// Count completions based on habit type and value
 	for goalID, value := range ec.entries {
-		// Find the goal to determine how to interpret completion
-		var goal *models.Goal
-		for i := range ec.goals {
-			if ec.goals[i].ID == goalID {
-				goal = &ec.goals[i]
+		// Find the habit to determine how to interpret completion
+		var habit *models.Habit
+		for i := range ec.habits {
+			if ec.habits[i].ID == goalID {
+				habit = &ec.habits[i]
 				break
 			}
 		}
 
-		if goal == nil {
+		if habit == nil {
 			continue
 		}
 
-		// Determine if this goal is "completed" based on its type
-		switch goal.GoalType {
-		case models.SimpleGoal:
-			// Simple goals: check boolean value
+		// Determine if this habit is "completed" based on its type
+		switch habit.HabitType {
+		case models.SimpleHabit:
+			// Simple habits: check boolean value
 			if boolVal, ok := value.(bool); ok && boolVal {
 				completedCount++
 			}
-		case models.ElasticGoal:
-			// Elastic goals: consider any achievement level as completion
+		case models.ElasticHabit:
+			// Elastic habits: consider any achievement level as completion
 			if achievementLevel := ec.achievements[goalID]; achievementLevel != nil && *achievementLevel != models.AchievementNone {
 				completedCount++
 			}
-		case models.InformationalGoal:
-			// Informational goals: any non-empty value counts as completion
+		case models.InformationalHabit:
+			// Informational habits: any non-empty value counts as completion
 			if value != nil && fmt.Sprintf("%v", value) != "" {
 				completedCount++
 			}
@@ -275,7 +275,7 @@ func (ec *EntryCollector) displayCompletion() {
 		Padding(1, 2).
 		Margin(1, 0)
 
-	summary := fmt.Sprintf("%s Completed %d out of %d goals today!", emoji, completedCount, totalCount)
+	summary := fmt.Sprintf("%s Completed %d out of %d habits today!", emoji, completedCount, totalCount)
 
 	// Add motivational message
 	var message string
@@ -285,7 +285,7 @@ func (ec *EntryCollector) displayCompletion() {
 	case completionRate >= 0.7:
 		message = "Great job! You're making excellent progress! 🚀"
 	case completionRate >= 0.5:
-		message = "Good work! Every step counts towards your goals! 📈"
+		message = "Good work! Every step counts towards your habits! 📈"
 	default:
 		message = "Tomorrow is a new opportunity to build your habits! 🌅"
 	}
@@ -311,16 +311,16 @@ func timePtr(t time.Time) *time.Time {
 	return &t
 }
 
-// CollectSingleGoalEntry collects an entry for a single goal, used by the entry menu interface.
+// CollectSingleHabitEntry collects an entry for a single habit, used by the entry menu interface.
 // AIDEV-NOTE: T018/3.1-entry-integration; main integration point for menu→entry flow
-// This method is called when user presses Enter in entry menu to collect entry for selected goal
-func (ec *EntryCollector) CollectSingleGoalEntry(goal models.Goal) error {
-	return ec.collectGoalEntry(goal)
+// This method is called when user presses Enter in entry menu to collect entry for selected habit
+func (ec *EntryCollector) CollectSingleHabitEntry(habit models.Habit) error {
+	return ec.collectHabitEntry(habit)
 }
 
-// GetGoalEntry returns the current entry data for a goal.
+// GetHabitEntry returns the current entry data for a habit.
 // AIDEV-NOTE: T018/3.1-state-sync; used by menu to sync state after entry collection
-func (ec *EntryCollector) GetGoalEntry(goalID string) (interface{}, string, *models.AchievementLevel, models.EntryStatus, bool) {
+func (ec *EntryCollector) GetHabitEntry(goalID string) (interface{}, string, *models.AchievementLevel, models.EntryStatus, bool) {
 	value, hasValue := ec.entries[goalID]
 	notes := ec.notes[goalID]
 	achievement := ec.achievements[goalID]
@@ -329,11 +329,11 @@ func (ec *EntryCollector) GetGoalEntry(goalID string) (interface{}, string, *mod
 	return value, notes, achievement, status, hasValue && hasStatus
 }
 
-// InitializeForMenu initializes the EntryCollector with goals and existing entries for menu usage.
-// AIDEV-NOTE: T018/3.1-menu-setup; critical setup for menu integration - must be called before goal selection
-// Converts GoalEntry format to internal collector format (interface{} values)
-func (ec *EntryCollector) InitializeForMenu(goals []models.Goal, entries map[string]models.GoalEntry) {
-	ec.goals = goals
+// InitializeForMenu initializes the EntryCollector with habits and existing entries for menu usage.
+// AIDEV-NOTE: T018/3.1-menu-setup; critical setup for menu integration - must be called before habit selection
+// Converts HabitEntry format to internal collector format (interface{} values)
+func (ec *EntryCollector) InitializeForMenu(habits []models.Habit, entries map[string]models.HabitEntry) {
+	ec.habits = habits
 
 	// Initialize maps
 	ec.entries = make(map[string]interface{})
@@ -343,17 +343,17 @@ func (ec *EntryCollector) InitializeForMenu(goals []models.Goal, entries map[str
 
 	// Load existing entries into collector format
 	for _, entry := range entries {
-		ec.entries[entry.GoalID] = entry.Value
-		ec.notes[entry.GoalID] = entry.Notes
-		ec.statuses[entry.GoalID] = entry.Status
+		ec.entries[entry.HabitID] = entry.Value
+		ec.notes[entry.HabitID] = entry.Notes
+		ec.statuses[entry.HabitID] = entry.Status
 		if entry.AchievementLevel != nil {
-			ec.achievements[entry.GoalID] = entry.AchievementLevel
+			ec.achievements[entry.HabitID] = entry.AchievementLevel
 		}
 	}
 }
 
 // SaveEntriesToFile saves the current entries to the specified file.
-// AIDEV-NOTE: T018/3.2-auto-save; called after each goal completion for automatic persistence
+// AIDEV-NOTE: T018/3.2-auto-save; called after each habit completion for automatic persistence
 // Reuses existing saveEntries() method for consistency with main entry flow
 func (ec *EntryCollector) SaveEntriesToFile(entriesFile string) error {
 	return ec.saveEntries(entriesFile)
@@ -366,7 +366,7 @@ func (ec *EntryCollector) StoreEntryResult(goalID string, result *entry.EntryRes
 	ec.notes[goalID] = result.Notes
 	ec.statuses[goalID] = result.Status
 
-	// Store achievement level if present (for elastic goals)
+	// Store achievement level if present (for elastic habits)
 	if result.AchievementLevel != nil {
 		ec.achievements[goalID] = result.AchievementLevel
 	}
@@ -374,9 +374,9 @@ func (ec *EntryCollector) StoreEntryResult(goalID string, result *entry.EntryRes
 
 // Testing helpers - these methods are only used in tests
 
-// SetGoalsForTesting sets the goals for testing purposes.
-func (ec *EntryCollector) SetGoalsForTesting(goals []models.Goal) {
-	ec.goals = goals
+// SetHabitsForTesting sets the habits for testing purposes.
+func (ec *EntryCollector) SetHabitsForTesting(habits []models.Habit) {
+	ec.habits = habits
 }
 
 // SetEntryForTesting sets an entry for testing purposes.

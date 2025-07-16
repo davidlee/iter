@@ -15,12 +15,12 @@ context_windows: ["./CLAUDE.md", "./internal/models/*_test.go", "./doc/specifica
 - `2af5c60` - feat: [T004/1.1] (complete) - backwards compatibility test framework
 - `c97eb4e` - feat: [T004] create comprehensive testing strategy improvement task
 
-## 1. Goal / User Story
+## 1. Habit / User Story
 
 As a developer maintaining the vice codebase, I want comprehensive testing that validates backwards compatibility and real-world integration so that changes don't break existing user data or create inconsistencies between documentation and code. This addresses the failure where T002 documentation changes weren't synchronized with validation code, causing user data to fail validation.
 
 The system should ensure that:
-- Existing user goals.yml files continue to work after updates
+- Existing user habits.yml files continue to work after updates
 - Changes to specifications are reflected consistently in code
 - Integration between components is validated end-to-end
 - Real user data patterns are tested, not just synthetic test data
@@ -29,7 +29,7 @@ This is critical for maintaining user trust and preventing breaking changes that
 
 ## 2. Acceptance Criteria
 
-- [ ] Real user data validation tests prevent breaking existing goals.yml files
+- [ ] Real user data validation tests prevent breaking existing habits.yml files
 - [ ] End-to-end integration tests cover full CLI workflow (load → parse → validate → UI)
 - [ ] Backwards compatibility tests verify old data formats still work
 - [ ] Specification-code coherence tests ensure examples in docs remain valid
@@ -47,7 +47,7 @@ This is critical for maintaining user trust and preventing breaking changes that
 
 - [x] **1. Real Data Integration Tests**: Create tests using actual user data patterns
     - [x] **1.1 Backwards compatibility test framework**
-        - *Design:* Framework to test that existing user goals.yml files remain valid
+        - *Design:* Framework to test that existing user habits.yml files remain valid
         - *Code/Artifacts to be created or modified:* `internal/testing/compatibility_test.go` (new)
         - *Testing Strategy:* Test with real user data patterns, multiple schema versions
         - *AI Notes:* Completed - created comprehensive test framework with real user data patterns, including T002 failure case
@@ -59,7 +59,7 @@ This is critical for maintaining user trust and preventing breaking changes that
 
 - [ ] **2. End-to-End Integration Tests**: Validate complete workflow functionality
     - [ ] **2.1 Full CLI workflow tests**
-        - *Design:* Test complete flow: goals.yml → parser → validation → UI startup
+        - *Design:* Test complete flow: habits.yml → parser → validation → UI startup
         - *Code/Artifacts to be created or modified:* `integration_test.go` (new)
         - *Testing Strategy:* Test with temporary directories, real file I/O, CLI execution
         - *AI Notes:* Should catch issues like T002 where validation failed on real data

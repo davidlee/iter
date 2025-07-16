@@ -10,24 +10,24 @@ import (
 	"davidlee/vice/internal/models"
 )
 
-// AIDEV-NOTE: flow-implementations; concrete implementations of goal collection flow methods
-// Provides scoring, feedback display, and notes collection for each goal type flow
-// AIDEV-NOTE: T010/3.1-3.3-complete; Simple/Elastic/Informational goal collection flows fully implemented and tested
+// AIDEV-NOTE: flow-implementations; concrete implementations of habit collection flow methods
+// Provides scoring, feedback display, and notes collection for each habit type flow
+// AIDEV-NOTE: T010/3.1-3.3-complete; Simple/Elastic/Informational habit collection flows fully implemented and tested
 // Key methods: performAutomaticScoring (elastic conversion), determineManualAchievement (field-type aware), displayDirectionFeedback (direction-aware), collectOptionalNotes
 
-// Simple Goal Flow Implementations
+// Simple Habit Flow Implementations
 
-// AIDEV-NOTE: T016-fix; proper goal type handling prevents "not an elastic goal" errors
-// This method was rewritten to use dedicated ScoreSimpleGoal() instead of masquerading simple goals as elastic
-func (f *SimpleGoalCollectionFlow) performAutomaticScoring(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
+// AIDEV-NOTE: T016-fix; proper habit type handling prevents "not an elastic habit" errors
+// This method was rewritten to use dedicated ScoreSimpleHabit() instead of masquerading simple habits as elastic
+func (f *SimpleHabitCollectionFlow) performAutomaticScoring(habit models.Habit, value interface{}) (*models.AchievementLevel, error) {
 	if f.scoringEngine == nil {
 		return nil, fmt.Errorf("scoring engine not available")
 	}
 
-	// Use dedicated simple goal scoring method (T016 fix)
-	// OLD APPROACH: Tried to fake simple goals as elastic goals, causing type validation errors
-	// NEW APPROACH: Each goal type uses its own appropriate scoring method
-	scoreResult, err := f.scoringEngine.ScoreSimpleGoal(&goal, value)
+	// Use dedicated simple habit scoring method (T016 fix)
+	// OLD APPROACH: Tried to fake simple habits as elastic habits, causing type validation errors
+	// NEW APPROACH: Each habit type uses its own appropriate scoring method
+	scoreResult, err := f.scoringEngine.ScoreSimpleHabit(&habit, value)
 	if err != nil {
 		return nil, fmt.Errorf("scoring failed: %w", err)
 	}
@@ -35,9 +35,9 @@ func (f *SimpleGoalCollectionFlow) performAutomaticScoring(goal models.Goal, val
 	return &scoreResult.AchievementLevel, nil
 }
 
-func (f *SimpleGoalCollectionFlow) determineManualAchievement(goal models.Goal, value interface{}) *models.AchievementLevel {
-	// For manual simple goals, determine pass/fail based on field type
-	switch goal.FieldType.Type {
+func (f *SimpleHabitCollectionFlow) determineManualAchievement(habit models.Habit, value interface{}) *models.AchievementLevel {
+	// For manual simple habits, determine pass/fail based on field type
+	switch habit.FieldType.Type {
 	case models.BooleanFieldType:
 		if boolVal, ok := value.(bool); ok {
 			if boolVal {
@@ -67,14 +67,14 @@ func (f *SimpleGoalCollectionFlow) determineManualAchievement(goal models.Goal, 
 	return &level
 }
 
-func (f *SimpleGoalCollectionFlow) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {
+func (f *SimpleHabitCollectionFlow) collectOptionalNotes(_ models.Habit, _ interface{}, existing *ExistingEntry) (string, error) {
 	return collectStandardOptionalNotes(existing)
 }
 
-// Elastic Goal Flow Implementations
+// Elastic Habit Flow Implementations
 
-func (f *ElasticGoalCollectionFlow) displayCriteriaInformation(goal models.Goal) {
-	if !goal.RequiresAutomaticScoring() {
+func (f *ElasticHabitCollectionFlow) displayCriteriaInformation(habit models.Habit) {
+	if !habit.RequiresAutomaticScoring() {
 		return
 	}
 
@@ -84,18 +84,18 @@ func (f *ElasticGoalCollectionFlow) displayCriteriaInformation(goal models.Goal)
 		Margin(1, 0)
 
 	var parts []string
-	if goal.MiniCriteria != nil {
-		if value := extractCriteriaDisplayValue(goal.MiniCriteria); value != "" {
+	if habit.MiniCriteria != nil {
+		if value := extractCriteriaDisplayValue(habit.MiniCriteria); value != "" {
 			parts = append(parts, fmt.Sprintf("Mini: %s", value))
 		}
 	}
-	if goal.MidiCriteria != nil {
-		if value := extractCriteriaDisplayValue(goal.MidiCriteria); value != "" {
+	if habit.MidiCriteria != nil {
+		if value := extractCriteriaDisplayValue(habit.MidiCriteria); value != "" {
 			parts = append(parts, fmt.Sprintf("Midi: %s", value))
 		}
 	}
-	if goal.MaxiCriteria != nil {
-		if value := extractCriteriaDisplayValue(goal.MaxiCriteria); value != "" {
+	if habit.MaxiCriteria != nil {
+		if value := extractCriteriaDisplayValue(habit.MaxiCriteria); value != "" {
 			parts = append(parts, fmt.Sprintf("Maxi: %s", value))
 		}
 	}
@@ -106,13 +106,13 @@ func (f *ElasticGoalCollectionFlow) displayCriteriaInformation(goal models.Goal)
 	}
 }
 
-func (f *ElasticGoalCollectionFlow) performElasticScoring(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
+func (f *ElasticHabitCollectionFlow) performElasticScoring(habit models.Habit, value interface{}) (*models.AchievementLevel, error) {
 	if f.scoringEngine == nil {
 		return nil, fmt.Errorf("scoring engine not available")
 	}
 
-	// Use existing scoring engine for elastic goals with three-tier criteria
-	scoreResult, err := f.scoringEngine.ScoreElasticGoal(&goal, value)
+	// Use existing scoring engine for elastic habits with three-tier criteria
+	scoreResult, err := f.scoringEngine.ScoreElasticHabit(&habit, value)
 	if err != nil {
 		return nil, fmt.Errorf("elastic scoring failed: %w", err)
 	}
@@ -120,13 +120,13 @@ func (f *ElasticGoalCollectionFlow) performElasticScoring(goal models.Goal, valu
 	return &scoreResult.AchievementLevel, nil
 }
 
-func (f *ElasticGoalCollectionFlow) collectManualAchievementLevel(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
+func (f *ElasticHabitCollectionFlow) collectManualAchievementLevel(habit models.Habit, value interface{}) (*models.AchievementLevel, error) {
 	level := models.AchievementNone
 
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[models.AchievementLevel]().
-				Title(fmt.Sprintf("Select achievement level for %s (value: %v):", goal.Title, value)).
+				Title(fmt.Sprintf("Select achievement level for %s (value: %v):", habit.Title, value)).
 				Description("Choose the achievement level that best represents your performance").
 				Options(
 					huh.NewOption("None - No achievement", models.AchievementNone),
@@ -145,7 +145,7 @@ func (f *ElasticGoalCollectionFlow) collectManualAchievementLevel(goal models.Go
 	return &level, nil
 }
 
-func (f *ElasticGoalCollectionFlow) displayAchievementResult(goal models.Goal, _ interface{}, level *models.AchievementLevel) {
+func (f *ElasticHabitCollectionFlow) displayAchievementResult(habit models.Habit, _ interface{}, level *models.AchievementLevel) {
 	if level == nil {
 		return
 	}
@@ -179,7 +179,7 @@ func (f *ElasticGoalCollectionFlow) displayAchievementResult(goal models.Goal, _
 		message = "Entry recorded"
 	}
 
-	achievementMsg := fmt.Sprintf("%s %s Achievement: %s", emoji, goal.Title, levelName)
+	achievementMsg := fmt.Sprintf("%s %s Achievement: %s", emoji, habit.Title, levelName)
 
 	fmt.Println()
 	fmt.Println(style.Render(achievementMsg))
@@ -187,32 +187,32 @@ func (f *ElasticGoalCollectionFlow) displayAchievementResult(goal models.Goal, _
 	fmt.Println()
 }
 
-func (f *ElasticGoalCollectionFlow) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {
+func (f *ElasticHabitCollectionFlow) collectOptionalNotes(_ models.Habit, _ interface{}, existing *ExistingEntry) (string, error) {
 	return collectStandardOptionalNotes(existing)
 }
 
-// Informational Goal Flow Implementations
+// Informational Habit Flow Implementations
 
-func (f *InformationalGoalCollectionFlow) displayInformationalContext(_ models.Goal) {
+func (f *InformationalHabitCollectionFlow) displayInformationalContext(_ models.Habit) {
 	infoStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("14")). // Bright cyan
 		Faint(true).
 		Margin(1, 0)
 
-	contextMsg := "ℹ️  This is an informational goal - for tracking data only (no scoring)"
+	contextMsg := "ℹ️  This is an informational habit - for tracking data only (no scoring)"
 	fmt.Println(infoStyle.Render(contextMsg))
 }
 
-// AIDEV-NOTE: direction-aware-feedback; displays value with directional context for informational goals
+// AIDEV-NOTE: direction-aware-feedback; displays value with directional context for informational habits
 // Supports higher_better (green 📈), lower_better (blue 📉), neutral (gray 📊) with contextual hints
-func (f *InformationalGoalCollectionFlow) displayDirectionFeedback(goal models.Goal, value interface{}) {
-	// Display direction-aware feedback based on goal.Direction configuration
+func (f *InformationalHabitCollectionFlow) displayDirectionFeedback(habit models.Habit, value interface{}) {
+	// Display direction-aware feedback based on habit.Direction configuration
 	var style lipgloss.Style
 	var emoji string
 	var directionHint string
 
 	// Direction-specific styling and feedback
-	switch strings.ToLower(goal.Direction) {
+	switch strings.ToLower(habit.Direction) {
 	case "higher_better":
 		style = lipgloss.NewStyle().Foreground(lipgloss.Color("10")) // Bright green
 		emoji = "📈"
@@ -237,13 +237,13 @@ func (f *InformationalGoalCollectionFlow) displayDirectionFeedback(goal models.G
 	fmt.Println(style.Render(feedback))
 }
 
-func (f *InformationalGoalCollectionFlow) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {
+func (f *InformationalHabitCollectionFlow) collectOptionalNotes(_ models.Habit, _ interface{}, existing *ExistingEntry) (string, error) {
 	return collectStandardOptionalNotes(existing)
 }
 
-// Checklist Goal Flow Implementations
+// Checklist Habit Flow Implementations
 
-func (f *ChecklistGoalCollectionFlow) displayChecklistContext(goal models.Goal, existing *ExistingEntry) {
+func (f *ChecklistHabitCollectionFlow) displayChecklistContext(habit models.Habit, existing *ExistingEntry) {
 	contextStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("13")). // Bright magenta
 		Faint(true).
@@ -253,7 +253,7 @@ func (f *ChecklistGoalCollectionFlow) displayChecklistContext(goal models.Goal, 
 	if existing != nil && existing.Value != nil {
 		if items, ok := existing.Value.([]string); ok {
 			// Load actual checklist data to get total item count
-			checklist, err := f.loadChecklistData(goal)
+			checklist, err := f.loadChecklistData(habit)
 			if err != nil {
 				// Fallback to item count if checklist loading fails
 				total := 3 // Default fallback
@@ -272,19 +272,19 @@ func (f *ChecklistGoalCollectionFlow) displayChecklistContext(goal models.Goal, 
 	fmt.Println(contextStyle.Render(contextMsg))
 }
 
-func (f *ChecklistGoalCollectionFlow) performChecklistScoring(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
+func (f *ChecklistHabitCollectionFlow) performChecklistScoring(habit models.Habit, value interface{}) (*models.AchievementLevel, error) {
 	if f.scoringEngine == nil {
 		return nil, fmt.Errorf("scoring engine not available")
 	}
 
-	// For checklist goals, validate selected items and perform criteria-based scoring
+	// For checklist habits, validate selected items and perform criteria-based scoring
 	selectedItems, ok := value.([]string)
 	if !ok {
 		return nil, fmt.Errorf("invalid checklist value type: %T", value)
 	}
 
 	// Load actual checklist data to get total item count
-	checklist, err := f.loadChecklistData(goal)
+	checklist, err := f.loadChecklistData(habit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load checklist data for scoring: %w", err)
 	}
@@ -299,9 +299,9 @@ func (f *ChecklistGoalCollectionFlow) performChecklistScoring(goal models.Goal, 
 	}
 
 	// For automatic scoring, use criteria-based evaluation
-	if goal.Criteria != nil && goal.Criteria.Condition != nil && goal.Criteria.Condition.ChecklistCompletion != nil {
+	if habit.Criteria != nil && habit.Criteria.Condition != nil && habit.Criteria.Condition.ChecklistCompletion != nil {
 		// Criteria-based scoring using ChecklistCompletionCondition
-		condition := goal.Criteria.Condition.ChecklistCompletion
+		condition := habit.Criteria.Condition.ChecklistCompletion
 
 		// Currently only "all" criteria is supported
 		if condition.RequiredItems == "all" {
@@ -333,8 +333,8 @@ func (f *ChecklistGoalCollectionFlow) performChecklistScoring(goal models.Goal, 
 	return &level, nil
 }
 
-func (f *ChecklistGoalCollectionFlow) collectManualAchievementLevel(goal models.Goal, value interface{}) (*models.AchievementLevel, error) {
-	// Similar to elastic goals but with checklist-specific context
+func (f *ChecklistHabitCollectionFlow) collectManualAchievementLevel(habit models.Habit, value interface{}) (*models.AchievementLevel, error) {
+	// Similar to elastic habits but with checklist-specific context
 	level := models.AchievementNone
 
 	// Calculate completion percentage for context
@@ -343,7 +343,7 @@ func (f *ChecklistGoalCollectionFlow) collectManualAchievementLevel(goal models.
 		completed := len(items)
 
 		// Load actual checklist data to get total item count
-		checklist, err := f.loadChecklistData(goal)
+		checklist, err := f.loadChecklistData(habit)
 		if err != nil {
 			// Better error handling - show error context to user
 			completionInfo = fmt.Sprintf("(%d items selected, checklist data unavailable: %s)", completed, err.Error())
@@ -361,7 +361,7 @@ func (f *ChecklistGoalCollectionFlow) collectManualAchievementLevel(goal models.
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[models.AchievementLevel]().
-				Title(fmt.Sprintf("Select achievement level for %s %s:", goal.Title, completionInfo)).
+				Title(fmt.Sprintf("Select achievement level for %s %s:", habit.Title, completionInfo)).
 				Description("Choose the achievement level based on your checklist completion").
 				Options(
 					huh.NewOption("None - Minimal completion", models.AchievementNone),
@@ -380,12 +380,12 @@ func (f *ChecklistGoalCollectionFlow) collectManualAchievementLevel(goal models.
 	return &level, nil
 }
 
-func (f *ChecklistGoalCollectionFlow) displayCompletionProgress(goal models.Goal, value interface{}, level *models.AchievementLevel) {
+func (f *ChecklistHabitCollectionFlow) displayCompletionProgress(habit models.Habit, value interface{}, level *models.AchievementLevel) {
 	if items, ok := value.([]string); ok {
 		completed := len(items)
 
 		// Load actual checklist data to get total item count
-		checklist, err := f.loadChecklistData(goal)
+		checklist, err := f.loadChecklistData(habit)
 		var total int
 		if err != nil {
 			// Fallback to item count if checklist loading fails
@@ -421,7 +421,7 @@ func (f *ChecklistGoalCollectionFlow) displayCompletionProgress(goal models.Goal
 	}
 }
 
-func (f *ChecklistGoalCollectionFlow) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {
+func (f *ChecklistHabitCollectionFlow) collectOptionalNotes(_ models.Habit, _ interface{}, existing *ExistingEntry) (string, error) {
 	return collectStandardOptionalNotes(existing)
 }
 

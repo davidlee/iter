@@ -14,23 +14,23 @@ import (
 
 // TestEntryFormModal_Creation tests entry form modal creation.
 func TestEntryFormModal_Creation(t *testing.T) {
-	goal := models.Goal{
+	habit := models.Habit{
 		ID:        "test_goal",
-		Title:     "Test Goal",
-		GoalType:  models.SimpleGoal,
+		Title:     "Test Habit",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
 	}
 
 	collector := ui.NewEntryCollector("testdata/checklists")
 	factory := entry.NewEntryFieldInputFactory()
 
-	modal, err := NewEntryFormModal(goal, collector, factory)
+	modal, err := NewEntryFormModal(habit, collector, factory)
 	if err != nil {
 		t.Fatalf("Failed to create entry form modal: %v", err)
 	}
 
-	if modal.goal.ID != goal.ID {
-		t.Errorf("Expected goal ID %s, got %s", goal.ID, modal.goal.ID)
+	if modal.habit.ID != habit.ID {
+		t.Errorf("Expected habit ID %s, got %s", habit.ID, modal.habit.ID)
 	}
 
 	if modal.collector != collector {
@@ -48,10 +48,10 @@ func TestEntryFormModal_Creation(t *testing.T) {
 
 // TestEntryFormModal_InitializationWithExistingEntry tests modal creation with existing entry.
 func TestEntryFormModal_InitializationWithExistingEntry(t *testing.T) {
-	goal := models.Goal{
+	habit := models.Habit{
 		ID:        "existing_goal",
-		Title:     "Existing Goal",
-		GoalType:  models.SimpleGoal,
+		Title:     "Existing Habit",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
 	}
 
@@ -59,11 +59,11 @@ func TestEntryFormModal_InitializationWithExistingEntry(t *testing.T) {
 
 	// Set up existing entry in collector
 	achievement := models.AchievementMini
-	collector.SetEntryForTesting(goal.ID, true, &achievement, "test notes")
+	collector.SetEntryForTesting(habit.ID, true, &achievement, "test notes")
 
 	factory := entry.NewEntryFieldInputFactory()
 
-	modal, err := NewEntryFormModal(goal, collector, factory)
+	modal, err := NewEntryFormModal(habit, collector, factory)
 	if err != nil {
 		t.Fatalf("Failed to create entry form modal: %v", err)
 	}
@@ -77,17 +77,17 @@ func TestEntryFormModal_InitializationWithExistingEntry(t *testing.T) {
 
 // TestEntryFormModal_Init tests modal initialization.
 func TestEntryFormModal_Init(t *testing.T) {
-	goal := models.Goal{
+	habit := models.Habit{
 		ID:        "test_goal",
-		Title:     "Test Goal",
-		GoalType:  models.SimpleGoal,
+		Title:     "Test Habit",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
 	}
 
 	collector := ui.NewEntryCollector("testdata/checklists")
 	factory := entry.NewEntryFieldInputFactory()
 
-	modal, err := NewEntryFormModal(goal, collector, factory)
+	modal, err := NewEntryFormModal(habit, collector, factory)
 	if err != nil {
 		t.Fatalf("Failed to create entry form modal: %v", err)
 	}
@@ -110,17 +110,17 @@ func TestEntryFormModal_Init(t *testing.T) {
 
 // TestEntryFormModal_HandleKey tests keyboard handling.
 func TestEntryFormModal_HandleKey(t *testing.T) {
-	goal := models.Goal{
+	habit := models.Habit{
 		ID:        "test_goal",
-		Title:     "Test Goal",
-		GoalType:  models.SimpleGoal,
+		Title:     "Test Habit",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
 	}
 
 	collector := ui.NewEntryCollector("testdata/checklists")
 	factory := entry.NewEntryFieldInputFactory()
 
-	modal, err := NewEntryFormModal(goal, collector, factory)
+	modal, err := NewEntryFormModal(habit, collector, factory)
 	if err != nil {
 		t.Fatalf("Failed to create entry form modal: %v", err)
 	}
@@ -142,17 +142,17 @@ func TestEntryFormModal_HandleKey(t *testing.T) {
 
 // TestEntryFormModal_Update tests message handling.
 func TestEntryFormModal_Update(t *testing.T) {
-	goal := models.Goal{
+	habit := models.Habit{
 		ID:        "test_goal",
-		Title:     "Test Goal",
-		GoalType:  models.SimpleGoal,
+		Title:     "Test Habit",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
 	}
 
 	collector := ui.NewEntryCollector("testdata/checklists")
 	factory := entry.NewEntryFieldInputFactory()
 
-	modal, err := NewEntryFormModal(goal, collector, factory)
+	modal, err := NewEntryFormModal(habit, collector, factory)
 	if err != nil {
 		t.Fatalf("Failed to create entry form modal: %v", err)
 	}
@@ -179,17 +179,17 @@ func TestEntryFormModal_Update(t *testing.T) {
 
 // TestEntryFormModal_View tests view rendering.
 func TestEntryFormModal_View(t *testing.T) {
-	goal := models.Goal{
+	habit := models.Habit{
 		ID:        "test_goal",
-		Title:     "Test Goal",
-		GoalType:  models.SimpleGoal,
+		Title:     "Test Habit",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
 	}
 
 	collector := ui.NewEntryCollector("testdata/checklists")
 	factory := entry.NewEntryFieldInputFactory()
 
-	modal, err := NewEntryFormModal(goal, collector, factory)
+	modal, err := NewEntryFormModal(habit, collector, factory)
 	if err != nil {
 		t.Fatalf("Failed to create entry form modal: %v", err)
 	}
@@ -203,7 +203,7 @@ func TestEntryFormModal_View(t *testing.T) {
 		t.Error("Expected non-empty view")
 	}
 
-	// Should contain goal title
+	// Should contain habit title
 	if len(view) < 10 {
 		t.Error("Expected substantial view content")
 	}
@@ -211,17 +211,17 @@ func TestEntryFormModal_View(t *testing.T) {
 
 // TestEntryFormModal_ErrorView tests error rendering.
 func TestEntryFormModal_ErrorView(t *testing.T) {
-	goal := models.Goal{
+	habit := models.Habit{
 		ID:        "test_goal",
-		Title:     "Test Goal",
-		GoalType:  models.SimpleGoal,
+		Title:     "Test Habit",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
 	}
 
 	collector := ui.NewEntryCollector("testdata/checklists")
 	factory := entry.NewEntryFieldInputFactory()
 
-	modal, err := NewEntryFormModal(goal, collector, factory)
+	modal, err := NewEntryFormModal(habit, collector, factory)
 	if err != nil {
 		t.Fatalf("Failed to create entry form modal: %v", err)
 	}
@@ -245,17 +245,17 @@ func TestEntryFormModal_ErrorView(t *testing.T) {
 
 // TestEntryFormModal_GetEntryResult tests result retrieval.
 func TestEntryFormModal_GetEntryResult(t *testing.T) {
-	goal := models.Goal{
+	habit := models.Habit{
 		ID:        "test_goal",
-		Title:     "Test Goal",
-		GoalType:  models.SimpleGoal,
+		Title:     "Test Habit",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
 	}
 
 	collector := ui.NewEntryCollector("testdata/checklists")
 	factory := entry.NewEntryFieldInputFactory()
 
-	modal, err := NewEntryFormModal(goal, collector, factory)
+	modal, err := NewEntryFormModal(habit, collector, factory)
 	if err != nil {
 		t.Fatalf("Failed to create entry form modal: %v", err)
 	}
@@ -283,17 +283,17 @@ func TestEntryFormModal_GetEntryResult(t *testing.T) {
 
 // TestEntryFormModal_ProcessEntry tests entry processing.
 func TestEntryFormModal_ProcessEntry(t *testing.T) {
-	goal := models.Goal{
+	habit := models.Habit{
 		ID:        "test_goal",
-		Title:     "Test Goal",
-		GoalType:  models.SimpleGoal,
+		Title:     "Test Habit",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
 	}
 
 	collector := ui.NewEntryCollector("testdata/checklists")
 	factory := entry.NewEntryFieldInputFactory()
 
-	modal, err := NewEntryFormModal(goal, collector, factory)
+	modal, err := NewEntryFormModal(habit, collector, factory)
 	if err != nil {
 		t.Fatalf("Failed to create entry form modal: %v", err)
 	}
@@ -322,17 +322,17 @@ func TestEntryFormModal_ProcessEntry(t *testing.T) {
 
 // TestEntryFormModal_FormAborted tests handling of form abortion.
 func TestEntryFormModal_FormAborted(t *testing.T) {
-	goal := models.Goal{
+	habit := models.Habit{
 		ID:        "test_goal",
-		Title:     "Test Goal",
-		GoalType:  models.SimpleGoal,
+		Title:     "Test Habit",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
 	}
 
 	collector := ui.NewEntryCollector("testdata/checklists")
 	factory := entry.NewEntryFieldInputFactory()
 
-	modal, err := NewEntryFormModal(goal, collector, factory)
+	modal, err := NewEntryFormModal(habit, collector, factory)
 	if err != nil {
 		t.Fatalf("Failed to create entry form modal: %v", err)
 	}

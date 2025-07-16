@@ -146,7 +146,7 @@ func ValidateChecklistID(id string) error {
 		return fmt.Errorf("checklist ID is required")
 	}
 
-	// Use the same validation as goal IDs
+	// Use the same validation as habit IDs
 	trimmed := strings.TrimSpace(id)
 	for _, char := range trimmed {
 		if (char < 'a' || char > 'z') && (char < '0' || char > '9') && char != '_' {
@@ -158,8 +158,8 @@ func ValidateChecklistID(id string) error {
 }
 
 // generateChecklistIDFromTitle creates a valid ID from a checklist title.
-// Uses the same logic as goal ID generation for consistency.
-// AIDEV-NOTE: id-consistency; mirrors internal/models/goal.go:generateIDFromTitle
+// Uses the same logic as habit ID generation for consistency.
+// AIDEV-NOTE: id-consistency; mirrors internal/models/habit.go:generateIDFromTitle
 func generateChecklistIDFromTitle(title string) string {
 	// Convert to lowercase
 	id := strings.ToLower(title)

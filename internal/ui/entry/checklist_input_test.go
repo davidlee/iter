@@ -11,7 +11,7 @@ import (
 
 func TestChecklistEntryInput(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title:  "Daily Tasks",
 			Prompt: "Which tasks did you complete today?",
 		},
@@ -43,8 +43,8 @@ func TestChecklistEntryInput(t *testing.T) {
 
 func TestChecklistEntryInputWithoutChecklistID(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
-			Title: "Test Checklist Goal",
+		Habit: models.Habit{
+			Title: "Test Checklist Habit",
 		},
 		FieldType: models.FieldType{
 			Type: models.ChecklistFieldType,
@@ -71,7 +71,7 @@ func TestChecklistEntryInputWithoutChecklistID(t *testing.T) {
 
 func TestChecklistEntryInputSelection(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title: "Test Selection",
 		},
 		FieldType: models.FieldType{
@@ -109,7 +109,7 @@ func TestChecklistEntryInputSelection(t *testing.T) {
 
 func TestChecklistEntryInputValidation(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title: "Validation Test",
 		},
 		FieldType: models.FieldType{
@@ -144,7 +144,7 @@ func TestChecklistEntryInputValidation(t *testing.T) {
 func TestChecklistEntryInputExistingValue(t *testing.T) {
 	existingSelection := []string{"Item 2", "Item 3"}
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title: "Existing Value Test",
 		},
 		FieldType: models.FieldType{
@@ -173,7 +173,7 @@ func TestChecklistEntryInputExistingValue(t *testing.T) {
 
 func TestChecklistEntryInputScoringAwareness(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title:       "Scoring Test",
 			ScoringType: models.AutomaticScoring,
 		},
@@ -186,7 +186,7 @@ func TestChecklistEntryInputScoringAwareness(t *testing.T) {
 	input := NewChecklistEntryInput(config)
 
 	if !input.CanShowScoring() {
-		t.Errorf("CanShowScoring() expected true for automatic scoring goal")
+		t.Errorf("CanShowScoring() expected true for automatic scoring habit")
 	}
 
 	// Test scoring display update
@@ -198,7 +198,7 @@ func TestChecklistEntryInputScoringAwareness(t *testing.T) {
 
 func TestChecklistEntryInputProgress(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title: "Progress Test",
 		},
 		FieldType: models.FieldType{
@@ -235,7 +235,7 @@ func TestChecklistEntryInputProgress(t *testing.T) {
 
 func TestChecklistEntryInputInvalidValueType(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title: "Invalid Type Test",
 		},
 		FieldType: models.FieldType{
@@ -260,7 +260,7 @@ func TestChecklistEntryInputInvalidValueType(t *testing.T) {
 func TestChecklistEntryInputCustomChecklistsPath(t *testing.T) {
 	customPath := "/custom/path/checklists.yml"
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title: "Custom Path Test",
 		},
 		FieldType: models.FieldType{
@@ -283,7 +283,7 @@ func TestFactoryChecklistCreation(t *testing.T) {
 	factory := NewEntryFieldInputFactory()
 
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title: "Factory Test",
 		},
 		FieldType: models.FieldType{

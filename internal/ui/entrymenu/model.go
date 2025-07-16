@@ -1,5 +1,5 @@
 // Package entrymenu provides an interactive entry menu interface for habit tracking.
-// AIDEV-NOTE: entry-menu-package; combines goal browsing with direct entry collection
+// AIDEV-NOTE: entry-menu-package; combines habit browsing with direct entry collection
 package entrymenu
 
 import (
@@ -19,12 +19,12 @@ import (
 	"davidlee/vice/internal/ui/modal"
 )
 
-// EntryMenuItem represents a goal as a menu item for entry collection.
-// AIDEV-NOTE: entry-menu-item; extends GoalItem pattern with entry status tracking
+// EntryMenuItem represents a habit as a menu item for entry collection.
+// AIDEV-NOTE: entry-menu-item; extends HabitItem pattern with entry status tracking
 //
 //revive:disable-next-line:exported // descriptive name preferred over stuttering avoidance
 type EntryMenuItem struct {
-	Goal             models.Goal
+	Habit            models.Habit
 	EntryStatus      models.EntryStatus
 	HasEntry         bool
 	Value            interface{}
@@ -33,29 +33,29 @@ type EntryMenuItem struct {
 
 // FilterValue returns the value used for filtering this item.
 func (e EntryMenuItem) FilterValue() string {
-	return fmt.Sprintf("%s %s", e.Goal.Title, e.Goal.GoalType)
+	return fmt.Sprintf("%s %s", e.Habit.Title, e.Habit.HabitType)
 }
 
 // Title returns the primary display text with status indicator.
 func (e EntryMenuItem) Title() string {
-	emoji := e.getGoalStatusEmoji()
+	emoji := e.getHabitStatusEmoji()
 	statusColor := e.getStatusColor()
 
 	titleStyle := lipgloss.NewStyle().Foreground(statusColor)
-	return fmt.Sprintf("%s %s", emoji, titleStyle.Render(e.Goal.Title))
+	return fmt.Sprintf("%s %s", emoji, titleStyle.Render(e.Habit.Title))
 }
 
 // Description returns the secondary display text.
 func (e EntryMenuItem) Description() string {
-	if e.Goal.Description == "" {
+	if e.Habit.Description == "" {
 		return ""
 	}
-	return fmt.Sprintf("   %s", e.Goal.Description)
+	return fmt.Sprintf("   %s", e.Habit.Description)
 }
 
-// getGoalStatusEmoji returns the emoji representing the goal's entry status.
-// AIDEV-NOTE: status-emoji-design; T018 user-requested change from goal type to status emojis
-func (e EntryMenuItem) getGoalStatusEmoji() string {
+// getHabitStatusEmoji returns the emoji representing the habit's entry status.
+// AIDEV-NOTE: status-emoji-design; T018 user-requested change from habit type to status emojis
+func (e EntryMenuItem) getHabitStatusEmoji() string {
 	if !e.HasEntry {
 		return "☐" // incomplete - empty box
 	}
@@ -72,7 +72,7 @@ func (e EntryMenuItem) getGoalStatusEmoji() string {
 	}
 }
 
-// getStatusColor returns the color for the goal based on entry status.
+// getStatusColor returns the color for the habit based on entry status.
 func (e EntryMenuItem) getStatusColor() lipgloss.Color {
 	if !e.HasEntry {
 		return lipgloss.Color("250") // light grey - incomplete
@@ -107,11 +107,11 @@ type ReturnBehavior int
 // Return behaviors for post-entry navigation.
 const (
 	ReturnToMenu ReturnBehavior = iota
-	ReturnToNextGoal
+	ReturnToNextHabit
 )
 
 // EntryMenuKeyMap defines the keybindings for the entry menu interface.
-// AIDEV-NOTE: entry-menu-keybinding; extends GoalListKeyMap with entry-specific actions
+// AIDEV-NOTE: entry-menu-keybinding; extends HabitListKeyMap with entry-specific actions
 //
 //revive:disable-next-line:exported // descriptive name preferred over stuttering avoidance
 type EntryMenuKeyMap struct {
@@ -148,7 +148,7 @@ func DefaultEntryMenuKeyMap() EntryMenuKeyMap {
 		),
 		Select: key.NewBinding(
 			key.WithKeys("enter"),
-			key.WithHelp("enter", "enter goal"),
+			key.WithHelp("enter", "enter habit"),
 		),
 
 		// Smart navigation
@@ -188,13 +188,13 @@ func DefaultEntryMenuKeyMap() EntryMenuKeyMap {
 }
 
 // EntryMenuModel represents the state of the entry menu interface.
-// AIDEV-NOTE: entry-menu-model; adapts GoalListModel patterns for entry workflow
+// AIDEV-NOTE: entry-menu-model; adapts HabitListModel patterns for entry workflow
 //
 //revive:disable-next-line:exported // descriptive name preferred over stuttering avoidance
 type EntryMenuModel struct {
 	list           list.Model
-	goals          []models.Goal
-	entries        map[string]models.GoalEntry
+	habits         []models.Habit
+	entries        map[string]models.HabitEntry
 	keys           EntryMenuKeyMap
 	width          int
 	height         int
@@ -211,13 +211,13 @@ type EntryMenuModel struct {
 	fieldInputFactory *entry.EntryFieldInputFactory
 
 	// Navigation state
-	selectedGoalID string // ID of goal selected for entry
-	shouldQuit     bool   // Flag to quit the menu
+	selectedHabitID string // ID of habit selected for entry
+	shouldQuit      bool   // Flag to quit the menu
 }
 
-// NewEntryMenuModel creates a new entry menu model with the provided goals and entries.
-func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry, collector *ui.EntryCollector, entriesFile string) *EntryMenuModel {
-	items := createMenuItems(goals, entries)
+// NewEntryMenuModel creates a new entry menu model with the provided habits and entries.
+func NewEntryMenuModel(habits []models.Habit, entries map[string]models.HabitEntry, collector *ui.EntryCollector, entriesFile string) *EntryMenuModel {
+	items := createMenuItems(habits, entries)
 
 	// Create list with default delegate
 	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
@@ -239,7 +239,7 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 
 	return &EntryMenuModel{
 		list:           l,
-		goals:          goals,
+		habits:         habits,
 		entries:        entries,
 		keys:           keyMap,
 		filterState:    FilterNone,
@@ -255,8 +255,8 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 }
 
 // NewEntryMenuModelForTesting creates a headless entry menu model for testing.
-func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.GoalEntry) *EntryMenuModel {
-	items := createMenuItems(goals, entries)
+func NewEntryMenuModelForTesting(habits []models.Habit, entries map[string]models.HabitEntry) *EntryMenuModel {
+	items := createMenuItems(habits, entries)
 
 	// Create minimal list for testing
 	l := list.New(items, list.NewDefaultDelegate(), 80, 24)
@@ -264,7 +264,7 @@ func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.
 
 	return &EntryMenuModel{
 		list:           l,
-		goals:          goals,
+		habits:         habits,
 		entries:        entries,
 		keys:           DefaultEntryMenuKeyMap(),
 		filterState:    FilterNone,
@@ -277,14 +277,14 @@ func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.
 	}
 }
 
-// createMenuItems converts goals and entries into menu items.
+// createMenuItems converts habits and entries into menu items.
 // AIDEV-NOTE: T024-bug1-analysis; status display logic - check entry status mapping
-func createMenuItems(goals []models.Goal, entries map[string]models.GoalEntry) []list.Item {
-	items := make([]list.Item, len(goals))
-	for i, goal := range goals {
-		entry, hasEntry := entries[goal.ID]
+func createMenuItems(habits []models.Habit, entries map[string]models.HabitEntry) []list.Item {
+	items := make([]list.Item, len(habits))
+	for i, habit := range habits {
+		entry, hasEntry := entries[habit.ID]
 		items[i] = EntryMenuItem{
-			Goal:             goal,
+			Habit:            habit,
 			EntryStatus:      entry.Status,
 			HasEntry:         hasEntry,
 			Value:            entry.Value,
@@ -317,14 +317,14 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case modal.ModalClosedMsg:
 		// AIDEV-NOTE: T024-bug-fix; modal closed with result, sync menu state and auto-save
 		// Handle modal result and update menu state
-		debug.EntryMenu("Modal closed for goal %s, result: %v", m.selectedGoalID, msg.Result != nil)
+		debug.EntryMenu("Modal closed for habit %s, result: %v", m.selectedHabitID, msg.Result != nil)
 		if result := msg.Result; result != nil {
 			if entryResult, ok := result.(*entry.EntryResult); ok {
-				debug.EntryMenu("Processing entry result for goal %s: value=%v, status=%v", m.selectedGoalID, entryResult.Value, entryResult.Status)
+				debug.EntryMenu("Processing entry result for habit %s: value=%v, status=%v", m.selectedHabitID, entryResult.Value, entryResult.Status)
 
 				// Store the entry result in the collector
 				if m.entryCollector != nil {
-					m.entryCollector.StoreEntryResult(m.selectedGoalID, entryResult)
+					m.entryCollector.StoreEntryResult(m.selectedHabitID, entryResult)
 				}
 
 				// Update menu state after entry storage
@@ -334,25 +334,25 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.entriesFile != "" && m.entryCollector != nil {
 					err := m.entryCollector.SaveEntriesToFile(m.entriesFile)
 					if err != nil {
-						debug.EntryMenu("Failed to save entries for goal %s: %v", m.selectedGoalID, err)
+						debug.EntryMenu("Failed to save entries for habit %s: %v", m.selectedHabitID, err)
 						// Log error but continue - could add error display later
 						_ = err // TODO: Consider adding save error handling UI
 					}
 				}
 
 				// Smart navigation based on return behavior preference
-				if m.returnBehavior == ReturnToNextGoal {
-					m.navEnhancer.SelectNextIncompleteGoal(m)
+				if m.returnBehavior == ReturnToNextHabit {
+					m.navEnhancer.SelectNextIncompleteHabit(m)
 				}
 			}
 		} else {
-			debug.EntryMenu("Modal closed for goal %s with no result (cancelled)", m.selectedGoalID)
+			debug.EntryMenu("Modal closed for habit %s with no result (cancelled)", m.selectedHabitID)
 		}
 		return m, nil
 
 	case DeferredStateSyncMsg:
 		// AIDEV-NOTE: T024-fix; Handle deferred state synchronization to prevent modal auto-closing
-		debug.EntryMenu("Received deferred state sync message for goal %s", msg.goalID)
+		debug.EntryMenu("Received deferred state sync message for habit %s", msg.goalID)
 		m.processDeferredStateSync(msg)
 		return m, nil
 
@@ -378,20 +378,20 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.shouldQuit = true
 			return m, tea.Quit
 		case key.Matches(msg, m.keys.Select):
-			if len(m.goals) > 0 {
+			if len(m.habits) > 0 {
 				selected := m.list.SelectedItem()
 				if item, ok := selected.(EntryMenuItem); ok {
-					m.selectedGoalID = item.Goal.ID
+					m.selectedHabitID = item.Habit.ID
 
 					// AIDEV-NOTE: T024-modal-integration; replaced form.Run() with modal system to eliminate looping
 					// Launch entry form modal instead of direct collector call
 					if m.entryCollector != nil {
-						debug.EntryMenu("Opening modal for goal %s (type: %s, field: %s)", item.Goal.ID, item.Goal.GoalType, item.Goal.FieldType.Type)
+						debug.EntryMenu("Opening modal for habit %s (type: %s, field: %s)", item.Habit.ID, item.Habit.HabitType, item.Habit.FieldType.Type)
 
 						// Create entry form modal
-						entryFormModal, err := modal.NewEntryFormModal(item.Goal, m.entryCollector, m.fieldInputFactory)
+						entryFormModal, err := modal.NewEntryFormModal(item.Habit, m.entryCollector, m.fieldInputFactory)
 						if err != nil {
-							debug.EntryMenu("Failed to create modal for goal %s: %v", item.Goal.ID, err)
+							debug.EntryMenu("Failed to create modal for habit %s: %v", item.Habit.ID, err)
 							// Log error but continue - could add error display later
 							_ = err // TODO: Consider adding error handling UI
 							return m, nil
@@ -399,7 +399,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 						// AIDEV-NOTE: T024-experiment; direct modal opening replacing ModalManager
 						// Open modal directly like prototype
-						debug.EntryMenu("Opening modal directly for goal %s (bypassing ModalManager)", item.Goal.ID)
+						debug.EntryMenu("Opening modal directly for habit %s (bypassing ModalManager)", item.Habit.ID)
 						m.directModal = entryFormModal
 						cmd := entryFormModal.Init()
 						return m, cmd
@@ -409,10 +409,10 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case key.Matches(msg, m.keys.NextIncomplete):
-			m.navEnhancer.SelectNextIncompleteGoal(m)
+			m.navEnhancer.SelectNextIncompleteHabit(m)
 			return m, nil
 		case key.Matches(msg, m.keys.PreviousIncomplete):
-			m.navEnhancer.SelectPreviousIncompleteGoal(m)
+			m.navEnhancer.SelectPreviousIncompleteHabit(m)
 			return m, nil
 		case key.Matches(msg, m.keys.ToggleReturnBehavior):
 			m.toggleReturnBehavior()
@@ -460,7 +460,7 @@ func (m *EntryMenuModel) View() string {
 		return "Loading..."
 	}
 
-	header := m.viewRenderer.RenderHeader(m.goals, m.entries, m.filterState)
+	header := m.viewRenderer.RenderHeader(m.habits, m.entries, m.filterState)
 	m.list.Title = "Entry Menu"
 
 	// Get list view with return behavior inserted before help
@@ -490,18 +490,18 @@ func (m *EntryMenuModel) syncStateAfterEntry() tea.Cmd {
 	if entryFormModal, ok := m.directModal.(*modal.EntryFormModal); ok {
 		result := entryFormModal.GetEntryResult()
 		if result != nil {
-			debug.EntryMenu("Deferring state sync for goal %s: value=%v, status=%v", m.selectedGoalID, result.Value, result.Status)
+			debug.EntryMenu("Deferring state sync for habit %s: value=%v, status=%v", m.selectedHabitID, result.Value, result.Status)
 
 			// Return command to defer state synchronization until next BubbleTea cycle
 			// This prevents timing conflicts between modal closure and state updates
 			return tea.Cmd(func() tea.Msg {
 				return DeferredStateSyncMsg{
-					goalID: m.selectedGoalID,
+					goalID: m.selectedHabitID,
 					result: result,
 				}
 			})
 		}
-		debug.EntryMenu("Modal closed for goal %s with no result (cancelled)", m.selectedGoalID)
+		debug.EntryMenu("Modal closed for habit %s with no result (cancelled)", m.selectedHabitID)
 	}
 
 	return nil
@@ -516,7 +516,7 @@ type DeferredStateSyncMsg struct {
 // processDeferredStateSync handles deferred state synchronization operations
 // AIDEV-NOTE: T024-fix; Separated from modal closure to prevent auto-closing timing conflicts
 func (m *EntryMenuModel) processDeferredStateSync(msg DeferredStateSyncMsg) {
-	debug.EntryMenu("Processing deferred state sync for goal %s: value=%v, status=%v", msg.goalID, msg.result.Value, msg.result.Status)
+	debug.EntryMenu("Processing deferred state sync for habit %s: value=%v, status=%v", msg.goalID, msg.result.Value, msg.result.Status)
 
 	// Store the entry result in the collector
 	if m.entryCollector != nil {
@@ -533,15 +533,15 @@ func (m *EntryMenuModel) processDeferredStateSync(msg DeferredStateSyncMsg) {
 		debug.EntryMenu("Executing Auto-Save - SaveEntriesToFile")
 		err := m.entryCollector.SaveEntriesToFile(m.entriesFile)
 		if err != nil {
-			debug.EntryMenu("Failed to save entries for goal %s: %v", msg.goalID, err)
+			debug.EntryMenu("Failed to save entries for habit %s: %v", msg.goalID, err)
 			_ = err // TODO: Consider adding save error handling UI
 		}
 	}
 
 	// Smart navigation based on return behavior preference
-	if m.returnBehavior == ReturnToNextGoal {
-		debug.EntryMenu("Executing Smart Navigation - SelectNextIncompleteGoal")
-		m.navEnhancer.SelectNextIncompleteGoal(m)
+	if m.returnBehavior == ReturnToNextHabit {
+		debug.EntryMenu("Executing Smart Navigation - SelectNextIncompleteHabit")
+		m.navEnhancer.SelectNextIncompleteHabit(m)
 	}
 }
 
@@ -583,8 +583,8 @@ func (m *EntryMenuModel) renderListWithFooter() string {
 	switch m.returnBehavior {
 	case ReturnToMenu:
 		returnText = "Return: menu"
-	case ReturnToNextGoal:
-		returnText = "Return: next goal"
+	case ReturnToNextHabit:
+		returnText = "Return: next habit"
 	default:
 		returnText = "Return: menu"
 	}
@@ -620,14 +620,14 @@ func (m *EntryMenuModel) ShouldQuit() bool {
 	return m.shouldQuit
 }
 
-// SelectedGoalID returns the ID of the selected goal for entry, or empty string if none.
-func (m *EntryMenuModel) SelectedGoalID() string {
-	return m.selectedGoalID
+// SelectedHabitID returns the ID of the selected habit for entry, or empty string if none.
+func (m *EntryMenuModel) SelectedHabitID() string {
+	return m.selectedHabitID
 }
 
-// ClearSelection clears the selected goal ID.
+// ClearSelection clears the selected habit ID.
 func (m *EntryMenuModel) ClearSelection() {
-	m.selectedGoalID = ""
+	m.selectedHabitID = ""
 }
 
 // GetReturnBehavior returns the current return behavior setting.
@@ -636,29 +636,29 @@ func (m *EntryMenuModel) GetReturnBehavior() ReturnBehavior {
 }
 
 // UpdateEntries updates the entries and refreshes the menu items.
-func (m *EntryMenuModel) UpdateEntries(entries map[string]models.GoalEntry) {
+func (m *EntryMenuModel) UpdateEntries(entries map[string]models.HabitEntry) {
 	m.entries = entries
-	items := createMenuItems(m.goals, entries)
+	items := createMenuItems(m.habits, entries)
 	m.list.SetItems(items)
 }
 
 // updateEntriesFromCollector updates the entries map with data from the EntryCollector.
 // AIDEV-NOTE: T018/3.1-state-sync; CRITICAL method for syncing collector state to menu after entry collection
 // AIDEV-NOTE: T024-bug1-analysis; potential source of incorrect completion status display
-// Handles type conversion from collector interface{} values to GoalEntry structs for menu display
+// Handles type conversion from collector interface{} values to HabitEntry structs for menu display
 // This is what makes the menu visual state update after user completes an entry
 func (m *EntryMenuModel) updateEntriesFromCollector() {
 	if m.entryCollector == nil {
 		return
 	}
 
-	// Update entries for all goals based on collector state
-	for _, goal := range m.goals {
-		value, notes, achievement, status, hasEntry := m.entryCollector.GetGoalEntry(goal.ID)
+	// Update entries for all habits based on collector state
+	for _, habit := range m.habits {
+		value, notes, achievement, status, hasEntry := m.entryCollector.GetHabitEntry(habit.ID)
 		if hasEntry {
-			// Convert to GoalEntry format
-			goalEntry := models.GoalEntry{
-				GoalID:           goal.ID,
+			// Convert to HabitEntry format
+			goalEntry := models.HabitEntry{
+				HabitID:          habit.ID,
 				Status:           status,
 				Notes:            notes,
 				AchievementLevel: achievement,
@@ -681,25 +681,25 @@ func (m *EntryMenuModel) updateEntriesFromCollector() {
 				goalEntry.Value = fmt.Sprintf("%v", v)
 			}
 
-			m.entries[goal.ID] = goalEntry
+			m.entries[habit.ID] = goalEntry
 		}
 	}
 
 	// Recreate menu items with updated entry data
-	items := createMenuItems(m.goals, m.entries)
+	items := createMenuItems(m.habits, m.entries)
 	m.list.SetItems(items)
 }
 
-// toggleReturnBehavior toggles between returning to menu and advancing to next goal.
+// toggleReturnBehavior toggles between returning to menu and advancing to next habit.
 func (m *EntryMenuModel) toggleReturnBehavior() {
 	if m.returnBehavior == ReturnToMenu {
-		m.returnBehavior = ReturnToNextGoal
+		m.returnBehavior = ReturnToNextHabit
 	} else {
 		m.returnBehavior = ReturnToMenu
 	}
 }
 
-// toggleSkippedFilter toggles filtering of skipped goals.
+// toggleSkippedFilter toggles filtering of skipped habits.
 func (m *EntryMenuModel) toggleSkippedFilter() {
 	switch m.filterState {
 	case FilterNone:
@@ -713,7 +713,7 @@ func (m *EntryMenuModel) toggleSkippedFilter() {
 	}
 }
 
-// togglePreviousFilter toggles filtering of previously entered goals.
+// togglePreviousFilter toggles filtering of previously entered habits.
 func (m *EntryMenuModel) togglePreviousFilter() {
 	switch m.filterState {
 	case FilterNone:

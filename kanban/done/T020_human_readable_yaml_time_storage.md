@@ -4,7 +4,7 @@
 **Status**: Complete  
 **Related tasks**: ["related:T019"]
 
-## 1. Goal
+## 1. Habit
 
 Convert YAML time storage to human-readable formats while maintaining permissive parsing for backward compatibility.
 
@@ -70,7 +70,7 @@ Verified implementation produces expected output:
 ```yaml
 entries:
   - date: "2025-07-15"
-    goals:
+    habits:
       - created_at: "2025-07-15 09:11:27"
         goal_id: wake_up
         notes: slept well

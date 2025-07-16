@@ -13,32 +13,32 @@ import (
 
 // FileInitializer handles creation of sample configuration files.
 type FileInitializer struct {
-	goalParser   *parser.GoalParser
+	goalParser   *parser.HabitParser
 	entryStorage *storage.EntryStorage
 }
 
 // NewFileInitializer creates a new file initializer instance.
 func NewFileInitializer() *FileInitializer {
 	return &FileInitializer{
-		goalParser:   parser.NewGoalParser(),
+		goalParser:   parser.NewHabitParser(),
 		entryStorage: storage.NewEntryStorage(),
 	}
 }
 
-// EnsureConfigFiles checks if goals.yml and entries.yml exist, creating samples if missing.
-func (fi *FileInitializer) EnsureConfigFiles(goalsFile, entriesFile string) error {
+// EnsureConfigFiles checks if habits.yml and entries.yml exist, creating samples if missing.
+func (fi *FileInitializer) EnsureConfigFiles(habitsFile, entriesFile string) error {
 	// Ensure config directory exists
-	configDir := filepath.Dir(goalsFile)
+	configDir := filepath.Dir(habitsFile)
 	if err := os.MkdirAll(configDir, 0o750); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	// Check and create goals.yml if missing
-	if !fileExists(goalsFile) {
-		if err := fi.createSampleGoalsFile(goalsFile); err != nil {
-			return fmt.Errorf("failed to create sample goals file: %w", err)
+	// Check and create habits.yml if missing
+	if !fileExists(habitsFile) {
+		if err := fi.createSampleHabitsFile(habitsFile); err != nil {
+			return fmt.Errorf("failed to create sample habits file: %w", err)
 		}
-		fmt.Printf("📝 Created sample goals file: %s\n", goalsFile)
+		fmt.Printf("📝 Created sample habits file: %s\n", habitsFile)
 	}
 
 	// Check and create entries.yml if missing
@@ -52,16 +52,16 @@ func (fi *FileInitializer) EnsureConfigFiles(goalsFile, entriesFile string) erro
 	return nil
 }
 
-// createSampleGoalsFile creates a goals.yml file with sample goals (simple and elastic).
-func (fi *FileInitializer) createSampleGoalsFile(goalsFile string) error {
+// createSampleHabitsFile creates a habits.yml file with sample habits (simple and elastic).
+func (fi *FileInitializer) createSampleHabitsFile(habitsFile string) error {
 	schema := &models.Schema{
 		Version: "1.0.0",
-		Goals: []models.Goal{
+		Habits: []models.Habit{
 			{
 				Title:       "Morning Exercise",
 				Position:    1,
 				Description: "Get your body moving with at least 10 minutes of exercise",
-				GoalType:    models.SimpleGoal,
+				HabitType:   models.SimpleHabit,
 				FieldType:   models.FieldType{Type: models.BooleanFieldType},
 				ScoringType: models.ManualScoring,
 				Prompt:      "Did you exercise this morning?",
@@ -71,7 +71,7 @@ func (fi *FileInitializer) createSampleGoalsFile(goalsFile string) error {
 				Title:       "Daily Reading",
 				Position:    2,
 				Description: "Read for at least 15 minutes to expand your knowledge",
-				GoalType:    models.SimpleGoal,
+				HabitType:   models.SimpleHabit,
 				FieldType:   models.FieldType{Type: models.BooleanFieldType},
 				ScoringType: models.ManualScoring,
 				Prompt:      "Did you read for at least 15 minutes today?",
@@ -81,7 +81,7 @@ func (fi *FileInitializer) createSampleGoalsFile(goalsFile string) error {
 				Title:       "Exercise Duration",
 				Position:    3,
 				Description: "Track your exercise time with mini/midi/maxi achievement levels",
-				GoalType:    models.ElasticGoal,
+				HabitType:   models.ElasticHabit,
 				FieldType:   models.FieldType{Type: models.DurationFieldType},
 				ScoringType: models.AutomaticScoring,
 				Prompt:      "How long did you exercise today?",
@@ -106,7 +106,7 @@ func (fi *FileInitializer) createSampleGoalsFile(goalsFile string) error {
 				Title:       "Water Intake",
 				Position:    4,
 				Description: "Track daily water consumption in glasses",
-				GoalType:    models.ElasticGoal,
+				HabitType:   models.ElasticHabit,
 				FieldType:   models.FieldType{Type: models.UnsignedIntFieldType, Unit: "glasses"},
 				ScoringType: models.AutomaticScoring,
 				Prompt:      "How many glasses of water did you drink?",
@@ -130,7 +130,7 @@ func (fi *FileInitializer) createSampleGoalsFile(goalsFile string) error {
 		},
 	}
 
-	return fi.goalParser.SaveToFile(schema, goalsFile)
+	return fi.goalParser.SaveToFile(schema, habitsFile)
 }
 
 // floatPtr returns a pointer to a float64 value.

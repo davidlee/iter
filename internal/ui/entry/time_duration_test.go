@@ -12,7 +12,7 @@ import (
 
 func TestTimeEntryInput(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title:  "Wake Up Time",
 			Prompt: "What time did you wake up?",
 		},
@@ -83,8 +83,8 @@ func TestTimeEntryInputExistingTime(t *testing.T) {
 	expectedStr := now.Format("15:04")
 
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
-			Title: "Test Time Goal",
+		Habit: models.Habit{
+			Title: "Test Time Habit",
 		},
 		FieldType: models.FieldType{
 			Type: models.TimeFieldType,
@@ -104,7 +104,7 @@ func TestTimeEntryInputExistingTime(t *testing.T) {
 
 func TestTimeEntryInputScoringAwareness(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title:       "Morning Routine",
 			ScoringType: models.AutomaticScoring,
 		},
@@ -117,7 +117,7 @@ func TestTimeEntryInputScoringAwareness(t *testing.T) {
 	input := NewTimeEntryInput(config)
 
 	if !input.CanShowScoring() {
-		t.Errorf("CanShowScoring() expected true for automatic scoring goal")
+		t.Errorf("CanShowScoring() expected true for automatic scoring habit")
 	}
 
 	// Test scoring display update
@@ -129,7 +129,7 @@ func TestTimeEntryInputScoringAwareness(t *testing.T) {
 
 func TestDurationEntryInput(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title:  "Exercise Duration",
 			Prompt: "How long did you exercise?",
 		},
@@ -202,8 +202,8 @@ func TestDurationEntryInputExistingDuration(t *testing.T) {
 	expectedStr := duration.String()
 
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
-			Title: "Test Duration Goal",
+		Habit: models.Habit{
+			Title: "Test Duration Habit",
 		},
 		FieldType: models.FieldType{
 			Type: models.DurationFieldType,
@@ -223,7 +223,7 @@ func TestDurationEntryInputExistingDuration(t *testing.T) {
 
 func TestDurationEntryInputScoringAwareness(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
+		Habit: models.Habit{
 			Title:       "Workout Duration",
 			ScoringType: models.AutomaticScoring,
 		},
@@ -236,7 +236,7 @@ func TestDurationEntryInputScoringAwareness(t *testing.T) {
 	input := NewDurationEntryInput(config)
 
 	if !input.CanShowScoring() {
-		t.Errorf("CanShowScoring() expected true for automatic scoring goal")
+		t.Errorf("CanShowScoring() expected true for automatic scoring habit")
 	}
 
 	// Test scoring display update
@@ -346,8 +346,8 @@ func TestFactoryTimeAndDurationCreation(t *testing.T) {
 
 	// Test Time field creation
 	timeConfig := EntryFieldInputConfig{
-		Goal: models.Goal{
-			Title: "Test Time Goal",
+		Habit: models.Habit{
+			Title: "Test Time Habit",
 		},
 		FieldType: models.FieldType{
 			Type: models.TimeFieldType,
@@ -365,8 +365,8 @@ func TestFactoryTimeAndDurationCreation(t *testing.T) {
 
 	// Test Duration field creation
 	durationConfig := EntryFieldInputConfig{
-		Goal: models.Goal{
-			Title: "Test Duration Goal",
+		Habit: models.Habit{
+			Title: "Test Duration Habit",
 		},
 		FieldType: models.FieldType{
 			Type: models.DurationFieldType,

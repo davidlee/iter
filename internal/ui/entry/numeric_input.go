@@ -29,7 +29,7 @@ const (
 type NumericEntryInput struct {
 	value         string
 	action        InputAction
-	goal          models.Goal
+	habit         models.Habit
 	fieldType     models.FieldType
 	existingEntry *ExistingEntry
 	showScoring   bool
@@ -40,7 +40,7 @@ type NumericEntryInput struct {
 // NewNumericEntryInput creates a new numeric entry input component
 func NewNumericEntryInput(config EntryFieldInputConfig) *NumericEntryInput {
 	input := &NumericEntryInput{
-		goal:          config.Goal,
+		habit:         config.Habit,
 		fieldType:     config.FieldType,
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
@@ -57,23 +57,23 @@ func NewNumericEntryInput(config EntryFieldInputConfig) *NumericEntryInput {
 }
 
 // CreateInputForm creates a numeric input form with unit display and validation
-func (ni *NumericEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
-	debug.Field("Creating huh.Form for numeric goal %s, current value: %v", goal.ID, ni.value)
+func (ni *NumericEntryInput) CreateInputForm(habit models.Habit) *huh.Form {
+	debug.Field("Creating huh.Form for numeric habit %s, current value: %v", habit.ID, ni.value)
 	// Prepare styling
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("12")). // Bright blue
 		Margin(1, 0)
 
-	title := titleStyle.Render(goal.Title)
+	title := titleStyle.Render(habit.Title)
 
 	// Prepare prompt with unit information
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
 		if ni.fieldType.Unit != "" && ni.fieldType.Unit != "times" {
-			prompt = fmt.Sprintf("Enter value for %s (in %s)", goal.Title, ni.fieldType.Unit)
+			prompt = fmt.Sprintf("Enter value for %s (in %s)", habit.Title, ni.fieldType.Unit)
 		} else {
-			prompt = fmt.Sprintf("Enter numeric value for: %s", goal.Title)
+			prompt = fmt.Sprintf("Enter numeric value for: %s", habit.Title)
 		}
 	}
 
@@ -87,7 +87,7 @@ func (ni *NumericEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	}
 
 	// Build comprehensive description
-	description := ni.buildDescription(goal)
+	description := ni.buildDescription(habit)
 
 	// Create the form with input and action selection
 	ni.form = huh.NewForm(
@@ -103,14 +103,14 @@ func (ni *NumericEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 				Title("Action").
 				Options(
 					huh.NewOption("✅ Submit Value", ActionSubmit),
-					huh.NewOption("⏭️ Skip Goal", ActionSkip),
+					huh.NewOption("⏭️ Skip Habit", ActionSkip),
 				).
 				Value(&ni.action),
 		).Title(title),
 	)
 
 	// Add help text if available
-	if goal.HelpText != "" {
+	if habit.HelpText != "" {
 		ni.form = ni.form.WithShowHelp(true)
 	}
 
@@ -176,7 +176,7 @@ func (ni *NumericEntryInput) GetValidationError() error {
 
 // CanShowScoring returns true for numeric inputs with automatic scoring
 func (ni *NumericEntryInput) CanShowScoring() bool {
-	return ni.showScoring && ni.goal.ScoringType == models.AutomaticScoring
+	return ni.showScoring && ni.habit.ScoringType == models.AutomaticScoring
 }
 
 // UpdateScoringDisplay updates the form to show scoring feedback
@@ -200,7 +200,7 @@ func (ni *NumericEntryInput) UpdateScoringDisplay(level *models.AchievementLevel
 		case models.AchievementMaxi:
 			feedback = "🥇 Maxi Achievement!"
 		case models.AchievementNone:
-			feedback = "❌ Goal Not Met"
+			feedback = "❌ Habit Not Met"
 		default:
 			feedback = fmt.Sprintf("Achievement: %v", *level)
 		}
@@ -214,15 +214,15 @@ func (ni *NumericEntryInput) UpdateScoringDisplay(level *models.AchievementLevel
 
 // Private methods
 
-func (ni *NumericEntryInput) buildDescription(goal models.Goal) string {
+func (ni *NumericEntryInput) buildDescription(habit models.Habit) string {
 	var descParts []string
 
-	// Add goal description if available
-	if goal.Description != "" {
+	// Add habit description if available
+	if habit.Description != "" {
 		descStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("8")). // Gray
 			Italic(true)
-		descParts = append(descParts, descStyle.Render(goal.Description))
+		descParts = append(descParts, descStyle.Render(habit.Description))
 	}
 
 	// Add numeric type description

@@ -13,7 +13,7 @@ const DefaultAppName = "vice"
 // AIDEV-NOTE: file-paths-central; all YAML file paths defined here for consistency
 type Paths struct {
 	ConfigDir            string
-	GoalsFile            string
+	HabitsFile           string
 	EntriesFile          string
 	ChecklistsFile       string
 	ChecklistEntriesFile string // AIDEV-NOTE: separates templates from daily instances
@@ -23,7 +23,7 @@ type Paths struct {
 // It follows the XDG Base Directory Specification:
 // - Uses XDG_CONFIG_HOME if set, otherwise defaults to ~/.config
 // - Creates application-specific subdirectory: vice/
-// - Returns paths for goals.yml and entries.yml files
+// - Returns paths for habits.yml and entries.yml files
 func GetDefaultPaths() (*Paths, error) {
 	configDir, err := getXDGConfigDir()
 	if err != nil {
@@ -34,7 +34,7 @@ func GetDefaultPaths() (*Paths, error) {
 
 	return &Paths{
 		ConfigDir:            appConfigDir,
-		GoalsFile:            filepath.Join(appConfigDir, "goals.yml"),
+		HabitsFile:           filepath.Join(appConfigDir, "habits.yml"),
 		EntriesFile:          filepath.Join(appConfigDir, "entries.yml"),
 		ChecklistsFile:       filepath.Join(appConfigDir, "checklists.yml"),
 		ChecklistEntriesFile: filepath.Join(appConfigDir, "checklist_entries.yml"),
@@ -46,7 +46,7 @@ func GetDefaultPaths() (*Paths, error) {
 func GetPathsWithConfigDir(configDir string) *Paths {
 	return &Paths{
 		ConfigDir:            configDir,
-		GoalsFile:            filepath.Join(configDir, "goals.yml"),
+		HabitsFile:           filepath.Join(configDir, "habits.yml"),
 		EntriesFile:          filepath.Join(configDir, "entries.yml"),
 		ChecklistsFile:       filepath.Join(configDir, "checklists.yml"),
 		ChecklistEntriesFile: filepath.Join(configDir, "checklist_entries.yml"),

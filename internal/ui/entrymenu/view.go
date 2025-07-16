@@ -48,8 +48,8 @@ func (v *ViewRenderer) RenderReturnBehavior(behavior ReturnBehavior) string {
 	switch behavior {
 	case ReturnToMenu:
 		behaviorText = "Return: menu"
-	case ReturnToNextGoal:
-		behaviorText = "Return: next goal"
+	case ReturnToNextHabit:
+		behaviorText = "Return: next habit"
 	default:
 		behaviorText = "Return: menu"
 	}
@@ -58,11 +58,11 @@ func (v *ViewRenderer) RenderReturnBehavior(behavior ReturnBehavior) string {
 }
 
 // RenderHeader renders the complete header section with progress and filters.
-func (v *ViewRenderer) RenderHeader(goals []models.Goal, entries map[string]models.GoalEntry, filterState FilterState) string {
+func (v *ViewRenderer) RenderHeader(habits []models.Habit, entries map[string]models.HabitEntry, filterState FilterState) string {
 	var headerParts []string
 
 	// Progress bar
-	progressSection := v.renderProgress(goals, entries)
+	progressSection := v.renderProgress(habits, entries)
 	if progressSection != "" {
 		headerParts = append(headerParts, progressSection)
 	}
@@ -80,12 +80,12 @@ func (v *ViewRenderer) RenderHeader(goals []models.Goal, entries map[string]mode
 }
 
 // renderProgress renders progress bar with statistics.
-func (v *ViewRenderer) renderProgress(goals []models.Goal, entries map[string]models.GoalEntry) string {
-	if len(goals) == 0 {
-		return progressStyle.Render("No goals configured")
+func (v *ViewRenderer) renderProgress(habits []models.Habit, entries map[string]models.HabitEntry) string {
+	if len(habits) == 0 {
+		return progressStyle.Render("No habits configured")
 	}
 
-	stats := v.calculateProgressStats(goals, entries)
+	stats := v.calculateProgressStats(habits, entries)
 	completedPct := float64(stats.Completed) / float64(stats.Total) * 100
 
 	// Create visual progress bar
@@ -155,14 +155,14 @@ type ProgressStats struct {
 	Remaining int
 }
 
-// calculateProgressStats computes progress statistics from goals and entries.
-func (v *ViewRenderer) calculateProgressStats(goals []models.Goal, entries map[string]models.GoalEntry) ProgressStats {
+// calculateProgressStats computes progress statistics from habits and entries.
+func (v *ViewRenderer) calculateProgressStats(habits []models.Habit, entries map[string]models.HabitEntry) ProgressStats {
 	stats := ProgressStats{
-		Total: len(goals),
+		Total: len(habits),
 	}
 
-	for _, goal := range goals {
-		if entry, hasEntry := entries[goal.ID]; hasEntry {
+	for _, habit := range habits {
+		if entry, hasEntry := entries[habit.ID]; hasEntry {
 			stats.Attempted++
 			switch entry.Status {
 			case models.EntryCompleted:

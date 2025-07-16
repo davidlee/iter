@@ -23,7 +23,7 @@ The project currently has basic linting via golangci-lint but lacks comprehensiv
 
 *No commits yet - task is in backlog*
 
-## 1. Goal / User Story
+## 1. Habit / User Story
 
 As a developer, I want comprehensive code quality analysis tools integrated into the development workflow so that I can identify architectural issues, complexity hotspots, and potential maintainability problems before they become technical debt.
 

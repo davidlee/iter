@@ -3,7 +3,7 @@ title: "Habit Skip Functionality"
 type: ["feature"] # feature | fix | documentation | testing | refactor | chore
 tags: ["entry", "ui", "data-model", "skip", "workflow"]
 related_tasks: ["depends:T010", "inspired-by:backlog-harsh-features"] # Requires complete entry system, inspired by Harsh skip functionality
-context_windows: ["internal/models/entry.go", "internal/models/goal.go", "internal/ui/entry/*.go", "internal/storage/*.go", "testdata/goals/*.yml"] # Entry data models, goal collection flows, storage
+context_windows: ["internal/models/entry.go", "internal/models/habit.go", "internal/ui/entry/*.go", "internal/storage/*.go", "testdata/habits/*.yml"] # Entry data models, habit collection flows, storage
 ---
 
 # Habit Skip Functionality
@@ -15,37 +15,37 @@ context_windows: ["internal/models/entry.go", "internal/models/goal.go", "intern
 - `63d9bdf` - docs(tasks)[T012]: add commit history and next steps for completed work
 - `5976cab` - docs(tasks)[T012/T007]: document phase 2.3 dependency analysis and integration blockers
 - `db22a13` - style(entry)[T012]: clean up formatting and code organization post-skip integration
-- `d145e43` - feat(entry)[T012/2.1]: implement boolean goal skip functionality with three-option selection
+- `d145e43` - feat(entry)[T012/2.1]: implement boolean habit skip functionality with three-option selection
 - `464f2b6` - feat(storage)[T012/1.2]: implement EntryStatus storage layer with backward compatibility
 - `61471c0` - feat(goalconfig)[T012/1.1]: implement EntryStatus enum and timestamp improvements for skip functionality
 - `8070a8c` - feat(tasks): create T012 habit skip functionality with EntryStatus enum design
 
 **Context (Background)**:
-- T010: Complete entry system with goal collection flows and scoring integration
+- T010: Complete entry system with habit collection flows and scoring integration
 - User feedback: Need ability to skip habits when circumstances prevent completion
 - Harsh inspiration: Skip functionality with visual tracking separate from failures
 - Real-world usage: Distinguish between "couldn't do" (skip) vs "chose not to do" (fail)
 
 **Context (Significant Code Files)**:
 - internal/models/entry.go - Entry data structures (DayEntry, GoalEntry)
-- internal/models/goal.go - Goal types and field types
-- internal/ui/entry/goal_collection_flows.go - Goal collection flow implementations
+- internal/models/habit.go - Habit types and field types
+- internal/ui/entry/goal_collection_flows.go - Habit collection flow implementations
 - internal/ui/entry/field_input_*.go - Field input components for different types
 - internal/storage/entry_storage.go - Entry persistence and loading
 
-## 1. Goal / User Story
+## 1. Habit / User Story
 
 As a user, I want to be able to **skip** habit entries when circumstances prevent completion, distinguishing skips from failures in both data collection and analytics, to maintain honest tracking without penalty for unavoidable situations.
 
 **Current State Assessment:**
 Based on T010's complete entry system:
 
-- ✅ **Complete Entry System**: All goal types with field-type aware data collection
-- ✅ **Goal Collection Flows**: Simple, Elastic, Informational, Checklist fully implemented
+- ✅ **Complete Entry System**: All habit types with field-type aware data collection
+- ✅ **Habit Collection Flows**: Simple, Elastic, Informational, Checklist fully implemented
 - ✅ **Field Input Components**: Boolean, Text, Numeric, Time, Duration, Checklist inputs
 - ✅ **Data Persistence**: EntryStorage with DayEntry and GoalEntry structures
 - ❌ **Skip State**: No concept of "skipped" vs "not completed" in data model
-- ❌ **Skip UI**: No skip option in any goal collection flows
+- ❌ **Skip UI**: No skip option in any habit collection flows
 - ❌ **Skip Analytics**: No differentiation between skip and failure in reporting
 
 **User Story:**
@@ -55,9 +55,9 @@ I want to skip habits when:
 - **Temporary Situations**: Without breaking streak psychology or polluting failure data
 
 **Expected Behavior:**
-- **Simple Goals**: "Yes / No / Skip" options instead of just "Yes / No"
-- **Numeric Goals**: Shortcut key "s" for skip during input
-- **All Goal Types**: Skip preserves existing notes but bypasses additional note prompts
+- **Simple Habits**: "Yes / No / Skip" options instead of just "Yes / No"
+- **Numeric Habits**: Shortcut key "s" for skip during input
+- **All Habit Types**: Skip preserves existing notes but bypasses additional note prompts
 - **Analytics Impact**: Skips tracked separately from failures, don't break streaks
 - **Visual Distinction**: Clear differentiation in completion summaries and reporting
 
@@ -91,9 +91,9 @@ CompletedAt *time.Time `yaml:"completed_at,omitempty"` // Misleading for failed/
 ```go
 type EntryStatus string
 const (
-    EntryCompleted EntryStatus = "completed"   // Goal successfully completed
-    EntrySkipped   EntryStatus = "skipped"     // Goal skipped due to circumstances  
-    EntryFailed    EntryStatus = "failed"      // Goal attempted but not achieved
+    EntryCompleted EntryStatus = "completed"   // Habit successfully completed
+    EntrySkipped   EntryStatus = "skipped"     // Habit skipped due to circumstances  
+    EntryFailed    EntryStatus = "failed"      // Habit attempted but not achieved
 )
 
 type GoalEntry struct {
@@ -213,31 +213,31 @@ func (ge *GoalEntry) GetLastModified() time.Time {
 
 ## 3. UI Design Decisions (RESOLVED)
 
-### Goal Type-Specific Skip Implementation
+### Habit Type-Specific Skip Implementation
 
-**Simple Goals (Boolean Field Type):**
+**Simple Habits (Boolean Field Type):**
 - Current: "Yes / No" confirmation dialog
 - **DECISION**: "Yes / No / Skip" three-option select with Skip as manual selection option
 
-**Numeric Goals (All Numeric Field Types):**
+**Numeric Habits (All Numeric Field Types):**
 - Current: Number input with validation
 - **DECISION**: "s" shortcut key available immediately during input
 - **Future Enhancement**: Add Skip/Submit buttons as alternative to shortcuts
 
-**Text Goals:**
+**Text Habits:**
 - Current: Text input with optional multiline
 - **DECISION**: "s" shortcut key during text entry (consistent pattern)
 
-**Time/Duration Goals:**
+**Time/Duration Habits:**
 - Current: Formatted input (HH:MM, duration parsing)
-- **DECISION**: "s" shortcut key during input (consistent with numeric goals)
+- **DECISION**: "s" shortcut key during input (consistent with numeric habits)
 
-**Checklist Goals:**
+**Checklist Habits:**
 - Current: Multi-select checklist interface
 - **DECISION**: Skip entire checklist only
 - **Future Enhancement**: Individual checklist item skipping
 
-**Informational Goals:**
+**Informational Habits:**
 - Current: Data-only collection without scoring
 - **DECISION**: Fully skippable - user determines semantic meaning of skipping data collection
 
@@ -254,18 +254,18 @@ func (ge *GoalEntry) GetLastModified() time.Time {
 - Different visual treatment for skipped vs completed vs failed
 
 **4. Navigation Integration:**
-- **DECISION**: Skipped goals appear in T011 "review before save" with clear skip indication
+- **DECISION**: Skipped habits appear in T011 "review before save" with clear skip indication
 - Skip available during collection (primary) and edit mode
 
 **5. Workflow Integration:**
-- **DECISION**: Skip available in all goal collection contexts
+- **DECISION**: Skip available in all habit collection contexts
 
 ### Keyboard Shortcuts & Accessibility
 
 **Shortcut Design:**
-- **DECISION**: Consistent "s" key across all goal types where applicable
-- Manual "Skip" selection for boolean goals as alternative
-- **Future Enhancement**: Skip/Submit buttons for goals where shortcuts aren't ideal
+- **DECISION**: Consistent "s" key across all habit types where applicable
+- Manual "Skip" selection for boolean habits as alternative
+- **Future Enhancement**: Skip/Submit buttons for habits where shortcuts aren't ideal
 
 **Accessibility Considerations:**
 - Screen reader announcements for skip options
@@ -274,9 +274,9 @@ func (ge *GoalEntry) GetLastModified() time.Time {
 
 ## 4. Implementation Scope Questions
 
-### Goal Collection Flow Impact
+### Habit Collection Flow Impact
 
-**Assumption**: "Anticipate no changes required to goal collection"
+**Assumption**: "Anticipate no changes required to habit collection"
 - **Question**: Is this assumption correct given UI changes needed?
 - Skip logic would be added to existing flows vs new skip-aware flows?
 
@@ -290,7 +290,7 @@ func (ge *GoalEntry) GetLastModified() time.Time {
 ### Analytics & Reporting Impact
 
 **Skip Handling Decisions:**
-- **DECISION**: Achievement levels for skipped elastic goals = null (no special "skipped" level)
+- **DECISION**: Achievement levels for skipped elastic habits = null (no special "skipped" level)
 - **DECISION**: Skips count as "neutral" for streak purposes (don't break streaks)
 - Skip statistics in completion summaries with distinct visual treatment
 - Historical skip pattern analysis for future reporting features
@@ -304,7 +304,7 @@ func (ge *GoalEntry) GetLastModified() time.Time {
 
 **Test Coverage Needed:**
 - Skip data model serialization/deserialization
-- Skip UI interactions for all goal types
+- Skip UI interactions for all habit types
 - Backward compatibility with existing entries
 - Skip analytics and completion calculations
 
@@ -347,12 +347,12 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 
 ### UI Implementation Strategy
 
-**Skip Integration by Goal Type:**
-- **Simple Goals**: Three-option select ("Yes / No / Skip")
-- **Numeric/Time/Duration Goals**: "s" shortcut key during input
-- **Text Goals**: "s" shortcut key during text entry
-- **Checklist Goals**: Skip entire checklist with clear indication
-- **Informational Goals**: "s" shortcut key (user-defined skip semantics)
+**Skip Integration by Habit Type:**
+- **Simple Habits**: Three-option select ("Yes / No / Skip")
+- **Numeric/Time/Duration Habits**: "s" shortcut key during input
+- **Text Habits**: "s" shortcut key during text entry
+- **Checklist Habits**: Skip entire checklist with clear indication
+- **Informational Habits**: "s" shortcut key (user-defined skip semantics)
 
 **Visual Feedback:**
 - Distinct skip emoji/styling in completion summaries
@@ -400,7 +400,7 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
   - [x] Testing with mixed old/new entry formats - All tests passing, user data loads correctly
 
 #### Phase 2: UI Components Enhancement
-- [x] **2.1: Boolean Goal Skip Integration** ✅ COMPLETED (commit: d145e43)
+- [x] **2.1: Boolean Habit Skip Integration** ✅ COMPLETED (commit: d145e43)
   - [x] Extend boolean input to three-option select ("Yes / No / Skip") - Implemented BooleanOption enum with three-way selection
   - [x] Update SimpleGoalCollectionFlow for EntryStatus handling - Status-aware processing with skip detection
   - [x] Skip sets Status=EntrySkipped, Value=nil, AchievementLevel=nil - Proper skip state management
@@ -421,7 +421,7 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
   - [x] Implement hybrid shortcut detection ("s" key fast-path in validation)
   - [x] Add GetStatus() to ChecklistEntryInput (basic implementation, skip functionality in Phase 2.3)
 
-- [x] **2.3: Checklist Goal Skip Integration** ✅ **COMPLETED**
+- [x] **2.3: Checklist Habit Skip Integration** ✅ **COMPLETED**
   - **DEPENDENCY RESOLVED**: T007 Phase 4.2-4.4 and 5.2 complete (commits `1cb8efb`, `d11d4e8`, `04973be`)
   - **ISSUE RESOLVED**: ChecklistGoalCollectionFlow fully implemented with real data integration
   - **CONFIRMED AVAILABLE**: T007 Phase 4.2-4.4 (Automatic/manual scoring, criteria validation), 5.2 (Entry recording)
@@ -436,7 +436,7 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 - **Files Modified**: 
   - `internal/ui/entry/checklist_input.go` - Added `action InputAction` field, two-field form pattern (multi-select + action selector)
   - `internal/ui/entry/goal_collection_flows.go` - Replaced hardcoded status with input.GetStatus(), added skip-aware scoring and notes
-- **Pattern Applied**: ActionSubmit/ActionSkip pattern from Phase 2.2 successfully extended to checklist goals
+- **Pattern Applied**: ActionSubmit/ActionSkip pattern from Phase 2.2 successfully extended to checklist habits
 - **Integration Points**: Status-aware achievement level handling (null for skipped), notes preservation working correctly
 - **Implementation Time**: ~1.5 hours (faster than estimated due to established patterns)
 - **Quality Assurance**: All tests passing, linter clean (0 issues), build successful
@@ -450,7 +450,7 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 - **Quality Gates**: All tests passing ✓, Linter clean ✓, Pattern consistency maintained ✓
 
 #### Phase 3: Collection Flow Integration ✅ **READY FOR IMPLEMENTATION**
-- [ ] **3.1: Goal Collection Flow Updates** (⚠️ 2 flows need updates)
+- [ ] **3.1: Habit Collection Flow Updates** (⚠️ 2 flows need updates)
   - [x] SimpleGoalCollectionFlow - ✅ COMPLETE (Phase 2.1 - fully status-aware)
   - [x] ChecklistGoalCollectionFlow - ✅ COMPLETE (Phase 2.3 - fully status-aware)
   - [ ] ElasticGoalCollectionFlow - Update line 291 hardcoded `Status: models.EntryCompleted`
@@ -491,7 +491,7 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
   - [ ] Unit tests for EntryStatus enum and helper methods
   - [ ] Timestamp management testing (CreatedAt/UpdatedAt logic)
   - [ ] Status-based validation testing (invalid state prevention)
-  - [ ] UI component testing for skip functionality across all goal types
+  - [ ] UI component testing for skip functionality across all habit types
   - [ ] Integration testing with mixed EntryStatus entries
   - [ ] Migration testing from CompletedAt to CreatedAt/UpdatedAt
 
@@ -528,7 +528,7 @@ if status != models.EntrySkipped {
 if status == models.EntrySkipped {
     if existing != nil { notes = existing.Notes }
 } else {
-    notes, err := f.collectOptionalNotes(goal, value, existing)
+    notes, err := f.collectOptionalNotes(habit, value, existing)
 }
 
 return &EntryResult{..., Status: status}
@@ -551,7 +551,7 @@ ec.statuses[goalEntry.GoalID] = goalEntry.Status
 ## 6. Future Enhancement Considerations
 
 **Skip/Submit Button Alternative (Future):**
-- Skip and Submit buttons for numeric/time/duration goals as alternative to shortcuts
+- Skip and Submit buttons for numeric/time/duration habits as alternative to shortcuts
 - Enhanced accessibility and discoverability
 - Optional UI preference for users who prefer buttons over shortcuts
 
@@ -574,7 +574,7 @@ ec.statuses[goalEntry.GoalID] = goalEntry.Status
 
 ## 7. Notes & Next Steps
 
-**Current Status**: Phase 2.1 Complete - Boolean Goal Skip Integration Implemented, **Phase 2.3 BLOCKED**
+**Current Status**: Phase 2.1 Complete - Boolean Habit Skip Integration Implemented, **Phase 2.3 BLOCKED**
 **Dependencies**: T010 completion provides foundation for skip functionality; **T007 Phase 4.2-4.4 and 5.2 required for Phase 2.3**
 **Implementation Approach**: Extend existing system without architectural changes
 **Critical Blocker**: ChecklistGoalCollectionFlow incomplete - missing scoring integration and entry recording
@@ -604,20 +604,20 @@ ec.statuses[goalEntry.GoalID] = goalEntry.Status
 - **Quality Assurance**: All tests passing, linter clean (0 issues), integration tests updated
 
 **Recent Commit History:**
-- `f7bcbaf` - feat(entry)[T012/2.3]: implement checklist goal skip integration with ActionSubmit/ActionSkip pattern
+- `f7bcbaf` - feat(entry)[T012/2.3]: implement checklist habit skip integration with ActionSubmit/ActionSkip pattern
 - `7d74d40` - feat(entry)[T012/2.2]: implement Submit/Skip button interface for all input field types  
 - `63d9bdf` - docs(tasks)[T012]: add commit history and next steps for completed work
 - `5976cab` - docs(tasks)[T012/T007]: document phase 2.3 dependency analysis and integration blockers
 - `db22a13` - style(entry)[T012]: clean up formatting and code organization post-skip integration
-- `d145e43` - feat(entry)[T012/2.1]: implement boolean goal skip functionality with three-option selection
+- `d145e43` - feat(entry)[T012/2.1]: implement boolean habit skip functionality with three-option selection
 - `464f2b6` - feat(storage)[T012/1.2]: implement EntryStatus storage layer with backward compatibility
 - `61471c0` - feat(goalconfig)[T012/1.1]: implement EntryStatus enum and timestamp improvements for skip functionality
 - `8070a8c` - feat(tasks): create T012 habit skip functionality with EntryStatus enum design
 
 **Next Logical Steps:**
-- **Phase 2.1**: ✅ **COMPLETE** - Boolean goal skip functionality with three-option selection
+- **Phase 2.1**: ✅ **COMPLETE** - Boolean habit skip functionality with three-option selection
 - **Phase 2.2**: ✅ **COMPLETE** - Submit/Skip button interface implemented for all input field types
-- **Phase 2.3**: ✅ **COMPLETE** - Checklist goal skip integration with ActionSubmit/ActionSkip pattern
+- **Phase 2.3**: ✅ **COMPLETE** - Checklist habit skip integration with ActionSubmit/ActionSkip pattern
 - **Phase 2 Status**: ✅ **COMPLETE** - All UI Components Enhancement phases finished
 - **Recommendation**: Proceed with Phase 3-4 (collection flow integration and visual feedback/analytics)
 
@@ -634,25 +634,25 @@ ec.statuses[goalEntry.GoalID] = goalEntry.Status
 
 **T007 Dependency Resolution (2025-07-13):**
 - **T007 Status Confirmed**: ✅ **COMPLETE** via analysis of kanban/in-progress/T007_dynamic_checklist_system.md
-- **Phase 4 Complete**: All checklist goal functionality implemented (commits `1cb8efb`, `d11d4e8`)
+- **Phase 4 Complete**: All checklist habit functionality implemented (commits `1cb8efb`, `d11d4e8`)
 - **Phase 5.2 Complete**: Entry recording fully integrated (commit `04973be`)
 - **Integration Ready**: ChecklistGoalCollectionFlow uses real data, proper scoring, comprehensive error handling
 - **Quality Gates**: 540+ lines test coverage, all tests passing, linter clean
 - **Dependency Impact**: T012 Phase 2.3 fully unblocked - ready for skip functionality implementation
 
 **Phase 2.3 Completion Notes (2025-07-13):**
-- **Checklist Skip Integration**: ActionSubmit/ActionSkip pattern successfully extended to checklist goals
+- **Checklist Skip Integration**: ActionSubmit/ActionSkip pattern successfully extended to checklist habits
 - **Two-Field Form Pattern**: Multi-select checklist + action selector following established UI consistency
 - **Status-Aware Processing**: ChecklistGoalCollectionFlow now uses input.GetStatus() instead of hardcoded EntryCompleted
 - **Skip-Aware Logic**: Scoring bypassed for skipped entries, notes preservation implemented
 - **Quality Assurance**: All tests passing, linter clean (0 issues), build successful
 - **Implementation Time**: ~1.5 hours (faster than estimated due to proven patterns)
 - **Pattern Consistency**: All input field types (boolean, numeric, time, duration, text, checklist) now support unified skip functionality
-- **Commit**: `f7bcbaf` - feat(entry)[T012/2.3]: implement checklist goal skip integration with ActionSubmit/ActionSkip pattern
+- **Commit**: `f7bcbaf` - feat(entry)[T012/2.3]: implement checklist habit skip integration with ActionSubmit/ActionSkip pattern
 
 **Technical Foundation:**
 - Data model extension with backward compatibility ✅ 
-- Boolean goal skip integration complete ✅
+- Boolean habit skip integration complete ✅
 - Other input field skip patterns ready for Phase 2.2 implementation
 - Analytics integration with existing completion tracking (Next: Phase 4)
 - Testing strategy following established T010 patterns ✅

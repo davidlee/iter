@@ -13,46 +13,46 @@ func TestViewRenderer_RenderProgressBar(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		goals    []models.Goal
-		entries  map[string]models.GoalEntry
+		habits   []models.Habit
+		entries  map[string]models.HabitEntry
 		contains []string
 	}{
 		{
-			name:     "empty goals",
-			goals:    []models.Goal{},
-			entries:  map[string]models.GoalEntry{},
-			contains: []string{"No goals configured"},
+			name:     "empty habits",
+			habits:   []models.Habit{},
+			entries:  map[string]models.HabitEntry{},
+			contains: []string{"No habits configured"},
 		},
 		{
 			name: "no entries",
-			goals: []models.Goal{
-				{ID: "goal1", Title: "Test Goal 1"},
-				{ID: "goal2", Title: "Test Goal 2"},
+			habits: []models.Habit{
+				{ID: "goal1", Title: "Test Habit 1"},
+				{ID: "goal2", Title: "Test Habit 2"},
 			},
-			entries:  map[string]models.GoalEntry{},
+			entries:  map[string]models.HabitEntry{},
 			contains: []string{"0/2 completed", "0.0%", "2 remaining"},
 		},
 		{
 			name: "mixed completion status",
-			goals: []models.Goal{
-				{ID: "goal1", Title: "Completed Goal"},
-				{ID: "goal2", Title: "Failed Goal"},
-				{ID: "goal3", Title: "Skipped Goal"},
-				{ID: "goal4", Title: "Incomplete Goal"},
+			habits: []models.Habit{
+				{ID: "goal1", Title: "Completed Habit"},
+				{ID: "goal2", Title: "Failed Habit"},
+				{ID: "goal3", Title: "Skipped Habit"},
+				{ID: "goal4", Title: "Incomplete Habit"},
 			},
-			entries: map[string]models.GoalEntry{
+			entries: map[string]models.HabitEntry{
 				"goal1": {
-					GoalID:    "goal1",
+					HabitID:   "goal1",
 					Status:    models.EntryCompleted,
 					CreatedAt: time.Now(),
 				},
 				"goal2": {
-					GoalID:    "goal2",
+					HabitID:   "goal2",
 					Status:    models.EntryFailed,
 					CreatedAt: time.Now(),
 				},
 				"goal3": {
-					GoalID:    "goal3",
+					HabitID:   "goal3",
 					Status:    models.EntrySkipped,
 					CreatedAt: time.Now(),
 				},
@@ -61,18 +61,18 @@ func TestViewRenderer_RenderProgressBar(t *testing.T) {
 		},
 		{
 			name: "all completed",
-			goals: []models.Goal{
-				{ID: "goal1", Title: "Goal 1"},
-				{ID: "goal2", Title: "Goal 2"},
+			habits: []models.Habit{
+				{ID: "goal1", Title: "Habit 1"},
+				{ID: "goal2", Title: "Habit 2"},
 			},
-			entries: map[string]models.GoalEntry{
+			entries: map[string]models.HabitEntry{
 				"goal1": {
-					GoalID:    "goal1",
+					HabitID:   "goal1",
 					Status:    models.EntryCompleted,
 					CreatedAt: time.Now(),
 				},
 				"goal2": {
-					GoalID:    "goal2",
+					HabitID:   "goal2",
 					Status:    models.EntryCompleted,
 					CreatedAt: time.Now(),
 				},
@@ -83,7 +83,7 @@ func TestViewRenderer_RenderProgressBar(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := renderer.renderProgress(tt.goals, tt.entries)
+			result := renderer.renderProgress(tt.habits, tt.entries)
 
 			for _, expected := range tt.contains {
 				if !strings.Contains(result, expected) {
@@ -155,9 +155,9 @@ func TestViewRenderer_RenderReturnBehavior(t *testing.T) {
 			expected: "Return: menu",
 		},
 		{
-			name:     "return to next goal",
-			behavior: ReturnToNextGoal,
-			expected: "Return: next goal",
+			name:     "return to next habit",
+			behavior: ReturnToNextHabit,
+			expected: "Return: next habit",
 		},
 	}
 
@@ -175,32 +175,32 @@ func TestViewRenderer_RenderReturnBehavior(t *testing.T) {
 func TestViewRenderer_CalculateProgressStats(t *testing.T) {
 	renderer := NewViewRenderer(80, 24)
 
-	goals := []models.Goal{
-		{ID: "goal1", Title: "Completed Goal"},
-		{ID: "goal2", Title: "Failed Goal"},
-		{ID: "goal3", Title: "Skipped Goal"},
-		{ID: "goal4", Title: "Incomplete Goal"},
+	habits := []models.Habit{
+		{ID: "goal1", Title: "Completed Habit"},
+		{ID: "goal2", Title: "Failed Habit"},
+		{ID: "goal3", Title: "Skipped Habit"},
+		{ID: "goal4", Title: "Incomplete Habit"},
 	}
 
-	entries := map[string]models.GoalEntry{
+	entries := map[string]models.HabitEntry{
 		"goal1": {
-			GoalID:    "goal1",
+			HabitID:   "goal1",
 			Status:    models.EntryCompleted,
 			CreatedAt: time.Now(),
 		},
 		"goal2": {
-			GoalID:    "goal2",
+			HabitID:   "goal2",
 			Status:    models.EntryFailed,
 			CreatedAt: time.Now(),
 		},
 		"goal3": {
-			GoalID:    "goal3",
+			HabitID:   "goal3",
 			Status:    models.EntrySkipped,
 			CreatedAt: time.Now(),
 		},
 	}
 
-	stats := renderer.calculateProgressStats(goals, entries)
+	stats := renderer.calculateProgressStats(habits, entries)
 
 	expected := ProgressStats{
 		Total:     4,
@@ -261,19 +261,19 @@ func TestViewRenderer_RenderProgressBarVisual(t *testing.T) {
 func TestViewRenderer_RenderHeader(t *testing.T) {
 	renderer := NewViewRenderer(80, 24)
 
-	goals := []models.Goal{
-		{ID: "goal1", Title: "Test Goal"},
+	habits := []models.Habit{
+		{ID: "goal1", Title: "Test Habit"},
 	}
 
-	entries := map[string]models.GoalEntry{
+	entries := map[string]models.HabitEntry{
 		"goal1": {
-			GoalID:    "goal1",
+			HabitID:   "goal1",
 			Status:    models.EntryCompleted,
 			CreatedAt: time.Now(),
 		},
 	}
 
-	result := renderer.RenderHeader(goals, entries, FilterHideSkipped)
+	result := renderer.RenderHeader(habits, entries, FilterHideSkipped)
 
 	// Should contain progress information
 	if !strings.Contains(result, "1/1 completed") {
@@ -307,36 +307,36 @@ func TestProgressStats_EdgeCases(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		goals   []models.Goal
-		entries map[string]models.GoalEntry
+		habits  []models.Habit
+		entries map[string]models.HabitEntry
 		check   func(ProgressStats) bool
 	}{
 		{
-			name:    "no goals",
-			goals:   []models.Goal{},
-			entries: map[string]models.GoalEntry{},
+			name:    "no habits",
+			habits:  []models.Habit{},
+			entries: map[string]models.HabitEntry{},
 			check: func(stats ProgressStats) bool {
 				return stats.Total == 0 && stats.Remaining == 0
 			},
 		},
 		{
 			name: "no entries",
-			goals: []models.Goal{
-				{ID: "goal1", Title: "Goal 1"},
+			habits: []models.Habit{
+				{ID: "goal1", Title: "Habit 1"},
 			},
-			entries: map[string]models.GoalEntry{},
+			entries: map[string]models.HabitEntry{},
 			check: func(stats ProgressStats) bool {
 				return stats.Total == 1 && stats.Attempted == 0 && stats.Remaining == 1
 			},
 		},
 		{
-			name: "more entries than goals",
-			goals: []models.Goal{
-				{ID: "goal1", Title: "Goal 1"},
+			name: "more entries than habits",
+			habits: []models.Habit{
+				{ID: "goal1", Title: "Habit 1"},
 			},
-			entries: map[string]models.GoalEntry{
-				"goal1": {GoalID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
-				"goal2": {GoalID: "goal2", Status: models.EntryCompleted, CreatedAt: time.Now()}, // Extra entry
+			entries: map[string]models.HabitEntry{
+				"goal1": {HabitID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+				"goal2": {HabitID: "goal2", Status: models.EntryCompleted, CreatedAt: time.Now()}, // Extra entry
 			},
 			check: func(stats ProgressStats) bool {
 				return stats.Total == 1 && stats.Completed == 1 && stats.Attempted == 1
@@ -346,7 +346,7 @@ func TestProgressStats_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats := renderer.calculateProgressStats(tt.goals, tt.entries)
+			stats := renderer.calculateProgressStats(tt.habits, tt.entries)
 
 			if !tt.check(stats) {
 				t.Errorf("Stats check failed for %s: %+v", tt.name, stats)

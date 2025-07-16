@@ -10,8 +10,8 @@
 - **Duration**: ~250ms vs ~3ms for unit tests (83x slower)
 - **Capabilities Verified**:
   - User input simulation (`Send()` with KeyMsg)
-  - Navigation testing (next incomplete goal)
-  - Goal selection verification
+  - Navigation testing (next incomplete habit)
+  - Habit selection verification
   - Model state inspection after interactions
   - Proper cleanup and termination
 
@@ -30,7 +30,7 @@
 1. **Integration Gap Coverage**
    - Current tests: Unit-level (model state, view rendering)
    - Missing: End-to-end user interaction flows
-   - teatest fills: Menu navigation → goal selection → entry collection flows
+   - teatest fills: Menu navigation → habit selection → entry collection flows
 
 2. **Regression Prevention**
    - Golden files detect unintended UI layout changes
@@ -39,7 +39,7 @@
 
 3. **Complex Flow Validation**
    - Phase 3.1: Menu → EntryCollector → return behavior
-   - Phase 3.2: Auto-save → next goal selection → state persistence
+   - Phase 3.2: Auto-save → next habit selection → state persistence
    - Multi-step flows difficult to test with unit tests alone
 
 ### ⚠️ Considerations
@@ -84,12 +84,12 @@
 ### Specific Use Cases for Remaining Subtasks
 
 **Phase 3.1 (Entry Integration)**: ⭐ PERFECT FIT
-- Test: Menu → goal selection → EntryCollector launch → return to menu
-- Validate: Return behavior (menu vs next-goal), entry storage
+- Test: Menu → habit selection → EntryCollector launch → return to menu
+- Validate: Return behavior (menu vs next-habit), entry storage
 - Coverage: End-to-end flow unit tests cannot provide
 
 **Phase 3.2 (Auto-save)**: ⭐ HIGH VALUE  
-- Test: Goal completion → auto-save → next goal selection
+- Test: Habit completion → auto-save → next habit selection
 - Validate: File I/O, state transitions, error handling
 - Coverage: Integration of multiple systems
 

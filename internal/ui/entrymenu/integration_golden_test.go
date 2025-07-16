@@ -18,19 +18,19 @@ import (
 // Purpose: Evaluate if golden files provide value for detecting UI layout changes
 func TestEntryMenuGoldenFiles_POC(t *testing.T) {
 	// Create predictable test data
-	goals := []models.Goal{
-		{ID: "exercise", Title: "Exercise", GoalType: models.SimpleGoal},
-		{ID: "read", Title: "Read", GoalType: models.SimpleGoal},
+	habits := []models.Habit{
+		{ID: "exercise", Title: "Exercise", HabitType: models.SimpleHabit},
+		{ID: "read", Title: "Read", HabitType: models.SimpleHabit},
 	}
 
-	entries := map[string]models.GoalEntry{
+	entries := map[string]models.HabitEntry{
 		"exercise": {
-			GoalID: "exercise",
-			Status: models.EntryCompleted,
+			HabitID: "exercise",
+			Status:  models.EntryCompleted,
 		},
 	}
 
-	model := NewEntryMenuModelForTesting(goals, entries)
+	model := NewEntryMenuModelForTesting(habits, entries)
 
 	// Use consistent terminal size for reproducible output
 	tm := teatest.NewTestModel(
@@ -47,7 +47,7 @@ func TestEntryMenuGoldenFiles_POC(t *testing.T) {
 	// Let UI stabilize
 	time.Sleep(100 * time.Millisecond)
 
-	// Navigate to incomplete goal
+	// Navigate to incomplete habit
 	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("n")})
 	time.Sleep(50 * time.Millisecond)
 

@@ -1,4 +1,4 @@
-// Package scoring provides functionality for evaluating goal achievements against criteria.
+// Package scoring provides functionality for evaluating habit achievements against criteria.
 package scoring
 
 import (
@@ -10,7 +10,7 @@ import (
 	"davidlee/vice/internal/models"
 )
 
-// Engine handles scoring of goal entries against elastic goal criteria.
+// Engine handles scoring of habit entries against elastic habit criteria.
 type Engine struct{}
 
 // NewEngine creates a new scoring engine instance.
@@ -26,25 +26,25 @@ type ScoreResult struct {
 	MetMaxi          bool
 }
 
-// ScoreSimpleGoal evaluates a value against simple goal criteria and returns pass/fail.
-// AIDEV-NOTE: goal-type-separation; dedicated scoring method prevents type masquerading anti-pattern
-// Simple goals have a single criteria that determines pass (mini) or fail (none).
-// IMPORTANT: This method was added to fix T016 - simple goals were incorrectly trying to masquerade as elastic goals.
-func (e *Engine) ScoreSimpleGoal(goal *models.Goal, value interface{}) (*ScoreResult, error) {
-	if goal == nil {
-		return nil, fmt.Errorf("goal cannot be nil")
+// ScoreSimpleHabit evaluates a value against simple habit criteria and returns pass/fail.
+// AIDEV-NOTE: habit-type-separation; dedicated scoring method prevents type masquerading anti-pattern
+// Simple habits have a single criteria that determines pass (mini) or fail (none).
+// IMPORTANT: This method was added to fix T016 - simple habits were incorrectly trying to masquerade as elastic habits.
+func (e *Engine) ScoreSimpleHabit(habit *models.Habit, value interface{}) (*ScoreResult, error) {
+	if habit == nil {
+		return nil, fmt.Errorf("habit cannot be nil")
 	}
 
-	if !goal.IsSimple() {
-		return nil, fmt.Errorf("goal %s is not a simple goal", goal.ID)
+	if !habit.IsSimple() {
+		return nil, fmt.Errorf("habit %s is not a simple habit", habit.ID)
 	}
 
-	if !goal.RequiresAutomaticScoring() {
-		return nil, fmt.Errorf("goal %s does not require automatic scoring", goal.ID)
+	if !habit.RequiresAutomaticScoring() {
+		return nil, fmt.Errorf("habit %s does not require automatic scoring", habit.ID)
 	}
 
-	if goal.Criteria == nil {
-		return nil, fmt.Errorf("goal %s has no criteria for automatic scoring", goal.ID)
+	if habit.Criteria == nil {
+		return nil, fmt.Errorf("habit %s has no criteria for automatic scoring", habit.ID)
 	}
 
 	// Initialize result
@@ -56,18 +56,18 @@ func (e *Engine) ScoreSimpleGoal(goal *models.Goal, value interface{}) (*ScoreRe
 	}
 
 	// Convert value to appropriate type for evaluation
-	evaluationValue, err := e.convertValueForEvaluation(value, goal.FieldType.Type)
+	evaluationValue, err := e.convertValueForEvaluation(value, habit.FieldType.Type)
 	if err != nil {
 		return nil, err
 	}
 
 	// Evaluate against the single criteria
-	met, err := e.evaluateCriteria(evaluationValue, goal.Criteria, goal.FieldType.Type)
+	met, err := e.evaluateCriteria(evaluationValue, habit.Criteria, habit.FieldType.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	// For simple goals, criteria met = mini achievement level (pass)
+	// For simple habits, criteria met = mini achievement level (pass)
 	if met {
 		result.AchievementLevel = models.AchievementMini
 		result.MetMini = true
@@ -76,19 +76,19 @@ func (e *Engine) ScoreSimpleGoal(goal *models.Goal, value interface{}) (*ScoreRe
 	return result, nil
 }
 
-// ScoreElasticGoal evaluates a value against elastic goal criteria and returns the achievement level.
+// ScoreElasticHabit evaluates a value against elastic habit criteria and returns the achievement level.
 // Returns the highest achievement level met (none, mini, midi, or maxi).
-func (e *Engine) ScoreElasticGoal(goal *models.Goal, value interface{}) (*ScoreResult, error) {
-	if goal == nil {
-		return nil, fmt.Errorf("goal cannot be nil")
+func (e *Engine) ScoreElasticHabit(habit *models.Habit, value interface{}) (*ScoreResult, error) {
+	if habit == nil {
+		return nil, fmt.Errorf("habit cannot be nil")
 	}
 
-	if !goal.IsElastic() {
-		return nil, fmt.Errorf("goal %s is not an elastic goal", goal.ID)
+	if !habit.IsElastic() {
+		return nil, fmt.Errorf("habit %s is not an elastic habit", habit.ID)
 	}
 
-	if !goal.RequiresAutomaticScoring() {
-		return nil, fmt.Errorf("goal %s does not require automatic scoring", goal.ID)
+	if !habit.RequiresAutomaticScoring() {
+		return nil, fmt.Errorf("habit %s does not require automatic scoring", habit.ID)
 	}
 
 	// Initialize result
@@ -100,14 +100,14 @@ func (e *Engine) ScoreElasticGoal(goal *models.Goal, value interface{}) (*ScoreR
 	}
 
 	// Convert value to appropriate type for evaluation
-	evaluationValue, err := e.convertValueForEvaluation(value, goal.FieldType.Type)
+	evaluationValue, err := e.convertValueForEvaluation(value, habit.FieldType.Type)
 	if err != nil {
 		return nil, err
 	}
 
 	// Evaluate against each criteria level
-	if goal.MiniCriteria != nil {
-		met, err := e.evaluateCriteria(evaluationValue, goal.MiniCriteria, goal.FieldType.Type)
+	if habit.MiniCriteria != nil {
+		met, err := e.evaluateCriteria(evaluationValue, habit.MiniCriteria, habit.FieldType.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -117,8 +117,8 @@ func (e *Engine) ScoreElasticGoal(goal *models.Goal, value interface{}) (*ScoreR
 		}
 	}
 
-	if goal.MidiCriteria != nil {
-		met, err := e.evaluateCriteria(evaluationValue, goal.MidiCriteria, goal.FieldType.Type)
+	if habit.MidiCriteria != nil {
+		met, err := e.evaluateCriteria(evaluationValue, habit.MidiCriteria, habit.FieldType.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -128,8 +128,8 @@ func (e *Engine) ScoreElasticGoal(goal *models.Goal, value interface{}) (*ScoreR
 		}
 	}
 
-	if goal.MaxiCriteria != nil {
-		met, err := e.evaluateCriteria(evaluationValue, goal.MaxiCriteria, goal.FieldType.Type)
+	if habit.MaxiCriteria != nil {
+		met, err := e.evaluateCriteria(evaluationValue, habit.MaxiCriteria, habit.FieldType.Type)
 		if err != nil {
 			return nil, err
 		}

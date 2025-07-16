@@ -68,7 +68,7 @@ type ModalManager struct {
 #### 3. Entry Form Modal
 ```go
 type EntryFormModal struct {
-    goal models.Goal
+    habit models.Habit
     collector *ui.EntryCollector
     form *huh.Form
     result *EntryResult
@@ -143,9 +143,9 @@ func (m *EntryMenuModel) renderWithModal(background, modal string) string {
 ### Event Flow
 
 #### Opening Modal
-1. User presses Enter on goal
+1. User presses Enter on habit
 2. `EntryMenuModel.Update()` receives key
-3. Create `EntryFormModal` with goal
+3. Create `EntryFormModal` with habit
 4. `ModalManager.OpenModal(modal)`
 5. Modal renders on top of menu
 
@@ -220,14 +220,14 @@ func (m *EntryMenuModel) renderWithModal(background, modal string) string {
 ## Migration Plan
 
 ### Current Dependencies
-- `form.Run()` calls in goal collection flows
+- `form.Run()` calls in habit collection flows
 - Direct form interaction in input components
 - State synchronization logic in entry menu
 
 ### Migration Steps
 1. Implement modal system alongside current system
 2. Create modal versions of entry forms
-3. Update goal collection flows to use modals
+3. Update habit collection flows to use modals
 4. Remove old `form.Run()` approach
 5. Clean up unused synchronization code
 

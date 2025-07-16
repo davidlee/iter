@@ -1,15 +1,15 @@
 ---
-title: "Rename Goal to Habit Comprehensive"
+title: "Rename Habit to Habit Comprehensive"
 type: "refactor"
 tags: ["refactor", "naming", "terminology", "comprehensive"]
 related_tasks: []
 context_windows: ["./**/*.go", "./**/*.md", "./**/*.yml", "./**/*.yaml", "./cmd/*", "./internal/**/*", "./doc/**/*", "./testdata/**/*", "./kanban/**/*"]
 ---
 
-# Rename Goal to Habit Comprehensive
+# Rename Habit to Habit Comprehensive
 
 **Context (Background)**:
-The application currently uses "goal" terminology throughout the codebase, documentation, and user interface. This task involves comprehensively renaming all instances of "goal" to "habit" to better reflect the application's purpose as a habit tracker. This includes file names, code structures, documentation, CLI commands, and user-facing strings.
+The application currently uses "habit" terminology throughout the codebase, documentation, and user interface. This task involves comprehensively renaming all instances of "habit" to "habit" to better reflect the application's purpose as a habit tracker. This includes file names, code structures, documentation, CLI commands, and user-facing strings.
 
 **Type**: `refactor`
 
@@ -20,20 +20,20 @@ The application currently uses "goal" terminology throughout the codebase, docum
 ### Significant Code (Files / Functions)
 
 **Files to be renamed (42 files total):**
-- `cmd/goal*.go` → `cmd/habit*.go` (5 files)
-- `internal/models/goal.go` → `internal/models/habit.go`
-- `internal/parser/goals.go` → `internal/parser/habits.go`
+- `cmd/habit*.go` → `cmd/habit*.go` (5 files)
+- `internal/models/habit.go` → `internal/models/habit.go`
+- `internal/parser/habits.go` → `internal/parser/habits.go`
 - `internal/ui/goalconfig/` → `internal/ui/habitconfig/` (11 files)
-- `internal/ui/entry/*goal*.go` → `internal/ui/entry/*habit*.go` (5 files)
-- `internal/integration/*goal*.go` → `internal/integration/*habit*.go` (3 files)
-- `testdata/goals/` → `testdata/habits/` (3 files)
-- `testdata/user_patterns/*goal*.yml` → `testdata/user_patterns/*habit*.yml` (2 files)
+- `internal/ui/entry/*habit*.go` → `internal/ui/entry/*habit*.go` (5 files)
+- `internal/integration/*habit*.go` → `internal/integration/*habit*.go` (3 files)
+- `testdata/habits/` → `testdata/habits/` (3 files)
+- `testdata/user_patterns/*habit*.yml` → `testdata/user_patterns/*habit*.yml` (2 files)
 - `doc/specifications/goal_schema.md` → `doc/specifications/habit_schema.md`
 - `doc/diagrams/goal_collection_flow.*` → `doc/diagrams/habit_collection_flow.*` (2 files)
-- Kanban task files referencing goals (7 files)
+- Kanban task files referencing habits (7 files)
 
 **Key Go Types/Structs to rename:**
-- `Goal` → `Habit`
+- `Habit` → `Habit`
 - `GoalEntry` → `HabitEntry`
 - `GoalConfig` → `HabitConfig`
 - `GoalManager` → `HabitManager`
@@ -42,14 +42,14 @@ The application currently uses "goal" terminology throughout the codebase, docum
 - `GoalCollection` → `HabitCollection`
 
 **CLI Commands affected:**
-- `vice goal` → `vice habit`
-- `vice goal add` → `vice habit add`
-- `vice goal list` → `vice habit list`
-- `vice goal edit` → `vice habit edit`
-- `vice goal remove` → `vice habit remove`
+- `vice habit` → `vice habit`
+- `vice habit add` → `vice habit add`
+- `vice habit list` → `vice habit list`
+- `vice habit edit` → `vice habit edit`
+- `vice habit remove` → `vice habit remove`
 
 **Configuration files:**
-- `goals.yml` → `habits.yml`
+- `habits.yml` → `habits.yml`
 - All YAML field names: `goal_id`, `goal_type`, etc. → `habit_id`, `habit_type`, etc.
 
 ### Relevant Documentation
@@ -57,19 +57,19 @@ The application currently uses "goal" terminology throughout the codebase, docum
 - `doc/architecture.md` - Architecture overview
 - `doc/diagrams/goal_collection_flow.d2` - Flow diagrams
 - `CLAUDE.md` - Project instructions and standards
-- All kanban task files containing goal references
+- All kanban task files containing habit references
 
 ### Related Tasks / History
-- T003: Implement elastic goals end to end
-- T004: Ensure goal ID persistence
-- T005: Goal configuration UI
-- T006: Goal management UI
-- T015: Goal list interactive UI
-- T016: Goal type change scoring error
+- T003: Implement elastic habits end to end
+- T004: Ensure habit ID persistence
+- T005: Habit configuration UI
+- T006: Habit management UI
+- T015: Habit list interactive UI
+- T016: Habit type change scoring error
 
-## Goal / User Story
+## Habit / User Story
 
-**As a developer/maintainer**, I want to rename all instances of "goal" to "habit" throughout the codebase so that the terminology consistently reflects the application's purpose as a habit tracker, improving code clarity and user understanding.
+**As a developer/maintainer**, I want to rename all instances of "habit" to "habit" throughout the codebase so that the terminology consistently reflects the application's purpose as a habit tracker, improving code clarity and user understanding.
 
 **Why this task is important:**
 - Improves semantic clarity - "habits" better describes what users are tracking
@@ -79,16 +79,16 @@ The application currently uses "goal" terminology throughout the codebase, docum
 
 ## Acceptance Criteria (ACs)
 
-- [ ] All files containing "goal" or "goals" in their names are renamed to use "habit"/"habits"
-- [ ] All Go types, structs, and interfaces are renamed from Goal* to Habit*
-- [ ] All CLI commands change from `goal` to `habit` (e.g., `vice goal add` → `vice habit add`)
+- [ ] All files containing "habit" or "habits" in their names are renamed to use "habit"/"habits"
+- [ ] All Go types, structs, and interfaces are renamed from Habit* to Habit*
+- [ ] All CLI commands change from `habit` to `habit` (e.g., `vice habit add` → `vice habit add`)
 - [ ] All configuration files and YAML fields use "habit" terminology
 - [ ] All documentation and comments are updated to use "habit" terminology
 - [ ] All user-facing strings and help text use "habit" terminology
 - [ ] All import paths broken by file renames are updated
 - [ ] All tests pass after the rename
 - [ ] Application builds successfully after the rename
-- [ ] Users can manually rename their goals.yml to habits.yml (no automatic migration)
+- [ ] Users can manually rename their habits.yml to habits.yml (no automatic migration)
 
 ## Architecture
 
@@ -111,29 +111,31 @@ The approach will be systematic:
 
 **Sub-tasks:**
 
-- [ ] **Phase 1: File System Reorganization**
-  - [ ] **1.1: Rename Go source files**
-    - *Design:* Rename all Go files containing "goal" to "habit" (letting git add . handle tracking)
-    - *Code/Artifacts:* 42 files renamed across cmd/, internal/, testdata/
+- [x] **Phase 1: File System Reorganization**
+  - [x] **1.1: Rename Go source files**
+    - *Design:* Rename all Go files containing "habit" to "habit" (letting git add . handle tracking)
+    - *Code/Artifacts:* 29 Go files renamed across cmd/, internal/, testdata/
     - *Testing Strategy:* Verify renames successful, check for broken imports
-    - *AI Notes:* Simple file renames, check for any git issues afterward
-  - [ ] **1.2: Rename directories**
-    - *Design:* Rename `internal/ui/goalconfig/` → `internal/ui/habitconfig/`, `testdata/goals/` → `testdata/habits/`
-    - *Code/Artifacts:* 2 directories renamed
+    - *AI Notes:* Completed: cmd/habit*.go → cmd/habit*.go, internal/models/habit* → internal/models/habit*, internal/parser/habits* → internal/parser/habits*, internal/integration/*habit* → internal/integration/*habit*, internal/ui/entry/*habit* → internal/ui/entry/*habit*
+  - [x] **1.2: Rename directories**
+    - *Design:* Rename `internal/ui/goalconfig/` → `internal/ui/habitconfig/`, `testdata/habits/` → `testdata/habits/`
+    - *Code/Artifacts:* 2 directories renamed with all files renamed within them
     - *Testing Strategy:* Verify all files moved correctly, check import paths
-  - [ ] **1.3: Rename documentation and diagram files**
-    - *Design:* Rename all doc/ files containing "goal" to "habit"
+    - *AI Notes:* Completed: internal/ui/goalconfig/ → internal/ui/habitconfig/ (11 files renamed), testdata/habits/ → testdata/habits/ (4 files renamed)
+  - [x] **1.3: Rename documentation and diagram files**
+    - *Design:* Rename all doc/ files containing "habit" to "habit"
     - *Code/Artifacts:* 3 files in doc/ directory
     - *Testing Strategy:* Verify links and references still work
+    - *AI Notes:* Completed: doc/specifications/goal_schema.md → habit_schema.md, doc/diagrams/goal_collection_flow.d2 → habit_collection_flow.d2, doc/diagrams/goal_collection_flow.svg → habit_collection_flow.svg
 
-- [ ] **Phase 2: Content Replacement**
-  - [ ] **2.1: Protect this task file from replacements**
+- [WIP] **Phase 2: Content Replacement**
+  - [WIP] **2.1: Protect this task file from replacements**
     - *Design:* Either exclude this file from replacements or git checkout afterward
     - *Code/Artifacts:* This task file (T025_rename_goal_to_habit_comprehensive.md)
-    - *Testing Strategy:* Verify task file maintains historical "goal" references
+    - *Testing Strategy:* Verify task file maintains historical "habit" references
     - *AI Notes:* Task file should preserve original terminology for historical context
   - [ ] **2.2: Replace Go language elements**
-    - *Design:* Use sed/ripgrep to replace Goal → Habit, goal → habit, goals → habits in all cases
+    - *Design:* Use sed/ripgrep to replace Habit → Habit, habit → habit, habits → habits in all cases
     - *Code/Artifacts:* ~101 Go files, ~1000+ replacements estimated
     - *Testing Strategy:* Build verification, static analysis
     - *AI Notes:* Handle compound terms like goalEntry → habitEntry, goalConfig → habitConfig
@@ -160,13 +162,13 @@ The approach will be systematic:
     - *Code/Artifacts:* Build configuration, module definitions
     - *Testing Strategy:* Clean build from scratch
   - [ ] **3.3: Update kanban task references**
-    - *Design:* Update task files that reference old goal terminology
+    - *Design:* Update task files that reference old habit terminology
     - *Code/Artifacts:* 7 kanban task files
     - *Testing Strategy:* Task file review, link verification
 
 - [ ] **Phase 4: One-time Verification**
   - [ ] **4.1: Create verification shell scripts**
-    - *Design:* Write one-off shell scripts to verify no "goal" references remain in user-facing elements
+    - *Design:* Write one-off shell scripts to verify no "habit" references remain in user-facing elements
     - *Code/Artifacts:* Verification scripts for CLI commands, help text, documentation
     - *Testing Strategy:* Script execution to catch any missed references
   - [ ] **4.2: Run comprehensive tests**
@@ -184,9 +186,9 @@ The approach will be systematic:
 
 ## Notes / Discussion Log
 
-- `2025-01-16 16:00 - User:` Request to rename "goals" to "habits" comprehensively throughout the codebase
-- `2025-01-16 16:00 - User:` Confirmed: (1) yes - rename files, (2) yes - handle compound terms, (3) no contexts to preserve "goal", (4) yes to all scope items (goals/goal, all cases, comments/docs, user-facing messages)
-- `2025-01-16 16:05 - AI:` Analysis shows 42 files need renaming, ~101 Go files contain "goal", ~37 markdown files need updates  
+- `2025-01-16 16:00 - User:` Request to rename "habits" to "habits" comprehensively throughout the codebase
+- `2025-01-16 16:00 - User:` Confirmed: (1) yes - rename files, (2) yes - handle compound terms, (3) no contexts to preserve "habit", (4) yes to all scope items (habits/habit, all cases, comments/docs, user-facing messages)
+- `2025-01-16 16:05 - AI:` Analysis shows 42 files need renaming, ~101 Go files contain "habit", ~37 markdown files need updates  
 - `2025-01-16 16:10 - User:` Clarifications: (1) no data migration - users rename files manually, (2) yes change YAML field names, (3) no backwards compatibility, (4) yes change package names, (5) simple renames okay, (6) one-off verification scripts fine
 
 ## Git Commit History

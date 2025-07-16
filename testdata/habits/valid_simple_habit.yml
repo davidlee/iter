@@ -1,0 +1,25 @@
+version: "1.0.0"
+created_date: "2024-01-01"
+habits:
+  - title: "Daily Exercise"
+    id: "daily_exercise"
+    position: 1
+    description: "Get some physical activity every day"
+    habit_type: "simple"
+    field_type:
+      type: "boolean"
+    scoring_type: "manual"
+    prompt: "Did you exercise today?"
+  - title: "Read for 30 Minutes"
+    id: "daily_reading"
+    position: 2
+    description: "Read for at least 30 minutes to expand knowledge"
+    habit_type: "simple"
+    field_type:
+      type: "boolean"
+    scoring_type: "automatic"
+    criteria:
+      description: "Reading completed"
+      condition:
+        equals: true
+    prompt: "Did you read for at least 30 minutes today?"

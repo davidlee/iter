@@ -12,7 +12,7 @@ func TestTodoDashboard(t *testing.T) {
 	// Create test paths
 	paths := &config.Paths{
 		ConfigDir:   "/tmp/test-config",
-		GoalsFile:   "testdata/goals.yml",
+		HabitsFile:  "testdata/habits.yml",
 		EntriesFile: "testdata/entries.yml",
 	}
 

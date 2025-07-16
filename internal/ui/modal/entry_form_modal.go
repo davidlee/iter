@@ -13,7 +13,7 @@ import (
 	"davidlee/vice/internal/ui/entry"
 )
 
-// EntryFormModal represents a modal for collecting goal entries.
+// EntryFormModal represents a modal for collecting habit entries.
 // AIDEV-NOTE: entry-form-modal; replaces form.Run() takeover with modal overlay approach
 // AIDEV-NOTE: T024-bug2-fix; eliminates edit looping by providing clean modal close → menu return
 // AIDEV-NOTE: T024-experiment; temporarily replaced BaseModal with simple boolean to test lifecycle hypothesis
@@ -21,7 +21,7 @@ type EntryFormModal struct {
 	// *BaseModal  // TEMPORARILY REMOVED for BaseModal experiment
 	isOpen       bool        // Simple boolean flag replacing BaseModal state machine
 	result       interface{} // Simple result storage
-	goal         models.Goal
+	habit        models.Habit
 	collector    *ui.EntryCollector
 	fieldInput   entry.EntryFieldInput
 	form         *huh.Form
@@ -34,12 +34,12 @@ type EntryFormModal struct {
 
 // NewEntryFormModal creates a new entry form modal.
 // AIDEV-NOTE: modal-factory; key factory method integrating existing entry field input system
-func NewEntryFormModal(goal models.Goal, collector *ui.EntryCollector, fieldInputFactory *entry.EntryFieldInputFactory) (*EntryFormModal, error) {
-	debug.Modal("Creating EntryFormModal for goal: %s (type: %s, field: %s)", goal.ID, goal.GoalType, goal.FieldType.Type)
+func NewEntryFormModal(habit models.Habit, collector *ui.EntryCollector, fieldInputFactory *entry.EntryFieldInputFactory) (*EntryFormModal, error) {
+	debug.Modal("Creating EntryFormModal for habit: %s (type: %s, field: %s)", habit.ID, habit.HabitType, habit.FieldType.Type)
 	// Create existing entry data from collector
 	var existing *entry.ExistingEntry
 	if collector != nil {
-		value, notes, achievement, _, hasEntry := collector.GetGoalEntry(goal.ID)
+		value, notes, achievement, _, hasEntry := collector.GetHabitEntry(habit.ID)
 		if hasEntry {
 			existing = &entry.ExistingEntry{
 				Value:            value,
@@ -51,10 +51,10 @@ func NewEntryFormModal(goal models.Goal, collector *ui.EntryCollector, fieldInpu
 
 	// Create field input configuration
 	config := entry.EntryFieldInputConfig{
-		Goal:          goal,
-		FieldType:     goal.FieldType,
+		Habit:         habit,
+		FieldType:     habit.FieldType,
 		ExistingEntry: existing,
-		ShowScoring:   goal.ScoringType == models.AutomaticScoring,
+		ShowScoring:   habit.ScoringType == models.AutomaticScoring,
 	}
 
 	// Create field input component
@@ -64,13 +64,13 @@ func NewEntryFormModal(goal models.Goal, collector *ui.EntryCollector, fieldInpu
 	}
 
 	// Create the form
-	form := fieldInput.CreateInputForm(goal)
-	debug.Modal("Created form for goal %s, initial state: %v", goal.ID, form.State)
+	form := fieldInput.CreateInputForm(habit)
+	debug.Modal("Created form for habit %s, initial state: %v", habit.ID, form.State)
 
 	modal := &EntryFormModal{
 		// BaseModal:  NewBaseModal(),  // TEMPORARILY REMOVED for BaseModal experiment
 		isOpen:     false, // Simple boolean flag - will be set to true in Init()
-		goal:       goal,
+		habit:      habit,
 		collector:  collector,
 		fieldInput: fieldInput,
 		form:       form,
@@ -78,13 +78,13 @@ func NewEntryFormModal(goal models.Goal, collector *ui.EntryCollector, fieldInpu
 		height:     24,
 	}
 
-	debug.Modal("EntryFormModal created successfully for goal %s", goal.ID)
+	debug.Modal("EntryFormModal created successfully for habit %s", habit.ID)
 	return modal, nil
 }
 
 // Init initializes the entry form modal.
 func (efm *EntryFormModal) Init() tea.Cmd {
-	debug.Modal("Initializing modal for goal %s", efm.goal.ID)
+	debug.Modal("Initializing modal for habit %s", efm.habit.ID)
 	efm.Open()
 	cmd := efm.form.Init()
 	debug.Modal("Modal initialized, form state: %v, cmd: %v", efm.form.State, cmd != nil)
@@ -92,33 +92,37 @@ func (efm *EntryFormModal) Init() tea.Cmd {
 }
 
 // IsOpen returns true if the modal is currently open
-func (efm *EntryFormModal) IsOpen() bool   { return efm.isOpen }
+func (efm *EntryFormModal) IsOpen() bool { return efm.isOpen }
+
 // IsClosed returns true if the modal is closed
 func (efm *EntryFormModal) IsClosed() bool { return !efm.isOpen }
+
 // Open sets the modal to open state
 func (efm *EntryFormModal) Open() {
-	debug.Modal("Goal %s: Opening modal (simple boolean)", efm.goal.ID)
+	debug.Modal("Habit %s: Opening modal (simple boolean)", efm.habit.ID)
 	efm.isOpen = true
 }
 
 // Close sets the modal to closed state
 func (efm *EntryFormModal) Close() {
-	debug.Modal("Goal %s: Closing modal (simple boolean)", efm.goal.ID)
+	debug.Modal("Habit %s: Closing modal (simple boolean)", efm.habit.ID)
 	efm.isOpen = false
 }
+
 // SetResult stores the modal result
 func (efm *EntryFormModal) SetResult(result interface{}) { efm.result = result }
+
 // GetResult returns the stored modal result
-func (efm *EntryFormModal) GetResult() interface{}       { return efm.result }
+func (efm *EntryFormModal) GetResult() interface{} { return efm.result }
 
 // Update handles messages for the entry form modal.
 func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
 	msgType := fmt.Sprintf("%T", msg)
-	debug.Modal("Goal %s: Update received %s, form state: %v", efm.goal.ID, msgType, efm.form.State)
+	debug.Modal("Habit %s: Update received %s, form state: %v", efm.habit.ID, msgType, efm.form.State)
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		debug.Modal("Goal %s: WindowSizeMsg %dx%d", efm.goal.ID, msg.Width, msg.Height)
+		debug.Modal("Habit %s: WindowSizeMsg %dx%d", efm.habit.ID, msg.Width, msg.Height)
 		efm.width = msg.Width
 		efm.height = msg.Height
 		return efm, nil
@@ -126,11 +130,11 @@ func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
 	case tea.KeyMsg:
 		// Handle modal-specific keys (ESC) before passing to form
 		if msg.String() == "esc" {
-			debug.Modal("Goal %s: ESC pressed, closing modal without saving", efm.goal.ID)
+			debug.Modal("Habit %s: ESC pressed, closing modal without saving", efm.habit.ID)
 			efm.Close()
 			return efm, nil
 		}
-		debug.Modal("Goal %s: KeyMsg %s", efm.goal.ID, msg.String())
+		debug.Modal("Habit %s: KeyMsg %s", efm.habit.ID, msg.String())
 	}
 
 	// Process the form using canonical pattern from huh/examples/bubbletea
@@ -143,19 +147,19 @@ func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
 	}
 
 	if efm.form.State != oldState {
-		debug.Modal("Goal %s: Form state changed from %v to %v after %s", efm.goal.ID, oldState, efm.form.State, msgType)
+		debug.Modal("Habit %s: Form state changed from %v to %v after %s", efm.habit.ID, oldState, efm.form.State, msgType)
 	}
 
 	// Check if form is complete
 	if efm.form.State == huh.StateCompleted {
-		debug.Modal("Goal %s: Form completed, processing entry", efm.goal.ID)
+		debug.Modal("Habit %s: Form completed, processing entry", efm.habit.ID)
 		efm.formComplete = true
 		return efm.processEntry()
 	}
 
 	// Check if form was aborted
 	if efm.form.State == huh.StateAborted {
-		debug.Modal("Goal %s: Form aborted, closing modal", efm.goal.ID)
+		debug.Modal("Habit %s: Form aborted, closing modal", efm.habit.ID)
 		efm.Close()
 		return efm, cmd
 	}
@@ -165,14 +169,14 @@ func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
 
 // AIDEV-NOTE: T024-fix; removed HandleKey method - using canonical huh+bubbletea pattern instead
 
-// processEntry processes the goal entry and closes the modal.
+// processEntry processes the habit entry and closes the modal.
 // AIDEV-NOTE: entry-processing; processes form completion and creates EntryResult
 func (efm *EntryFormModal) processEntry() (Modal, tea.Cmd) {
-	debug.Modal("Goal %s: Processing entry, validating input", efm.goal.ID)
+	debug.Modal("Habit %s: Processing entry, validating input", efm.habit.ID)
 
 	// Validate the input
 	if err := efm.fieldInput.Validate(); err != nil {
-		debug.Modal("Goal %s: Validation failed: %v", efm.goal.ID, err)
+		debug.Modal("Habit %s: Validation failed: %v", efm.habit.ID, err)
 		efm.error = fmt.Errorf("validation failed: %w", err)
 		return efm, nil
 	}
@@ -180,7 +184,7 @@ func (efm *EntryFormModal) processEntry() (Modal, tea.Cmd) {
 	// Get the collected value and status
 	value := efm.fieldInput.GetValue()
 	status := efm.fieldInput.GetStatus()
-	debug.Modal("Goal %s: Collected value: %v, status: %v", efm.goal.ID, value, status)
+	debug.Modal("Habit %s: Collected value: %v, status: %v", efm.habit.ID, value, status)
 
 	// Create the entry result
 	result := &entry.EntryResult{
@@ -189,8 +193,8 @@ func (efm *EntryFormModal) processEntry() (Modal, tea.Cmd) {
 	}
 
 	// Handle scoring if needed
-	if efm.goal.ScoringType == models.AutomaticScoring {
-		debug.Modal("Goal %s: Automatic scoring required (TODO: not implemented)", efm.goal.ID)
+	if efm.habit.ScoringType == models.AutomaticScoring {
+		debug.Modal("Habit %s: Automatic scoring required (TODO: not implemented)", efm.habit.ID)
 		// TODO: Implement scoring integration
 		// AIDEV-NOTE: scoring-todo; needs integration with existing scoring engine
 		// For now, just set achievement level to nil
@@ -207,7 +211,7 @@ func (efm *EntryFormModal) processEntry() (Modal, tea.Cmd) {
 	efm.SetResult(result)
 	efm.Close()
 
-	debug.Modal("Goal %s: Entry processed successfully, modal closed", efm.goal.ID)
+	debug.Modal("Habit %s: Entry processed successfully, modal closed", efm.habit.ID)
 	return efm, nil
 }
 
@@ -234,7 +238,7 @@ func (efm *EntryFormModal) renderForm() string {
 		Align(lipgloss.Center).
 		Margin(1, 0, 0, 0)
 
-	title := titleStyle.Render(fmt.Sprintf("Entry: %s", efm.goal.Title))
+	title := titleStyle.Render(fmt.Sprintf("Entry: %s", efm.habit.Title))
 
 	// Render the form
 	formContent := efm.form.View()
@@ -274,7 +278,6 @@ func (efm *EntryFormModal) renderError() string {
 		help,
 	)
 }
-
 
 // GetEntryResult returns the entry result if available.
 func (efm *EntryFormModal) GetEntryResult() *entry.EntryResult {

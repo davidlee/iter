@@ -21,6 +21,7 @@ const (
 )
 
 // DebugLogger provides centralized debug logging with file output
+//
 //revive:disable-next-line:exported -- DebugLogger name follows singleton pattern
 type DebugLogger struct {
 	enabled   bool

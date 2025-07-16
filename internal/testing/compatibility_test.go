@@ -24,17 +24,17 @@ func TestUserDataBackwardsCompatibility(t *testing.T) {
 		{
 			name:        "no_position_fields",
 			file:        "no_position_fields.yml",
-			description: "User goals without explicit position fields (T002 failure case)",
+			description: "User habits without explicit position fields (T002 failure case)",
 		},
 		{
-			name:        "minimal_goals",
-			file:        "minimal_goals.yml",
-			description: "Minimal user configuration with single goal",
+			name:        "minimal_habits",
+			file:        "minimal_habits.yml",
+			description: "Minimal user configuration with single habit",
 		},
 		{
 			name:        "mixed_goal_types",
 			file:        "mixed_goal_types.yml",
-			description: "Mix of simple, elastic, and informational goals",
+			description: "Mix of simple, elastic, and informational habits",
 		},
 	}
 
@@ -46,7 +46,7 @@ func TestUserDataBackwardsCompatibility(t *testing.T) {
 			require.NoError(t, err, "Should be able to read user pattern %s", pattern.file)
 
 			// Test that parser can load it
-			goalParser := parser.NewGoalParser()
+			goalParser := parser.NewHabitParser()
 			schema, err := goalParser.ParseYAML(data)
 			require.NoError(t, err, "Parser should handle user pattern %s: %s", pattern.file, pattern.description)
 
@@ -54,20 +54,20 @@ func TestUserDataBackwardsCompatibility(t *testing.T) {
 			err = schema.Validate()
 			require.NoError(t, err, "Validation should pass for user pattern %s: %s", pattern.file, pattern.description)
 
-			// Verify goals were loaded correctly
-			assert.Greater(t, len(schema.Goals), 0, "Should have at least one goal")
+			// Verify habits were loaded correctly
+			assert.Greater(t, len(schema.Habits), 0, "Should have at least one habit")
 
 			// Verify positions were auto-assigned correctly
-			for i, goal := range schema.Goals {
+			for i, habit := range schema.Habits {
 				expectedPosition := i + 1
-				assert.Equal(t, expectedPosition, goal.Position,
-					"Goal %d should have position %d (auto-assigned)", i, expectedPosition)
+				assert.Equal(t, expectedPosition, habit.Position,
+					"Habit %d should have position %d (auto-assigned)", i, expectedPosition)
 			}
 
-			// Verify all goals have valid IDs (auto-generated if needed)
-			for _, goal := range schema.Goals {
-				assert.NotEmpty(t, goal.ID, "Goal should have an ID")
-				assert.NotEmpty(t, goal.Title, "Goal should have a title")
+			// Verify all habits have valid IDs (auto-generated if needed)
+			for _, habit := range schema.Habits {
+				assert.NotEmpty(t, habit.ID, "Habit should have an ID")
+				assert.NotEmpty(t, habit.Title, "Habit should have a title")
 			}
 		})
 	}
@@ -84,9 +84,9 @@ func TestSchemaVersionCompatibility(t *testing.T) {
 		{"", false},     // Empty version should fail
 	}
 
-	baseGoal := `
-goals:
-  - title: "Test Goal"
+	baseHabit := `
+habits:
+  - title: "Test Habit"
     goal_type: "simple"
     field_type:
       type: "boolean"
@@ -99,9 +99,9 @@ goals:
 			if tc.version != "" {
 				yamlContent = "version: \"" + tc.version + "\"\n"
 			}
-			yamlContent += baseGoal
+			yamlContent += baseHabit
 
-			goalParser := parser.NewGoalParser()
+			goalParser := parser.NewHabitParser()
 			schema, err := goalParser.ParseYAML([]byte(yamlContent))
 
 			if tc.valid {
@@ -120,31 +120,31 @@ goals:
 }
 
 // TestPositionInferenceFromFileOrder verifies that positions are correctly assigned
-// based on the order of goals in the YAML file, addressing the T002 issue.
+// based on the order of habits in the YAML file, addressing the T002 issue.
 func TestPositionInferenceFromFileOrder(t *testing.T) {
 	yamlContent := `
 version: "1.0.0"
-goals:
-  - title: "First Goal"
+habits:
+  - title: "First Habit"
     goal_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
     prompt: "First prompt"
-  - title: "Second Goal"
+  - title: "Second Habit"
     goal_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
     prompt: "Second prompt"
-  - title: "Third Goal"
+  - title: "Third Habit"
     goal_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
     prompt: "Third prompt"`
 
-	goalParser := parser.NewGoalParser()
+	goalParser := parser.NewHabitParser()
 	schema, err := goalParser.ParseYAML([]byte(yamlContent))
 	require.NoError(t, err)
 
@@ -152,18 +152,18 @@ goals:
 	require.NoError(t, err)
 
 	// Verify positions were assigned correctly based on order
-	require.Len(t, schema.Goals, 3)
-	assert.Equal(t, 1, schema.Goals[0].Position)
-	assert.Equal(t, 2, schema.Goals[1].Position)
-	assert.Equal(t, 3, schema.Goals[2].Position)
+	require.Len(t, schema.Habits, 3)
+	assert.Equal(t, 1, schema.Habits[0].Position)
+	assert.Equal(t, 2, schema.Habits[1].Position)
+	assert.Equal(t, 3, schema.Habits[2].Position)
 
 	// Verify titles match expected order
-	assert.Equal(t, "First Goal", schema.Goals[0].Title)
-	assert.Equal(t, "Second Goal", schema.Goals[1].Title)
-	assert.Equal(t, "Third Goal", schema.Goals[2].Title)
+	assert.Equal(t, "First Habit", schema.Habits[0].Title)
+	assert.Equal(t, "Second Habit", schema.Habits[1].Title)
+	assert.Equal(t, "Third Habit", schema.Habits[2].Title)
 }
 
-// TestMissingFieldsHandling ensures that goals with missing optional fields still work.
+// TestMissingFieldsHandling ensures that habits with missing optional fields still work.
 func TestMissingFieldsHandling(t *testing.T) {
 	testCases := []struct {
 		name        string
@@ -174,8 +174,8 @@ func TestMissingFieldsHandling(t *testing.T) {
 			name: "missing_created_date",
 			yamlContent: `
 version: "1.0.0"
-goals:
-  - title: "Test Goal"
+habits:
+  - title: "Test Habit"
     goal_type: "simple"
     field_type:
       type: "boolean"
@@ -187,8 +187,8 @@ goals:
 			name: "missing_description",
 			yamlContent: `
 version: "1.0.0"
-goals:
-  - title: "Test Goal"
+habits:
+  - title: "Test Habit"
     goal_type: "simple"
     field_type:
       type: "boolean"
@@ -200,8 +200,8 @@ goals:
 			name: "missing_help_text",
 			yamlContent: `
 version: "1.0.0"
-goals:
-  - title: "Test Goal"
+habits:
+  - title: "Test Habit"
     goal_type: "simple"
     field_type:
       type: "boolean"
@@ -213,7 +213,7 @@ goals:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			goalParser := parser.NewGoalParser()
+			goalParser := parser.NewHabitParser()
 			schema, err := goalParser.ParseYAML([]byte(tc.yamlContent))
 
 			if tc.shouldWork {

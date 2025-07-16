@@ -15,9 +15,9 @@ func TestEntryLog_Validate(t *testing.T) {
 			Entries: []DayEntry{
 				{
 					Date: "2024-01-01",
-					Goals: []GoalEntry{
+					Habits: []HabitEntry{
 						{
-							GoalID:    "morning_meditation",
+							HabitID:   "morning_meditation",
 							Value:     true,
 							Status:    EntryCompleted,
 							CreatedAt: time.Now(),
@@ -44,8 +44,8 @@ func TestEntryLog_Validate(t *testing.T) {
 		entryLog := EntryLog{
 			Version: "1.0.0",
 			Entries: []DayEntry{
-				{Date: "2024-01-01", Goals: []GoalEntry{}},
-				{Date: "2024-01-01", Goals: []GoalEntry{}}, // Duplicate
+				{Date: "2024-01-01", Habits: []HabitEntry{}},
+				{Date: "2024-01-01", Habits: []HabitEntry{}}, // Duplicate
 			},
 		}
 
@@ -71,15 +71,15 @@ func TestDayEntry_Validate(t *testing.T) {
 	t.Run("valid day entry", func(t *testing.T) {
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
-			Goals: []GoalEntry{
+			Habits: []HabitEntry{
 				{
-					GoalID:    "meditation",
+					HabitID:   "meditation",
 					Value:     true,
 					Status:    EntryCompleted,
 					CreatedAt: time.Now(),
 				},
 				{
-					GoalID:    "exercise",
+					HabitID:   "exercise",
 					Value:     false,
 					Status:    EntryFailed,
 					CreatedAt: time.Now(),
@@ -93,7 +93,7 @@ func TestDayEntry_Validate(t *testing.T) {
 
 	t.Run("date is required", func(t *testing.T) {
 		dayEntry := DayEntry{
-			Goals: []GoalEntry{},
+			Habits: []HabitEntry{},
 		}
 
 		err := dayEntry.Validate()
@@ -102,45 +102,45 @@ func TestDayEntry_Validate(t *testing.T) {
 
 	t.Run("invalid date format", func(t *testing.T) {
 		dayEntry := DayEntry{
-			Date:  "invalid-date",
-			Goals: []GoalEntry{},
+			Date:   "invalid-date",
+			Habits: []HabitEntry{},
 		}
 
 		err := dayEntry.Validate()
 		assert.Contains(t, err.Error(), "invalid date format")
 	})
 
-	t.Run("duplicate goal IDs within day", func(t *testing.T) {
+	t.Run("duplicate habit IDs within day", func(t *testing.T) {
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
-			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
-				{GoalID: "meditation", Value: false, Status: EntryFailed, CreatedAt: time.Now()}, // Duplicate
+			Habits: []HabitEntry{
+				{HabitID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
+				{HabitID: "meditation", Value: false, Status: EntryFailed, CreatedAt: time.Now()}, // Duplicate
 			},
 		}
 
 		err := dayEntry.Validate()
-		assert.Contains(t, err.Error(), "duplicate goal ID for date 2024-01-01: meditation")
+		assert.Contains(t, err.Error(), "duplicate habit ID for date 2024-01-01: meditation")
 	})
 
-	t.Run("invalid goal entry", func(t *testing.T) {
+	t.Run("invalid habit entry", func(t *testing.T) {
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
-			Goals: []GoalEntry{
-				{GoalID: ""}, // Invalid goal entry
+			Habits: []HabitEntry{
+				{HabitID: ""}, // Invalid habit entry
 			},
 		}
 
 		err := dayEntry.Validate()
-		assert.Contains(t, err.Error(), "goal entry at index 0")
-		assert.Contains(t, err.Error(), "goal ID is required")
+		assert.Contains(t, err.Error(), "habit entry at index 0")
+		assert.Contains(t, err.Error(), "habit ID is required")
 	})
 }
 
-func TestGoalEntry_Validate(t *testing.T) {
-	t.Run("valid boolean goal entry", func(t *testing.T) {
-		goalEntry := GoalEntry{
-			GoalID:    "meditation",
+func TestHabitEntry_Validate(t *testing.T) {
+	t.Run("valid boolean habit entry", func(t *testing.T) {
+		goalEntry := HabitEntry{
+			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
@@ -150,9 +150,9 @@ func TestGoalEntry_Validate(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("valid goal entry with notes", func(t *testing.T) {
-		goalEntry := GoalEntry{
-			GoalID:    "exercise",
+	t.Run("valid habit entry with notes", func(t *testing.T) {
+		goalEntry := HabitEntry{
+			HabitID:   "exercise",
 			Value:     false,
 			Status:    EntryFailed,
 			CreatedAt: time.Now(),
@@ -163,32 +163,32 @@ func TestGoalEntry_Validate(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("goal ID is required", func(t *testing.T) {
-		goalEntry := GoalEntry{
+	t.Run("habit ID is required", func(t *testing.T) {
+		goalEntry := HabitEntry{
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
 		err := goalEntry.Validate()
-		assert.EqualError(t, err, "goal ID is required")
+		assert.EqualError(t, err, "habit ID is required")
 	})
 
-	t.Run("whitespace-only goal ID is invalid", func(t *testing.T) {
-		goalEntry := GoalEntry{
-			GoalID:    "   ",
+	t.Run("whitespace-only habit ID is invalid", func(t *testing.T) {
+		goalEntry := HabitEntry{
+			HabitID:   "   ",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
 		err := goalEntry.Validate()
-		assert.EqualError(t, err, "goal ID is required")
+		assert.EqualError(t, err, "habit ID is required")
 	})
 
 	t.Run("value is required for completed/failed entries", func(t *testing.T) {
-		goalEntry := GoalEntry{
-			GoalID:    "meditation",
+		goalEntry := HabitEntry{
+			HabitID:   "meditation",
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 			// Value is nil
@@ -200,8 +200,8 @@ func TestGoalEntry_Validate(t *testing.T) {
 
 	t.Run("skipped entries with achievement levels are allowed", func(t *testing.T) {
 		achievementLevel := AchievementMini
-		goalEntry := GoalEntry{
-			GoalID:           "meditation",
+		goalEntry := HabitEntry{
+			HabitID:          "meditation",
 			Status:           EntrySkipped,
 			AchievementLevel: &achievementLevel,
 			CreatedAt:        time.Now(),
@@ -213,8 +213,8 @@ func TestGoalEntry_Validate(t *testing.T) {
 	})
 
 	t.Run("skipped entries with values are still invalid", func(t *testing.T) {
-		goalEntry := GoalEntry{
-			GoalID:    "meditation",
+		goalEntry := HabitEntry{
+			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntrySkipped,
 			CreatedAt: time.Now(),
@@ -228,8 +228,8 @@ func TestGoalEntry_Validate(t *testing.T) {
 func TestEntryLog_GetDayEntry(t *testing.T) {
 	entryLog := EntryLog{
 		Entries: []DayEntry{
-			{Date: "2024-01-01", Goals: []GoalEntry{}},
-			{Date: "2024-01-02", Goals: []GoalEntry{}},
+			{Date: "2024-01-01", Habits: []HabitEntry{}},
+			{Date: "2024-01-02", Habits: []HabitEntry{}},
 		},
 	}
 
@@ -253,8 +253,8 @@ func TestEntryLog_AddDayEntry(t *testing.T) {
 
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
-			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
+			Habits: []HabitEntry{
+				{HabitID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
 			},
 		}
 
@@ -268,13 +268,13 @@ func TestEntryLog_AddDayEntry(t *testing.T) {
 		entryLog := EntryLog{
 			Version: "1.0.0",
 			Entries: []DayEntry{
-				{Date: "2024-01-01", Goals: []GoalEntry{}},
+				{Date: "2024-01-01", Habits: []HabitEntry{}},
 			},
 		}
 
 		dayEntry := DayEntry{
-			Date:  "2024-01-01",
-			Goals: []GoalEntry{},
+			Date:   "2024-01-01",
+			Habits: []HabitEntry{},
 		}
 
 		err := entryLog.AddDayEntry(dayEntry)
@@ -300,8 +300,8 @@ func TestEntryLog_UpdateDayEntry(t *testing.T) {
 			Entries: []DayEntry{
 				{
 					Date: "2024-01-01",
-					Goals: []GoalEntry{
-						{GoalID: "meditation", Value: false, Status: EntryFailed, CreatedAt: time.Now()},
+					Habits: []HabitEntry{
+						{HabitID: "meditation", Value: false, Status: EntryFailed, CreatedAt: time.Now()},
 					},
 				},
 			},
@@ -309,16 +309,16 @@ func TestEntryLog_UpdateDayEntry(t *testing.T) {
 
 		updatedEntry := DayEntry{
 			Date: "2024-01-01",
-			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
-				{GoalID: "exercise", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
+			Habits: []HabitEntry{
+				{HabitID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
+				{HabitID: "exercise", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
 			},
 		}
 
 		err := entryLog.UpdateDayEntry(updatedEntry)
 		assert.NoError(t, err)
 		assert.Len(t, entryLog.Entries, 1)
-		assert.Len(t, entryLog.Entries[0].Goals, 2)
+		assert.Len(t, entryLog.Entries[0].Habits, 2)
 	})
 
 	t.Run("add new entry when not exists", func(t *testing.T) {
@@ -326,8 +326,8 @@ func TestEntryLog_UpdateDayEntry(t *testing.T) {
 
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
-			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
+			Habits: []HabitEntry{
+				{HabitID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
 			},
 		}
 
@@ -337,117 +337,117 @@ func TestEntryLog_UpdateDayEntry(t *testing.T) {
 	})
 }
 
-func TestDayEntry_GetGoalEntry(t *testing.T) {
+func TestDayEntry_GetHabitEntry(t *testing.T) {
 	dayEntry := DayEntry{
 		Date: "2024-01-01",
-		Goals: []GoalEntry{
-			{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
-			{GoalID: "exercise", Value: false, Status: EntryFailed, CreatedAt: time.Now()},
+		Habits: []HabitEntry{
+			{HabitID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
+			{HabitID: "exercise", Value: false, Status: EntryFailed, CreatedAt: time.Now()},
 		},
 	}
 
-	t.Run("existing goal", func(t *testing.T) {
-		entry, found := dayEntry.GetGoalEntry("meditation")
+	t.Run("existing habit", func(t *testing.T) {
+		entry, found := dayEntry.GetHabitEntry("meditation")
 		assert.True(t, found)
 		require.NotNil(t, entry)
-		assert.Equal(t, "meditation", entry.GoalID)
+		assert.Equal(t, "meditation", entry.HabitID)
 		assert.Equal(t, true, entry.Value)
 	})
 
-	t.Run("non-existing goal", func(t *testing.T) {
-		entry, found := dayEntry.GetGoalEntry("reading")
+	t.Run("non-existing habit", func(t *testing.T) {
+		entry, found := dayEntry.GetHabitEntry("reading")
 		assert.False(t, found)
 		assert.Nil(t, entry)
 	})
 }
 
-func TestDayEntry_AddGoalEntry(t *testing.T) {
-	t.Run("add valid goal entry", func(t *testing.T) {
+func TestDayEntry_AddHabitEntry(t *testing.T) {
+	t.Run("add valid habit entry", func(t *testing.T) {
 		dayEntry := DayEntry{
-			Date:  "2024-01-01",
-			Goals: []GoalEntry{},
+			Date:   "2024-01-01",
+			Habits: []HabitEntry{},
 		}
 
-		goalEntry := GoalEntry{
-			GoalID:    "meditation",
+		goalEntry := HabitEntry{
+			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
-		err := dayEntry.AddGoalEntry(goalEntry)
+		err := dayEntry.AddHabitEntry(goalEntry)
 		assert.NoError(t, err)
-		assert.Len(t, dayEntry.Goals, 1)
-		assert.Equal(t, "meditation", dayEntry.Goals[0].GoalID)
+		assert.Len(t, dayEntry.Habits, 1)
+		assert.Equal(t, "meditation", dayEntry.Habits[0].HabitID)
 	})
 
-	t.Run("add duplicate goal", func(t *testing.T) {
+	t.Run("add duplicate habit", func(t *testing.T) {
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
-			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
+			Habits: []HabitEntry{
+				{HabitID: "meditation", Value: true, Status: EntryCompleted, CreatedAt: time.Now()},
 			},
 		}
 
-		goalEntry := GoalEntry{
-			GoalID:    "meditation",
+		goalEntry := HabitEntry{
+			HabitID:   "meditation",
 			Value:     false,
 			Status:    EntryFailed,
 			CreatedAt: time.Now(),
 		}
 
-		err := dayEntry.AddGoalEntry(goalEntry)
-		assert.EqualError(t, err, "entry for goal meditation already exists on date 2024-01-01")
+		err := dayEntry.AddHabitEntry(goalEntry)
+		assert.EqualError(t, err, "entry for habit meditation already exists on date 2024-01-01")
 	})
 }
 
-func TestDayEntry_UpdateGoalEntry(t *testing.T) {
-	t.Run("update existing goal entry", func(t *testing.T) {
+func TestDayEntry_UpdateHabitEntry(t *testing.T) {
+	t.Run("update existing habit entry", func(t *testing.T) {
 		dayEntry := DayEntry{
 			Date: "2024-01-01",
-			Goals: []GoalEntry{
-				{GoalID: "meditation", Value: false, Status: EntryFailed, CreatedAt: time.Now()},
+			Habits: []HabitEntry{
+				{HabitID: "meditation", Value: false, Status: EntryFailed, CreatedAt: time.Now()},
 			},
 		}
 
-		updatedGoal := GoalEntry{
-			GoalID:    "meditation",
+		updatedHabit := HabitEntry{
+			HabitID:   "meditation",
 			Value:     true,
 			Notes:     "Had a great session",
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
-		err := dayEntry.UpdateGoalEntry(updatedGoal)
+		err := dayEntry.UpdateHabitEntry(updatedHabit)
 		assert.NoError(t, err)
-		assert.Len(t, dayEntry.Goals, 1)
-		assert.Equal(t, true, dayEntry.Goals[0].Value)
-		assert.Equal(t, "Had a great session", dayEntry.Goals[0].Notes)
+		assert.Len(t, dayEntry.Habits, 1)
+		assert.Equal(t, true, dayEntry.Habits[0].Value)
+		assert.Equal(t, "Had a great session", dayEntry.Habits[0].Notes)
 	})
 
-	t.Run("add new goal when not exists", func(t *testing.T) {
+	t.Run("add new habit when not exists", func(t *testing.T) {
 		dayEntry := DayEntry{
-			Date:  "2024-01-01",
-			Goals: []GoalEntry{},
+			Date:   "2024-01-01",
+			Habits: []HabitEntry{},
 		}
 
-		goalEntry := GoalEntry{
-			GoalID:    "meditation",
+		goalEntry := HabitEntry{
+			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
-		err := dayEntry.UpdateGoalEntry(goalEntry)
+		err := dayEntry.UpdateHabitEntry(goalEntry)
 		assert.NoError(t, err)
-		assert.Len(t, dayEntry.Goals, 1)
+		assert.Len(t, dayEntry.Habits, 1)
 	})
 }
 
-func TestGoalEntry_BooleanValue(t *testing.T) {
+func TestHabitEntry_BooleanValue(t *testing.T) {
 	t.Run("get boolean value", func(t *testing.T) {
-		goalEntry := GoalEntry{
-			GoalID:    "meditation",
+		goalEntry := HabitEntry{
+			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
@@ -459,9 +459,9 @@ func TestGoalEntry_BooleanValue(t *testing.T) {
 	})
 
 	t.Run("non-boolean value", func(t *testing.T) {
-		goalEntry := GoalEntry{
-			GoalID: "steps",
-			Value:  12345,
+		goalEntry := HabitEntry{
+			HabitID: "steps",
+			Value:   12345,
 		}
 
 		value, ok := goalEntry.GetBooleanValue()
@@ -470,8 +470,8 @@ func TestGoalEntry_BooleanValue(t *testing.T) {
 	})
 
 	t.Run("set boolean value", func(t *testing.T) {
-		goalEntry := GoalEntry{
-			GoalID:    "meditation",
+		goalEntry := HabitEntry{
+			HabitID:   "meditation",
 			Value:     false,
 			Status:    EntryFailed,
 			CreatedAt: time.Now(),
@@ -487,14 +487,14 @@ func TestCreateTodayEntry(t *testing.T) {
 	today := time.Now().Format("2006-01-02")
 
 	assert.Equal(t, today, entry.Date)
-	assert.Empty(t, entry.Goals)
+	assert.Empty(t, entry.Habits)
 	assert.True(t, entry.IsToday())
 }
 
-func TestCreateBooleanGoalEntry(t *testing.T) {
-	entry := CreateBooleanGoalEntry("meditation", true)
+func TestCreateBooleanHabitEntry(t *testing.T) {
+	entry := CreateBooleanHabitEntry("meditation", true)
 
-	assert.Equal(t, "meditation", entry.GoalID)
+	assert.Equal(t, "meditation", entry.HabitID)
 	assert.Equal(t, true, entry.Value)
 
 	value, ok := entry.GetBooleanValue()
@@ -550,10 +550,10 @@ func TestEntryLog_GetEntriesForDateRange(t *testing.T) {
 	entryLog := EntryLog{
 		Version: "1.0.0",
 		Entries: []DayEntry{
-			{Date: "2024-01-01", Goals: []GoalEntry{}},
-			{Date: "2024-01-03", Goals: []GoalEntry{}},
-			{Date: "2024-01-05", Goals: []GoalEntry{}},
-			{Date: "2024-01-07", Goals: []GoalEntry{}},
+			{Date: "2024-01-01", Habits: []HabitEntry{}},
+			{Date: "2024-01-03", Habits: []HabitEntry{}},
+			{Date: "2024-01-05", Habits: []HabitEntry{}},
+			{Date: "2024-01-07", Habits: []HabitEntry{}},
 		},
 	}
 
@@ -598,10 +598,10 @@ func TestEntryLog_GetEntriesForDateRange(t *testing.T) {
 	})
 }
 
-func TestGoalEntry_AchievementLevel(t *testing.T) {
+func TestHabitEntry_AchievementLevel(t *testing.T) {
 	t.Run("GetAchievementLevel with no level set", func(t *testing.T) {
-		entry := GoalEntry{
-			GoalID:    "test_goal",
+		entry := HabitEntry{
+			HabitID:   "test_goal",
 			Value:     30,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
@@ -614,8 +614,8 @@ func TestGoalEntry_AchievementLevel(t *testing.T) {
 	})
 
 	t.Run("SetAchievementLevel and GetAchievementLevel", func(t *testing.T) {
-		entry := GoalEntry{
-			GoalID:    "test_goal",
+		entry := HabitEntry{
+			HabitID:   "test_goal",
 			Value:     30,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
@@ -631,8 +631,8 @@ func TestGoalEntry_AchievementLevel(t *testing.T) {
 
 	t.Run("ClearAchievementLevel", func(t *testing.T) {
 		level := AchievementMidi
-		entry := GoalEntry{
-			GoalID:           "test_goal",
+		entry := HabitEntry{
+			HabitID:          "test_goal",
 			Value:            30,
 			AchievementLevel: &level,
 			Status:           EntryCompleted,
@@ -659,8 +659,8 @@ func TestGoalEntry_AchievementLevel(t *testing.T) {
 
 		for _, levelValue := range validLevels {
 			level := levelValue // Create a copy for pointer
-			entry := GoalEntry{
-				GoalID:           "test_goal",
+			entry := HabitEntry{
+				HabitID:          "test_goal",
 				Value:            30,
 				AchievementLevel: &level,
 				Status:           EntryCompleted,
@@ -674,8 +674,8 @@ func TestGoalEntry_AchievementLevel(t *testing.T) {
 
 	t.Run("validate invalid achievement level", func(t *testing.T) {
 		invalidLevel := AchievementLevel("invalid")
-		entry := GoalEntry{
-			GoalID:           "test_goal",
+		entry := HabitEntry{
+			HabitID:          "test_goal",
 			Value:            30,
 			AchievementLevel: &invalidLevel,
 			Status:           EntryCompleted,
@@ -687,11 +687,11 @@ func TestGoalEntry_AchievementLevel(t *testing.T) {
 	})
 }
 
-func TestCreateElasticGoalEntry(t *testing.T) {
-	t.Run("create elastic goal entry", func(t *testing.T) {
-		entry := CreateElasticGoalEntry("exercise", 45, AchievementMidi)
+func TestCreateElasticHabitEntry(t *testing.T) {
+	t.Run("create elastic habit entry", func(t *testing.T) {
+		entry := CreateElasticHabitEntry("exercise", 45, AchievementMidi)
 
-		assert.Equal(t, "exercise", entry.GoalID)
+		assert.Equal(t, "exercise", entry.HabitID)
 		assert.Equal(t, 45, entry.Value)
 
 		level, ok := entry.GetAchievementLevel()
@@ -701,21 +701,21 @@ func TestCreateElasticGoalEntry(t *testing.T) {
 	})
 }
 
-func TestCreateValueOnlyGoalEntry(t *testing.T) {
-	t.Run("create value-only goal entry", func(t *testing.T) {
-		entry := CreateValueOnlyGoalEntry("reading", "30 minutes")
+func TestCreateValueOnlyHabitEntry(t *testing.T) {
+	t.Run("create value-only habit entry", func(t *testing.T) {
+		entry := CreateValueOnlyHabitEntry("reading", "30 minutes")
 
-		assert.Equal(t, "reading", entry.GoalID)
+		assert.Equal(t, "reading", entry.HabitID)
 		assert.Equal(t, "30 minutes", entry.Value)
 		assert.False(t, entry.HasAchievementLevel())
 	})
 }
 
-func TestCreateSkippedGoalEntry(t *testing.T) {
-	t.Run("create skipped goal entry", func(t *testing.T) {
-		entry := CreateSkippedGoalEntry("meditation")
+func TestCreateSkippedHabitEntry(t *testing.T) {
+	t.Run("create skipped habit entry", func(t *testing.T) {
+		entry := CreateSkippedHabitEntry("meditation")
 
-		assert.Equal(t, "meditation", entry.GoalID)
+		assert.Equal(t, "meditation", entry.HabitID)
 		assert.Nil(t, entry.Value)
 		assert.Nil(t, entry.AchievementLevel)
 		assert.Equal(t, EntrySkipped, entry.Status)
@@ -729,9 +729,9 @@ func TestCreateSkippedGoalEntry(t *testing.T) {
 	})
 }
 
-func TestGoalEntry_StatusHelperMethods(t *testing.T) {
+func TestHabitEntry_StatusHelperMethods(t *testing.T) {
 	t.Run("completed entry", func(t *testing.T) {
-		entry := CreateBooleanGoalEntry("meditation", true)
+		entry := CreateBooleanHabitEntry("meditation", true)
 
 		assert.True(t, entry.IsCompleted())
 		assert.False(t, entry.IsSkipped())
@@ -741,7 +741,7 @@ func TestGoalEntry_StatusHelperMethods(t *testing.T) {
 	})
 
 	t.Run("failed entry", func(t *testing.T) {
-		entry := CreateBooleanGoalEntry("exercise", false)
+		entry := CreateBooleanHabitEntry("exercise", false)
 
 		assert.False(t, entry.IsCompleted())
 		assert.False(t, entry.IsSkipped())
@@ -751,7 +751,7 @@ func TestGoalEntry_StatusHelperMethods(t *testing.T) {
 	})
 
 	t.Run("skipped entry", func(t *testing.T) {
-		entry := CreateSkippedGoalEntry("reading")
+		entry := CreateSkippedHabitEntry("reading")
 
 		assert.False(t, entry.IsCompleted())
 		assert.True(t, entry.IsSkipped())
@@ -761,12 +761,12 @@ func TestGoalEntry_StatusHelperMethods(t *testing.T) {
 	})
 }
 
-func TestGoalEntry_TimestampMethods(t *testing.T) {
+func TestHabitEntry_TimestampMethods(t *testing.T) {
 	t.Run("mark created and updated", func(t *testing.T) {
-		entry := GoalEntry{
-			GoalID: "test",
-			Value:  true,
-			Status: EntryCompleted,
+		entry := HabitEntry{
+			HabitID: "test",
+			Value:   true,
+			Status:  EntryCompleted,
 		}
 
 		// Test MarkCreated

@@ -1,8 +1,0 @@
-version: "1.0.0"
-goals:
-  - title: "Exercise"
-    goal_type: "simple"
-    field_type:
-      type: "boolean"
-    scoring_type: "manual"
-    prompt: "Did you exercise today?"

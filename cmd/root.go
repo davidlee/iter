@@ -27,15 +27,15 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "vice",
 	Short: "A CLI habit tracker",
-	Long: `vice is a flexible command-line habit tracker supporting diverse goal types:
-simple boolean goals, elastic goals with three achievement tiers (mini/midi/maxi), 
-informational goals for data collection, and checklist-based goals. Features automatic
+	Long: `vice is a flexible command-line habit tracker supporting diverse habit types:
+simple boolean habits, elastic habits with three achievement tiers (mini/midi/maxi), 
+informational habits for data collection, and checklist-based habits. Features automatic
 success criteria evaluation and stores data in local YAML files for portability.
 
 Examples:
   vice                # Launch interactive entry menu (default)
   vice entry          # Record today's habit completion
-  vice goal add       # Add new goals (simple/elastic/informational/checklist)
+  vice habit add       # Add new habits (simple/elastic/informational/checklist)
   vice todo           # View today's completion status dashboard
   vice --config-dir /path/to/config entry  # Use custom config directory`,
 	PersistentPreRunE: initializePaths,
@@ -115,7 +115,7 @@ func runDefaultCommand(_ *cobra.Command, _ []string) error {
 
 	// Ensure config files exist, creating samples if missing
 	initializer := init_pkg.NewFileInitializer()
-	if err := initializer.EnsureConfigFiles(paths.GoalsFile, paths.EntriesFile); err != nil {
+	if err := initializer.EnsureConfigFiles(paths.HabitsFile, paths.EntriesFile); err != nil {
 		return err
 	}
 

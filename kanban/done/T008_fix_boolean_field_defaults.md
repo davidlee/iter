@@ -14,7 +14,7 @@ context_windows: ["cmd/entry.go", "internal/ui/**/*.go", "internal/storage/**/*.
 
 - `fab7543` - fix(ui)[T008/2.1]: initialize boolean form fields with existing values
 
-## 1. Goal / User Story
+## 1. Habit / User Story
 
 When using `vice entry` to record habit data, form controls should default to previously written data to minimize friction during daily entry. Currently, boolean fields incorrectly default to "No" even when previous data shows "Yes", while numeric fields correctly preserve previous values.
 

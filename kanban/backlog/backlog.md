@@ -20,7 +20,7 @@ Affinity:
        missions 
 ```
 
-## Goal Management (add / edit)
+## Habit Management (add / edit)
 
         92 -    switch e.EntryStatus {
         93 -    case models.EntryCompleted:
@@ -33,13 +33,13 @@ Affinity:
        100 -      return "○" // incomplete
        101 -    }
 
-- [ ] default command: if no data, enter goal add wizard 
+- [ ] default command: if no data, enter habit add wizard 
 - [ ] edit title
 - [ ] add optional default for boolean fields. This will set the default state for form fields during entry.
 
 ## data model
 
-- goals? call them habits.
+- habits? call them habits.
 - a habit can have n fields
 - more complex (DSL?) criteria
   - combine per-field criteria
@@ -220,11 +220,11 @@ Affinity:
 
 ## Testing & QA
 
-- Performance testing for large goal sets (100+ goals)
+- Performance testing for large habit sets (100+ habits)
 - Table / cartesian product of test scenarios / supported cases
-- Fuzz testing (goals > collectors)
+- Fuzz testing (habits > collectors)
 - Logging / headless operation? ask stupid to come up with a plan, or do some research (must be patterns for charm out there)
-- Stress testing with complex goal schemas and criteria
+- Stress testing with complex habit schemas and criteria
 - Error recovery testing for interrupted entry sessions
   - dump scratch files?
 

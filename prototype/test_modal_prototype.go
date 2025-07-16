@@ -16,8 +16,8 @@ import (
 	"davidlee/vice/internal/ui/entry"
 )
 
-// Goal represents a simplified goal structure
-type Goal struct {
+// Habit represents a simplified habit structure
+type Habit struct {
 	ID    string
 	Title string
 }
@@ -85,10 +85,10 @@ func (bm *BaseModal) Close() {
 	bm.state = ModalClosed
 }
 
-// EntryFormModal represents a modal for collecting goal entries
+// EntryFormModal represents a modal for collecting habit entries
 type EntryFormModal struct {
 	*BaseModal
-	goal         Goal
+	habit        Habit
 	fieldInput   entry.EntryFieldInput
 	form         *huh.Form
 	result       *EntryResult
@@ -96,16 +96,16 @@ type EntryFormModal struct {
 }
 
 // NewEntryFormModal creates a new entry form modal with Entry Collection Context
-func NewEntryFormModal(goal Goal, entryCollector *ui.EntryCollector) *EntryFormModal {
-	// Create models.Goal from prototype Goal
-	modelsGoal := models.Goal{
-		ID:       goal.ID,
-		Title:    goal.Title,
-		GoalType: "simple",
+func NewEntryFormModal(habit Habit, entryCollector *ui.EntryCollector) *EntryFormModal {
+	// Create models.Habit from prototype Habit
+	modelsHabit := models.Habit{
+		ID:        habit.ID,
+		Title:     habit.Title,
+		HabitType: "simple",
 	}
 
 	// Get existing entry from collector
-	value, notes, achievement, status, hasEntry := entryCollector.GetGoalEntry(goal.ID)
+	value, notes, achievement, status, hasEntry := entryCollector.GetHabitEntry(habit.ID)
 
 	var existingEntry *entry.ExistingEntry
 	if hasEntry {
@@ -114,10 +114,10 @@ func NewEntryFormModal(goal Goal, entryCollector *ui.EntryCollector) *EntryFormM
 			Notes:            notes,
 			AchievementLevel: achievement,
 		}
-		debug.Modal("Using existing entry for goal %s: value=%v, notes=%s, status=%s",
-			goal.ID, value, notes, status)
+		debug.Modal("Using existing entry for habit %s: value=%v, notes=%s, status=%s",
+			habit.ID, value, notes, status)
 	} else {
-		debug.Modal("No existing entry for goal %s", goal.ID)
+		debug.Modal("No existing entry for habit %s", habit.ID)
 	}
 
 	// Create real field input factory
@@ -125,7 +125,7 @@ func NewEntryFormModal(goal Goal, entryCollector *ui.EntryCollector) *EntryFormM
 
 	// Create field input config with existing entry context
 	config := entry.EntryFieldInputConfig{
-		Goal:          modelsGoal,
+		Habit:         modelsHabit,
 		FieldType:     models.FieldType{Type: models.BooleanFieldType},
 		ExistingEntry: existingEntry,
 		ShowScoring:   true, // Enable scoring for complex state
@@ -139,11 +139,11 @@ func NewEntryFormModal(goal Goal, entryCollector *ui.EntryCollector) *EntryFormM
 	}
 
 	// Create form using field input
-	form := fieldInput.CreateInputForm(modelsGoal)
+	form := fieldInput.CreateInputForm(modelsHabit)
 
 	return &EntryFormModal{
 		BaseModal:    NewBaseModal(),
-		goal:         goal,
+		habit:        habit,
 		fieldInput:   fieldInput,
 		form:         form,
 		inputFactory: inputFactory,
@@ -263,7 +263,6 @@ func NewStyles(lg *lipgloss.Renderer) *Styles {
 	return &s
 }
 
-
 // ModalManager manages the display and interaction of modals.
 type ModalManager struct {
 	activeModal  Modal
@@ -367,28 +366,28 @@ type EntryMenuModel struct {
 	modalManager      *ModalManager
 	fieldInputFactory *entry.EntryFieldInputFactory
 	entryCollector    *ui.EntryCollector
-	goals             []models.Goal
-	entries           map[string]models.GoalEntry
+	habits            []models.Habit
+	entries           map[string]models.HabitEntry
 	width             int
 	height            int
 }
 
 // NewEntryMenuModel creates a new entry menu model with Entry Collection Context
 func NewEntryMenuModel(width, height int) *EntryMenuModel {
-	// Create goals and entries with complex state
-	goals := []models.Goal{
+	// Create habits and entries with complex state
+	habits := []models.Habit{
 		{
-			ID:       "test_goal",
-			Title:    "Exercise",
-			GoalType: "simple",
+			ID:        "test_goal",
+			Title:     "Exercise",
+			HabitType: "simple",
 		},
 	}
 
 	// Create existing entries with achievement levels and notes
 	achievementLevel := models.AchievementMidi
-	entries := map[string]models.GoalEntry{
+	entries := map[string]models.HabitEntry{
 		"test_goal": {
-			GoalID:           "test_goal",
+			HabitID:          "test_goal",
 			Value:            true, // Existing boolean value
 			AchievementLevel: &achievementLevel,
 			Notes:            "Previous completion with notes",
@@ -400,13 +399,13 @@ func NewEntryMenuModel(width, height int) *EntryMenuModel {
 
 	// Create entry collector with complex state
 	entryCollector := ui.NewEntryCollector("/tmp/test_entries.yml")
-	entryCollector.InitializeForMenu(goals, entries)
+	entryCollector.InitializeForMenu(habits, entries)
 
 	return &EntryMenuModel{
 		modalManager:      NewModalManager(width, height),
 		fieldInputFactory: entry.NewEntryFieldInputFactory(),
 		entryCollector:    entryCollector,
-		goals:             goals,
+		habits:            habits,
 		entries:           entries,
 		width:             width,
 		height:            height,
@@ -436,8 +435,8 @@ func (em *EntryMenuModel) OpenModal(modal Modal) tea.Cmd {
 }
 
 // OpenEntryFormModal creates and opens an entry form modal with collector context
-func (em *EntryMenuModel) OpenEntryFormModal(goal Goal) tea.Cmd {
-	modal := NewEntryFormModal(goal, em.entryCollector)
+func (em *EntryMenuModel) OpenEntryFormModal(habit Habit) tea.Cmd {
+	modal := NewEntryFormModal(habit, em.entryCollector)
 	return em.modalManager.OpenModal(modal)
 }
 
@@ -468,14 +467,15 @@ func NewModel() Model {
 // Init initializes the model and returns the initial command
 func (m Model) Init() tea.Cmd {
 	// Open the entry form modal on startup via entry menu with collector context
-	goal := Goal{
+	habit := Habit{
 		ID:    "test_goal",
 		Title: "Exercise",
 	}
-	return m.entryMenu.OpenEntryFormModal(goal)
+	return m.entryMenu.OpenEntryFormModal(habit)
 }
 
 // min returns the minimum of two integers
+//
 //revive:disable-next-line:redefines-builtin-id -- using min for clarity in prototype code
 func min(x, y int) int {
 	if x > y {
@@ -524,7 +524,6 @@ func (m Model) View() string {
 	// Render via entry menu model (simulates real app architecture)
 	return m.entryMenu.View()
 }
-
 
 // getRole function removed - not needed for boolean modal
 

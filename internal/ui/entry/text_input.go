@@ -19,7 +19,7 @@ import (
 type TextEntryInput struct {
 	value         string
 	action        InputAction
-	goal          models.Goal
+	habit         models.Habit
 	fieldType     models.FieldType
 	existingEntry *ExistingEntry
 	showScoring   bool
@@ -31,7 +31,7 @@ type TextEntryInput struct {
 // NewTextEntryInput creates a new text entry input component
 func NewTextEntryInput(config EntryFieldInputConfig) *TextEntryInput {
 	input := &TextEntryInput{
-		goal:          config.Goal,
+		habit:         config.Habit,
 		fieldType:     config.FieldType,
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
@@ -50,23 +50,23 @@ func NewTextEntryInput(config EntryFieldInputConfig) *TextEntryInput {
 }
 
 // CreateInputForm creates a text input form with validation
-func (ti *TextEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
-	debug.Field("Creating huh.Form for text goal %s, multiline: %v, current value: %q", goal.ID, ti.multiline, ti.value)
+func (ti *TextEntryInput) CreateInputForm(habit models.Habit) *huh.Form {
+	debug.Field("Creating huh.Form for text habit %s, multiline: %v, current value: %q", habit.ID, ti.multiline, ti.value)
 	// Prepare styling
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("12")). // Bright blue
 		Margin(1, 0)
 
-	title := titleStyle.Render(goal.Title)
+	title := titleStyle.Render(habit.Title)
 
 	// Prepare prompt
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
 		if ti.multiline {
-			prompt = fmt.Sprintf("Enter text for: %s", goal.Title)
+			prompt = fmt.Sprintf("Enter text for: %s", habit.Title)
 		} else {
-			prompt = fmt.Sprintf("Enter value for: %s", goal.Title)
+			prompt = fmt.Sprintf("Enter value for: %s", habit.Title)
 		}
 	}
 
@@ -81,11 +81,11 @@ func (ti *TextEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 
 	// Prepare description
 	var description string
-	if goal.Description != "" {
+	if habit.Description != "" {
 		descStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("8")). // Gray
 			Italic(true)
-		description = descStyle.Render(goal.Description)
+		description = descStyle.Render(habit.Description)
 	}
 
 	// Add field type specific description
@@ -124,14 +124,14 @@ func (ti *TextEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 				Title("Action").
 				Options(
 					huh.NewOption("✅ Submit Value", ActionSubmit),
-					huh.NewOption("⏭️ Skip Goal", ActionSkip),
+					huh.NewOption("⏭️ Skip Habit", ActionSkip),
 				).
 				Value(&ti.action),
 		).Title(title),
 	)
 
 	// Add help text if available
-	if goal.HelpText != "" {
+	if habit.HelpText != "" {
 		ti.form = ti.form.WithShowHelp(true)
 	}
 

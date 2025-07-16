@@ -15,16 +15,16 @@ type EntryLog struct {
 	Entries []DayEntry `yaml:"entries"`
 }
 
-// DayEntry represents all goal completions for a single day.
+// DayEntry represents all habit completions for a single day.
 type DayEntry struct {
-	Date  string      `yaml:"date"`  // ISO date format: YYYY-MM-DD
-	Goals []GoalEntry `yaml:"goals"` // Goal completions for this day
+	Date   string       `yaml:"date"`   // ISO date format: YYYY-MM-DD
+	Habits []HabitEntry `yaml:"habits"` // Habit completions for this day
 }
 
-// AchievementLevel represents the achievement level for elastic goals.
+// AchievementLevel represents the achievement level for elastic habits.
 type AchievementLevel string
 
-// Achievement levels for elastic goals.
+// Achievement levels for elastic habits.
 const (
 	AchievementNone AchievementLevel = "none" // No achievement level met
 	AchievementMini AchievementLevel = "mini" // Minimum achievement level
@@ -32,30 +32,30 @@ const (
 	AchievementMaxi AchievementLevel = "maxi" // Maximum achievement level
 )
 
-// EntryStatus represents the completion status of a goal entry.
+// EntryStatus represents the completion status of a habit entry.
 type EntryStatus string
 
-// Entry status values define the state of goal completion.
+// Entry status values define the state of habit completion.
 const (
-	EntryCompleted EntryStatus = "completed" // Goal successfully completed
-	EntrySkipped   EntryStatus = "skipped"   // Goal skipped due to circumstances
-	EntryFailed    EntryStatus = "failed"    // Goal attempted but not achieved
+	EntryCompleted EntryStatus = "completed" // Habit successfully completed
+	EntrySkipped   EntryStatus = "skipped"   // Habit skipped due to circumstances
+	EntryFailed    EntryStatus = "failed"    // Habit attempted but not achieved
 )
 
-// GoalEntry represents the completion data for a single goal on a specific day.
-type GoalEntry struct {
-	GoalID           string            `yaml:"goal_id"`
+// HabitEntry represents the completion data for a single habit on a specific day.
+type HabitEntry struct {
+	HabitID          string            `yaml:"goal_id"`
 	Value            interface{}       `yaml:"value,omitempty"`             // nil for skipped entries
-	AchievementLevel *AchievementLevel `yaml:"achievement_level,omitempty"` // For elastic goals
+	AchievementLevel *AchievementLevel `yaml:"achievement_level,omitempty"` // For elastic habits
 	Notes            string            `yaml:"notes,omitempty"`
 	CreatedAt        time.Time         `yaml:"created_at"`           // Entry creation time
 	UpdatedAt        *time.Time        `yaml:"updated_at,omitempty"` // Last modification time (nil if never updated)
 	Status           EntryStatus       `yaml:"status"`               // Entry completion status
 }
 
-// BooleanEntry is a convenience type for boolean goal entries.
+// BooleanEntry is a convenience type for boolean habit entries.
 type BooleanEntry struct {
-	GoalID    string `yaml:"goal_id"`
+	HabitID   string `yaml:"goal_id"`
 	Completed bool   `yaml:"completed"`
 }
 
@@ -97,75 +97,75 @@ func (de *DayEntry) Validate() error {
 		return fmt.Errorf("invalid date format, expected YYYY-MM-DD: %w", err)
 	}
 
-	// Track unique goal IDs for this day
+	// Track unique habit IDs for this day
 	goalIDs := make(map[string]bool)
 
-	// Validate each goal entry
-	for i, goalEntry := range de.Goals {
+	// Validate each habit entry
+	for i, goalEntry := range de.Habits {
 		if err := goalEntry.Validate(); err != nil {
-			return fmt.Errorf("goal entry at index %d: %w", i, err)
+			return fmt.Errorf("habit entry at index %d: %w", i, err)
 		}
 
-		// Check goal ID uniqueness within this day
-		if goalIDs[goalEntry.GoalID] {
-			return fmt.Errorf("duplicate goal ID for date %s: %s", de.Date, goalEntry.GoalID)
+		// Check habit ID uniqueness within this day
+		if goalIDs[goalEntry.HabitID] {
+			return fmt.Errorf("duplicate habit ID for date %s: %s", de.Date, goalEntry.HabitID)
 		}
-		goalIDs[goalEntry.GoalID] = true
+		goalIDs[goalEntry.HabitID] = true
 	}
 
 	return nil
 }
 
-// IsSkipped returns true if this goal entry was skipped.
-func (ge *GoalEntry) IsSkipped() bool {
+// IsSkipped returns true if this habit entry was skipped.
+func (ge *HabitEntry) IsSkipped() bool {
 	return ge.Status == EntrySkipped
 }
 
-// IsCompleted returns true if this goal entry was completed successfully.
-func (ge *GoalEntry) IsCompleted() bool {
+// IsCompleted returns true if this habit entry was completed successfully.
+func (ge *HabitEntry) IsCompleted() bool {
 	return ge.Status == EntryCompleted
 }
 
-// HasFailure returns true if this goal entry failed.
-func (ge *GoalEntry) HasFailure() bool {
+// HasFailure returns true if this habit entry failed.
+func (ge *HabitEntry) HasFailure() bool {
 	return ge.Status == EntryFailed
 }
 
-// IsFinalized returns true if this goal entry has been processed (has status).
-func (ge *GoalEntry) IsFinalized() bool {
+// IsFinalized returns true if this habit entry has been processed (has status).
+func (ge *HabitEntry) IsFinalized() bool {
 	return ge.Status != ""
 }
 
-// RequiresValue returns true if this goal entry should have a value.
-func (ge *GoalEntry) RequiresValue() bool {
+// RequiresValue returns true if this habit entry should have a value.
+func (ge *HabitEntry) RequiresValue() bool {
 	return ge.Status != EntrySkipped
 }
 
 // MarkCreated sets the CreatedAt timestamp to the current time.
-func (ge *GoalEntry) MarkCreated() {
+func (ge *HabitEntry) MarkCreated() {
 	ge.CreatedAt = time.Now()
 }
 
 // MarkUpdated sets the UpdatedAt timestamp to the current time.
-func (ge *GoalEntry) MarkUpdated() {
+func (ge *HabitEntry) MarkUpdated() {
 	now := time.Now()
 	ge.UpdatedAt = &now
 }
 
 // GetLastModified returns the most recent modification time.
 // Returns UpdatedAt if set, otherwise CreatedAt.
-func (ge *GoalEntry) GetLastModified() time.Time {
+func (ge *HabitEntry) GetLastModified() time.Time {
 	if ge.UpdatedAt != nil {
 		return *ge.UpdatedAt
 	}
 	return ge.CreatedAt
 }
 
-// Validate validates a goal entry for correctness.
-func (ge *GoalEntry) Validate() error {
-	// Goal ID is required
-	if strings.TrimSpace(ge.GoalID) == "" {
-		return fmt.Errorf("goal ID is required")
+// Validate validates a habit entry for correctness.
+func (ge *HabitEntry) Validate() error {
+	// Habit ID is required
+	if strings.TrimSpace(ge.HabitID) == "" {
+		return fmt.Errorf("habit ID is required")
 	}
 
 	// Status is required
@@ -260,106 +260,106 @@ func (el *EntryLog) UpdateDayEntry(dayEntry DayEntry) error {
 	return nil
 }
 
-// GetGoalEntry finds a goal entry within this day. Returns the entry and true if found.
-func (de *DayEntry) GetGoalEntry(goalID string) (*GoalEntry, bool) {
-	for i := range de.Goals {
-		if de.Goals[i].GoalID == goalID {
-			return &de.Goals[i], true
+// GetHabitEntry finds a habit entry within this day. Returns the entry and true if found.
+func (de *DayEntry) GetHabitEntry(goalID string) (*HabitEntry, bool) {
+	for i := range de.Habits {
+		if de.Habits[i].HabitID == goalID {
+			return &de.Habits[i], true
 		}
 	}
 	return nil, false
 }
 
-// AddGoalEntry adds a goal entry to this day. If an entry for this goal
+// AddHabitEntry adds a habit entry to this day. If an entry for this habit
 // already exists, it returns an error.
-func (de *DayEntry) AddGoalEntry(goalEntry GoalEntry) error {
-	// Validate the goal entry
+func (de *DayEntry) AddHabitEntry(goalEntry HabitEntry) error {
+	// Validate the habit entry
 	if err := goalEntry.Validate(); err != nil {
-		return fmt.Errorf("invalid goal entry: %w", err)
+		return fmt.Errorf("invalid habit entry: %w", err)
 	}
 
-	// Check if entry for this goal already exists
-	if _, exists := de.GetGoalEntry(goalEntry.GoalID); exists {
-		return fmt.Errorf("entry for goal %s already exists on date %s", goalEntry.GoalID, de.Date)
+	// Check if entry for this habit already exists
+	if _, exists := de.GetHabitEntry(goalEntry.HabitID); exists {
+		return fmt.Errorf("entry for habit %s already exists on date %s", goalEntry.HabitID, de.Date)
 	}
 
 	// Add the entry
-	de.Goals = append(de.Goals, goalEntry)
+	de.Habits = append(de.Habits, goalEntry)
 
 	return nil
 }
 
-// UpdateGoalEntry updates an existing goal entry or creates a new one if it doesn't exist.
-func (de *DayEntry) UpdateGoalEntry(goalEntry GoalEntry) error {
-	// Validate the goal entry
+// UpdateHabitEntry updates an existing habit entry or creates a new one if it doesn't exist.
+func (de *DayEntry) UpdateHabitEntry(goalEntry HabitEntry) error {
+	// Validate the habit entry
 	if err := goalEntry.Validate(); err != nil {
-		return fmt.Errorf("invalid goal entry: %w", err)
+		return fmt.Errorf("invalid habit entry: %w", err)
 	}
 
 	// Find existing entry
-	for i := range de.Goals {
-		if de.Goals[i].GoalID == goalEntry.GoalID {
-			de.Goals[i] = goalEntry
+	for i := range de.Habits {
+		if de.Habits[i].HabitID == goalEntry.HabitID {
+			de.Habits[i] = goalEntry
 			return nil
 		}
 	}
 
 	// Entry doesn't exist, add it
-	de.Goals = append(de.Goals, goalEntry)
+	de.Habits = append(de.Habits, goalEntry)
 	return nil
 }
 
-// GetBooleanValue safely extracts a boolean value from the goal entry.
+// GetBooleanValue safely extracts a boolean value from the habit entry.
 // Returns the boolean value and true if successful, false and false if not a boolean.
-func (ge *GoalEntry) GetBooleanValue() (bool, bool) {
+func (ge *HabitEntry) GetBooleanValue() (bool, bool) {
 	if boolVal, ok := ge.Value.(bool); ok {
 		return boolVal, true
 	}
 	return false, false
 }
 
-// SetBooleanValue sets the goal entry value to a boolean.
-func (ge *GoalEntry) SetBooleanValue(value bool) {
+// SetBooleanValue sets the habit entry value to a boolean.
+func (ge *HabitEntry) SetBooleanValue(value bool) {
 	ge.Value = value
 }
 
-// GetAchievementLevel returns the achievement level for this goal entry.
+// GetAchievementLevel returns the achievement level for this habit entry.
 // Returns the level and true if set, or AchievementNone and false if not set.
-func (ge *GoalEntry) GetAchievementLevel() (AchievementLevel, bool) {
+func (ge *HabitEntry) GetAchievementLevel() (AchievementLevel, bool) {
 	if ge.AchievementLevel != nil {
 		return *ge.AchievementLevel, true
 	}
 	return AchievementNone, false
 }
 
-// SetAchievementLevel sets the achievement level for this goal entry.
-func (ge *GoalEntry) SetAchievementLevel(level AchievementLevel) {
+// SetAchievementLevel sets the achievement level for this habit entry.
+func (ge *HabitEntry) SetAchievementLevel(level AchievementLevel) {
 	ge.AchievementLevel = &level
 }
 
-// HasAchievementLevel returns true if this goal entry has an achievement level set.
-func (ge *GoalEntry) HasAchievementLevel() bool {
+// HasAchievementLevel returns true if this habit entry has an achievement level set.
+func (ge *HabitEntry) HasAchievementLevel() bool {
 	return ge.AchievementLevel != nil
 }
 
-// ClearAchievementLevel removes the achievement level from this goal entry.
-func (ge *GoalEntry) ClearAchievementLevel() {
+// ClearAchievementLevel removes the achievement level from this habit entry.
+func (ge *HabitEntry) ClearAchievementLevel() {
 	ge.AchievementLevel = nil
 }
 
 // CreateTodayEntry creates a new day entry for today's date.
 func CreateTodayEntry() DayEntry {
 	return DayEntry{
-		Date:  time.Now().Format("2006-01-02"),
-		Goals: []GoalEntry{},
+		Date:   time.Now().Format("2006-01-02"),
+		Habits: []HabitEntry{},
 	}
 }
 
-// CreateBooleanGoalEntry creates a new goal entry for a boolean goal.
-func CreateBooleanGoalEntry(goalID string, completed bool) GoalEntry {
-	entry := GoalEntry{
-		GoalID: goalID,
-		Value:  completed,
+// CreateBooleanHabitEntry creates a new habit entry for a boolean habit.
+func CreateBooleanHabitEntry(goalID string, completed bool) HabitEntry {
+	entry := HabitEntry{
+		HabitID: goalID,
+		Value:   completed,
 	}
 	if completed {
 		entry.Status = EntryCompleted
@@ -370,10 +370,10 @@ func CreateBooleanGoalEntry(goalID string, completed bool) GoalEntry {
 	return entry
 }
 
-// CreateElasticGoalEntry creates a new goal entry for an elastic goal with achievement level.
-func CreateElasticGoalEntry(goalID string, value interface{}, level AchievementLevel) GoalEntry {
-	entry := GoalEntry{
-		GoalID:           goalID,
+// CreateElasticHabitEntry creates a new habit entry for an elastic habit with achievement level.
+func CreateElasticHabitEntry(goalID string, value interface{}, level AchievementLevel) HabitEntry {
+	entry := HabitEntry{
+		HabitID:          goalID,
 		Value:            value,
 		AchievementLevel: &level,
 	}
@@ -386,22 +386,22 @@ func CreateElasticGoalEntry(goalID string, value interface{}, level AchievementL
 	return entry
 }
 
-// CreateValueOnlyGoalEntry creates a new goal entry with just a value (no achievement level).
-func CreateValueOnlyGoalEntry(goalID string, value interface{}) GoalEntry {
-	entry := GoalEntry{
-		GoalID: goalID,
-		Value:  value,
-		Status: EntryCompleted,
+// CreateValueOnlyHabitEntry creates a new habit entry with just a value (no achievement level).
+func CreateValueOnlyHabitEntry(goalID string, value interface{}) HabitEntry {
+	entry := HabitEntry{
+		HabitID: goalID,
+		Value:   value,
+		Status:  EntryCompleted,
 	}
 	entry.MarkCreated()
 	return entry
 }
 
-// CreateSkippedGoalEntry creates a new goal entry that was skipped.
-func CreateSkippedGoalEntry(goalID string) GoalEntry {
-	entry := GoalEntry{
-		GoalID: goalID,
-		Status: EntrySkipped,
+// CreateSkippedHabitEntry creates a new habit entry that was skipped.
+func CreateSkippedHabitEntry(goalID string) HabitEntry {
+	entry := HabitEntry{
+		HabitID: goalID,
+		Status:  EntrySkipped,
 	}
 	entry.MarkCreated()
 	return entry
@@ -484,18 +484,18 @@ func IsValidAchievementLevel(level string) bool {
 	return isValidAchievementLevel(AchievementLevel(level))
 }
 
-// MarshalYAML implements custom YAML marshaling for GoalEntry to format timestamps in human-readable format
+// MarshalYAML implements custom YAML marshaling for HabitEntry to format timestamps in human-readable format
 // AIDEV-NOTE: T020 human-readable time storage; custom YAML marshaling for timestamps and time values with permissive parsing
-func (ge *GoalEntry) MarshalYAML() (interface{}, error) {
+func (ge *HabitEntry) MarshalYAML() (interface{}, error) {
 	// Create a temporary struct with the same fields but different time formatting
-	type goalEntryAlias GoalEntry
+	type goalEntryAlias HabitEntry
 
 	// Convert to alias to avoid infinite recursion, then create a map for custom formatting
 	alias := (*goalEntryAlias)(ge)
 
 	// Create a map to control field ordering and custom formatting
 	result := make(map[string]interface{})
-	result["goal_id"] = alias.GoalID
+	result["goal_id"] = alias.HabitID
 
 	if alias.Value != nil {
 		// Handle time field values specially - format as HH:MM if it's a time
@@ -534,10 +534,10 @@ func (ge *GoalEntry) MarshalYAML() (interface{}, error) {
 	return result, nil
 }
 
-// UnmarshalYAML implements permissive YAML unmarshaling for GoalEntry to accept various time formats
-func (ge *GoalEntry) UnmarshalYAML(node *yaml.Node) error {
+// UnmarshalYAML implements permissive YAML unmarshaling for HabitEntry to accept various time formats
+func (ge *HabitEntry) UnmarshalYAML(node *yaml.Node) error {
 	// Create a temporary struct for standard unmarshaling
-	type goalEntryAlias GoalEntry
+	type goalEntryAlias HabitEntry
 	alias := (*goalEntryAlias)(ge)
 
 	// First unmarshal into a map to handle custom field processing
@@ -548,7 +548,7 @@ func (ge *GoalEntry) UnmarshalYAML(node *yaml.Node) error {
 
 	// Process each field
 	if goalID, ok := raw["goal_id"].(string); ok {
-		alias.GoalID = goalID
+		alias.HabitID = goalID
 	}
 
 	// Handle value field - could be time, string, number, boolean
@@ -630,25 +630,25 @@ func parseTimeFlexible(raw interface{}) (time.Time, error) {
 	return parseTimePermissive(raw)
 }
 
-// MarshalYAML implements custom YAML marshaling for DayEntry to ensure GoalEntry custom marshaling is applied
+// MarshalYAML implements custom YAML marshaling for DayEntry to ensure HabitEntry custom marshaling is applied
 func (de *DayEntry) MarshalYAML() (interface{}, error) {
-	// Create a map to control field ordering and ensure custom marshaling of goals
+	// Create a map to control field ordering and ensure custom marshaling of habits
 	result := make(map[string]interface{})
 	result["date"] = de.Date
 
-	// Marshal goals individually to ensure custom marshaling is applied
-	if len(de.Goals) > 0 {
-		var goals []interface{}
-		for _, goal := range de.Goals {
-			goalYAML, err := goal.MarshalYAML()
+	// Marshal habits individually to ensure custom marshaling is applied
+	if len(de.Habits) > 0 {
+		var habits []interface{}
+		for _, habit := range de.Habits {
+			goalYAML, err := habit.MarshalYAML()
 			if err != nil {
-				return nil, fmt.Errorf("failed to marshal goal %s: %w", goal.GoalID, err)
+				return nil, fmt.Errorf("failed to marshal habit %s: %w", habit.HabitID, err)
 			}
-			goals = append(goals, goalYAML)
+			habits = append(habits, goalYAML)
 		}
-		result["goals"] = goals
+		result["habits"] = habits
 	} else {
-		result["goals"] = []interface{}{}
+		result["habits"] = []interface{}{}
 	}
 
 	return result, nil

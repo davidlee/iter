@@ -11,26 +11,26 @@ import (
 )
 
 func TestNewEntryMenuModelForTesting(t *testing.T) {
-	// Create test goals
-	goals := []models.Goal{
+	// Create test habits
+	habits := []models.Habit{
 		{
 			ID:          "goal1",
-			Title:       "Test Goal 1",
+			Title:       "Test Habit 1",
 			Description: "Test description",
-			GoalType:    models.SimpleGoal,
+			HabitType:   models.SimpleHabit,
 		},
 		{
 			ID:          "goal2",
-			Title:       "Test Goal 2",
+			Title:       "Test Habit 2",
 			Description: "Another test",
-			GoalType:    models.ElasticGoal,
+			HabitType:   models.ElasticHabit,
 		},
 	}
 
 	// Create test entries
-	entries := map[string]models.GoalEntry{
+	entries := map[string]models.HabitEntry{
 		"goal1": {
-			GoalID:    "goal1",
+			HabitID:   "goal1",
 			Value:     true,
 			Status:    models.EntryCompleted,
 			CreatedAt: time.Now(),
@@ -38,15 +38,15 @@ func TestNewEntryMenuModelForTesting(t *testing.T) {
 	}
 
 	// Create model
-	model := NewEntryMenuModelForTesting(goals, entries)
+	model := NewEntryMenuModelForTesting(habits, entries)
 
 	// Verify model creation
 	if model == nil {
 		t.Fatal("Expected model to be created")
 	}
 
-	if len(model.goals) != 2 {
-		t.Errorf("Expected 2 goals, got %d", len(model.goals))
+	if len(model.habits) != 2 {
+		t.Errorf("Expected 2 habits, got %d", len(model.habits))
 	}
 
 	if len(model.entries) != 1 {
@@ -101,10 +101,10 @@ func TestEntryMenuItemStatusColors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			item := EntryMenuItem{
-				Goal: models.Goal{
-					ID:       "test",
-					Title:    "Test Goal",
-					GoalType: models.SimpleGoal,
+				Habit: models.Habit{
+					ID:        "test",
+					Title:     "Test Habit",
+					HabitType: models.SimpleHabit,
 				},
 				HasEntry:    tt.hasEntry,
 				EntryStatus: tt.entryStatus,
@@ -119,7 +119,7 @@ func TestEntryMenuItemStatusColors(t *testing.T) {
 }
 
 func TestFilterToggling(t *testing.T) {
-	model := NewEntryMenuModelForTesting([]models.Goal{}, map[string]models.GoalEntry{})
+	model := NewEntryMenuModelForTesting([]models.Habit{}, map[string]models.HabitEntry{})
 
 	// Test skipped filter toggling
 	model.toggleSkippedFilter()
@@ -146,17 +146,17 @@ func TestFilterToggling(t *testing.T) {
 }
 
 func TestReturnBehaviorToggling(t *testing.T) {
-	model := NewEntryMenuModelForTesting([]models.Goal{}, map[string]models.GoalEntry{})
+	model := NewEntryMenuModelForTesting([]models.Habit{}, map[string]models.HabitEntry{})
 
 	// Initial state
 	if model.returnBehavior != ReturnToMenu {
 		t.Errorf("Expected ReturnToMenu, got %v", model.returnBehavior)
 	}
 
-	// Toggle to next goal
+	// Toggle to next habit
 	model.toggleReturnBehavior()
-	if model.returnBehavior != ReturnToNextGoal {
-		t.Errorf("Expected ReturnToNextGoal, got %v", model.returnBehavior)
+	if model.returnBehavior != ReturnToNextHabit {
+		t.Errorf("Expected ReturnToNextHabit, got %v", model.returnBehavior)
 	}
 
 	// Toggle back to menu
@@ -222,22 +222,22 @@ func TestShouldFilterOut(t *testing.T) {
 			// Create a navigation helper to test filtering logic
 			helper := NewNavigationHelper()
 
-			// Create a goal and entry for testing
-			goal := models.Goal{ID: "test", Title: "Test Goal"}
-			entries := make(map[string]models.GoalEntry)
+			// Create a habit and entry for testing
+			habit := models.Habit{ID: "test", Title: "Test Habit"}
+			entries := make(map[string]models.HabitEntry)
 
 			if tt.hasEntry {
-				entries["test"] = models.GoalEntry{
-					GoalID: "test",
-					Status: tt.entryStatus,
+				entries["test"] = models.HabitEntry{
+					HabitID: "test",
+					Status:  tt.entryStatus,
 				}
 			}
 
-			// Get visible goals to test filter logic
-			goals := []models.Goal{goal}
-			visibleGoals := helper.GetVisibleGoalsAfterFilter(goals, entries, tt.filterState)
+			// Get visible habits to test filter logic
+			habits := []models.Habit{habit}
+			visibleHabits := helper.GetVisibleHabitsAfterFilter(habits, entries, tt.filterState)
 
-			shouldFilter := len(visibleGoals) == 0
+			shouldFilter := len(visibleHabits) == 0
 			if shouldFilter != tt.shouldFilter {
 				t.Errorf("Expected shouldFilter %v, got %v", tt.shouldFilter, shouldFilter)
 			}
@@ -246,23 +246,23 @@ func TestShouldFilterOut(t *testing.T) {
 }
 
 func TestEntryMenuModel_View(t *testing.T) {
-	goals := []models.Goal{
+	habits := []models.Habit{
 		{
-			ID:       "goal1",
-			Title:    "Test Goal",
-			GoalType: models.SimpleGoal,
+			ID:        "goal1",
+			Title:     "Test Habit",
+			HabitType: models.SimpleHabit,
 		},
 	}
 
-	entries := map[string]models.GoalEntry{
+	entries := map[string]models.HabitEntry{
 		"goal1": {
-			GoalID:    "goal1",
+			HabitID:   "goal1",
 			Status:    models.EntryCompleted,
 			CreatedAt: time.Now(),
 		},
 	}
 
-	model := NewEntryMenuModelForTesting(goals, entries)
+	model := NewEntryMenuModelForTesting(habits, entries)
 
 	// Set dimensions for proper rendering
 	model.width = 80
@@ -283,17 +283,17 @@ func TestEntryMenuModel_View(t *testing.T) {
 }
 
 func TestEntryMenuModel_ViewWithFilters(t *testing.T) {
-	goals := []models.Goal{
-		{ID: "goal1", Title: "Completed Goal", GoalType: models.SimpleGoal},
-		{ID: "goal2", Title: "Skipped Goal", GoalType: models.SimpleGoal},
+	habits := []models.Habit{
+		{ID: "goal1", Title: "Completed Habit", HabitType: models.SimpleHabit},
+		{ID: "goal2", Title: "Skipped Habit", HabitType: models.SimpleHabit},
 	}
 
-	entries := map[string]models.GoalEntry{
-		"goal1": {GoalID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
-		"goal2": {GoalID: "goal2", Status: models.EntrySkipped, CreatedAt: time.Now()},
+	entries := map[string]models.HabitEntry{
+		"goal1": {HabitID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+		"goal2": {HabitID: "goal2", Status: models.EntrySkipped, CreatedAt: time.Now()},
 	}
 
-	model := NewEntryMenuModelForTesting(goals, entries)
+	model := NewEntryMenuModelForTesting(habits, entries)
 
 	// Set dimensions for proper rendering
 	model.width = 80
@@ -311,19 +311,19 @@ func TestEntryMenuModel_ViewWithFilters(t *testing.T) {
 }
 
 func TestEntryMenuModel_NavigationEnhancements(t *testing.T) {
-	goals := []models.Goal{
-		{ID: "goal1", Title: "Completed Goal", GoalType: models.SimpleGoal},
-		{ID: "goal2", Title: "Incomplete Goal 1", GoalType: models.SimpleGoal},
-		{ID: "goal3", Title: "Skipped Goal", GoalType: models.SimpleGoal},
-		{ID: "goal4", Title: "Incomplete Goal 2", GoalType: models.SimpleGoal},
+	habits := []models.Habit{
+		{ID: "goal1", Title: "Completed Habit", HabitType: models.SimpleHabit},
+		{ID: "goal2", Title: "Incomplete Habit 1", HabitType: models.SimpleHabit},
+		{ID: "goal3", Title: "Skipped Habit", HabitType: models.SimpleHabit},
+		{ID: "goal4", Title: "Incomplete Habit 2", HabitType: models.SimpleHabit},
 	}
 
-	entries := map[string]models.GoalEntry{
-		"goal1": {GoalID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
-		"goal3": {GoalID: "goal3", Status: models.EntrySkipped, CreatedAt: time.Now()},
+	entries := map[string]models.HabitEntry{
+		"goal1": {HabitID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+		"goal3": {HabitID: "goal3", Status: models.EntrySkipped, CreatedAt: time.Now()},
 	}
 
-	model := NewEntryMenuModelForTesting(goals, entries)
+	model := NewEntryMenuModelForTesting(habits, entries)
 	model.width = 80
 	model.height = 24
 
@@ -332,24 +332,24 @@ func TestEntryMenuModel_NavigationEnhancements(t *testing.T) {
 		t.Error("Expected navEnhancer to be initialized")
 	}
 
-	// Test GetCurrentGoalInfo
-	goalInfo := model.GetCurrentGoalInfo()
+	// Test GetCurrentHabitInfo
+	goalInfo := model.GetCurrentHabitInfo()
 	if goalInfo == nil {
-		t.Error("Expected goal info to be available")
+		t.Error("Expected habit info to be available")
 	}
 
-	// Test SelectFirstIncompleteGoal
-	model.SelectFirstIncompleteGoal()
+	// Test SelectFirstIncompleteHabit
+	model.SelectFirstIncompleteHabit()
 	selectedItem := model.list.SelectedItem()
 	if menuItem, ok := selectedItem.(EntryMenuItem); ok {
 		if menuItem.HasEntry {
-			t.Error("Expected first incomplete goal to be selected")
+			t.Error("Expected first incomplete habit to be selected")
 		}
 	}
 }
 
 func TestEntryMenuModel_ClearFilters(t *testing.T) {
-	model := NewEntryMenuModelForTesting([]models.Goal{}, map[string]models.GoalEntry{})
+	model := NewEntryMenuModelForTesting([]models.Habit{}, map[string]models.HabitEntry{})
 
 	// Set some filters
 	model.filterState = FilterHideSkippedAndPrevious

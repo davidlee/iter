@@ -6,7 +6,7 @@
 This document outlines the collaboration model between the User (acting as Tech Lead) and the AI (Claude, acting as a senior developer/pair programmer). We will use a DIY Kanban system based on folders and Markdown files, managed with Git.
 
 - Tech Lead (User) Responsibilities:
-  - Define project architecture, goals and priorities.
+  - Define project architecture, habits and priorities.
   - Select which task to work on, create or refine.
   - Create initial task Markdown files or request AI to draft them.
   - Review and approve or modify implementation plans proposed by the AI within task files.

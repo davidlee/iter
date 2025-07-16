@@ -7,14 +7,14 @@ import (
 
 // AIDEV-NOTE: entry-field-input-interface; designed for T010 entry collection with immediate scoring feedback
 // This interface abstracts field value input for entry recording with validation and feedback
-// Extends patterns from goalconfig.FieldValueInput but specialized for entry collection with scoring
+// Extends patterns from habitconfig.FieldValueInput but specialized for entry collection with scoring
 
 // EntryFieldInput provides field-type-aware input collection for entry recording
 //
 //revive:disable-next-line:exported
 type EntryFieldInput interface {
 	// CreateInputForm creates a huh form for collecting the field value during entry
-	CreateInputForm(goal models.Goal) *huh.Form
+	CreateInputForm(habit models.Habit) *huh.Form
 
 	// GetValue returns the collected value in the appropriate type
 	GetValue() interface{}
@@ -38,7 +38,7 @@ type EntryFieldInput interface {
 	GetValidationError() error
 }
 
-// ScoringAwareInput extends EntryFieldInput for goals with automatic scoring
+// ScoringAwareInput extends EntryFieldInput for habits with automatic scoring
 type ScoringAwareInput interface {
 	EntryFieldInput
 
@@ -53,7 +53,7 @@ type ScoringAwareInput interface {
 //
 //revive:disable-next-line:exported
 type EntryFieldInputConfig struct {
-	Goal           models.Goal
+	Habit          models.Habit
 	FieldType      models.FieldType
 	ExistingEntry  *ExistingEntry
 	ShowScoring    bool   // Whether to show immediate scoring feedback
@@ -67,13 +67,13 @@ type ExistingEntry struct {
 	AchievementLevel *models.AchievementLevel
 }
 
-// EntryResult represents the complete result of collecting an entry for a goal
+// EntryResult represents the complete result of collecting an entry for a habit
 // AIDEV-NOTE: T012/2.1-enhanced; added Status field for skip functionality integration
 //
 //revive:disable-next-line:exported
 type EntryResult struct {
 	Value            interface{}              // The collected value (any type based on field type)
-	AchievementLevel *models.AchievementLevel // Achievement level for elastic goals (nil for simple goals)
+	AchievementLevel *models.AchievementLevel // Achievement level for elastic habits (nil for simple habits)
 	Notes            string                   // Any notes collected from the user
 	Status           models.EntryStatus       // Entry completion status (completed/skipped/failed)
 }

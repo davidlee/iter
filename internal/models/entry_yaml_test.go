@@ -10,13 +10,13 @@ import (
 )
 
 // AIDEV-NOTE: T020 test coverage; comprehensive tests for human-readable YAML marshaling and permissive parsing
-func TestGoalEntry_HumanReadableYAMLMarshaling(t *testing.T) {
+func TestHabitEntry_HumanReadableYAMLMarshaling(t *testing.T) {
 	t.Run("marshal time field values as HH:MM", func(t *testing.T) {
 		// Create a time field value (zero date with time component)
 		timeValue := time.Date(0, 1, 1, 8, 30, 0, 0, time.UTC)
 
-		entry := GoalEntry{
-			GoalID:    "wake_up",
+		entry := HabitEntry{
+			HabitID:   "wake_up",
 			Value:     timeValue,
 			Status:    EntryCompleted,
 			CreatedAt: time.Date(2025, 7, 15, 9, 11, 27, 0, time.UTC),
@@ -36,8 +36,8 @@ func TestGoalEntry_HumanReadableYAMLMarshaling(t *testing.T) {
 		createdAt := time.Date(2025, 7, 15, 9, 11, 27, 0, time.UTC)
 		updatedAt := time.Date(2025, 7, 15, 9, 15, 32, 0, time.UTC)
 
-		entry := GoalEntry{
-			GoalID:    "meditation",
+		entry := HabitEntry{
+			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: createdAt,
@@ -56,8 +56,8 @@ func TestGoalEntry_HumanReadableYAMLMarshaling(t *testing.T) {
 	})
 
 	t.Run("marshal non-time values unchanged", func(t *testing.T) {
-		entry := GoalEntry{
-			GoalID:    "steps",
+		entry := HabitEntry{
+			HabitID:   "steps",
 			Value:     12000,
 			Status:    EntryCompleted,
 			CreatedAt: time.Date(2025, 7, 15, 9, 11, 27, 0, time.UTC),
@@ -71,8 +71,8 @@ func TestGoalEntry_HumanReadableYAMLMarshaling(t *testing.T) {
 	})
 
 	t.Run("omit optional fields when empty", func(t *testing.T) {
-		entry := GoalEntry{
-			GoalID:    "minimal",
+		entry := HabitEntry{
+			HabitID:   "minimal",
 			Status:    EntrySkipped,
 			CreatedAt: time.Date(2025, 7, 15, 9, 11, 27, 0, time.UTC),
 		}
@@ -88,7 +88,7 @@ func TestGoalEntry_HumanReadableYAMLMarshaling(t *testing.T) {
 	})
 }
 
-func TestGoalEntry_PermissiveYAMLUnmarshaling(t *testing.T) {
+func TestHabitEntry_PermissiveYAMLUnmarshaling(t *testing.T) {
 	t.Run("unmarshal human-readable time formats", func(t *testing.T) {
 		yamlData := `
 goal_id: "wake_up"
@@ -98,11 +98,11 @@ created_at: "2025-07-15 09:11:27"
 updated_at: "2025-07-15 09:15:32"
 `
 
-		var entry GoalEntry
+		var entry HabitEntry
 		err := yaml.Unmarshal([]byte(yamlData), &entry)
 		require.NoError(t, err)
 
-		assert.Equal(t, "wake_up", entry.GoalID)
+		assert.Equal(t, "wake_up", entry.HabitID)
 		assert.Equal(t, EntryCompleted, entry.Status)
 
 		// Value should be parsed as time
@@ -130,11 +130,11 @@ status: "completed"
 created_at: "2025-07-15T09:11:27.886682863+10:00"
 `
 
-		var entry GoalEntry
+		var entry HabitEntry
 		err := yaml.Unmarshal([]byte(yamlData), &entry)
 		require.NoError(t, err)
 
-		assert.Equal(t, "wake_up", entry.GoalID)
+		assert.Equal(t, "wake_up", entry.HabitID)
 
 		// Value should be parsed as time
 		timeVal, ok := entry.Value.(time.Time)
@@ -168,7 +168,7 @@ status: "completed"
 created_at: "2025-07-15 09:00:00"
 `
 
-				var entry GoalEntry
+				var entry HabitEntry
 				err := yaml.Unmarshal([]byte(yamlData), &entry)
 				require.NoError(t, err)
 
@@ -187,7 +187,7 @@ status: "completed"
 created_at: "2025-07-15 09:11:27"
 `
 
-		var entry GoalEntry
+		var entry HabitEntry
 		err := yaml.Unmarshal([]byte(yamlData), &entry)
 		require.NoError(t, err)
 
@@ -202,7 +202,7 @@ status: "completed"
 created_at: "2025-07-15 09:11:27"
 `
 
-		var entry GoalEntry
+		var entry HabitEntry
 		err := yaml.Unmarshal([]byte(yamlData), &entry)
 		require.NoError(t, err)
 
@@ -217,7 +217,7 @@ status: "completed"
 created_at: "2025-07-15 09:11:27"
 `
 
-		var entry GoalEntry
+		var entry HabitEntry
 		err := yaml.Unmarshal([]byte(yamlData), &entry)
 		require.NoError(t, err)
 
@@ -225,12 +225,12 @@ created_at: "2025-07-15 09:11:27"
 	})
 }
 
-func TestGoalEntry_YAMLRoundTrip(t *testing.T) {
+func TestHabitEntry_YAMLRoundTrip(t *testing.T) {
 	t.Run("round trip with time field value", func(t *testing.T) {
 		// Create original entry with time field value
 		timeValue := time.Date(0, 1, 1, 8, 30, 0, 0, time.UTC)
-		original := GoalEntry{
-			GoalID:    "wake_up",
+		original := HabitEntry{
+			HabitID:   "wake_up",
 			Value:     timeValue,
 			Status:    EntryCompleted,
 			CreatedAt: time.Date(2025, 7, 15, 9, 11, 27, 0, time.UTC),
@@ -242,12 +242,12 @@ func TestGoalEntry_YAMLRoundTrip(t *testing.T) {
 		require.NoError(t, err)
 
 		// Unmarshal back
-		var unmarshaled GoalEntry
+		var unmarshaled HabitEntry
 		err = yaml.Unmarshal(yamlData, &unmarshaled)
 		require.NoError(t, err)
 
 		// Verify round trip
-		assert.Equal(t, original.GoalID, unmarshaled.GoalID)
+		assert.Equal(t, original.HabitID, unmarshaled.HabitID)
 		assert.Equal(t, original.Status, unmarshaled.Status)
 		assert.Equal(t, original.Notes, unmarshaled.Notes)
 
@@ -264,7 +264,7 @@ func TestGoalEntry_YAMLRoundTrip(t *testing.T) {
 	})
 
 	t.Run("round trip with boolean value", func(t *testing.T) {
-		original := CreateBooleanGoalEntry("meditation", true)
+		original := CreateBooleanHabitEntry("meditation", true)
 		original.Notes = "Great session"
 
 		// Marshal to YAML
@@ -272,19 +272,19 @@ func TestGoalEntry_YAMLRoundTrip(t *testing.T) {
 		require.NoError(t, err)
 
 		// Unmarshal back
-		var unmarshaled GoalEntry
+		var unmarshaled HabitEntry
 		err = yaml.Unmarshal(yamlData, &unmarshaled)
 		require.NoError(t, err)
 
 		// Verify round trip
-		assert.Equal(t, original.GoalID, unmarshaled.GoalID)
+		assert.Equal(t, original.HabitID, unmarshaled.HabitID)
 		assert.Equal(t, original.Value, unmarshaled.Value)
 		assert.Equal(t, original.Status, unmarshaled.Status)
 		assert.Equal(t, original.Notes, unmarshaled.Notes)
 	})
 }
 
-func TestGoalEntry_BackwardCompatibility(t *testing.T) {
+func TestHabitEntry_BackwardCompatibility(t *testing.T) {
 	t.Run("parse legacy YAML with RFC3339 timestamps", func(t *testing.T) {
 		// This simulates old entries.yml format
 		legacyYAML := `
@@ -296,11 +296,11 @@ created_at: "2024-01-01T10:00:00Z"
 status: "completed"
 `
 
-		var entry GoalEntry
+		var entry HabitEntry
 		err := yaml.Unmarshal([]byte(legacyYAML), &entry)
 		require.NoError(t, err)
 
-		assert.Equal(t, "morning_meditation", entry.GoalID)
+		assert.Equal(t, "morning_meditation", entry.HabitID)
 		assert.Equal(t, true, entry.Value)
 		assert.Equal(t, EntryCompleted, entry.Status)
 		assert.Equal(t, "Great session today", entry.Notes)
@@ -321,7 +321,7 @@ status: "completed"
 created_at: "2024-01-01T10:00:00Z"
 `
 
-		var entry GoalEntry
+		var entry HabitEntry
 		err := yaml.Unmarshal([]byte(legacyYAML), &entry)
 		require.NoError(t, err)
 
@@ -334,19 +334,19 @@ created_at: "2024-01-01T10:00:00Z"
 
 func TestEntryLog_HumanReadableFormat(t *testing.T) {
 	t.Run("marshal complete entry log with human-readable format", func(t *testing.T) {
-		// Create entry log with various goal types
+		// Create entry log with various habit types
 		entryLog := CreateEmptyEntryLog()
 
 		dayEntry := DayEntry{
 			Date: "2025-07-15",
-			Goals: []GoalEntry{
+			Habits: []HabitEntry{
 				{
-					GoalID:    "wake_up",
+					HabitID:   "wake_up",
 					Value:     time.Date(0, 1, 1, 8, 30, 0, 0, time.UTC),
 					Status:    EntryCompleted,
 					CreatedAt: time.Date(2025, 7, 15, 9, 11, 27, 0, time.UTC),
 				},
-				CreateBooleanGoalEntry("meditation", true),
+				CreateBooleanHabitEntry("meditation", true),
 			},
 		}
 

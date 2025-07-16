@@ -29,7 +29,7 @@ Two bugs identified in the entry menu interface (T018) that affect user experien
 - `internal/ui/entry.go:314-330` - CollectSingleGoalEntry() and GetGoalEntry() methods
 
 **Entry Collection Flow Files**:
-- `internal/ui/entry/goal_collection_flows.go:78-177` - CollectEntry() method for all goal types
+- `internal/ui/entry/goal_collection_flows.go:78-177` - CollectEntry() method for all habit types
 - `internal/ui/entry/flow_implementations.go:98-99` - form.Run() call that handles user interaction
 - `internal/ui/entry/flow_implementations.go:430-484` - collectStandardOptionalNotes() method
 
@@ -50,15 +50,15 @@ also refer to API docs: https://pkg.go.dev/github.com/charmbracelet/bubbletea (.
 ### Relevant Documentation
 - `kanban/done/T018_entry_menu_interface.md` - Original entry menu implementation
 - `doc/specifications/entries_storage.md` - Entry storage format specification
-- `doc/specifications/goal_schema.md` - Goal schema and field type definitions
+- `doc/specifications/goal_schema.md` - Habit schema and field type definitions
 - `doc/bubbletea_guide.md` - BubbleTea ecosystem guidance and patterns
 
 ### Related Tasks / History
 - **T018**: Entry menu interface implementation (recently completed)
-- **T010**: Entry system implementation with goal collection flows
+- **T010**: Entry system implementation with habit collection flows
 - **T012**: Habit skip functionality with status tracking
 
-## Goal / User Story
+## Habit / User Story
 
 **Bug 1 - Incorrect completion status**: As a user, when I look at the entry menu, I want to see the correct completion status for my tasks so that I can understand my actual progress without confusion.
 
@@ -91,12 +91,12 @@ Based on code analysis, the bug appears to be in the status synchronization betw
 **Root Cause**: The `updateEntriesFromCollector()` method (lines 469-514) may have type conversion issues or timing problems when syncing collector state to menu display.
 
 **Bug 2 - Edit Looping Issue**:
-The looping occurs in the goal collection flow where:
+The looping occurs in the habit collection flow where:
 1. User presses Enter → `CollectSingleGoalEntry()` called
 2. `flow.CollectEntry()` launches input form via `form.Run()`
 3. Instead of returning to menu, the flow continues or loops
 
-**Root Cause**: The `form.Run()` call in goal collection flows may not properly handle completion state, or there's an issue with the return flow logic.
+**Root Cause**: The `form.Run()` call in habit collection flows may not properly handle completion state, or there's an issue with the return flow logic.
 
 ### Design Strategy
 
@@ -149,7 +149,7 @@ The looping occurs in the goal collection flow where:
 ### Low Priority (Future Enhancements)
 - **Modal Theming**: Configurable modal colors and styles
 - **Form Persistence**: Save draft entries on accidental close
-- **Multi-Step Forms**: Support for complex goal types requiring multiple screens
+- **Multi-Step Forms**: Support for complex habit types requiring multiple screens
 - **Form Plugins**: Extensible form system for custom field types
 
 ### Refactoring Opportunities
@@ -192,7 +192,7 @@ The looping occurs in the goal collection flow where:
     - *Code/Artifacts:* Modified `internal/ui/entrymenu/model.go` with modal integration
     - *Testing Strategy:* Integration tests for menu + modal rendering
     - *AI Notes:* Menu stays active, modal appears as overlay, proper event routing
-  - [x] **3.2 Refactor goal collection flows:** Update flows to use modal instead of takeover
+  - [x] **3.2 Refactor habit collection flows:** Update flows to use modal instead of takeover
     - *Design:* Remove form.Run() calls, use modal form component instead
     - *Code/Artifacts:* Modified `internal/ui/entry/goal_collection_flows.go`
     - *Testing Strategy:* Flow tests with modal form component
@@ -218,7 +218,7 @@ The looping occurs in the goal collection flow where:
 
 **Field Type Behavior Analysis**:
 - **Variable Duration**: Some field types stay open longer than others
-- **Flicker Behavior**: Some goals "only flicker open" (immediate closing)
+- **Flicker Behavior**: Some habits "only flicker open" (immediate closing)
 - **Consistent Pattern**: Deletion of day's entries does not resolve issue
 
 **Technical Hypotheses**:
@@ -254,7 +254,7 @@ The looping occurs in the goal collection flow where:
 **Critical Log Analysis & Investigation Log (2025-07-16)**:
 
 **Phase 1 - Initial Analysis**:
-- **Symptom**: Multiple modal creation events for same goal within seconds
+- **Symptom**: Multiple modal creation events for same habit within seconds
 - **Evidence**: `wake_up` modal created 3 times in 3 seconds, `lights_out` 2 times in 1 second
 - **Form State**: All forms stuck at state `0` (huh.StateNormal), never progress to completion
 - **Missing Events**: No `ModalClosedMsg` events logged, confirming modals don't complete properly
@@ -391,7 +391,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 **HIGH EFFORT (Complex integration)**:
 7. **Result Processing** (60 mins) - EntryCollector.StoreEntryResult() integration
 8. **Error Handling** (90 mins) - User-facing error display, validation
-9. **Field Input Creation** (120 mins) - Dynamic field creation based on goal schema
+9. **Field Input Creation** (120 mins) - Dynamic field creation based on habit schema
 
 **Recommended Investigation Approach**:
 - **Phase 1**: Start with #3 (Field Input Factory) - likely source of auto-completion bugs
@@ -408,7 +408,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 - Added imports for `internal/models` and `internal/ui/entry`
 - Removed prototype's custom `BooleanEntryInput` implementation
 - Added `EntryFieldInputFactory` instantiation in `NewEntryFormModal()`
-- Used `EntryFieldInputConfig` with real `models.Goal` and `models.FieldType`
+- Used `EntryFieldInputConfig` with real `models.Habit` and `models.FieldType`
 - Updated result processing to use `fieldInput.GetValue()` and `fieldInput.GetStringValue()`
 
 **User Testing Results**: ✅ **FIELD INPUT FACTORY IS NOT THE BUG SOURCE**
@@ -454,7 +454,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 **User Testing Results**: ✅ **ENTRY COLLECTION CONTEXT IS NOT THE BUG SOURCE**
 - Prototype still works correctly with complex Entry Collection Context
 - Modal stays open, waits for user input, closes normally on form completion
-- Debug logs show existing entry loaded: "Using existing entry for goal test_goal: value=true, notes=Previous completion with notes, status=completed"
+- Debug logs show existing entry loaded: "Using existing entry for habit test_goal: value=true, notes=Previous completion with notes, status=completed"
 - Form completion sequence: `huh.nextFieldMsg` → `huh.nextGroupMsg` → state 0→1 → completion (normal user interaction)
 - Complex state management (collector, existing entries, achievement levels) does not trigger auto-closing
 
@@ -477,7 +477,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 - **Architecture Complexity** - Full EntryMenuModel with list.Model, filtering, navigation
 - **Result Processing** - File operations, state sync timing
 - **Error Handling** - Validation, error display UI
-- **Dynamic Field Creation** - Goal schema-based form generation
+- **Dynamic Field Creation** - Habit schema-based form generation
 
 **Next Investigation Direction**: Focus on timing-sensitive operations like auto-save, file operations, or state synchronization that could trigger unintended form completion.
 
@@ -694,7 +694,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 1. **Entry Collector Storage** (`StoreEntryResult()`) - Complex collector state management
 2. **Menu State Updates** (`updateEntriesFromCollector()`) - UI state synchronization
 3. **Auto-Save File I/O** (`SaveEntriesToFile()`) - File operations with potential timing issues
-4. **Smart Navigation** (`SelectNextIncompleteGoal()`) - Goal selection and menu manipulation
+4. **Smart Navigation** (`SelectNextIncompleteGoal()`) - Habit selection and menu manipulation
 
 **Why This Makes Sense**:
 - Prototype has **simple modal lifecycle**: Open → User Input → Close → Quit
@@ -717,7 +717,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 - **Entry Storage**: Completed entries not saved to collector or entries.yml file
 - **Menu Updates**: Entry menu doesn't reflect completion status after modal closes
 - **Auto-Save**: Changes not persisted to filesystem  
-- **Smart Navigation**: No automatic movement to next incomplete goal
+- **Smart Navigation**: No automatic movement to next incomplete habit
 - **Progress Updates**: Progress bar and statistics don't update
 
 **🎯 Bug Location Confirmed**: One of 4 operations in `syncStateAfterEntry()` method causes auto-closing
@@ -832,7 +832,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 
 **Key Changes**:
 - **`syncStateAfterEntry()`**: Now returns `tea.Cmd` with `DeferredStateSyncMsg`
-- **`DeferredStateSyncMsg`**: Custom message type carrying goal ID and entry result
+- **`DeferredStateSyncMsg`**: Custom message type carrying habit ID and entry result
 - **`processDeferredStateSync()`**: Handles all state operations in deferred cycle
 - **`Update()` method**: Added handler for `DeferredStateSyncMsg`
 
@@ -933,7 +933,7 @@ vice prototype --debug  # Run prototype with debug logging enabled
 - `2025-07-15 - AI:` Initial bug report analysis completed
   - **Bug 1 Context**: User reports entry menu shows incorrect task completion status
   - **Bug 2 Context**: User reports editing task loops through single task's edit screens
-  - **Analysis Method**: Examined entries.yml file, entry menu code, and goal collection flows
+  - **Analysis Method**: Examined entries.yml file, entry menu code, and habit collection flows
   - **Key Finding**: Status synchronization issues likely in updateEntriesFromCollector()
   - **Key Finding**: Edit looping likely in form.Run() completion handling
   - **Next Steps**: Reproduce bugs with test cases, then implement fixes
@@ -973,13 +973,13 @@ vice prototype --debug  # Run prototype with debug logging enabled
   - **Rendering**: Modal overlay rendering when active, preserves menu background
   - **State Management**: Modal close triggers menu state sync and auto-save
   - **Status**: Phase 3.1 complete, ready for Phase 3.2 (flow refactoring)
-- `2025-07-15 - AI:` Phase 3.2 complete - Goal collection flows updated for modal compatibility
-  - **Architecture Analysis**: Entry menu now bypasses goal collection flows entirely via modal system
+- `2025-07-15 - AI:` Phase 3.2 complete - Habit collection flows updated for modal compatibility
+  - **Architecture Analysis**: Entry menu now bypasses habit collection flows entirely via modal system
   - **Bug 2 Resolution**: Modal system eliminates handoff complexity - entry menu no longer calls flow.CollectEntry()
   - **Flow Architecture**: CLI entry collection still uses flows with form.Run() (works correctly)
   - **Modal Integration**: EntryCollector.StoreEntryResult() method added to store modal results
   - **Anchor Updates**: Updated comments to reflect new architecture - flows no longer cause looping
-  - **Testing**: Goal collection flow tests still pass, confirming CLI functionality intact
+  - **Testing**: Habit collection flow tests still pass, confirming CLI functionality intact
   - **Status**: Phase 3 complete, ready for Phase 4 (testing & validation)
 - `2025-07-15 - AI:` Modal closing investigation - comprehensive debug logging implemented
   - **Problem Report**: Modal opens briefly (1-2 seconds) then closes automatically
@@ -1028,7 +1028,7 @@ vice prototype --debug  # Run prototype with debug logging enabled
   - **Current State**: Modal system fully functional, state sync disabled, no data persistence
   - **Next Actions**: Systematic re-enablement of 4 state sync operations one by one
   - **Test Sequence**: Navigation → Auto-Save → Entry Storage → Menu Updates
-  - **Goal**: Identify exact operation that triggers auto-closing behavior
+  - **Habit**: Identify exact operation that triggers auto-closing behavior
   - **Timeline**: 1-2 hours to complete granular testing and implement targeted fix
 - `2025-07-16 - AI:` BREAKTHROUGH - Entry menu auto-closing bug resolved via deferred state synchronization
   - **Root Cause**: Timing conflicts between modal closure and immediate state sync operations
@@ -1048,7 +1048,7 @@ vice prototype --debug  # Run prototype with debug logging enabled
 - `9521817` - feat(debug)[T024-debug-flag]: implement centralized debug logging system
 - `855a0d4` - feat(debug)[T024]: add comprehensive debug logging for modal investigation
 - `9f024b5` - fix(modal)[T024-debug]: add debug logging and simplify boolean form
-- `da8d021` - feat(entrymenu)[T024/3.2]: complete goal collection flow refactoring
+- `da8d021` - feat(entrymenu)[T024/3.2]: complete habit collection flow refactoring
 - `d3d4cd2` - feat(entrymenu)[T024/3.1]: integrate modal system for entry editing
 - `b9fff9a` - feat(modal)[T024/2.2]: implement modal entry form component
 - `6d7c92a` - docs(anchors)[T024]: add AIDEV-NOTE comments for modal system and bug analysis

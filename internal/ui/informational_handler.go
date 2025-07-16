@@ -10,39 +10,39 @@ import (
 	"davidlee/vice/internal/models"
 )
 
-// InformationalGoalHandler handles entry collection for informational goals.
-// These goals collect data without scoring - they're for tracking information.
-type InformationalGoalHandler struct{}
+// InformationalHabitHandler handles entry collection for informational habits.
+// These habits collect data without scoring - they're for tracking information.
+type InformationalHabitHandler struct{}
 
-// NewInformationalGoalHandler creates a new informational goal handler.
-func NewInformationalGoalHandler() *InformationalGoalHandler {
-	return &InformationalGoalHandler{}
+// NewInformationalHabitHandler creates a new informational habit handler.
+func NewInformationalHabitHandler() *InformationalHabitHandler {
+	return &InformationalHabitHandler{}
 }
 
-// CollectEntry collects an entry for an informational goal (data collection without scoring).
-func (h *InformationalGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error) {
-	// Prepare the form title with goal information
+// CollectEntry collects an entry for an informational habit (data collection without scoring).
+func (h *InformationalHabitHandler) CollectEntry(habit models.Habit, existing *ExistingEntry) (*EntryResult, error) {
+	// Prepare the form title with habit information
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("14")). // Bright cyan for informational
 		Margin(1, 0)
 
-	_ = titleStyle.Render(fmt.Sprintf("📊 %s", goal.Title)) // Title styling available for future use
+	_ = titleStyle.Render(fmt.Sprintf("📊 %s", habit.Title)) // Title styling available for future use
 
 	// Prepare description if available
 	var description string
-	if goal.Description != "" {
+	if habit.Description != "" {
 		descStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("8")). // Gray
 			Italic(true)
-		description = descStyle.Render(goal.Description)
+		description = descStyle.Render(habit.Description)
 	}
 
 	// Add informational note
 	infoStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("14")).
 		Faint(true)
-	infoNote := infoStyle.Render("ℹ️  This is an informational goal - for tracking data only")
+	infoNote := infoStyle.Render("ℹ️  This is an informational habit - for tracking data only")
 
 	if description != "" {
 		description += "\n" + infoNote
@@ -51,46 +51,46 @@ func (h *InformationalGoalHandler) CollectEntry(goal models.Goal, existing *Exis
 	}
 	_ = description // Description used in field type collection
 
-	// Collect value based on field type (similar to elastic goals but without scoring)
-	value, err := h.collectValueByFieldType(goal, existing)
+	// Collect value based on field type (similar to elastic habits but without scoring)
+	value, err := h.collectValueByFieldType(habit, existing)
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect value: %w", err)
 	}
 
 	// Collect optional notes
-	notes, err := h.collectOptionalNotes(goal, value, existing)
+	notes, err := h.collectOptionalNotes(habit, value, existing)
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect notes: %w", err)
 	}
 
-	// Return result (no achievement level for informational goals)
+	// Return result (no achievement level for informational habits)
 	return &EntryResult{
 		Value:            value,
-		AchievementLevel: nil, // Informational goals don't have achievement levels
+		AchievementLevel: nil, // Informational habits don't have achievement levels
 		Notes:            notes,
 	}, nil
 }
 
-// collectValueByFieldType collects a value based on the goal's field type.
-func (h *InformationalGoalHandler) collectValueByFieldType(goal models.Goal, existing *ExistingEntry) (interface{}, error) {
-	switch goal.FieldType.Type {
+// collectValueByFieldType collects a value based on the habit's field type.
+func (h *InformationalHabitHandler) collectValueByFieldType(habit models.Habit, existing *ExistingEntry) (interface{}, error) {
+	switch habit.FieldType.Type {
 	case models.BooleanFieldType:
-		return h.collectBooleanValue(goal, existing)
+		return h.collectBooleanValue(habit, existing)
 	case models.UnsignedIntFieldType, models.UnsignedDecimalFieldType, models.DecimalFieldType:
-		return h.collectNumericValue(goal, existing)
+		return h.collectNumericValue(habit, existing)
 	case models.DurationFieldType:
-		return h.collectDurationValue(goal, existing)
+		return h.collectDurationValue(habit, existing)
 	case models.TimeFieldType:
-		return h.collectTimeValue(goal, existing)
+		return h.collectTimeValue(habit, existing)
 	case models.TextFieldType:
-		return h.collectTextValue(goal, existing)
+		return h.collectTextValue(habit, existing)
 	default:
-		return nil, fmt.Errorf("unsupported field type: %s", goal.FieldType.Type)
+		return nil, fmt.Errorf("unsupported field type: %s", habit.FieldType.Type)
 	}
 }
 
 // collectBooleanValue collects a boolean value.
-func (h *InformationalGoalHandler) collectBooleanValue(goal models.Goal, existing *ExistingEntry) (bool, error) {
+func (h *InformationalHabitHandler) collectBooleanValue(habit models.Habit, existing *ExistingEntry) (bool, error) {
 	var currentValue bool
 	var hasExisting bool
 	if existing != nil && existing.Value != nil {
@@ -101,9 +101,9 @@ func (h *InformationalGoalHandler) collectBooleanValue(goal models.Goal, existin
 	}
 
 	var value bool
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Record yes/no for %s:", goal.Title)
+		prompt = fmt.Sprintf("Record yes/no for %s:", habit.Title)
 	}
 
 	if hasExisting {
@@ -132,20 +132,20 @@ func (h *InformationalGoalHandler) collectBooleanValue(goal models.Goal, existin
 }
 
 // collectNumericValue collects a numeric value.
-func (h *InformationalGoalHandler) collectNumericValue(goal models.Goal, existing *ExistingEntry) (string, error) {
+func (h *InformationalHabitHandler) collectNumericValue(habit models.Habit, existing *ExistingEntry) (string, error) {
 	var currentValue string
 	if existing != nil && existing.Value != nil {
 		currentValue = fmt.Sprintf("%v", existing.Value)
 	}
 
 	valueStr := currentValue
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		unit := goal.FieldType.Unit
+		unit := habit.FieldType.Unit
 		if unit != "" {
-			prompt = fmt.Sprintf("Record value for %s (%s):", goal.Title, unit)
+			prompt = fmt.Sprintf("Record value for %s (%s):", habit.Title, unit)
 		} else {
-			prompt = fmt.Sprintf("Record value for %s:", goal.Title)
+			prompt = fmt.Sprintf("Record value for %s:", habit.Title)
 		}
 	}
 
@@ -170,16 +170,16 @@ func (h *InformationalGoalHandler) collectNumericValue(goal models.Goal, existin
 }
 
 // collectDurationValue collects a duration value.
-func (h *InformationalGoalHandler) collectDurationValue(goal models.Goal, existing *ExistingEntry) (string, error) {
+func (h *InformationalHabitHandler) collectDurationValue(habit models.Habit, existing *ExistingEntry) (string, error) {
 	var currentValue string
 	if existing != nil && existing.Value != nil {
 		currentValue = fmt.Sprintf("%v", existing.Value)
 	}
 
 	valueStr := currentValue
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Record duration for %s:", goal.Title)
+		prompt = fmt.Sprintf("Record duration for %s:", habit.Title)
 	}
 
 	if currentValue != "" {
@@ -204,16 +204,16 @@ func (h *InformationalGoalHandler) collectDurationValue(goal models.Goal, existi
 }
 
 // collectTimeValue collects a time value.
-func (h *InformationalGoalHandler) collectTimeValue(goal models.Goal, existing *ExistingEntry) (string, error) {
+func (h *InformationalHabitHandler) collectTimeValue(habit models.Habit, existing *ExistingEntry) (string, error) {
 	var currentValue string
 	if existing != nil && existing.Value != nil {
 		currentValue = fmt.Sprintf("%v", existing.Value)
 	}
 
 	valueStr := currentValue
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Record time for %s:", goal.Title)
+		prompt = fmt.Sprintf("Record time for %s:", habit.Title)
 	}
 
 	if currentValue != "" {
@@ -238,16 +238,16 @@ func (h *InformationalGoalHandler) collectTimeValue(goal models.Goal, existing *
 }
 
 // collectTextValue collects a text value.
-func (h *InformationalGoalHandler) collectTextValue(goal models.Goal, existing *ExistingEntry) (string, error) {
+func (h *InformationalHabitHandler) collectTextValue(habit models.Habit, existing *ExistingEntry) (string, error) {
 	var currentValue string
 	if existing != nil && existing.Value != nil {
 		currentValue = fmt.Sprintf("%v", existing.Value)
 	}
 
 	valueStr := currentValue
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Record text for %s:", goal.Title)
+		prompt = fmt.Sprintf("Record text for %s:", habit.Title)
 	}
 
 	if currentValue != "" {
@@ -271,7 +271,7 @@ func (h *InformationalGoalHandler) collectTextValue(goal models.Goal, existing *
 }
 
 // collectOptionalNotes allows the user to optionally add notes.
-func (h *InformationalGoalHandler) collectOptionalNotes(_ models.Goal, _ interface{}, existing *ExistingEntry) (string, error) {
+func (h *InformationalHabitHandler) collectOptionalNotes(_ models.Habit, _ interface{}, existing *ExistingEntry) (string, error) {
 	// Get existing notes
 	var existingNotes string
 	if existing != nil {

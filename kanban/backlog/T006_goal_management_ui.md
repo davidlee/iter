@@ -1,12 +1,12 @@
 ---
-title: "Goal Management UI"
+title: "Habit Management UI"
 type: ["feature"]
-tags: ["ui", "goals", "management", "cli"]
+tags: ["ui", "habits", "management", "cli"]
 related_tasks: ["depends-on:T005"]
 context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./internal/models/*.go", "./internal/parser/*.go", "./internal/ui/*.go", "./cmd/*.go"]
 ---
 
-# Goal Management UI
+# Habit Management UI
 
 ## Git Commit History
 
@@ -14,55 +14,55 @@ context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./inter
 
 *No commits yet - task is in backlog*
 
-## 1. Goal / User Story
+## 1. Habit / User Story
 
-As a user, I want to manage my existing goals through an interactive CLI interface, so that I can view, edit, and remove goals without needing to manually edit YAML files.
+As a user, I want to manage my existing habits through an interactive CLI interface, so that I can view, edit, and remove habits without needing to manually edit YAML files.
 
 The system should provide:
-- `vice goal list` - Display existing goals in a readable format with detail views
-- `vice goal edit` - Select and modify existing goal definitions with validation
-- `vice goal remove` - Remove existing goals with confirmation and impact analysis
+- `vice habit list` - Display existing habits in a readable format with detail views
+- `vice habit edit` - Select and modify existing habit definitions with validation
+- `vice habit remove` - Remove existing habits with confirmation and impact analysis
 
-This builds upon T005 (Goal Configuration UI) to provide comprehensive goal lifecycle management while maintaining the existing file-based storage approach.
+This builds upon T005 (Habit Configuration UI) to provide comprehensive habit lifecycle management while maintaining the existing file-based storage approach.
 
 ## 2. Acceptance Criteria
 
-### Goal Listing
-- [ ] `vice goal list` displays existing goals in human-readable format
-- [ ] Goal selection to view detailed information
-- [ ] Goal detail / summary view with rich table display
-- [ ] Navigation back from goal detail to list
+### Habit Listing
+- [ ] `vice habit list` displays existing habits in human-readable format
+- [ ] Habit selection to view detailed information
+- [ ] Habit detail / summary view with rich table display
+- [ ] Navigation back from habit detail to list
 - [ ] Filtering and sorting capabilities (future enhancement)
 
-### Goal Editing
-- [ ] `vice goal edit` allows selection and modification of existing goals
-- [ ] Interactive goal selection - reuses listing interface with edit context
+### Habit Editing
+- [ ] `vice habit edit` allows selection and modification of existing habits
+- [ ] Interactive habit selection - reuses listing interface with edit context
 - [ ] Default action on [enter] is edit when in edit mode, view when in list mode
 - [ ] Wizard-style editing with current values pre-populated
-- [ ] Support for editing all goal types (simple, elastic, informational)
+- [ ] Support for editing all habit types (simple, elastic, informational)
 - [ ] Preview and confirm changes before saving
-- [ ] Allow editing of goal ID with impact analysis
+- [ ] Allow editing of habit ID with impact analysis
 - [ ] Confirm whether to update historical data in entries.yml to use new ID
 - [ ] Error recovery and validation during editing
-- [ ] Preserve goal ID and data integrity
+- [ ] Preserve habit ID and data integrity
 
-### Goal Removal
-- [ ] `vice goal remove` removes goals with confirmation prompt
-- [ ] Interactive goal selection with details display
-- [ ] Impact analysis showing entries that reference the goal
-- [ ] Confirmation prompt with goal summary
+### Habit Removal
+- [ ] `vice habit remove` removes habits with confirmation prompt
+- [ ] Interactive habit selection with details display
+- [ ] Impact analysis showing entries that reference the habit
+- [ ] Confirmation prompt with habit summary
 - [ ] Safe removal with backup options
-- [ ] Warning if goal has historical data
+- [ ] Warning if habit has historical data
 
 ### Technical Requirements
-- [ ] All operations preserve goal IDs and maintain data integrity
+- [ ] All operations preserve habit IDs and maintain data integrity
 - [ ] File operations are atomic (no partial writes)
 - [ ] Comprehensive error handling for file operations
 - [ ] Graceful handling of file permission errors
-- [ ] Backup existing goals.yml before modifications
+- [ ] Backup existing habits.yml before modifications
 - [ ] Leverage existing validation logic from models package
 - [ ] Reuse existing parser and file operations
-- [ ] Follow established UI patterns from T005 goal configuration
+- [ ] Follow established UI patterns from T005 habit configuration
 
 ---
 
@@ -71,76 +71,76 @@ This builds upon T005 (Goal Configuration UI) to provide comprehensive goal life
 **Overall Status:** `Backlog`
 
 **Dependencies:** 
-- T005 Goal Configuration UI must be completed first
-- Requires completed goal creation infrastructure and patterns
+- T005 Habit Configuration UI must be completed first
+- Requires completed habit creation infrastructure and patterns
 
 **Planned Implementation Approach:**
 
-### Phase 1: Goal Listing Infrastructure
+### Phase 1: Habit Listing Infrastructure
 
-- [ ] **1.1 Goal Listing Foundation**
+- [ ] **1.1 Habit Listing Foundation**
   - [ ] Create `ListGoals()` method in GoalConfigurator
-  - [ ] Design goal listing model using bubbletea following T005 patterns
-  - [ ] Implement goal selection interface with keyboard navigation
-  - [ ] Create goal summary display components
+  - [ ] Design habit listing model using bubbletea following T005 patterns
+  - [ ] Implement habit selection interface with keyboard navigation
+  - [ ] Create habit summary display components
 
-- [ ] **1.2 Goal Detail View**
-  - [ ] Design detailed goal information display
-  - [ ] Show all goal properties: type, field configuration, scoring, criteria
-  - [ ] Format different goal types appropriately (simple vs elastic vs informational)
+- [ ] **1.2 Habit Detail View**
+  - [ ] Design detailed habit information display
+  - [ ] Show all habit properties: type, field configuration, scoring, criteria
+  - [ ] Format different habit types appropriately (simple vs elastic vs informational)
   - [ ] Navigation between list and detail views
 
-### Phase 2: Goal Editing System
+### Phase 2: Habit Editing System
 
-- [ ] **2.1 Goal Selection for Editing**
-  - [ ] Reuse goal listing interface with edit context
+- [ ] **2.1 Habit Selection for Editing**
+  - [ ] Reuse habit listing interface with edit context
   - [ ] Clear indication of edit mode vs view mode
-  - [ ] Goal selection with pre-edit confirmation
+  - [ ] Habit selection with pre-edit confirmation
 
 - [ ] **2.2 Edit Wizard Implementation**
   - [ ] Create GoalEditWizard bubbletea model
-  - [ ] Pre-populate forms with existing goal values
+  - [ ] Pre-populate forms with existing habit values
   - [ ] Support editing basic info (title, description)
   - [ ] Support editing field configuration
   - [ ] Support editing scoring and criteria
 
-- [ ] **2.3 Goal ID Editing**
-  - [ ] Special handling for goal ID changes
+- [ ] **2.3 Habit ID Editing**
+  - [ ] Special handling for habit ID changes
   - [ ] Impact analysis: scan entries.yml for references
   - [ ] Confirmation dialog showing impact
   - [ ] Option to update historical data or preserve old ID
 
 - [ ] **2.4 Change Preview and Confirmation**
   - [ ] Show before/after comparison
-  - [ ] Validation of modified goal
+  - [ ] Validation of modified habit
   - [ ] Atomic save operation with rollback capability
 
-### Phase 3: Goal Removal System
+### Phase 3: Habit Removal System
 
-- [ ] **3.1 Safe Goal Removal**
+- [ ] **3.1 Safe Habit Removal**
   - [ ] Create GoalRemovalConfirmation interface
-  - [ ] Scan for goal usage in entries.yml
+  - [ ] Scan for habit usage in entries.yml
   - [ ] Display impact analysis to user
-  - [ ] Multi-step confirmation for goals with data
+  - [ ] Multi-step confirmation for habits with data
 
 - [ ] **3.2 Backup and Recovery**
   - [ ] Automatic backup before removal
   - [ ] Recovery instructions if accidental removal
-  - [ ] Option to archive goal instead of delete
+  - [ ] Option to archive habit instead of delete
 
 ### Phase 4: Integration and Polish
 
 - [ ] **4.1 File Operation Safety**
-  - [ ] Atomic goal modifications using existing parser
+  - [ ] Atomic habit modifications using existing parser
   - [ ] Error handling for file permissions, disk space
-  - [ ] Backup existing goals.yml before all modifications
+  - [ ] Backup existing habits.yml before all modifications
   - [ ] Rollback mechanisms for failed operations
 
 - [ ] **4.2 Advanced Validation**
-  - [ ] Leverage existing `Goal.Validate()` and `Schema.Validate()`
+  - [ ] Leverage existing `Habit.Validate()` and `Schema.Validate()`
   - [ ] Real-time validation during editing
   - [ ] Clear error messages for validation failures
-  - [ ] Cross-goal validation (e.g., duplicate IDs)
+  - [ ] Cross-habit validation (e.g., duplicate IDs)
 
 - [ ] **4.3 Testing & Documentation**
   - [ ] Unit tests for all management operations
@@ -160,7 +160,7 @@ This builds upon T005 (Goal Configuration UI) to provide comprehensive goal life
 2. **Data Safety**: All operations must be atomic with rollback capabilities
 3. **Impact Analysis**: Always show users the consequences of their actions
 4. **Progressive Enhancement**: Start with basic list/edit/remove, add advanced features later
-5. **Integration**: Seamless integration with existing goal configuration flows
+5. **Integration**: Seamless integration with existing habit configuration flows
 
 ---
 
@@ -172,14 +172,14 @@ This builds upon T005 (Goal Configuration UI) to provide comprehensive goal life
 
 ## 5. Notes / Discussion Log
 
-- Created as continuation of T005 Goal Configuration UI
-- Focuses on goal lifecycle management after creation
+- Created as continuation of T005 Habit Configuration UI
+- Focuses on habit lifecycle management after creation
 - Emphasizes data safety and user confirmation for destructive operations
 - Plans for integration with entry system impact analysis
 - Builds upon established bubbletea/huh patterns from T005
 
 **Design Considerations:**
-- Goal editing should support all goal types created in T005
+- Habit editing should support all habit types created in T005
 - Removal operations need careful impact analysis
 - File operations must be atomic to prevent corruption
 - UI patterns should be consistent with T005 implementation

@@ -23,20 +23,20 @@ func TestNewFileInitializer(t *testing.T) {
 func TestFileInitializer_EnsureConfigFiles(t *testing.T) {
 	t.Run("creates both files when missing", func(t *testing.T) {
 		tempDir := t.TempDir()
-		goalsFile := filepath.Join(tempDir, "goals.yml")
+		habitsFile := filepath.Join(tempDir, "habits.yml")
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
 		initializer := NewFileInitializer()
-		err := initializer.EnsureConfigFiles(goalsFile, entriesFile)
+		err := initializer.EnsureConfigFiles(habitsFile, entriesFile)
 		require.NoError(t, err)
 
-		// Verify goals file was created and is valid
-		assert.FileExists(t, goalsFile)
-		goalParser := parser.NewGoalParser()
-		schema, err := goalParser.LoadFromFile(goalsFile)
+		// Verify habits file was created and is valid
+		assert.FileExists(t, habitsFile)
+		goalParser := parser.NewHabitParser()
+		schema, err := goalParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 		assert.Equal(t, "1.0.0", schema.Version)
-		assert.Len(t, schema.Goals, 4)
+		assert.Len(t, schema.Habits, 4)
 
 		// Verify entries file was created and is valid
 		assert.FileExists(t, entriesFile)
@@ -49,23 +49,23 @@ func TestFileInitializer_EnsureConfigFiles(t *testing.T) {
 
 	t.Run("skips creation when files exist", func(t *testing.T) {
 		tempDir := t.TempDir()
-		goalsFile := filepath.Join(tempDir, "goals.yml")
+		habitsFile := filepath.Join(tempDir, "habits.yml")
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
 		// Create existing files
-		err := os.WriteFile(goalsFile, []byte("existing goals"), 0o600)
+		err := os.WriteFile(habitsFile, []byte("existing habits"), 0o600)
 		require.NoError(t, err)
 		err = os.WriteFile(entriesFile, []byte("existing entries"), 0o600)
 		require.NoError(t, err)
 
 		initializer := NewFileInitializer()
-		err = initializer.EnsureConfigFiles(goalsFile, entriesFile)
+		err = initializer.EnsureConfigFiles(habitsFile, entriesFile)
 		require.NoError(t, err)
 
 		// Verify files weren't overwritten
-		goalsContent, err := os.ReadFile(goalsFile) //nolint:gosec // Test files in temp directory
+		habitsContent, err := os.ReadFile(habitsFile) //nolint:gosec // Test files in temp directory
 		require.NoError(t, err)
-		assert.Equal(t, "existing goals", string(goalsContent))
+		assert.Equal(t, "existing habits", string(habitsContent))
 
 		entriesContent, err := os.ReadFile(entriesFile) //nolint:gosec // Test files in temp directory
 		require.NoError(t, err)
@@ -74,21 +74,21 @@ func TestFileInitializer_EnsureConfigFiles(t *testing.T) {
 
 	t.Run("creates only missing file", func(t *testing.T) {
 		tempDir := t.TempDir()
-		goalsFile := filepath.Join(tempDir, "goals.yml")
+		habitsFile := filepath.Join(tempDir, "habits.yml")
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
-		// Create only goals file
-		err := os.WriteFile(goalsFile, []byte("existing goals"), 0o600)
+		// Create only habits file
+		err := os.WriteFile(habitsFile, []byte("existing habits"), 0o600)
 		require.NoError(t, err)
 
 		initializer := NewFileInitializer()
-		err = initializer.EnsureConfigFiles(goalsFile, entriesFile)
+		err = initializer.EnsureConfigFiles(habitsFile, entriesFile)
 		require.NoError(t, err)
 
-		// Verify goals file wasn't overwritten
-		goalsContent, err := os.ReadFile(goalsFile) //nolint:gosec // Test files in temp directory
+		// Verify habits file wasn't overwritten
+		habitsContent, err := os.ReadFile(habitsFile) //nolint:gosec // Test files in temp directory
 		require.NoError(t, err)
-		assert.Equal(t, "existing goals", string(goalsContent))
+		assert.Equal(t, "existing habits", string(habitsContent))
 
 		// Verify entries file was created
 		assert.FileExists(t, entriesFile)
@@ -101,75 +101,75 @@ func TestFileInitializer_EnsureConfigFiles(t *testing.T) {
 	t.Run("creates config directory if missing", func(t *testing.T) {
 		tempDir := t.TempDir()
 		configDir := filepath.Join(tempDir, "nested", "config")
-		goalsFile := filepath.Join(configDir, "goals.yml")
+		habitsFile := filepath.Join(configDir, "habits.yml")
 		entriesFile := filepath.Join(configDir, "entries.yml")
 
 		initializer := NewFileInitializer()
-		err := initializer.EnsureConfigFiles(goalsFile, entriesFile)
+		err := initializer.EnsureConfigFiles(habitsFile, entriesFile)
 		require.NoError(t, err)
 
 		// Verify directory was created
 		assert.DirExists(t, configDir)
-		assert.FileExists(t, goalsFile)
+		assert.FileExists(t, habitsFile)
 		assert.FileExists(t, entriesFile)
 	})
 }
 
-func TestFileInitializer_createSampleGoalsFile(t *testing.T) {
+func TestFileInitializer_createSampleHabitsFile(t *testing.T) {
 	tempDir := t.TempDir()
-	goalsFile := filepath.Join(tempDir, "goals.yml")
+	habitsFile := filepath.Join(tempDir, "habits.yml")
 
 	initializer := NewFileInitializer()
-	err := initializer.createSampleGoalsFile(goalsFile)
+	err := initializer.createSampleHabitsFile(habitsFile)
 	require.NoError(t, err)
 
 	// Load and validate the created file
-	goalParser := parser.NewGoalParser()
-	schema, err := goalParser.LoadFromFile(goalsFile)
+	goalParser := parser.NewHabitParser()
+	schema, err := goalParser.LoadFromFile(habitsFile)
 	require.NoError(t, err)
 
 	assert.Equal(t, "1.0.0", schema.Version)
-	assert.Len(t, schema.Goals, 4)
+	assert.Len(t, schema.Habits, 4)
 
-	// Check first goal (simple boolean)
-	goal1 := schema.Goals[0]
+	// Check first habit (simple boolean)
+	goal1 := schema.Habits[0]
 	assert.Equal(t, "Morning Exercise", goal1.Title)
 	assert.Equal(t, "morning_exercise", goal1.ID)
 	assert.Equal(t, 1, goal1.Position)
-	assert.Equal(t, models.SimpleGoal, goal1.GoalType)
+	assert.Equal(t, models.SimpleHabit, goal1.HabitType)
 	assert.Equal(t, models.BooleanFieldType, goal1.FieldType.Type)
 	assert.Equal(t, models.ManualScoring, goal1.ScoringType)
 	assert.NotEmpty(t, goal1.Description)
 	assert.NotEmpty(t, goal1.Prompt)
 	assert.NotEmpty(t, goal1.HelpText)
 
-	// Check second goal (simple boolean)
-	goal2 := schema.Goals[1]
+	// Check second habit (simple boolean)
+	goal2 := schema.Habits[1]
 	assert.Equal(t, "Daily Reading", goal2.Title)
 	assert.Equal(t, "daily_reading", goal2.ID)
 	assert.Equal(t, 2, goal2.Position)
-	assert.Equal(t, models.SimpleGoal, goal2.GoalType)
+	assert.Equal(t, models.SimpleHabit, goal2.HabitType)
 	assert.Equal(t, models.BooleanFieldType, goal2.FieldType.Type)
 	assert.Equal(t, models.ManualScoring, goal2.ScoringType)
 
-	// Check third goal (elastic duration)
-	goal3 := schema.Goals[2]
+	// Check third habit (elastic duration)
+	goal3 := schema.Habits[2]
 	assert.Equal(t, "Exercise Duration", goal3.Title)
 	assert.Equal(t, "exercise_duration", goal3.ID)
 	assert.Equal(t, 3, goal3.Position)
-	assert.Equal(t, models.ElasticGoal, goal3.GoalType)
+	assert.Equal(t, models.ElasticHabit, goal3.HabitType)
 	assert.Equal(t, models.DurationFieldType, goal3.FieldType.Type)
 	assert.Equal(t, models.AutomaticScoring, goal3.ScoringType)
 	assert.NotNil(t, goal3.MiniCriteria)
 	assert.NotNil(t, goal3.MidiCriteria)
 	assert.NotNil(t, goal3.MaxiCriteria)
 
-	// Check fourth goal (elastic numeric with units)
-	goal4 := schema.Goals[3]
+	// Check fourth habit (elastic numeric with units)
+	goal4 := schema.Habits[3]
 	assert.Equal(t, "Water Intake", goal4.Title)
 	assert.Equal(t, "water_intake", goal4.ID)
 	assert.Equal(t, 4, goal4.Position)
-	assert.Equal(t, models.ElasticGoal, goal4.GoalType)
+	assert.Equal(t, models.ElasticHabit, goal4.HabitType)
 	assert.Equal(t, models.UnsignedIntFieldType, goal4.FieldType.Type)
 	assert.Equal(t, "glasses", goal4.FieldType.Unit)
 	assert.Equal(t, models.AutomaticScoring, goal4.ScoringType)

@@ -1,4 +1,4 @@
-// Package entry provides field-type-aware input collection for goal entry recording.
+// Package entry provides field-type-aware input collection for habit entry recording.
 package entry
 
 import (
@@ -27,7 +27,7 @@ const (
 // BooleanEntryInput handles boolean field value input for entry collection
 type BooleanEntryInput struct {
 	option        BooleanOption
-	goal          models.Goal
+	habit         models.Habit
 	fieldType     models.FieldType
 	existingEntry *ExistingEntry
 	showScoring   bool
@@ -37,17 +37,17 @@ type BooleanEntryInput struct {
 
 // NewBooleanEntryInput creates a new boolean entry input component
 func NewBooleanEntryInput(config EntryFieldInputConfig) *BooleanEntryInput {
-	debug.Field("Creating BooleanEntryInput for goal %s", config.Goal.ID)
+	debug.Field("Creating BooleanEntryInput for habit %s", config.Habit.ID)
 
 	input := &BooleanEntryInput{
-		goal:          config.Goal,
+		habit:         config.Habit,
 		fieldType:     config.FieldType,
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
 		option:        BooleanYes, // Default to Yes
 	}
 
-	debug.Field("BooleanEntryInput created for goal %s, default option: %s", config.Goal.ID, input.option)
+	debug.Field("BooleanEntryInput created for habit %s, default option: %s", config.Habit.ID, input.option)
 
 	// Set existing value if available
 	if config.ExistingEntry != nil && config.ExistingEntry.Value != nil {
@@ -64,20 +64,20 @@ func NewBooleanEntryInput(config EntryFieldInputConfig) *BooleanEntryInput {
 }
 
 // CreateInputForm creates a three-option select form (Yes/No/Skip)
-func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
-	debug.Field("Creating huh.Form for boolean goal %s, current option: %s", goal.ID, bi.option)
+func (bi *BooleanEntryInput) CreateInputForm(habit models.Habit) *huh.Form {
+	debug.Field("Creating huh.Form for boolean habit %s, current option: %s", habit.ID, bi.option)
 	// Prepare styling
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("12")). // Bright blue
 		Margin(1, 0)
 
-	title := titleStyle.Render(goal.Title)
+	title := titleStyle.Render(habit.Title)
 
 	// Prepare prompt
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Did you complete: %s?", goal.Title)
+		prompt = fmt.Sprintf("Did you complete: %s?", habit.Title)
 	}
 
 	// Show existing value in prompt if available
@@ -96,11 +96,11 @@ func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 
 	// Prepare description
 	var description string
-	if goal.Description != "" {
+	if habit.Description != "" {
 		descStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("8")). // Gray
 			Italic(true)
-		description = descStyle.Render(goal.Description)
+		description = descStyle.Render(habit.Description)
 	}
 
 	// Create the form with boolean select and notes field
@@ -127,11 +127,11 @@ func (bi *BooleanEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	)
 
 	// Add help text if available
-	if goal.HelpText != "" {
+	if habit.HelpText != "" {
 		bi.form = bi.form.WithShowHelp(true)
 	}
 
-	debug.Field("Boolean form created for goal %s, initial state: %v", goal.ID, bi.form.State)
+	debug.Field("Boolean form created for habit %s, initial state: %v", habit.ID, bi.form.State)
 	return bi.form
 }
 
@@ -212,7 +212,7 @@ func (bi *BooleanEntryInput) GetValidationError() error {
 
 // CanShowScoring returns true for boolean inputs with automatic scoring
 func (bi *BooleanEntryInput) CanShowScoring() bool {
-	return bi.showScoring && bi.goal.ScoringType == models.AutomaticScoring
+	return bi.showScoring && bi.habit.ScoringType == models.AutomaticScoring
 }
 
 // UpdateScoringDisplay updates the form to show scoring feedback
@@ -232,14 +232,14 @@ func (bi *BooleanEntryInput) UpdateScoringDisplay(level *models.AchievementLevel
 		switch bi.option {
 		case BooleanYes:
 			if *level == models.AchievementMini {
-				feedback = "✅ Goal Completed!"
+				feedback = "✅ Habit Completed!"
 			} else {
 				feedback = fmt.Sprintf("✅ Achievement: %v", *level)
 			}
 		case BooleanNo:
-			feedback = "❌ Goal Not Completed"
+			feedback = "❌ Habit Not Completed"
 		case BooleanSkip:
-			feedback = "⏭️ Goal Skipped"
+			feedback = "⏭️ Habit Skipped"
 		}
 
 		// Update form with achievement feedback

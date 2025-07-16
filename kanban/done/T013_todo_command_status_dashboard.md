@@ -14,8 +14,8 @@ Users need a quick way to see their daily habit status without going through the
 **Context (Significant Code Files)**:
 - `cmd/`: CLI command structure and parsing
 - `internal/ui/`: UI components and formatting utilities  
-- `internal/storage/`: Data access for goals and entries
-- `internal/models/`: Goal and Entry data structures with EntryStatus enum
+- `internal/storage/`: Data access for habits and entries
+- `internal/models/`: Habit and Entry data structures with EntryStatus enum
 
 ## Git Commit History
 
@@ -23,7 +23,7 @@ Users need a quick way to see their daily habit status without going through the
 
 *No commits yet - task is in backlog*
 
-## 1. Goal / User Story
+## 1. Habit / User Story
 
 As a habit tracker user, I want a quick `vice todo` command that shows me today's habit status in a clean table format, so I can see at a glance what I've completed, what's pending, and what I've skipped without entering the full entry collection workflow.
 
@@ -31,9 +31,9 @@ As a habit tracker user, I want a quick `vice todo` command that shows me today'
 
 - [ ] `vice todo` command displays today's habits in a table format
 - [ ] Status indicators: ✓ (completed), ○ (pending), ⤫ (skipped) 
-- [ ] Table shows: Goal Name, Status, Value/Notes (if any)
+- [ ] Table shows: Habit Name, Status, Value/Notes (if any)
 - [ ] Command works when no entries exist for today (shows all pending)
-- [ ] Command handles missing goals file gracefully
+- [ ] Command handles missing habits file gracefully
 - [ ] Clean, readable output suitable for terminal display
 - [ ] Optional: Color coding for different statuses
 - [ ] Optional: Summary line showing completion count (e.g., "3/5 completed, 1 skipped")
@@ -43,7 +43,7 @@ As a habit tracker user, I want a quick `vice todo` command that shows me today'
 *AI to complete when changes are architecturally significant, or when asked, prior to implementation plan.*
 
 The todo command will reuse existing storage and model infrastructure:
-- Leverage existing goal loading from `internal/storage/goals.go`
+- Leverage existing habit loading from `internal/storage/habits.go`
 - Use existing entry loading from `internal/storage/entries.go` 
 - Utilize EntryStatus enum from T012 for status determination
 - Create new UI formatter for tabular display
@@ -53,7 +53,7 @@ Key design decisions:
 - Read-only operation (no modification of data)
 - Status determination logic: completed/failed/skipped from existing entries, pending for missing entries
 - Table formatting should be consistent with existing UI patterns
-- Consider terminal width limitations for goal names and values
+- Consider terminal width limitations for habit names and values
 
 ## 4. Implementation Plan & Progress
 
@@ -66,17 +66,17 @@ Key design decisions:
     - *Design:* Add `todoCmd` to cobra CLI structure in `cmd/`, wire up to main command
     - *Code/Artifacts:* `cmd/todo.go` - new file with cobra command definition
     - *Testing Strategy:* Unit test for command registration, integration test for basic execution
-    - *AI Notes:* Follow existing command patterns from `cmd/entry.go` and `cmd/goal.go`
+    - *AI Notes:* Follow existing command patterns from `cmd/entry.go` and `cmd/habit.go`
 
 - [x] **Phase 2: Data Loading & Status Logic**
-  - [x] **Sub-task 2.1: Load today's goals and entries**
-    - *Design:* Function to load all goals, load today's entries, merge status information
+  - [x] **Sub-task 2.1: Load today's habits and entries**
+    - *Design:* Function to load all habits, load today's entries, merge status information
     - *Code/Artifacts:* Add functions to existing storage layer or new `internal/ui/todo.go`
     - *Testing Strategy:* Unit tests for data loading with various entry states
-    - *AI Notes:* Reuse existing goal/entry loading patterns, handle missing files gracefully
+    - *AI Notes:* Reuse existing habit/entry loading patterns, handle missing files gracefully
     
   - [x] **Sub-task 2.2: Status determination logic**
-    - *Design:* Map goal IDs to entry status, default to pending for missing entries
+    - *Design:* Map habit IDs to entry status, default to pending for missing entries
     - *Code/Artifacts:* Status mapping function, handle all EntryStatus values
     - *Testing Strategy:* Unit tests covering all status combinations
     - *AI Notes:* Leverage T012 EntryStatus enum, consider future status values
@@ -96,7 +96,7 @@ Key design decisions:
 
 - [x] **Phase 4: Error Handling & Polish**
   - [x] **Sub-task 4.1: Graceful error handling**
-    - *Design:* Handle missing files, corrupted data, empty goal sets
+    - *Design:* Handle missing files, corrupted data, empty habit sets
     - *Code/Artifacts:* Error handling in command function, user-friendly error messages
     - *Testing Strategy:* Error case testing, integration tests with missing files
     - *AI Notes:* Follow existing error handling patterns from other commands

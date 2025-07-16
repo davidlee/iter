@@ -19,7 +19,7 @@ import (
 type DurationEntryInput struct {
 	value         string
 	action        InputAction
-	goal          models.Goal
+	habit         models.Habit
 	fieldType     models.FieldType
 	existingEntry *ExistingEntry
 	showScoring   bool
@@ -30,7 +30,7 @@ type DurationEntryInput struct {
 // NewDurationEntryInput creates a new duration entry input component
 func NewDurationEntryInput(config EntryFieldInputConfig) *DurationEntryInput {
 	input := &DurationEntryInput{
-		goal:          config.Goal,
+		habit:         config.Habit,
 		fieldType:     config.FieldType,
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
@@ -51,19 +51,19 @@ func NewDurationEntryInput(config EntryFieldInputConfig) *DurationEntryInput {
 }
 
 // CreateInputForm creates a duration input form with flexible format support
-func (di *DurationEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
+func (di *DurationEntryInput) CreateInputForm(habit models.Habit) *huh.Form {
 	// Prepare styling
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("12")). // Bright blue
 		Margin(1, 0)
 
-	title := titleStyle.Render(goal.Title)
+	title := titleStyle.Render(habit.Title)
 
 	// Prepare prompt
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Enter duration for: %s", goal.Title)
+		prompt = fmt.Sprintf("Enter duration for: %s", habit.Title)
 	}
 
 	// Show existing value in prompt if available
@@ -72,7 +72,7 @@ func (di *DurationEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	}
 
 	// Build description
-	description := di.buildDescription(goal)
+	description := di.buildDescription(habit)
 
 	// Create the form with input and action selection
 	di.form = huh.NewForm(
@@ -87,14 +87,14 @@ func (di *DurationEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 				Title("Action").
 				Options(
 					huh.NewOption("✅ Submit Value", ActionSubmit),
-					huh.NewOption("⏭️ Skip Goal", ActionSkip),
+					huh.NewOption("⏭️ Skip Habit", ActionSkip),
 				).
 				Value(&di.action),
 		).Title(title),
 	)
 
 	// Add help text if available
-	if goal.HelpText != "" {
+	if habit.HelpText != "" {
 		di.form = di.form.WithShowHelp(true)
 	}
 
@@ -167,7 +167,7 @@ func (di *DurationEntryInput) GetValidationError() error {
 
 // CanShowScoring returns true for duration inputs with automatic scoring
 func (di *DurationEntryInput) CanShowScoring() bool {
-	return di.showScoring && di.goal.ScoringType == models.AutomaticScoring
+	return di.showScoring && di.habit.ScoringType == models.AutomaticScoring
 }
 
 // UpdateScoringDisplay updates the form to show scoring feedback
@@ -191,7 +191,7 @@ func (di *DurationEntryInput) UpdateScoringDisplay(level *models.AchievementLeve
 		case models.AchievementMaxi:
 			feedback = "🥇 Maxi Duration Achievement!"
 		case models.AchievementNone:
-			feedback = "❌ Duration Goal Not Met"
+			feedback = "❌ Duration Habit Not Met"
 		default:
 			feedback = fmt.Sprintf("Achievement: %v", *level)
 		}
@@ -205,15 +205,15 @@ func (di *DurationEntryInput) UpdateScoringDisplay(level *models.AchievementLeve
 
 // Private methods
 
-func (di *DurationEntryInput) buildDescription(goal models.Goal) string {
+func (di *DurationEntryInput) buildDescription(habit models.Habit) string {
 	var descParts []string
 
-	// Add goal description if available
-	if goal.Description != "" {
+	// Add habit description if available
+	if habit.Description != "" {
 		descStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("8")). // Gray
 			Italic(true)
-		descParts = append(descParts, descStyle.Render(goal.Description))
+		descParts = append(descParts, descStyle.Render(habit.Description))
 	}
 
 	// Add duration format description with comprehensive examples

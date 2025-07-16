@@ -11,7 +11,7 @@ See `doc/bubbletea_guide.md` for guidance on UI code or tests.
 
 IMPORTANT: find and read relevant docs before modifying, planning or debugging UI code or tests.
 
-## Core Design Goals 
+## Core Design Habits 
 
 - support diverse needs through flexible UI & data models
 - resilience of data to change 
@@ -44,7 +44,7 @@ The project otherwise uses standard Go tooling. See `Justfile` for typical comma
 The UI expects a TTY and cannot accept piped output, but we can partly get around this in headless tests:
 
 - **Automated Testing**: Use `NewSimpleGoalCreatorForTesting()` and `CreateGoalDirectly()` methods to test business logic without UI interaction
-- **Integration Tests**: All goal type + field type + scoring type combinations are covered by headless integration tests
+- **Integration Tests**: All habit type + field type + scoring type combinations are covered by headless integration tests
 - **Dry-run Mode**: Available for manual CLI verification when `--dry-run` flags are supported
 
 ## Development process

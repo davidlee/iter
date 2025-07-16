@@ -74,8 +74,8 @@ func TestEntryFieldInputFactory(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := EntryFieldInputConfig{
-				Goal: models.Goal{
-					Title: "Test Goal",
+				Habit: models.Habit{
+					Title: "Test Habit",
 				},
 				FieldType:     tt.fieldType,
 				ExistingEntry: nil,
@@ -110,8 +110,8 @@ func TestEntryFieldInputFactory(t *testing.T) {
 
 func TestBooleanEntryInput(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
-			Title:  "Test Boolean Goal",
+		Habit: models.Habit{
+			Title:  "Test Boolean Habit",
 			Prompt: "Complete this task?",
 		},
 		FieldType: models.FieldType{
@@ -154,8 +154,8 @@ func TestBooleanEntryInput(t *testing.T) {
 
 func TestBooleanEntryInputSkipFunctionality(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
-			Title:  "Test Boolean Goal",
+		Habit: models.Habit{
+			Title:  "Test Boolean Habit",
 			Prompt: "Did you complete this?",
 		},
 		FieldType: models.FieldType{
@@ -204,8 +204,8 @@ func TestBooleanEntryInputSkipFunctionality(t *testing.T) {
 
 func TestTextEntryInput(t *testing.T) {
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
-			Title:  "Test Text Goal",
+		Habit: models.Habit{
+			Title:  "Test Text Habit",
 			Prompt: "Enter your thoughts",
 		},
 		FieldType: models.FieldType{
@@ -251,8 +251,8 @@ func TestNumericEntryInput(t *testing.T) {
 	minVal := 0.0
 	maxVal := 100.0
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
-			Title:  "Test Numeric Goal",
+		Habit: models.Habit{
+			Title:  "Test Numeric Habit",
 			Prompt: "Enter a number",
 		},
 		FieldType: models.FieldType{
@@ -287,8 +287,8 @@ func TestScoringAwareInput(t *testing.T) {
 	factory := NewEntryFieldInputFactory()
 
 	config := EntryFieldInputConfig{
-		Goal: models.Goal{
-			Title:       "Test Scoring Goal",
+		Habit: models.Habit{
+			Title:       "Test Scoring Habit",
 			ScoringType: models.AutomaticScoring,
 		},
 		FieldType: models.FieldType{
@@ -311,7 +311,7 @@ func TestScoringAwareInput(t *testing.T) {
 
 	// Test that it implements the ScoringAwareInput interface
 	if !scoringInput.CanShowScoring() {
-		t.Errorf("CanShowScoring() expected true for automatic scoring goal")
+		t.Errorf("CanShowScoring() expected true for automatic scoring habit")
 	}
 
 	// Test scoring display update (should not error)
@@ -321,20 +321,20 @@ func TestScoringAwareInput(t *testing.T) {
 	}
 }
 
-func TestGoalCollectionFlowFactory(t *testing.T) {
+func TestHabitCollectionFlowFactory(t *testing.T) {
 	fieldInputFactory := NewEntryFieldInputFactory()
-	factory := NewGoalCollectionFlowFactory(fieldInputFactory, nil, "checklists.yml")
+	factory := NewHabitCollectionFlowFactory(fieldInputFactory, nil, "checklists.yml")
 
 	tests := []struct {
 		name     string
 		goalType string
 		wantErr  bool
 	}{
-		{"Simple goal", string(models.SimpleGoal), false},
-		{"Elastic goal", string(models.ElasticGoal), false},
-		{"Informational goal", string(models.InformationalGoal), false},
-		{"Checklist goal", string(models.ChecklistGoal), false},
-		{"Invalid goal type", "invalid", true},
+		{"Simple habit", string(models.SimpleHabit), false},
+		{"Elastic habit", string(models.ElasticHabit), false},
+		{"Informational habit", string(models.InformationalHabit), false},
+		{"Checklist habit", string(models.ChecklistHabit), false},
+		{"Invalid habit type", "invalid", true},
 	}
 
 	for _, tt := range tests {

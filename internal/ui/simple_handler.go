@@ -10,42 +10,42 @@ import (
 	"davidlee/vice/internal/models"
 )
 
-// SimpleGoalHandler handles entry collection for simple boolean goals.
-// This maintains the exact same UI behavior as the original collectGoalEntry method.
-type SimpleGoalHandler struct{}
+// SimpleHabitHandler handles entry collection for simple boolean habits.
+// This maintains the exact same UI behavior as the original collectHabitEntry method.
+type SimpleHabitHandler struct{}
 
-// NewSimpleGoalHandler creates a new simple goal handler.
-func NewSimpleGoalHandler() *SimpleGoalHandler {
-	return &SimpleGoalHandler{}
+// NewSimpleHabitHandler creates a new simple habit handler.
+func NewSimpleHabitHandler() *SimpleHabitHandler {
+	return &SimpleHabitHandler{}
 }
 
-// CollectEntry collects a boolean entry for a simple goal.
+// CollectEntry collects a boolean entry for a simple habit.
 // This preserves the exact UI flow from the original implementation.
-func (h *SimpleGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEntry) (*EntryResult, error) {
-	// Prepare the form title with goal information
+func (h *SimpleHabitHandler) CollectEntry(habit models.Habit, existing *ExistingEntry) (*EntryResult, error) {
+	// Prepare the form title with habit information
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("12")). // Bright blue
 		Margin(1, 0)
 
-	title := titleStyle.Render(goal.Title)
+	title := titleStyle.Render(habit.Title)
 
 	// Prepare description if available
 	var description string
-	if goal.Description != "" {
+	if habit.Description != "" {
 		descStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("8")). // Gray
 			Italic(true)
-		description = descStyle.Render(goal.Description)
+		description = descStyle.Render(habit.Description)
 	}
 
 	// Prepare help text if available
 	var help string
-	if goal.HelpText != "" {
+	if habit.HelpText != "" {
 		helpStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("10")). // Bright green
 			Faint(true)
-		help = helpStyle.Render("💡 " + goal.HelpText)
+		help = helpStyle.Render("💡 " + habit.HelpText)
 	}
 
 	// Get current boolean value (if any)
@@ -60,9 +60,9 @@ func (h *SimpleGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEnt
 
 	// Create the completion question - initialize with existing value
 	completed := currentValue
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Did you complete: %s?", goal.Title)
+		prompt = fmt.Sprintf("Did you complete: %s?", habit.Title)
 	}
 
 	// Show existing value in prompt if available
@@ -97,22 +97,22 @@ func (h *SimpleGoalHandler) CollectEntry(goal models.Goal, existing *ExistingEnt
 	}
 
 	// Collect optional notes
-	notes, err := h.collectOptionalNotes(goal, completed, existing)
+	notes, err := h.collectOptionalNotes(habit, completed, existing)
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect notes: %w", err)
 	}
 
-	// Return the result (no achievement level for simple goals)
+	// Return the result (no achievement level for simple habits)
 	return &EntryResult{
 		Value:            completed,
-		AchievementLevel: nil, // Simple goals don't have achievement levels
+		AchievementLevel: nil, // Simple habits don't have achievement levels
 		Notes:            notes,
 	}, nil
 }
 
-// collectOptionalNotes allows the user to optionally add notes for a simple goal.
+// collectOptionalNotes allows the user to optionally add notes for a simple habit.
 // This preserves the exact behavior from the original implementation.
-func (h *SimpleGoalHandler) collectOptionalNotes(_ models.Goal, _ bool, existing *ExistingEntry) (string, error) {
+func (h *SimpleHabitHandler) collectOptionalNotes(_ models.Habit, _ bool, existing *ExistingEntry) (string, error) {
 	// Get existing notes
 	var existingNotes string
 	if existing != nil {
@@ -154,7 +154,7 @@ func (h *SimpleGoalHandler) collectOptionalNotes(_ models.Goal, _ bool, existing
 		huh.NewGroup(
 			huh.NewText().
 				Title("Notes:").
-				Description("Optional notes about this goal (press Enter when done)").
+				Description("Optional notes about this habit (press Enter when done)").
 				Value(&notes).
 				Placeholder("Why did you succeed/fail? How did you feel?"),
 		),

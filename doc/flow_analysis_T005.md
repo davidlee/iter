@@ -1,4 +1,4 @@
-# Goal Configuration Flow Analysis
+# Habit Configuration Flow Analysis
 
 **Task**: T005 Phase 2.0 - Flow Analysis and Enhancement Planning  
 **Date**: Created during Phase 2.0 planning  
@@ -7,10 +7,10 @@
 ## Current Implementation Analysis
 
 ### Overview
-The current goal creation process uses sequential `huh.Form.Run()` calls:
-- **Simple Goals**: 4-5 steps 
-- **Elastic Goals**: 6-8 steps (most complex)
-- **Informational Goals**: 3-4 steps
+The current habit creation process uses sequential `huh.Form.Run()` calls:
+- **Simple Habits**: 4-5 steps 
+- **Elastic Habits**: 6-8 steps (most complex)
+- **Informational Habits**: 3-4 steps
 
 ### Pain Points Identified
 1. **No Progress Indication**: Users don't know how many steps remain
@@ -23,7 +23,7 @@ The current goal creation process uses sequential `huh.Form.Run()` calls:
 
 ## Flow Diagrams
 
-### 1. Simple Goal Flow (4 steps)
+### 1. Simple Habit Flow (4 steps)
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -42,10 +42,10 @@ The current goal creation process uses sequential `huh.Form.Run()` calls:
 ```
 
 **Flow Details:**
-- **Step 1**: Title, Description, Goal Type (pre-selected as Simple)
+- **Step 1**: Title, Description, Habit Type (pre-selected as Simple)
 - **Step 2**: Scoring Type (Manual/Automatic)
 - **Step 3**: Criteria definition (only if Automatic scoring selected)
-- **Step 4**: Preview complete goal configuration and save
+- **Step 4**: Preview complete habit configuration and save
 
 **Current Issues:**
 - Step 3 is conditional but no indication in UI
@@ -54,7 +54,7 @@ The current goal creation process uses sequential `huh.Form.Run()` calls:
 
 ---
 
-### 2. Elastic Goal Flow (6-8 steps) - Most Complex
+### 2. Elastic Habit Flow (6-8 steps) - Most Complex
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -93,7 +93,7 @@ The current goal creation process uses sequential `huh.Form.Run()` calls:
                                               │ • Check mini≤   │
                                               │   midi≤maxi     │
                                               │ • Validate all  │
-                                              │ • Goal preview  │
+                                              │ • Habit preview  │
                                               └─────────────────┘
 ```
 
@@ -121,7 +121,7 @@ The current goal creation process uses sequential `huh.Form.Run()` calls:
 
 ---
 
-### 3. Informational Goal Flow (3 steps)
+### 3. Informational Habit Flow (3 steps)
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -151,11 +151,11 @@ The current goal creation process uses sequential `huh.Form.Run()` calls:
 
 ## Decision Tree Diagrams
 
-### 1. Goal Type Selection Decision Tree
+### 1. Habit Type Selection Decision Tree
 
 ```
                            ┌─────────────────┐
-                           │   Goal Type     │
+                           │   Habit Type     │
                            │   Selection     │
                            └─────────┬───────┘
                                      │
@@ -242,25 +242,25 @@ The current goal creation process uses sequential `huh.Form.Run()` calls:
 ### 1. Bubbletea Value vs Overhead Analysis
 
 **High Value Cases (Recommend Bubbletea):**
-- **Elastic Goals with Automatic Scoring** (6-8 steps)
+- **Elastic Habits with Automatic Scoring** (6-8 steps)
   - **Value**: Progress tracking, criteria comparison, validation feedback
   - **Overhead**: Justified by complexity reduction
-- **Goal Editing** (variable steps based on goal type)
+- **Habit Editing** (variable steps based on habit type)
   - **Value**: Live preview, better error recovery
   - **Overhead**: Worth it for improved UX
 
 **Medium Value Cases (Consider Bubbletea):**
-- **Simple Goals with Automatic Scoring** (4 steps)
+- **Simple Habits with Automatic Scoring** (4 steps)
   - **Value**: Progress indication, back navigation
   - **Overhead**: Moderate - could go either way
-- **Goal Management Operations** (list/remove)
+- **Habit Management Operations** (list/remove)
   - **Value**: Interactive selection, rich display
   - **Overhead**: Depends on implementation complexity
 
 **Low Value Cases (Keep Simple Huh):**
 - **Confirmations and Simple Prompts**
   - Single-step interactions where bubbletea adds little value
-- **Informational Goals** (3 steps)
+- **Informational Habits** (3 steps)
   - Simple enough that current flow is adequate
 
 ### 2. User Experience Improvements
@@ -278,8 +278,8 @@ The current goal creation process uses sequential `huh.Form.Run()` calls:
 - **Contextual Help**: Dynamic help text based on current input
 - **Field Highlighting**: Visual indication of validation status
 
-**Goal Preview Enhancements:**
-- **Side-by-side Preview**: Show accumulated goal config alongside current step
+**Habit Preview Enhancements:**
+- **Side-by-side Preview**: Show accumulated habit config alongside current step
 - **YAML Preview**: Live YAML generation for advanced users
 - **Validation Status**: Real-time indication of completeness and correctness
 - **Summary Cards**: Compact display of configured properties
@@ -322,7 +322,7 @@ type WizardState interface {
     GetStep(index int) StepData
     SetStep(index int, data StepData) 
     Validate() []ValidationError
-    ToGoal() (*models.Goal, error)
+    ToGoal() (*models.Habit, error)
     Serialize() ([]byte, error)
     Deserialize([]byte) error
 }
@@ -421,7 +421,7 @@ type RetryStrategy interface {
 
 ---
 
-## Implementation Strategy for Elastic Goals
+## Implementation Strategy for Elastic Habits
 
 ### 1. Complex Criteria Validation Flow
 
@@ -529,14 +529,14 @@ type ElasticGoalWizardState struct {
 
 Based on this analysis, the recommended implementation approach is:
 
-1. **Start with Elastic Goal Wizard**: Highest complexity, highest value from bubbletea
+1. **Start with Elastic Habit Wizard**: Highest complexity, highest value from bubbletea
 2. **Create Hybrid Architecture**: Bubbletea for wizards, huh for simple forms
 3. **Build Reusable Components**: Progress indicators, navigation, form embedding
 4. **Implement Progressive Disclosure**: Show configuration requirements upfront
 5. **Add Real-time Validation**: Immediate feedback and cross-step validation
-6. **Create Rich Preview**: Side-by-side goal configuration display
+6. **Create Rich Preview**: Side-by-side habit configuration display
 
-The elastic goal flow is the most complex and will benefit most from the enhanced UX patterns, making it an ideal proof-of-concept for the bubbletea integration.
+The elastic habit flow is the most complex and will benefit most from the enhanced UX patterns, making it an ideal proof-of-concept for the bubbletea integration.
 
 ---
 
@@ -544,14 +544,14 @@ The elastic goal flow is the most complex and will benefit most from the enhance
 
 ### Current Status (Post-User Testing)
 
-**Phase 2.6**: Successfully implemented basic info collection upfront (Title → Description → Goal Type).
+**Phase 2.6**: Successfully implemented basic info collection upfront (Title → Description → Habit Type).
 
 **Phase 2.7**: Critical integration issues discovered during user testing:
 
 ### User Testing Results Analysis
 
 **Test Case 1: Enhanced Wizard Flow**
-- ✅ Basic info collection works correctly (Title → Description → Goal Type)
+- ✅ Basic info collection works correctly (Title → Description → Habit Type)
 - ❌ Mode selection defaults to "Quick Forms" instead of "Enhanced Wizard (Recommended)"
 - ❌ Enhanced wizard shows validation error: "Scoring configuration is required"
 - **Root Cause**: Wizard step handlers don't recognize pre-populated basic info
@@ -567,7 +567,7 @@ The elastic goal flow is the most complex and will benefit most from the enhance
 
 1. **Remove Mode Selection Complexity**
    - Eliminate user choice between Enhanced Wizard vs Quick Forms
-   - Use `determineOptimalInterface()` automatically based on goal type
+   - Use `determineOptimalInterface()` automatically based on habit type
    - Simplify flow: Basic Info → Auto-select best interface → Launch
 
 2. **Fix Wizard Pre-population Logic**
@@ -586,20 +586,20 @@ The elastic goal flow is the most complex and will benefit most from the enhance
 1. collectBasicInformation():
    ├─ Title (required, validated)
    ├─ Description (optional)
-   └─ Goal Type (simple/elastic/informational)
+   └─ Habit Type (simple/elastic/informational)
 
 2. determineOptimalInterface() automatically:
-   ├─ Simple Goals → Enhanced Wizard (no user choice)
-   ├─ Elastic Goals → Enhanced Wizard (complexity requires it)
-   └─ Informational Goals → Enhanced Wizard (direction config needs it)
+   ├─ Simple Habits → Enhanced Wizard (no user choice)
+   ├─ Elastic Habits → Enhanced Wizard (complexity requires it)
+   └─ Informational Habits → Enhanced Wizard (direction config needs it)
 
 3. Launch appropriate interface:
    ├─ Enhanced Wizard: Pre-populated with basic info, start from step 1
    └─ Legacy Forms: Skip basic info collection, use pre-populated data
 ```
 
-**User Experience Goals:**
+**User Experience Habits:**
 - No confusing mode selection prompts
 - Seamless transition from basic info to appropriate interface
 - No validation errors about missing information that was already collected
-- Optimal interface automatically selected based on goal complexity
+- Optimal interface automatically selected based on habit complexity

@@ -23,8 +23,8 @@ Let's use Claude Code to build a CLI habit tracker app. Working title "vice".
   - out of initial scope
     - checklist (array of \[boolean, description] defined by schema)
     - list (variable array of \[ boolean | numeric | time | duration, description])
-- goals & entry format are defined by a schema
-    - goal types
+- habits & entry format are defined by a schema
+    - habit types
         - simple (boolean pass / fail)
             - manually scored during entry
             - automatically scored 
@@ -43,7 +43,7 @@ Let's use Claude Code to build a CLI habit tracker app. Working title "vice".
                         - checklist 
                             - bitmask
                     - infer based on criteria if more is better / less is better (for display)
-        - elastic (mini/midi/maxi goals)
+        - elastic (mini/midi/maxi habits)
             - manually scored
             - automatically scored
                 - 3 x sets of criteria
@@ -53,20 +53,20 @@ Let's use Claude Code to build a CLI habit tracker app. Working title "vice".
     - criteria have 
         - an optional multi-line description
         - criteria
-    - as well as criteria, goals have
+    - as well as criteria, habits have
         - title, optional description (markdown, multi-line), and position (unique int). 
         - Numeric types have a "unit" (string), e.g. "kg".
         - an optional unique identifier (string) to make entries robust to minor changes in schema; if missing, an identifier will be generated from the title (sluggified). This identifies the schema entry for a given entry section. 
 
-Goals:
+Habits:
 - low friction entry (efficient & attractive CLI / TUI interface)
-- flexibility to represent diverse goals
-- resilience (esp of historical entry data) to evolving goals
-  - scoring should reflect goals on the date of entry
-  - changes to goal schema should not unnecessarily interfere with aggregation, correlation & analysis of entries over time
+- flexibility to represent diverse habits
+- resilience (esp of historical entry data) to evolving habits
+  - scoring should reflect habits on the date of entry
+  - changes to habit schema should not unnecessarily interfere with aggregation, correlation & analysis of entries over time
       - behaviour in response to schema changes should be defined and documented
       - the entry parser should be permissive
-      - data formats should be designed with this change tolerance as a key design goal
+      - data formats should be designed with this change tolerance as a key design habit
 - loosely coupled, maintainable code
     - clean separation of responsibility for
         - defining, editing & validating the schema
@@ -91,7 +91,7 @@ Goals:
   - to work with years of accumulated data
   - allowance for caching / specialised storage for aggregation & analysis
 - simplicity
-  - in implementation: minimise codebase size & complexity given design goals & functionality
+  - in implementation: minimise codebase size & complexity given design habits & functionality
   - design for simplicity: make scope & design choices which weigh value & necessity carefully against implementation complexity footprint
   - carefully consider removing functionality where doing so can lead to a simpler implementation
 
@@ -108,15 +108,15 @@ Initial Scope:
 - in scope
     - cli app with subcommands
         - entry: submit or append to the current day's entry according to the schema
-            - interactive, dynamic - based on structure of goal schema
+            - interactive, dynamic - based on structure of habit schema
             - show but don't overwrite any fields already filled
         - revise: edit the current day's entry, allowing fields already filled to be altered
         - list: show dates with previous entries
         - edit: edit a previous entry
             - detect schema incompatibility
             - disallow editing of incompatible fields
-        - goals: show the goal schema, formatted in colour for maximum human readability
-        - validate: goal schema validation
+        - habits: show the habit schema, formatted in colour for maximum human readability
+        - validate: habit schema validation
             - error messages with line number
     - nice colours and UI
 

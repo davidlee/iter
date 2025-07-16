@@ -4,7 +4,7 @@
 **Status**: Done  
 **Related tasks**: ["related:T020"]
 
-## 1. Goal
+## 1. Habit
 
 Improve data resilience for entries.yml file operations through automatic backups, validation, and comprehensive documentation of storage patterns.
 
@@ -100,7 +100,7 @@ type BackupConfig struct {
 4. **Performance Optimizations**
    - Incremental backup (only changed data)
    - Async backup operations for large files
-   - Backup only on significant changes (not every goal entry)
+   - Backup only on significant changes (not every habit entry)
 
 ### Architecture Notes
 

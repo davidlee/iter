@@ -9,11 +9,11 @@ import (
 	"davidlee/vice/internal/models"
 )
 
-func TestEngine_ScoreSimpleGoal(t *testing.T) {
+func TestEngine_ScoreSimpleHabit(t *testing.T) {
 	engine := NewEngine()
 
-	t.Run("numeric simple goal with criteria", func(t *testing.T) {
-		goal := createTestSimpleGoal(models.UnsignedIntFieldType, 10)
+	t.Run("numeric simple habit with criteria", func(t *testing.T) {
+		habit := createTestSimpleHabit(models.UnsignedIntFieldType, 10)
 
 		testCases := []struct {
 			value         interface{}
@@ -26,64 +26,64 @@ func TestEngine_ScoreSimpleGoal(t *testing.T) {
 		}
 
 		for _, tc := range testCases {
-			result, err := engine.ScoreSimpleGoal(&goal, tc.value)
+			result, err := engine.ScoreSimpleHabit(&habit, tc.value)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectedLevel, result.AchievementLevel)
 			assert.Equal(t, tc.expectedMini, result.MetMini)
-			assert.False(t, result.MetMidi) // Simple goals don't have midi
-			assert.False(t, result.MetMaxi) // Simple goals don't have maxi
+			assert.False(t, result.MetMidi) // Simple habits don't have midi
+			assert.False(t, result.MetMaxi) // Simple habits don't have maxi
 		}
 	})
 
-	t.Run("boolean simple goal", func(t *testing.T) {
-		goal := createTestSimpleBooleanGoal()
+	t.Run("boolean simple habit", func(t *testing.T) {
+		habit := createTestSimpleBooleanHabit()
 
 		// Test true value
-		result, err := engine.ScoreSimpleGoal(&goal, true)
+		result, err := engine.ScoreSimpleHabit(&habit, true)
 		require.NoError(t, err)
 		assert.Equal(t, models.AchievementMini, result.AchievementLevel)
 		assert.True(t, result.MetMini)
 
 		// Test false value
-		result, err = engine.ScoreSimpleGoal(&goal, false)
+		result, err = engine.ScoreSimpleHabit(&habit, false)
 		require.NoError(t, err)
 		assert.Equal(t, models.AchievementNone, result.AchievementLevel)
 		assert.False(t, result.MetMini)
 	})
 
 	t.Run("error cases", func(t *testing.T) {
-		// Test nil goal
-		_, err := engine.ScoreSimpleGoal(nil, 5)
+		// Test nil habit
+		_, err := engine.ScoreSimpleHabit(nil, 5)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "goal cannot be nil")
+		assert.Contains(t, err.Error(), "habit cannot be nil")
 
-		// Test non-simple goal
-		elasticGoal := createTestElasticGoal(models.UnsignedIntFieldType, 5, 10, 15)
-		_, err = engine.ScoreSimpleGoal(elasticGoal, 5)
+		// Test non-simple habit
+		elasticHabit := createTestElasticHabit(models.UnsignedIntFieldType, 5, 10, 15)
+		_, err = engine.ScoreSimpleHabit(elasticHabit, 5)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "is not a simple goal")
+		assert.Contains(t, err.Error(), "is not a simple habit")
 
-		// Test manual scoring goal
-		manualGoal := createTestSimpleGoal(models.UnsignedIntFieldType, 10)
-		manualGoal.ScoringType = models.ManualScoring
-		_, err = engine.ScoreSimpleGoal(&manualGoal, 5)
+		// Test manual scoring habit
+		manualHabit := createTestSimpleHabit(models.UnsignedIntFieldType, 10)
+		manualHabit.ScoringType = models.ManualScoring
+		_, err = engine.ScoreSimpleHabit(&manualHabit, 5)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "does not require automatic scoring")
 
-		// Test goal without criteria
-		noCriteriaGoal := createTestSimpleGoal(models.UnsignedIntFieldType, 10)
-		noCriteriaGoal.Criteria = nil
-		_, err = engine.ScoreSimpleGoal(&noCriteriaGoal, 5)
+		// Test habit without criteria
+		noCriteriaHabit := createTestSimpleHabit(models.UnsignedIntFieldType, 10)
+		noCriteriaHabit.Criteria = nil
+		_, err = engine.ScoreSimpleHabit(&noCriteriaHabit, 5)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "has no criteria for automatic scoring")
 	})
 }
 
-func TestEngine_ScoreElasticGoal(t *testing.T) {
+func TestEngine_ScoreElasticHabit(t *testing.T) {
 	engine := NewEngine()
 
-	t.Run("numeric goal with all achievement levels", func(t *testing.T) {
-		goal := createTestElasticGoal(models.UnsignedIntFieldType, 5000, 10000, 15000)
+	t.Run("numeric habit with all achievement levels", func(t *testing.T) {
+		habit := createTestElasticHabit(models.UnsignedIntFieldType, 5000, 10000, 15000)
 
 		testCases := []struct {
 			value         interface{}
@@ -102,7 +102,7 @@ func TestEngine_ScoreElasticGoal(t *testing.T) {
 		}
 
 		for _, tc := range testCases {
-			result, err := engine.ScoreElasticGoal(goal, tc.value)
+			result, err := engine.ScoreElasticHabit(habit, tc.value)
 			require.NoError(t, err)
 			require.NotNil(t, result)
 
@@ -113,8 +113,8 @@ func TestEngine_ScoreElasticGoal(t *testing.T) {
 		}
 	})
 
-	t.Run("duration goal with string and numeric values", func(t *testing.T) {
-		goal := createTestElasticGoal(models.DurationFieldType, 15, 30, 60) // 15, 30, 60 minutes
+	t.Run("duration habit with string and numeric values", func(t *testing.T) {
+		habit := createTestElasticHabit(models.DurationFieldType, 15, 30, 60) // 15, 30, 60 minutes
 
 		testCases := []struct {
 			value         interface{}
@@ -131,15 +131,15 @@ func TestEngine_ScoreElasticGoal(t *testing.T) {
 		}
 
 		for _, tc := range testCases {
-			result, err := engine.ScoreElasticGoal(goal, tc.value)
+			result, err := engine.ScoreElasticHabit(habit, tc.value)
 			require.NoError(t, err)
 			require.NotNil(t, result)
 			assert.Equal(t, tc.expectedLevel, result.AchievementLevel, "Value: %v", tc.value)
 		}
 	})
 
-	t.Run("boolean goal", func(t *testing.T) {
-		goal := createTestBooleanElasticGoal()
+	t.Run("boolean habit", func(t *testing.T) {
+		habit := createTestBooleanElasticHabit()
 
 		testCases := []struct {
 			value         interface{}
@@ -152,15 +152,15 @@ func TestEngine_ScoreElasticGoal(t *testing.T) {
 		}
 
 		for _, tc := range testCases {
-			result, err := engine.ScoreElasticGoal(goal, tc.value)
+			result, err := engine.ScoreElasticHabit(habit, tc.value)
 			require.NoError(t, err)
 			require.NotNil(t, result)
 			assert.Equal(t, tc.expectedLevel, result.AchievementLevel, "Value: %v", tc.value)
 		}
 	})
 
-	t.Run("text goal with length-based criteria", func(t *testing.T) {
-		goal := createTestTextElasticGoal()
+	t.Run("text habit with length-based criteria", func(t *testing.T) {
+		habit := createTestTextElasticHabit()
 
 		testCases := []struct {
 			value         interface{}
@@ -173,7 +173,7 @@ func TestEngine_ScoreElasticGoal(t *testing.T) {
 		}
 
 		for _, tc := range testCases {
-			result, err := engine.ScoreElasticGoal(goal, tc.value)
+			result, err := engine.ScoreElasticHabit(habit, tc.value)
 			require.NoError(t, err)
 			require.NotNil(t, result)
 			assert.Equal(t, tc.expectedLevel, result.AchievementLevel, "Value: %v", tc.value)
@@ -181,34 +181,34 @@ func TestEngine_ScoreElasticGoal(t *testing.T) {
 	})
 
 	t.Run("error cases", func(t *testing.T) {
-		goal := createTestElasticGoal(models.UnsignedIntFieldType, 5000, 10000, 15000)
+		habit := createTestElasticHabit(models.UnsignedIntFieldType, 5000, 10000, 15000)
 
-		// Nil goal
-		_, err := engine.ScoreElasticGoal(nil, 1000)
+		// Nil habit
+		_, err := engine.ScoreElasticHabit(nil, 1000)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "goal cannot be nil")
+		assert.Contains(t, err.Error(), "habit cannot be nil")
 
-		// Non-elastic goal
-		simpleGoal := &models.Goal{
-			ID:       "simple_goal",
-			GoalType: models.SimpleGoal,
+		// Non-elastic habit
+		simpleHabit := &models.Habit{
+			ID:        "simple_goal",
+			HabitType: models.SimpleHabit,
 		}
-		_, err = engine.ScoreElasticGoal(simpleGoal, 1000)
+		_, err = engine.ScoreElasticHabit(simpleHabit, 1000)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "is not an elastic goal")
+		assert.Contains(t, err.Error(), "is not an elastic habit")
 
-		// Manual scoring goal
-		manualGoal := &models.Goal{
+		// Manual scoring habit
+		manualHabit := &models.Habit{
 			ID:          "manual_goal",
-			GoalType:    models.ElasticGoal,
+			HabitType:   models.ElasticHabit,
 			ScoringType: models.ManualScoring,
 		}
-		_, err = engine.ScoreElasticGoal(manualGoal, 1000)
+		_, err = engine.ScoreElasticHabit(manualHabit, 1000)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "does not require automatic scoring")
 
 		// Nil value
-		_, err = engine.ScoreElasticGoal(goal, nil)
+		_, err = engine.ScoreElasticHabit(habit, nil)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "value cannot be nil")
 	})
@@ -428,10 +428,10 @@ func TestEngine_ParseTimeToMinutes(t *testing.T) {
 
 // Helper functions for testing
 
-func createTestElasticGoal(fieldType string, mini, midi, maxi float64) *models.Goal {
-	return &models.Goal{
-		ID:       "test_elastic_goal",
-		GoalType: models.ElasticGoal,
+func createTestElasticHabit(fieldType string, mini, midi, maxi float64) *models.Habit {
+	return &models.Habit{
+		ID:        "test_elastic_goal",
+		HabitType: models.ElasticHabit,
 		FieldType: models.FieldType{
 			Type: fieldType,
 		},
@@ -454,11 +454,11 @@ func createTestElasticGoal(fieldType string, mini, midi, maxi float64) *models.G
 	}
 }
 
-func createTestBooleanElasticGoal() *models.Goal {
+func createTestBooleanElasticHabit() *models.Habit {
 	trueValue := true
-	return &models.Goal{
-		ID:       "test_boolean_goal",
-		GoalType: models.ElasticGoal,
+	return &models.Habit{
+		ID:        "test_boolean_goal",
+		HabitType: models.ElasticHabit,
 		FieldType: models.FieldType{
 			Type: models.BooleanFieldType,
 		},
@@ -471,13 +471,13 @@ func createTestBooleanElasticGoal() *models.Goal {
 	}
 }
 
-func createTestTextElasticGoal() *models.Goal {
+func createTestTextElasticHabit() *models.Habit {
 	miniLength := 5.0
 	midiLength := 15.0
 	maxiLength := 30.0
-	return &models.Goal{
-		ID:       "test_text_goal",
-		GoalType: models.ElasticGoal,
+	return &models.Habit{
+		ID:        "test_text_goal",
+		HabitType: models.ElasticHabit,
 		FieldType: models.FieldType{
 			Type: models.TextFieldType,
 		},
@@ -500,10 +500,10 @@ func createTestTextElasticGoal() *models.Goal {
 	}
 }
 
-func createTestSimpleGoal(fieldType string, threshold float64) models.Goal {
-	return models.Goal{
-		ID:       "test_simple_goal",
-		GoalType: models.SimpleGoal,
+func createTestSimpleHabit(fieldType string, threshold float64) models.Habit {
+	return models.Habit{
+		ID:        "test_simple_goal",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{
 			Type: fieldType,
 		},
@@ -516,11 +516,11 @@ func createTestSimpleGoal(fieldType string, threshold float64) models.Goal {
 	}
 }
 
-func createTestSimpleBooleanGoal() models.Goal {
+func createTestSimpleBooleanHabit() models.Habit {
 	trueValue := true
-	return models.Goal{
-		ID:       "test_simple_boolean_goal",
-		GoalType: models.SimpleGoal,
+	return models.Habit{
+		ID:        "test_simple_boolean_goal",
+		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{
 			Type: models.BooleanFieldType,
 		},

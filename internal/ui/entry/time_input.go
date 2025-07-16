@@ -19,7 +19,7 @@ import (
 type TimeEntryInput struct {
 	value         string
 	action        InputAction
-	goal          models.Goal
+	habit         models.Habit
 	fieldType     models.FieldType
 	existingEntry *ExistingEntry
 	showScoring   bool
@@ -30,7 +30,7 @@ type TimeEntryInput struct {
 // NewTimeEntryInput creates a new time entry input component
 func NewTimeEntryInput(config EntryFieldInputConfig) *TimeEntryInput {
 	input := &TimeEntryInput{
-		goal:          config.Goal,
+		habit:         config.Habit,
 		fieldType:     config.FieldType,
 		existingEntry: config.ExistingEntry,
 		showScoring:   config.ShowScoring,
@@ -57,19 +57,19 @@ func NewTimeEntryInput(config EntryFieldInputConfig) *TimeEntryInput {
 }
 
 // CreateInputForm creates a time input form with formatted input
-func (ti *TimeEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
+func (ti *TimeEntryInput) CreateInputForm(habit models.Habit) *huh.Form {
 	// Prepare styling
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("12")). // Bright blue
 		Margin(1, 0)
 
-	title := titleStyle.Render(goal.Title)
+	title := titleStyle.Render(habit.Title)
 
 	// Prepare prompt
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Enter time for: %s", goal.Title)
+		prompt = fmt.Sprintf("Enter time for: %s", habit.Title)
 	}
 
 	// Show existing value in prompt if available
@@ -82,7 +82,7 @@ func (ti *TimeEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	}
 
 	// Build description with time format examples
-	description := ti.buildDescription(goal)
+	description := ti.buildDescription(habit)
 
 	// Create the form with input and action selection
 	ti.form = huh.NewForm(
@@ -99,14 +99,14 @@ func (ti *TimeEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 				Title("Action").
 				Options(
 					huh.NewOption("✅ Submit Value", ActionSubmit),
-					huh.NewOption("⏭️ Skip Goal", ActionSkip),
+					huh.NewOption("⏭️ Skip Habit", ActionSkip),
 				).
 				Value(&ti.action),
 		).Title(title),
 	)
 
 	// Add help text if available
-	if goal.HelpText != "" {
+	if habit.HelpText != "" {
 		ti.form = ti.form.WithShowHelp(true)
 	}
 
@@ -184,7 +184,7 @@ func (ti *TimeEntryInput) GetValidationError() error {
 
 // CanShowScoring returns true for time inputs with automatic scoring
 func (ti *TimeEntryInput) CanShowScoring() bool {
-	return ti.showScoring && ti.goal.ScoringType == models.AutomaticScoring
+	return ti.showScoring && ti.habit.ScoringType == models.AutomaticScoring
 }
 
 // UpdateScoringDisplay updates the form to show scoring feedback
@@ -208,7 +208,7 @@ func (ti *TimeEntryInput) UpdateScoringDisplay(level *models.AchievementLevel) e
 		case models.AchievementMaxi:
 			feedback = "🥇 Maxi Time Achievement!"
 		case models.AchievementNone:
-			feedback = "❌ Time Goal Not Met"
+			feedback = "❌ Time Habit Not Met"
 		default:
 			feedback = fmt.Sprintf("Achievement: %v", *level)
 		}
@@ -222,15 +222,15 @@ func (ti *TimeEntryInput) UpdateScoringDisplay(level *models.AchievementLevel) e
 
 // Private methods
 
-func (ti *TimeEntryInput) buildDescription(goal models.Goal) string {
+func (ti *TimeEntryInput) buildDescription(habit models.Habit) string {
 	var descParts []string
 
-	// Add goal description if available
-	if goal.Description != "" {
+	// Add habit description if available
+	if habit.Description != "" {
 		descStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("8")). // Gray
 			Italic(true)
-		descParts = append(descParts, descStyle.Render(goal.Description))
+		descParts = append(descParts, descStyle.Render(habit.Description))
 	}
 
 	// Add time format description with examples

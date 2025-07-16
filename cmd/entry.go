@@ -21,12 +21,12 @@ import (
 var menuFlag bool
 
 // entryCmd represents the entry command
-// AIDEV-NOTE: T018/5.3-help-update; comprehensive help text reflects full feature set (simple/elastic/informational/checklist goals)
+// AIDEV-NOTE: T018/5.3-help-update; comprehensive help text reflects full feature set (simple/elastic/informational/checklist habits)
 var entryCmd = &cobra.Command{
 	Use:   "entry",
 	Short: "Record today's habit completion",
-	Long: `Record today's habit data through interactive collection forms. Supports all goal types:
-simple boolean tracking, elastic goals with achievement tiers, informational data collection,
+	Long: `Record today's habit data through interactive collection forms. Supports all habit types:
+simple boolean tracking, elastic habits with achievement tiers, informational data collection,
 and checklist completion. Features automatic success evaluation based on configured criteria.
 Your entries are stored in entries.yml for progress tracking and analysis.
 
@@ -48,7 +48,7 @@ func runEntry(_ *cobra.Command, _ []string) error {
 
 	// Ensure config files exist, creating samples if missing
 	initializer := init_pkg.NewFileInitializer()
-	if err := initializer.EnsureConfigFiles(paths.GoalsFile, paths.EntriesFile); err != nil {
+	if err := initializer.EnsureConfigFiles(paths.HabitsFile, paths.EntriesFile); err != nil {
 		return err
 	}
 
@@ -58,21 +58,21 @@ func runEntry(_ *cobra.Command, _ []string) error {
 
 	// Create entry collector and run interactive UI
 	collector := ui.NewEntryCollector(paths.ChecklistsFile)
-	return collector.CollectTodayEntries(paths.GoalsFile, paths.EntriesFile)
+	return collector.CollectTodayEntries(paths.HabitsFile, paths.EntriesFile)
 }
 
 // runEntryMenu launches the interactive entry menu interface.
 // AIDEV-NOTE: entry-menu-integration; T018 command integration for --menu flag
 func runEntryMenu(paths *config.Paths) error {
-	// Load goals
-	goalParser := parser.NewGoalParser()
-	schema, err := goalParser.LoadFromFile(paths.GoalsFile)
+	// Load habits
+	goalParser := parser.NewHabitParser()
+	schema, err := goalParser.LoadFromFile(paths.HabitsFile)
 	if err != nil {
-		return fmt.Errorf("failed to load goals: %w", err)
+		return fmt.Errorf("failed to load habits: %w", err)
 	}
 
-	if len(schema.Goals) == 0 {
-		return fmt.Errorf("no goals found in %s", paths.GoalsFile)
+	if len(schema.Habits) == 0 {
+		return fmt.Errorf("no habits found in %s", paths.HabitsFile)
 	}
 
 	// Load existing entries for today
@@ -85,12 +85,12 @@ func runEntryMenu(paths *config.Paths) error {
 	// AIDEV-NOTE: T018/3.1-menu-launch; EntryCollector setup for menu integration
 	// Create and initialize entry collector for menu usage
 	collector := ui.NewEntryCollector(paths.ChecklistsFile)
-	// CRITICAL: InitializeForMenu() must be called to convert GoalEntry format to collector format
-	collector.InitializeForMenu(schema.Goals, entries)
+	// CRITICAL: InitializeForMenu() must be called to convert HabitEntry format to collector format
+	collector.InitializeForMenu(schema.Habits, entries)
 
 	// AIDEV-NOTE: T018/3.2-auto-save; pass entriesFile path for automatic persistence
 	// Create and run entry menu with complete integration: collector + auto-save + return behavior
-	model := entrymenu.NewEntryMenuModel(schema.Goals, entries, collector, paths.EntriesFile)
+	model := entrymenu.NewEntryMenuModel(schema.Habits, entries, collector, paths.EntriesFile)
 
 	program := tea.NewProgram(model, tea.WithAltScreen())
 	_, err = program.Run()
@@ -99,13 +99,13 @@ func runEntryMenu(paths *config.Paths) error {
 }
 
 // loadTodayEntries loads existing entries for today's date.
-func loadTodayEntries(entryStorage *storage.EntryStorage, entriesFile string) (map[string]models.GoalEntry, error) {
+func loadTodayEntries(entryStorage *storage.EntryStorage, entriesFile string) (map[string]models.HabitEntry, error) {
 	// Load entry log
 	entryLog, err := entryStorage.LoadFromFile(entriesFile)
 	if err != nil {
 		// If file doesn't exist, return empty entries
 		if os.IsNotExist(err) {
-			return make(map[string]models.GoalEntry), nil
+			return make(map[string]models.HabitEntry), nil
 		}
 		return nil, err
 	}
@@ -115,14 +115,14 @@ func loadTodayEntries(entryStorage *storage.EntryStorage, entriesFile string) (m
 	for _, dayEntry := range entryLog.Entries {
 		if dayEntry.Date == today {
 			// Convert to map for easy lookup
-			entriesMap := make(map[string]models.GoalEntry)
-			for _, goalEntry := range dayEntry.Goals {
-				entriesMap[goalEntry.GoalID] = goalEntry
+			entriesMap := make(map[string]models.HabitEntry)
+			for _, goalEntry := range dayEntry.Habits {
+				entriesMap[goalEntry.HabitID] = goalEntry
 			}
 			return entriesMap, nil
 		}
 	}
 
 	// No entries for today
-	return make(map[string]models.GoalEntry), nil
+	return make(map[string]models.HabitEntry), nil
 }

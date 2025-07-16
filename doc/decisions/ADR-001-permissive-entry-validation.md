@@ -16,11 +16,11 @@ Two validation philosophies exist:
 
 The system handles two distinct YAML files with different validation needs:
 - `entries.yml`: User-generated habit tracking data requiring preservation
-- `goals.yml`: Configuration data requiring stricter validation for system integrity
+- `habits.yml`: Configuration data requiring stricter validation for system integrity
 
 ## Decision
 
-Adopt a **permissive validation approach for entries.yml** while maintaining **strict validation for goals.yml**.
+Adopt a **permissive validation approach for entries.yml** while maintaining **strict validation for habits.yml**.
 
 For entry validation specifically:
 - Remove the restriction preventing skipped entries from having achievement levels
@@ -40,7 +40,7 @@ For entry validation specifically:
 - Achievement levels become contextually meaningful (active vs dormant) rather than universally meaningful
 
 ### Neutral
-- Goals configuration continues to use strict validation as appropriate for system configuration
+- Habits configuration continues to use strict validation as appropriate for system configuration
 - Existing entry data remains valid without migration
 - Processing logic already handles conditional achievement level usage
 

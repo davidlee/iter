@@ -4,7 +4,7 @@
 **Status**: Done  
 **Related tasks**: []
 
-## 1. Goal
+## 1. Habit
 
 Fix time input field population showing raw ISO timestamp in input value instead of formatted HH:MM time.
 

@@ -22,7 +22,7 @@ type ChecklistEntryInput struct {
 	action          InputAction
 	checklistID     string
 	checklistParser *parser.ChecklistParser
-	goal            models.Goal
+	habit           models.Habit
 	fieldType       models.FieldType
 	existingEntry   *ExistingEntry
 	showScoring     bool
@@ -40,7 +40,7 @@ func NewChecklistEntryInput(config EntryFieldInputConfig) *ChecklistEntryInput {
 	}
 
 	input := &ChecklistEntryInput{
-		goal:            config.Goal,
+		habit:           config.Habit,
 		fieldType:       config.FieldType,
 		existingEntry:   config.ExistingEntry,
 		showScoring:     config.ShowScoring,
@@ -73,19 +73,19 @@ func NewChecklistEntryInput(config EntryFieldInputConfig) *ChecklistEntryInput {
 }
 
 // CreateInputForm creates a checklist input form with multi-select interface
-func (ci *ChecklistEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
+func (ci *ChecklistEntryInput) CreateInputForm(habit models.Habit) *huh.Form {
 	// Prepare styling
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("12")). // Bright blue
 		Margin(1, 0)
 
-	title := titleStyle.Render(goal.Title)
+	title := titleStyle.Render(habit.Title)
 
 	// Prepare prompt
-	prompt := goal.Prompt
+	prompt := habit.Prompt
 	if prompt == "" {
-		prompt = fmt.Sprintf("Select completed items for: %s", goal.Title)
+		prompt = fmt.Sprintf("Select completed items for: %s", habit.Title)
 	}
 
 	// Show current completion status if available
@@ -96,7 +96,7 @@ func (ci *ChecklistEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 	}
 
 	// Build description
-	description := ci.buildDescription(goal)
+	description := ci.buildDescription(habit)
 
 	// Create options for multi-select
 	options := make([]huh.Option[string], len(ci.availableItems))
@@ -117,14 +117,14 @@ func (ci *ChecklistEntryInput) CreateInputForm(goal models.Goal) *huh.Form {
 				Title("Action").
 				Options(
 					huh.NewOption("✅ Submit Checklist", ActionSubmit),
-					huh.NewOption("⏭️ Skip Goal", ActionSkip),
+					huh.NewOption("⏭️ Skip Habit", ActionSkip),
 				).
 				Value(&ci.action),
 		).Title(title),
 	)
 
 	// Add help text if available
-	if goal.HelpText != "" {
+	if habit.HelpText != "" {
 		ci.form = ci.form.WithShowHelp(true)
 	}
 
@@ -186,7 +186,7 @@ func (ci *ChecklistEntryInput) GetValidationError() error {
 
 // CanShowScoring returns true for checklist inputs with automatic scoring
 func (ci *ChecklistEntryInput) CanShowScoring() bool {
-	return ci.showScoring && ci.goal.ScoringType == models.AutomaticScoring
+	return ci.showScoring && ci.habit.ScoringType == models.AutomaticScoring
 }
 
 // UpdateScoringDisplay updates the form to show scoring feedback
@@ -213,7 +213,7 @@ func (ci *ChecklistEntryInput) UpdateScoringDisplay(level *models.AchievementLev
 		case models.AchievementMaxi:
 			feedback = fmt.Sprintf("🥇 Maxi Checklist Achievement! (%d/%d completed)", completed, total)
 		case models.AchievementNone:
-			feedback = fmt.Sprintf("❌ Checklist Goal Not Met (%d/%d completed)", completed, total)
+			feedback = fmt.Sprintf("❌ Checklist Habit Not Met (%d/%d completed)", completed, total)
 		default:
 			feedback = fmt.Sprintf("Achievement: %v (%d/%d completed)", *level, completed, total)
 		}
@@ -263,15 +263,15 @@ func (ci *ChecklistEntryInput) loadChecklistItems() error {
 	return nil
 }
 
-func (ci *ChecklistEntryInput) buildDescription(goal models.Goal) string {
+func (ci *ChecklistEntryInput) buildDescription(habit models.Habit) string {
 	var descParts []string
 
-	// Add goal description if available
-	if goal.Description != "" {
+	// Add habit description if available
+	if habit.Description != "" {
 		descStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("8")). // Gray
 			Italic(true)
-		descParts = append(descParts, descStyle.Render(goal.Description))
+		descParts = append(descParts, descStyle.Render(habit.Description))
 	}
 
 	// Add progress information

@@ -3,7 +3,7 @@ title: "Skip Preservation Bug - Entry Validation Error"
 type: ["fix"]
 tags: ["entry", "validation", "skip"]
 related_tasks: ["related-to:T012"]
-context_windows: ["cmd/entry/**/*.go", "internal/entry/**/*.go", "internal/goals/**/*.go", "CLAUDE.md", "kanban/CLAUDE.md"]
+context_windows: ["cmd/entry/**/*.go", "internal/entry/**/*.go", "internal/habits/**/*.go", "CLAUDE.md", "kanban/CLAUDE.md"]
 ---
 
 # Skip Preservation Bug - Entry Validation Error
@@ -23,14 +23,14 @@ The validation error occurs in `GoalEntry.Validate()` which enforces that skippe
 
 - `f95569b` - fix(entry)[T014/2.1]: implement permissive validation for skip preservation
 
-## 1. Goal / User Story
+## 1. Habit / User Story
 
 When a user has previously recorded achievement data for a habit and later decides to skip it, the system should preserve their data and allow the skip operation without throwing validation errors. Currently, `vice entry` fails when trying to skip a habit that was previously recorded with achievement levels.
 
 **Error Message:**
 ```
 📊 Recorded: 0
-Error: failed to save entries: failed to update day entry: failed to update day entry: invalid day entry: goal entry at index 0: skipped entries cannot have achievement levels
+Error: failed to save entries: failed to update day entry: failed to update day entry: invalid day entry: habit entry at index 0: skipped entries cannot have achievement levels
 ```
 
 ## 2. Acceptance Criteria

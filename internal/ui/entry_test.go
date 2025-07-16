@@ -26,7 +26,7 @@ func TestNewEntryCollector(t *testing.T) {
 	assert.NotNil(t, collector.achievements)
 	assert.NotNil(t, collector.notes)
 	assert.NotNil(t, collector.statuses)
-	assert.Equal(t, 0, len(collector.goals))
+	assert.Equal(t, 0, len(collector.habits))
 	assert.Equal(t, 0, len(collector.entries))
 	assert.Equal(t, 0, len(collector.achievements))
 	assert.Equal(t, 0, len(collector.notes))
@@ -43,16 +43,16 @@ func TestEntryCollector_loadExistingEntries(t *testing.T) {
 		entryLog := models.CreateEmptyEntryLog()
 		dayEntry := models.DayEntry{
 			Date: today,
-			Goals: []models.GoalEntry{
+			Habits: []models.HabitEntry{
 				{
-					GoalID:    "meditation",
+					HabitID:   "meditation",
 					Value:     true,
 					Notes:     "Great session",
 					Status:    models.EntryCompleted,
 					CreatedAt: time.Now(),
 				},
 				{
-					GoalID:    "exercise",
+					HabitID:   "exercise",
 					Value:     false,
 					Notes:     "Too tired",
 					Status:    models.EntryFailed,
@@ -87,8 +87,8 @@ func TestEntryCollector_loadExistingEntries(t *testing.T) {
 		entryLog := models.CreateEmptyEntryLog()
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
-			Goals: []models.GoalEntry{
-				{GoalID: "meditation", Value: true, Status: models.EntryCompleted, CreatedAt: time.Now()},
+			Habits: []models.HabitEntry{
+				{HabitID: "meditation", Value: true, Status: models.EntryCompleted, CreatedAt: time.Now()},
 			},
 		}
 		err := entryLog.AddDayEntry(dayEntry)
@@ -124,8 +124,8 @@ func TestEntryCollector_saveEntries(t *testing.T) {
 		tempDir := t.TempDir()
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
-		// Create goals for testing
-		goals := []models.Goal{
+		// Create habits for testing
+		habits := []models.Habit{
 			{
 				ID:    "meditation",
 				Title: "Morning Meditation",
@@ -138,7 +138,7 @@ func TestEntryCollector_saveEntries(t *testing.T) {
 
 		// Setup collector with test data
 		collector := NewEntryCollector("checklists.yml")
-		collector.goals = goals
+		collector.habits = habits
 		collector.entries["meditation"] = true
 		collector.entries["exercise"] = false
 		collector.notes["meditation"] = "Peaceful session"
@@ -158,35 +158,35 @@ func TestEntryCollector_saveEntries(t *testing.T) {
 		today := time.Now().Format("2006-01-02")
 		assert.Len(t, entryLog.Entries, 1)
 		assert.Equal(t, today, entryLog.Entries[0].Date)
-		assert.Len(t, entryLog.Entries[0].Goals, 2)
+		assert.Len(t, entryLog.Entries[0].Habits, 2)
 
-		// Check meditation goal
-		meditationGoal := entryLog.Entries[0].Goals[0]
-		assert.Equal(t, "meditation", meditationGoal.GoalID)
-		assert.Equal(t, true, meditationGoal.Value)
-		assert.Equal(t, "Peaceful session", meditationGoal.Notes)
-		assert.False(t, meditationGoal.CreatedAt.IsZero())
+		// Check meditation habit
+		meditationHabit := entryLog.Entries[0].Habits[0]
+		assert.Equal(t, "meditation", meditationHabit.HabitID)
+		assert.Equal(t, true, meditationHabit.Value)
+		assert.Equal(t, "Peaceful session", meditationHabit.Notes)
+		assert.False(t, meditationHabit.CreatedAt.IsZero())
 
-		// Check exercise goal
-		exerciseGoal := entryLog.Entries[0].Goals[1]
-		assert.Equal(t, "exercise", exerciseGoal.GoalID)
-		assert.Equal(t, false, exerciseGoal.Value)
-		assert.Equal(t, "", exerciseGoal.Notes)
-		assert.False(t, exerciseGoal.CreatedAt.IsZero())
+		// Check exercise habit
+		exerciseHabit := entryLog.Entries[0].Habits[1]
+		assert.Equal(t, "exercise", exerciseHabit.HabitID)
+		assert.Equal(t, false, exerciseHabit.Value)
+		assert.Equal(t, "", exerciseHabit.Notes)
+		assert.False(t, exerciseHabit.CreatedAt.IsZero())
 	})
 
-	t.Run("skip unprocessed goals", func(t *testing.T) {
+	t.Run("skip unprocessed habits", func(t *testing.T) {
 		tempDir := t.TempDir()
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
-		// Create goals but only process one
-		goals := []models.Goal{
+		// Create habits but only process one
+		habits := []models.Habit{
 			{ID: "meditation", Title: "Morning Meditation"},
 			{ID: "exercise", Title: "Daily Exercise"},
 		}
 
 		collector := NewEntryCollector("checklists.yml")
-		collector.goals = goals
+		collector.habits = habits
 		collector.entries["meditation"] = true
 		collector.statuses["meditation"] = models.EntryCompleted
 		// exercise not in entries map (not processed)
@@ -194,21 +194,21 @@ func TestEntryCollector_saveEntries(t *testing.T) {
 		err := collector.saveEntries(entriesFile)
 		require.NoError(t, err)
 
-		// Verify only processed goal was saved
+		// Verify only processed habit was saved
 		entryStorage := storage.NewEntryStorage()
 		entryLog, err := entryStorage.LoadFromFile(entriesFile)
 		require.NoError(t, err)
 
 		assert.Len(t, entryLog.Entries, 1)
-		assert.Len(t, entryLog.Entries[0].Goals, 1)
-		assert.Equal(t, "meditation", entryLog.Entries[0].Goals[0].GoalID)
+		assert.Len(t, entryLog.Entries[0].Habits, 1)
+		assert.Equal(t, "meditation", entryLog.Entries[0].Habits[0].HabitID)
 	})
 }
 
 func TestEntryCollector_displayWelcome(t *testing.T) {
-	// Create collector with test goals
+	// Create collector with test habits
 	collector := NewEntryCollector("checklists.yml")
-	collector.goals = []models.Goal{
+	collector.habits = []models.Habit{
 		{ID: "meditation", Title: "Morning Meditation"},
 		{ID: "exercise", Title: "Daily Exercise"},
 	}
@@ -218,15 +218,15 @@ func TestEntryCollector_displayWelcome(t *testing.T) {
 	collector.displayWelcome()
 
 	// Test passes if no panic occurs
-	assert.Len(t, collector.goals, 2)
+	assert.Len(t, collector.habits, 2)
 }
 
 func TestEntryCollector_displayCompletion(t *testing.T) {
 	t.Run("perfect completion", func(t *testing.T) {
 		collector := NewEntryCollector("checklists.yml")
-		collector.goals = []models.Goal{
-			{ID: "meditation", Title: "Morning Meditation", GoalType: models.SimpleGoal},
-			{ID: "exercise", Title: "Daily Exercise", GoalType: models.SimpleGoal},
+		collector.habits = []models.Habit{
+			{ID: "meditation", Title: "Morning Meditation", HabitType: models.SimpleHabit},
+			{ID: "exercise", Title: "Daily Exercise", HabitType: models.SimpleHabit},
 		}
 		collector.entries = map[string]interface{}{
 			"meditation": true,
@@ -237,14 +237,14 @@ func TestEntryCollector_displayCompletion(t *testing.T) {
 		collector.displayCompletion()
 
 		// Test passes if no panic occurs
-		assert.Len(t, collector.goals, 2)
+		assert.Len(t, collector.habits, 2)
 	})
 
 	t.Run("partial completion", func(t *testing.T) {
 		collector := NewEntryCollector("checklists.yml")
-		collector.goals = []models.Goal{
-			{ID: "meditation", Title: "Morning Meditation", GoalType: models.SimpleGoal},
-			{ID: "exercise", Title: "Daily Exercise", GoalType: models.SimpleGoal},
+		collector.habits = []models.Habit{
+			{ID: "meditation", Title: "Morning Meditation", HabitType: models.SimpleHabit},
+			{ID: "exercise", Title: "Daily Exercise", HabitType: models.SimpleHabit},
 		}
 		collector.entries = map[string]interface{}{
 			"meditation": true,
@@ -252,14 +252,14 @@ func TestEntryCollector_displayCompletion(t *testing.T) {
 		}
 
 		collector.displayCompletion()
-		assert.Len(t, collector.goals, 2)
+		assert.Len(t, collector.habits, 2)
 	})
 
 	t.Run("no completion", func(t *testing.T) {
 		collector := NewEntryCollector("checklists.yml")
-		collector.goals = []models.Goal{
-			{ID: "meditation", Title: "Morning Meditation", GoalType: models.SimpleGoal},
-			{ID: "exercise", Title: "Daily Exercise", GoalType: models.SimpleGoal},
+		collector.habits = []models.Habit{
+			{ID: "meditation", Title: "Morning Meditation", HabitType: models.SimpleHabit},
+			{ID: "exercise", Title: "Daily Exercise", HabitType: models.SimpleHabit},
 		}
 		collector.entries = map[string]interface{}{
 			"meditation": false,
@@ -267,7 +267,7 @@ func TestEntryCollector_displayCompletion(t *testing.T) {
 		}
 
 		collector.displayCompletion()
-		assert.Len(t, collector.goals, 2)
+		assert.Len(t, collector.habits, 2)
 	})
 }
 
@@ -280,52 +280,52 @@ func TestEntryCollector_timePtr(t *testing.T) {
 }
 
 func TestEntryCollector_CollectTodayEntries_ErrorCases(t *testing.T) {
-	t.Run("goals file not found", func(t *testing.T) {
+	t.Run("habits file not found", func(t *testing.T) {
 		collector := NewEntryCollector("checklists.yml")
 
-		err := collector.CollectTodayEntries("/nonexistent/goals.yml", "/tmp/entries.yml")
+		err := collector.CollectTodayEntries("/nonexistent/habits.yml", "/tmp/entries.yml")
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to load goals")
+		assert.Contains(t, err.Error(), "failed to load habits")
 	})
 
-	t.Run("no simple boolean goals", func(t *testing.T) {
+	t.Run("no simple boolean habits", func(t *testing.T) {
 		tempDir := t.TempDir()
-		goalsFile := filepath.Join(tempDir, "goals.yml")
+		habitsFile := filepath.Join(tempDir, "habits.yml")
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
-		// Create schema with no simple boolean goals
+		// Create schema with no simple boolean habits
 		schema := &models.Schema{
 			Version: "1.0.0",
-			Goals:   []models.Goal{},
+			Habits:  []models.Habit{},
 		}
 
-		goalParser := parser.NewGoalParser()
-		err := goalParser.SaveToFile(schema, goalsFile)
+		goalParser := parser.NewHabitParser()
+		err := goalParser.SaveToFile(schema, habitsFile)
 		require.NoError(t, err)
 
 		collector := NewEntryCollector("checklists.yml")
-		err = collector.CollectTodayEntries(goalsFile, entriesFile)
+		err = collector.CollectTodayEntries(habitsFile, entriesFile)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "no goals found")
+		assert.Contains(t, err.Error(), "no habits found")
 	})
 }
 
 func TestEntryCollector_Integration(t *testing.T) {
 	t.Run("end to end workflow with mocked UI", func(t *testing.T) {
 		tempDir := t.TempDir()
-		goalsFile := filepath.Join(tempDir, "goals.yml")
+		habitsFile := filepath.Join(tempDir, "habits.yml")
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
-		// Create test schema with simple boolean goals
+		// Create test schema with simple boolean habits
 		schema := &models.Schema{
 			Version: "1.0.0",
-			Goals: []models.Goal{
+			Habits: []models.Habit{
 				{
 					ID:          "meditation",
 					Title:       "Morning Meditation",
 					Position:    1,
 					Description: "10 minutes of mindfulness",
-					GoalType:    models.SimpleGoal,
+					HabitType:   models.SimpleHabit,
 					FieldType:   models.FieldType{Type: models.BooleanFieldType},
 					ScoringType: models.ManualScoring,
 					Prompt:      "Did you meditate this morning?",
@@ -335,7 +335,7 @@ func TestEntryCollector_Integration(t *testing.T) {
 					Title:       "Daily Exercise",
 					Position:    2,
 					Description: "At least 30 minutes of physical activity",
-					GoalType:    models.SimpleGoal,
+					HabitType:   models.SimpleHabit,
 					FieldType:   models.FieldType{Type: models.BooleanFieldType},
 					ScoringType: models.ManualScoring,
 					Prompt:      "Did you exercise today?",
@@ -343,19 +343,19 @@ func TestEntryCollector_Integration(t *testing.T) {
 			},
 		}
 
-		goalParser := parser.NewGoalParser()
-		err := goalParser.SaveToFile(schema, goalsFile)
+		goalParser := parser.NewHabitParser()
+		err := goalParser.SaveToFile(schema, habitsFile)
 		require.NoError(t, err)
 
-		// Test that collector can load goals successfully
+		// Test that collector can load habits successfully
 		collector := NewEntryCollector("checklists.yml")
 
-		// Load goals manually to test without UI interaction
-		loadedSchema, err := collector.goalParser.LoadFromFile(goalsFile)
+		// Load habits manually to test without UI interaction
+		loadedSchema, err := collector.goalParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 
-		collector.goals = parser.GetSimpleBooleanGoals(loadedSchema)
-		assert.Len(t, collector.goals, 2)
+		collector.habits = parser.GetSimpleBooleanHabits(loadedSchema)
+		assert.Len(t, collector.habits, 2)
 
 		// Simulate user entries
 		collector.entries["meditation"] = true
@@ -378,16 +378,16 @@ func TestEntryCollector_Integration(t *testing.T) {
 		dayEntry, found := entryLog.GetDayEntry(today)
 		require.True(t, found)
 
-		assert.Len(t, dayEntry.Goals, 2)
+		assert.Len(t, dayEntry.Habits, 2)
 
-		// Find and verify meditation goal
-		var meditationEntry, exerciseEntry *models.GoalEntry
-		for i := range dayEntry.Goals {
-			switch dayEntry.Goals[i].GoalID {
+		// Find and verify meditation habit
+		var meditationEntry, exerciseEntry *models.HabitEntry
+		for i := range dayEntry.Habits {
+			switch dayEntry.Habits[i].HabitID {
 			case "meditation":
-				meditationEntry = &dayEntry.Goals[i]
+				meditationEntry = &dayEntry.Habits[i]
 			case "exercise":
-				exerciseEntry = &dayEntry.Goals[i]
+				exerciseEntry = &dayEntry.Habits[i]
 			}
 		}
 

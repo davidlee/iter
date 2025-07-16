@@ -16,58 +16,58 @@ func NewNavigationHelper() *NavigationHelper {
 	return &NavigationHelper{}
 }
 
-// FindNextIncompleteGoal finds the next goal that hasn't been entered yet.
-func (n *NavigationHelper) FindNextIncompleteGoal(goals []models.Goal, entries map[string]models.GoalEntry, currentIndex int) int {
+// FindNextIncompleteHabit finds the next habit that hasn't been entered yet.
+func (n *NavigationHelper) FindNextIncompleteHabit(habits []models.Habit, entries map[string]models.HabitEntry, currentIndex int) int {
 	// Start from the next position after current
-	for i := currentIndex + 1; i < len(goals); i++ {
-		if _, hasEntry := entries[goals[i].ID]; !hasEntry {
+	for i := currentIndex + 1; i < len(habits); i++ {
+		if _, hasEntry := entries[habits[i].ID]; !hasEntry {
 			return i
 		}
 	}
 
 	// Wrap around to the beginning
 	for i := 0; i <= currentIndex; i++ {
-		if _, hasEntry := entries[goals[i].ID]; !hasEntry {
+		if _, hasEntry := entries[habits[i].ID]; !hasEntry {
 			return i
 		}
 	}
 
-	// No incomplete goals found
+	// No incomplete habits found
 	return currentIndex
 }
 
-// FindPreviousIncompleteGoal finds the previous goal that hasn't been entered yet.
-func (n *NavigationHelper) FindPreviousIncompleteGoal(goals []models.Goal, entries map[string]models.GoalEntry, currentIndex int) int {
+// FindPreviousIncompleteHabit finds the previous habit that hasn't been entered yet.
+func (n *NavigationHelper) FindPreviousIncompleteHabit(habits []models.Habit, entries map[string]models.HabitEntry, currentIndex int) int {
 	// Start from the previous position
 	for i := currentIndex - 1; i >= 0; i-- {
-		if _, hasEntry := entries[goals[i].ID]; !hasEntry {
+		if _, hasEntry := entries[habits[i].ID]; !hasEntry {
 			return i
 		}
 	}
 
 	// Wrap around to the end
-	for i := len(goals) - 1; i >= currentIndex; i-- {
-		if _, hasEntry := entries[goals[i].ID]; !hasEntry {
+	for i := len(habits) - 1; i >= currentIndex; i-- {
+		if _, hasEntry := entries[habits[i].ID]; !hasEntry {
 			return i
 		}
 	}
 
-	// No incomplete goals found
+	// No incomplete habits found
 	return currentIndex
 }
 
-// GetVisibleGoalsAfterFilter returns the list of goals that should be visible given the current filter state.
-func (n *NavigationHelper) GetVisibleGoalsAfterFilter(goals []models.Goal, entries map[string]models.GoalEntry, filterState FilterState) []models.Goal {
+// GetVisibleHabitsAfterFilter returns the list of habits that should be visible given the current filter state.
+func (n *NavigationHelper) GetVisibleHabitsAfterFilter(habits []models.Habit, entries map[string]models.HabitEntry, filterState FilterState) []models.Habit {
 	if filterState == FilterNone {
-		return goals
+		return habits
 	}
 
-	var visibleGoals []models.Goal
+	var visibleHabits []models.Habit
 	hideSkipped := filterState == FilterHideSkipped || filterState == FilterHideSkippedAndPrevious
 	hidePrevious := filterState == FilterHidePrevious || filterState == FilterHideSkippedAndPrevious
 
-	for _, goal := range goals {
-		entry, hasEntry := entries[goal.ID]
+	for _, habit := range habits {
+		entry, hasEntry := entries[habit.ID]
 
 		// Apply filter logic
 		if hideSkipped && hasEntry && entry.Status == models.EntrySkipped {
@@ -78,28 +78,28 @@ func (n *NavigationHelper) GetVisibleGoalsAfterFilter(goals []models.Goal, entri
 			continue
 		}
 
-		visibleGoals = append(visibleGoals, goal)
+		visibleHabits = append(visibleHabits, habit)
 	}
 
-	return visibleGoals
+	return visibleHabits
 }
 
-// ShouldAutoSelectNext determines if we should automatically select the next incomplete goal.
+// ShouldAutoSelectNext determines if we should automatically select the next incomplete habit.
 func (n *NavigationHelper) ShouldAutoSelectNext(returnBehavior ReturnBehavior, justCompletedEntry bool) bool {
-	return returnBehavior == ReturnToNextGoal && justCompletedEntry
+	return returnBehavior == ReturnToNextHabit && justCompletedEntry
 }
 
 // GetFilterDescription returns a human-readable description of the current filter state.
 func (n *NavigationHelper) GetFilterDescription(filterState FilterState) string {
 	switch filterState {
 	case FilterNone:
-		return "showing all goals"
+		return "showing all habits"
 	case FilterHideSkipped:
-		return "hiding skipped goals"
+		return "hiding skipped habits"
 	case FilterHidePrevious:
-		return "hiding completed/failed goals"
+		return "hiding completed/failed habits"
 	case FilterHideSkippedAndPrevious:
-		return "hiding skipped and completed/failed goals"
+		return "hiding skipped and completed/failed habits"
 	default:
 		return "unknown filter"
 	}
@@ -138,28 +138,28 @@ func NewNavigationEnhancer() *NavigationEnhancer {
 	}
 }
 
-// SelectNextIncompleteGoal selects the next incomplete goal in the list.
-func (e *NavigationEnhancer) SelectNextIncompleteGoal(model *EntryMenuModel) {
-	if len(model.goals) == 0 {
+// SelectNextIncompleteHabit selects the next incomplete habit in the list.
+func (e *NavigationEnhancer) SelectNextIncompleteHabit(model *EntryMenuModel) {
+	if len(model.habits) == 0 {
 		return
 	}
 
 	currentIndex := model.list.Index()
-	nextIndex := e.helper.FindNextIncompleteGoal(model.goals, model.entries, currentIndex)
+	nextIndex := e.helper.FindNextIncompleteHabit(model.habits, model.entries, currentIndex)
 
 	if nextIndex != currentIndex {
 		model.list.Select(nextIndex)
 	}
 }
 
-// SelectPreviousIncompleteGoal selects the previous incomplete goal in the list.
-func (e *NavigationEnhancer) SelectPreviousIncompleteGoal(model *EntryMenuModel) {
-	if len(model.goals) == 0 {
+// SelectPreviousIncompleteHabit selects the previous incomplete habit in the list.
+func (e *NavigationEnhancer) SelectPreviousIncompleteHabit(model *EntryMenuModel) {
+	if len(model.habits) == 0 {
 		return
 	}
 
 	currentIndex := model.list.Index()
-	prevIndex := e.helper.FindPreviousIncompleteGoal(model.goals, model.entries, currentIndex)
+	prevIndex := e.helper.FindPreviousIncompleteHabit(model.habits, model.entries, currentIndex)
 
 	if prevIndex != currentIndex {
 		model.list.Select(prevIndex)
@@ -168,15 +168,15 @@ func (e *NavigationEnhancer) SelectPreviousIncompleteGoal(model *EntryMenuModel)
 
 // UpdateListAfterFilterChange updates the list items and selection after a filter change.
 func (e *NavigationEnhancer) UpdateListAfterFilterChange(model *EntryMenuModel) {
-	// Get visible goals after filter
-	visibleGoals := e.helper.GetVisibleGoalsAfterFilter(model.goals, model.entries, model.filterState)
+	// Get visible habits after filter
+	visibleHabits := e.helper.GetVisibleHabitsAfterFilter(model.habits, model.entries, model.filterState)
 
-	// Create menu items for visible goals
+	// Create menu items for visible habits
 	var items []list.Item
-	for _, goal := range visibleGoals {
-		entry, hasEntry := model.entries[goal.ID]
+	for _, habit := range visibleHabits {
+		entry, hasEntry := model.entries[habit.ID]
 		items = append(items, EntryMenuItem{
-			Goal:             goal,
+			Habit:            habit,
 			EntryStatus:      entry.Status,
 			HasEntry:         hasEntry,
 			Value:            entry.Value,
@@ -187,14 +187,14 @@ func (e *NavigationEnhancer) UpdateListAfterFilterChange(model *EntryMenuModel) 
 	// Update the list
 	model.list.SetItems(items)
 
-	// Auto-select first incomplete goal if list is not empty
+	// Auto-select first incomplete habit if list is not empty
 	if len(items) > 0 {
-		model.SelectFirstIncompleteGoal()
+		model.SelectFirstIncompleteHabit()
 	}
 }
 
-// SelectFirstIncompleteGoal selects the first incomplete goal in the current list.
-func (m *EntryMenuModel) SelectFirstIncompleteGoal() {
+// SelectFirstIncompleteHabit selects the first incomplete habit in the current list.
+func (m *EntryMenuModel) SelectFirstIncompleteHabit() {
 	items := m.list.Items()
 	for i, item := range items {
 		if menuItem, ok := item.(EntryMenuItem); ok {
@@ -205,23 +205,23 @@ func (m *EntryMenuModel) SelectFirstIncompleteGoal() {
 		}
 	}
 
-	// If no incomplete goals, select first item
+	// If no incomplete habits, select first item
 	if len(items) > 0 {
 		m.list.Select(0)
 	}
 }
 
-// GetCurrentGoalInfo returns information about the currently selected goal.
-func (m *EntryMenuModel) GetCurrentGoalInfo() *GoalInfo {
-	if len(m.goals) == 0 {
+// GetCurrentHabitInfo returns information about the currently selected habit.
+func (m *EntryMenuModel) GetCurrentHabitInfo() *HabitInfo {
+	if len(m.habits) == 0 {
 		return nil
 	}
 
 	selected := m.list.SelectedItem()
 	if item, ok := selected.(EntryMenuItem); ok {
-		entry, hasEntry := m.entries[item.Goal.ID]
-		return &GoalInfo{
-			Goal:     item.Goal,
+		entry, hasEntry := m.entries[item.Habit.ID]
+		return &HabitInfo{
+			Habit:    item.Habit,
 			Entry:    entry,
 			HasEntry: hasEntry,
 			Index:    m.list.Index(),
@@ -231,30 +231,30 @@ func (m *EntryMenuModel) GetCurrentGoalInfo() *GoalInfo {
 	return nil
 }
 
-// GoalInfo contains information about a goal and its entry status.
-type GoalInfo struct {
-	Goal     models.Goal
-	Entry    models.GoalEntry
+// HabitInfo contains information about a habit and its entry status.
+type HabitInfo struct {
+	Habit    models.Habit
+	Entry    models.HabitEntry
 	HasEntry bool
 	Index    int
 }
 
-// IsComplete returns true if the goal has been completed.
-func (g *GoalInfo) IsComplete() bool {
+// IsComplete returns true if the habit has been completed.
+func (g *HabitInfo) IsComplete() bool {
 	return g.HasEntry && g.Entry.Status == models.EntryCompleted
 }
 
-// IsIncomplete returns true if the goal has not been entered yet.
-func (g *GoalInfo) IsIncomplete() bool {
+// IsIncomplete returns true if the habit has not been entered yet.
+func (g *HabitInfo) IsIncomplete() bool {
 	return !g.HasEntry
 }
 
-// IsSkipped returns true if the goal has been skipped.
-func (g *GoalInfo) IsSkipped() bool {
+// IsSkipped returns true if the habit has been skipped.
+func (g *HabitInfo) IsSkipped() bool {
 	return g.HasEntry && g.Entry.Status == models.EntrySkipped
 }
 
-// IsFailed returns true if the goal has failed.
-func (g *GoalInfo) IsFailed() bool {
+// IsFailed returns true if the habit has failed.
+func (g *HabitInfo) IsFailed() bool {
 	return g.HasEntry && g.Entry.Status == models.EntryFailed
 }

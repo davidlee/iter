@@ -44,7 +44,7 @@ func runListAdd(_ *cobra.Command, args []string) error {
 		}
 	} else {
 		// No ID provided - will generate from title
-		// AIDEV-NOTE: id-generation; consistent with goal ID logic (T007 Phase 3.1)
+		// AIDEV-NOTE: id-generation; consistent with habit ID logic (T007 Phase 3.1)
 		generateID = true
 	}
 

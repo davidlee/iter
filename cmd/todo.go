@@ -12,7 +12,7 @@ var todoCmd = &cobra.Command{
 	Short: "Display today's habit status dashboard",
 	Long: `Display a table showing today's habit completion status.
 
-Shows each goal with its current status:
+Shows each habit with its current status:
   ✓ Completed
   ○ Pending  
   ⤫ Skipped

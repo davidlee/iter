@@ -63,7 +63,7 @@ func TestInitializePaths(t *testing.T) {
 		require.NotNil(t, paths)
 		expected := filepath.Join(tempDir, "vice")
 		assert.Equal(t, expected, paths.ConfigDir)
-		assert.Equal(t, filepath.Join(expected, "goals.yml"), paths.GoalsFile)
+		assert.Equal(t, filepath.Join(expected, "habits.yml"), paths.HabitsFile)
 		assert.Equal(t, filepath.Join(expected, "entries.yml"), paths.EntriesFile)
 
 		// Verify directory was created
@@ -91,7 +91,7 @@ func TestInitializePaths(t *testing.T) {
 		// Verify paths were set correctly
 		require.NotNil(t, paths)
 		assert.Equal(t, customConfigDir, paths.ConfigDir)
-		assert.Equal(t, filepath.Join(customConfigDir, "goals.yml"), paths.GoalsFile)
+		assert.Equal(t, filepath.Join(customConfigDir, "habits.yml"), paths.HabitsFile)
 		assert.Equal(t, filepath.Join(customConfigDir, "entries.yml"), paths.EntriesFile)
 
 		// Verify directory was created

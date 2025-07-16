@@ -1,0 +1,8 @@
+version: "1.0.0"
+habits:
+  - title: "Exercise"
+    habit_type: "simple"
+    field_type:
+      type: "boolean"
+    scoring_type: "manual"
+    prompt: "Did you exercise today?"

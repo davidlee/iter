@@ -1,13 +1,13 @@
 # vice - CLI Habit Tracker
 
-A command-line habit tracker that supports flexible goal types and stores data in human-readable YAML files.
+A command-line habit tracker that supports flexible habit types and stores data in human-readable YAML files.
 
 ## Features
 
-- **Simple Goals**: Boolean pass/fail tracking (did you meditate today?)
-- **Elastic Goals**: Multi-level achievement tracking with mini/midi/maxi levels
-- **Informational Goals**: Data collection without pass/fail scoring
-- **Automatic Scoring**: Goals can be automatically scored based on defined criteria
+- **Simple Habits**: Boolean pass/fail tracking (did you meditate today?)
+- **Elastic Habits**: Multi-level achievement tracking with mini/midi/maxi levels
+- **Informational Habits**: Data collection without pass/fail scoring
+- **Automatic Scoring**: Habits can be automatically scored based on defined criteria
 - **Local Storage**: All data stored in local YAML files for version control and portability
 - **Interactive CLI**: User-friendly forms with field-specific input validation
 
@@ -46,20 +46,20 @@ go install .
 
 vice stores configuration in two files:
 
-- `goals.yml` - defines your habit goals and criteria
+- `habits.yml` - defines your habit habits and criteria
 - `entries.yml` - stores your daily progress entries
 
 Default location: `~/.config/vice/` (follows XDG Base Directory specification)
 
-## Goal Types
+## Habit Types
 
-### Simple Goals
+### Simple Habits
 
-Boolean goals with pass/fail tracking:
+Boolean habits with pass/fail tracking:
 
 ```yaml
 version: "1.0.0"
-goals:
+habits:
   - title: "Morning Exercise"
     goal_type: "simple"
     field_type:
@@ -69,12 +69,12 @@ goals:
     help_text: "Any movement counts - stretching, walking, gym, sports, etc."
 ```
 
-### Elastic Goals
+### Elastic Habits
 
-Multi-level achievement goals with mini/midi/maxi levels:
+Multi-level achievement habits with mini/midi/maxi levels:
 
 ```yaml
-goals:
+habits:
   - title: "Exercise Duration"
     goal_type: "elastic"
     field_type:
@@ -93,12 +93,12 @@ goals:
         greater_than_or_equal: 60  # 60 minutes = maxi achievement
 ```
 
-### Informational Goals
+### Informational Habits
 
 Data collection without scoring:
 
 ```yaml
-goals:
+habits:
   - title: "Sleep Quality"
     goal_type: "informational"
     field_type:
@@ -183,23 +183,23 @@ condition:
     less_than: 10
 ```
 
-## Goal Schema Structure
+## Habit Schema Structure
 
-Each goal supports these fields:
+Each habit supports these fields:
 
 ```yaml
-title: "Goal Title"                    # Required: Human-readable name
+title: "Habit Title"                    # Required: Human-readable name
 id: "goal_id"                         # Optional: auto-generated from title
-description: "Goal description"        # Optional: markdown supported
+description: "Habit description"        # Optional: markdown supported
 goal_type: "simple|elastic|informational"  # Required
 field_type:                           # Required: see field types above
   type: "boolean"
-scoring_type: "manual|automatic"      # Required for simple/elastic goals
+scoring_type: "manual|automatic"      # Required for simple/elastic habits
 prompt: "Custom prompt text"          # Optional: CLI prompt
 help_text: "Additional guidance"      # Optional: help text
 ```
 
-### Elastic Goal Specific Fields
+### Elastic Habit Specific Fields
 
 ```yaml
 mini_criteria:      # Required for automatic scoring
@@ -218,8 +218,8 @@ maxi_criteria:      # Required for automatic scoring
 
 ```yaml
 version: "1.0.0"
-goals:
-  # Simple boolean goal
+habits:
+  # Simple boolean habit
   - title: "Morning Meditation"
     goal_type: "simple"
     field_type:
@@ -227,7 +227,7 @@ goals:
     scoring_type: "manual"
     prompt: "Did you meditate this morning?"
 
-  # Elastic goal with automatic scoring
+  # Elastic habit with automatic scoring
   - title: "Exercise Duration"
     goal_type: "elastic"
     field_type:
@@ -245,7 +245,7 @@ goals:
       condition:
         greater_than_or_equal: 60
 
-  # Numeric goal with units
+  # Numeric habit with units
   - title: "Water Intake"
     goal_type: "elastic"
     field_type:
@@ -278,7 +278,7 @@ goals:
 
 ### `vice entry`
 
-Record today's habit completion. Presents an interactive form for each defined goal.
+Record today's habit completion. Presents an interactive form for each defined habit.
 
 **Options:**
 - `--config-dir PATH` - Use custom configuration directory
@@ -291,9 +291,9 @@ vice --config-dir ~/habits entry    # Use custom config directory
 
 ## Data Storage
 
-### Goals File (`goals.yml`)
+### Habits File (`habits.yml`)
 
-Contains your goal definitions and scoring criteria.
+Contains your habit definitions and scoring criteria.
 
 ### Entries File (`entries.yml`)
 
@@ -303,7 +303,7 @@ Stores daily progress entries:
 version: "1.0.0"
 entries:
   - date: "2024-01-15"
-    goals:
+    habits:
       - goal_id: "morning_exercise"
         value: true
         completed_at: "2024-01-15T07:30:00Z"
@@ -316,7 +316,7 @@ entries:
 
 ## Specification
 
-For complete technical details, see [Goal Schema Specification](doc/specifications/goal_schema.md).
+For complete technical details, see [Habit Schema Specification](doc/specifications/goal_schema.md).
 
 ## Development
 

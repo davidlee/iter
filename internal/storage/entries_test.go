@@ -20,7 +20,7 @@ func TestEntryStorage_ParseYAML(t *testing.T) {
 version: "1.0.0"
 entries:
   - date: "2024-01-01"
-    goals:
+    habits:
       - goal_id: "morning_meditation"
         value: true
         status: "completed"
@@ -41,15 +41,15 @@ entries:
 
 		dayEntry := entryLog.Entries[0]
 		assert.Equal(t, "2024-01-01", dayEntry.Date)
-		assert.Len(t, dayEntry.Goals, 2)
+		assert.Len(t, dayEntry.Habits, 2)
 
-		goal1 := dayEntry.Goals[0]
-		assert.Equal(t, "morning_meditation", goal1.GoalID)
+		goal1 := dayEntry.Habits[0]
+		assert.Equal(t, "morning_meditation", goal1.HabitID)
 		assert.Equal(t, true, goal1.Value)
 		assert.Equal(t, "Great session today", goal1.Notes)
 
-		goal2 := dayEntry.Goals[1]
-		assert.Equal(t, "daily_exercise", goal2.GoalID)
+		goal2 := dayEntry.Habits[1]
+		assert.Equal(t, "daily_exercise", goal2.HabitID)
 		assert.Equal(t, false, goal2.Value)
 	})
 
@@ -114,7 +114,7 @@ func TestEntryStorage_LoadFromFile(t *testing.T) {
 version: "1.0.0"
 entries:
   - date: "2024-01-01"
-    goals:
+    habits:
       - goal_id: "meditation"
         value: true
         status: "completed"
@@ -165,8 +165,8 @@ func TestEntryStorage_SaveToFile(t *testing.T) {
 		entryLog := models.CreateEmptyEntryLog()
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
-			Goals: []models.GoalEntry{
-				models.CreateBooleanGoalEntry("meditation", true),
+			Habits: []models.HabitEntry{
+				models.CreateBooleanHabitEntry("meditation", true),
 			},
 		}
 		err := entryLog.AddDayEntry(dayEntry)
@@ -243,8 +243,8 @@ func TestEntryStorage_AddDayEntry(t *testing.T) {
 
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
-			Goals: []models.GoalEntry{
-				models.CreateBooleanGoalEntry("meditation", true),
+			Habits: []models.HabitEntry{
+				models.CreateBooleanHabitEntry("meditation", true),
 			},
 		}
 
@@ -265,8 +265,8 @@ func TestEntryStorage_AddDayEntry(t *testing.T) {
 		// Create initial entry
 		initialEntry := models.DayEntry{
 			Date: "2024-01-01",
-			Goals: []models.GoalEntry{
-				models.CreateBooleanGoalEntry("meditation", true),
+			Habits: []models.HabitEntry{
+				models.CreateBooleanHabitEntry("meditation", true),
 			},
 		}
 
@@ -276,8 +276,8 @@ func TestEntryStorage_AddDayEntry(t *testing.T) {
 		// Add another entry
 		secondEntry := models.DayEntry{
 			Date: "2024-01-02",
-			Goals: []models.GoalEntry{
-				models.CreateBooleanGoalEntry("exercise", false),
+			Habits: []models.HabitEntry{
+				models.CreateBooleanHabitEntry("exercise", false),
 			},
 		}
 
@@ -296,8 +296,8 @@ func TestEntryStorage_AddDayEntry(t *testing.T) {
 
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
-			Goals: []models.GoalEntry{
-				models.CreateBooleanGoalEntry("meditation", true),
+			Habits: []models.HabitEntry{
+				models.CreateBooleanHabitEntry("meditation", true),
 			},
 		}
 
@@ -322,8 +322,8 @@ func TestEntryStorage_UpdateDayEntry(t *testing.T) {
 		// Create initial entry
 		initialEntry := models.DayEntry{
 			Date: "2024-01-01",
-			Goals: []models.GoalEntry{
-				models.CreateBooleanGoalEntry("meditation", false),
+			Habits: []models.HabitEntry{
+				models.CreateBooleanHabitEntry("meditation", false),
 			},
 		}
 
@@ -333,9 +333,9 @@ func TestEntryStorage_UpdateDayEntry(t *testing.T) {
 		// Update entry
 		updatedEntry := models.DayEntry{
 			Date: "2024-01-01",
-			Goals: []models.GoalEntry{
-				models.CreateBooleanGoalEntry("meditation", true),
-				models.CreateBooleanGoalEntry("exercise", true),
+			Habits: []models.HabitEntry{
+				models.CreateBooleanHabitEntry("meditation", true),
+				models.CreateBooleanHabitEntry("exercise", true),
 			},
 		}
 
@@ -346,7 +346,7 @@ func TestEntryStorage_UpdateDayEntry(t *testing.T) {
 		entryLog, err := storage.LoadFromFile(entriesFile)
 		require.NoError(t, err)
 		assert.Len(t, entryLog.Entries, 1)
-		assert.Len(t, entryLog.Entries[0].Goals, 2)
+		assert.Len(t, entryLog.Entries[0].Habits, 2)
 	})
 
 	t.Run("create new entry when not exists", func(t *testing.T) {
@@ -355,8 +355,8 @@ func TestEntryStorage_UpdateDayEntry(t *testing.T) {
 
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
-			Goals: []models.GoalEntry{
-				models.CreateBooleanGoalEntry("meditation", true),
+			Habits: []models.HabitEntry{
+				models.CreateBooleanHabitEntry("meditation", true),
 			},
 		}
 
@@ -380,8 +380,8 @@ func TestEntryStorage_GetDayEntry(t *testing.T) {
 		// Create entry
 		dayEntry := models.DayEntry{
 			Date: "2024-01-01",
-			Goals: []models.GoalEntry{
-				models.CreateBooleanGoalEntry("meditation", true),
+			Habits: []models.HabitEntry{
+				models.CreateBooleanHabitEntry("meditation", true),
 			},
 		}
 
@@ -394,7 +394,7 @@ func TestEntryStorage_GetDayEntry(t *testing.T) {
 		require.NotNil(t, retrievedEntry)
 
 		assert.Equal(t, "2024-01-01", retrievedEntry.Date)
-		assert.Len(t, retrievedEntry.Goals, 1)
+		assert.Len(t, retrievedEntry.Habits, 1)
 	})
 
 	t.Run("get non-existing day entry", func(t *testing.T) {
@@ -422,8 +422,8 @@ func TestEntryStorage_GetTodayEntry(t *testing.T) {
 		today := time.Now().Format("2006-01-02")
 		dayEntry := models.DayEntry{
 			Date: today,
-			Goals: []models.GoalEntry{
-				models.CreateBooleanGoalEntry("meditation", true),
+			Habits: []models.HabitEntry{
+				models.CreateBooleanHabitEntry("meditation", true),
 			},
 		}
 
@@ -439,92 +439,92 @@ func TestEntryStorage_GetTodayEntry(t *testing.T) {
 	})
 }
 
-func TestEntryStorage_GoalEntry(t *testing.T) {
+func TestEntryStorage_HabitEntry(t *testing.T) {
 	storage := NewEntryStorage()
 
-	t.Run("add goal entry to existing day", func(t *testing.T) {
+	t.Run("add habit entry to existing day", func(t *testing.T) {
 		tempDir := t.TempDir()
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
 		// Create day entry
 		dayEntry := models.DayEntry{
-			Date:  "2024-01-01",
-			Goals: []models.GoalEntry{},
+			Date:   "2024-01-01",
+			Habits: []models.HabitEntry{},
 		}
 
 		err := storage.AddDayEntry(entriesFile, dayEntry)
 		require.NoError(t, err)
 
-		// Add goal entry
-		goalEntry := models.CreateBooleanGoalEntry("meditation", true)
+		// Add habit entry
+		goalEntry := models.CreateBooleanHabitEntry("meditation", true)
 
-		err = storage.AddGoalEntry(entriesFile, "2024-01-01", goalEntry)
+		err = storage.AddHabitEntry(entriesFile, "2024-01-01", goalEntry)
 		require.NoError(t, err)
 
-		// Verify goal was added
+		// Verify habit was added
 		entryLog, err := storage.LoadFromFile(entriesFile)
 		require.NoError(t, err)
-		assert.Len(t, entryLog.Entries[0].Goals, 1)
-		assert.Equal(t, "meditation", entryLog.Entries[0].Goals[0].GoalID)
+		assert.Len(t, entryLog.Entries[0].Habits, 1)
+		assert.Equal(t, "meditation", entryLog.Entries[0].Habits[0].HabitID)
 	})
 
-	t.Run("add goal entry creates new day", func(t *testing.T) {
+	t.Run("add habit entry creates new day", func(t *testing.T) {
 		tempDir := t.TempDir()
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
-		goalEntry := models.CreateBooleanGoalEntry("meditation", true)
+		goalEntry := models.CreateBooleanHabitEntry("meditation", true)
 
-		err := storage.AddGoalEntry(entriesFile, "2024-01-01", goalEntry)
+		err := storage.AddHabitEntry(entriesFile, "2024-01-01", goalEntry)
 		require.NoError(t, err)
 
-		// Verify day and goal were created
+		// Verify day and habit were created
 		entryLog, err := storage.LoadFromFile(entriesFile)
 		require.NoError(t, err)
 		assert.Len(t, entryLog.Entries, 1)
 		assert.Equal(t, "2024-01-01", entryLog.Entries[0].Date)
-		assert.Len(t, entryLog.Entries[0].Goals, 1)
+		assert.Len(t, entryLog.Entries[0].Habits, 1)
 	})
 
-	t.Run("update goal entry", func(t *testing.T) {
+	t.Run("update habit entry", func(t *testing.T) {
 		tempDir := t.TempDir()
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
-		// Add initial goal entry
-		goalEntry := models.CreateBooleanGoalEntry("meditation", false)
+		// Add initial habit entry
+		goalEntry := models.CreateBooleanHabitEntry("meditation", false)
 
-		err := storage.AddGoalEntry(entriesFile, "2024-01-01", goalEntry)
+		err := storage.AddHabitEntry(entriesFile, "2024-01-01", goalEntry)
 		require.NoError(t, err)
 
-		// Update goal entry
-		updatedGoal := models.CreateBooleanGoalEntry("meditation", true)
-		updatedGoal.Notes = "Great session!"
+		// Update habit entry
+		updatedHabit := models.CreateBooleanHabitEntry("meditation", true)
+		updatedHabit.Notes = "Great session!"
 
-		err = storage.UpdateGoalEntry(entriesFile, "2024-01-01", updatedGoal)
+		err = storage.UpdateHabitEntry(entriesFile, "2024-01-01", updatedHabit)
 		require.NoError(t, err)
 
 		// Verify update
 		entryLog, err := storage.LoadFromFile(entriesFile)
 		require.NoError(t, err)
-		goal := entryLog.Entries[0].Goals[0]
-		assert.Equal(t, true, goal.Value)
-		assert.Equal(t, "Great session!", goal.Notes)
+		habit := entryLog.Entries[0].Habits[0]
+		assert.Equal(t, true, habit.Value)
+		assert.Equal(t, "Great session!", habit.Notes)
 	})
 
-	t.Run("update today goal entry", func(t *testing.T) {
+	t.Run("update today habit entry", func(t *testing.T) {
 		tempDir := t.TempDir()
 		entriesFile := filepath.Join(tempDir, "entries.yml")
 
-		goalEntry := models.CreateBooleanGoalEntry("meditation", true)
+		goalEntry := models.CreateBooleanHabitEntry("meditation", true)
 
-		err := storage.UpdateTodayGoalEntry(entriesFile, goalEntry)
+		err := storage.UpdateTodayHabitEntry(entriesFile, goalEntry)
 		require.NoError(t, err)
 
 		// Verify today's entry was created
 		today := time.Now().Format("2006-01-02")
 		retrievedEntry, err := storage.GetDayEntry(entriesFile, today)
 		require.NoError(t, err)
-		assert.Len(t, retrievedEntry.Goals, 1)
-		assert.Equal(t, "meditation", retrievedEntry.Goals[0].GoalID)
+		assert.Len(t, retrievedEntry.Habits, 1)
+		assert.Equal(t, "meditation", retrievedEntry.Habits[0].HabitID)
 	})
 }
 
@@ -540,8 +540,8 @@ func TestEntryStorage_GetEntriesForDateRange(t *testing.T) {
 		for _, date := range dates {
 			dayEntry := models.DayEntry{
 				Date: date,
-				Goals: []models.GoalEntry{
-					models.CreateBooleanGoalEntry("meditation", true),
+				Habits: []models.HabitEntry{
+					models.CreateBooleanHabitEntry("meditation", true),
 				},
 			}
 			err := storage.AddDayEntry(entriesFile, dayEntry)
@@ -646,14 +646,14 @@ func TestEntryStorage_CreateSampleEntryLog(t *testing.T) {
 
 	dayEntry := entryLog.Entries[0]
 	assert.Equal(t, "2024-01-01", dayEntry.Date)
-	assert.Len(t, dayEntry.Goals, 2)
+	assert.Len(t, dayEntry.Habits, 2)
 
-	// Check goal entries
-	assert.Equal(t, "morning_meditation", dayEntry.Goals[0].GoalID)
-	assert.Equal(t, true, dayEntry.Goals[0].Value)
-	assert.NotEmpty(t, dayEntry.Goals[0].Notes)
+	// Check habit entries
+	assert.Equal(t, "morning_meditation", dayEntry.Habits[0].HabitID)
+	assert.Equal(t, true, dayEntry.Habits[0].Value)
+	assert.NotEmpty(t, dayEntry.Habits[0].Notes)
 
-	assert.Equal(t, "daily_exercise", dayEntry.Goals[1].GoalID)
-	assert.Equal(t, false, dayEntry.Goals[1].Value)
-	assert.NotEmpty(t, dayEntry.Goals[1].Notes)
+	assert.Equal(t, "daily_exercise", dayEntry.Habits[1].HabitID)
+	assert.Equal(t, false, dayEntry.Habits[1].Value)
+	assert.NotEmpty(t, dayEntry.Habits[1].Notes)
 }

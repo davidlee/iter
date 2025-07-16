@@ -31,7 +31,7 @@ func TestGetDefaultPaths(t *testing.T) {
 
 		expected := filepath.Join(testConfigDir, "vice")
 		assert.Equal(t, expected, paths.ConfigDir)
-		assert.Equal(t, filepath.Join(expected, "goals.yml"), paths.GoalsFile)
+		assert.Equal(t, filepath.Join(expected, "habits.yml"), paths.HabitsFile)
 		assert.Equal(t, filepath.Join(expected, "entries.yml"), paths.EntriesFile)
 	})
 
@@ -56,7 +56,7 @@ func TestGetDefaultPaths(t *testing.T) {
 
 		expected := filepath.Join(homeDir, ".config", "vice")
 		assert.Equal(t, expected, paths.ConfigDir)
-		assert.Equal(t, filepath.Join(expected, "goals.yml"), paths.GoalsFile)
+		assert.Equal(t, filepath.Join(expected, "habits.yml"), paths.HabitsFile)
 		assert.Equal(t, filepath.Join(expected, "entries.yml"), paths.EntriesFile)
 	})
 
@@ -92,7 +92,7 @@ func TestGetPathsWithConfigDir(t *testing.T) {
 	paths := GetPathsWithConfigDir(customDir)
 
 	assert.Equal(t, customDir, paths.ConfigDir)
-	assert.Equal(t, filepath.Join(customDir, "goals.yml"), paths.GoalsFile)
+	assert.Equal(t, filepath.Join(customDir, "habits.yml"), paths.HabitsFile)
 	assert.Equal(t, filepath.Join(customDir, "entries.yml"), paths.EntriesFile)
 }
 

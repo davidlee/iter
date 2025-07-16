@@ -27,7 +27,7 @@ func NewTodoDashboard(paths *config.Paths) *TodoDashboard {
 
 // HabitStatus represents the status of a single habit for today
 type HabitStatus struct {
-	Goal   models.Goal
+	Habit  models.Habit
 	Status models.EntryStatus
 	Value  interface{}
 	Notes  string
@@ -84,7 +84,7 @@ func (td *TodoDashboard) displayBubblesTable(statuses []HabitStatus) error {
 
 		rows[i] = table.Row{
 			symbol,
-			td.truncateString(status.Goal.Title, 30),
+			td.truncateString(status.Habit.Title, 30),
 			value,
 			notes,
 		}
@@ -140,7 +140,7 @@ func (td *TodoDashboard) displayMarkdownList(statuses []HabitStatus) error {
 
 	for _, status := range statuses {
 		checkbox := td.getMarkdownCheckbox(status.Status)
-		fmt.Printf("%s %s\n", checkbox, status.Goal.Title)
+		fmt.Printf("%s %s\n", checkbox, status.Habit.Title)
 
 		// Add notes aligned with habit text (no bullet, indented to align with habit title)
 		if status.Notes != "" {
@@ -185,7 +185,7 @@ func (td *TodoDashboard) displaySimpleTable(statuses []HabitStatus) error {
 
 	for _, status := range statuses {
 		symbol := td.getStatusSymbol(status.Status)
-		habit := td.truncateString(status.Goal.Title, 29)
+		habit := td.truncateString(status.Habit.Title, 29)
 		value := td.truncateString(td.formatValue(status.Value), 19)
 		notes := td.truncateString(status.Notes, 30)
 
@@ -196,13 +196,13 @@ func (td *TodoDashboard) displaySimpleTable(statuses []HabitStatus) error {
 	return nil
 }
 
-// loadTodayStatuses loads all goals and today's entries to determine status
+// loadTodayStatuses loads all habits and today's entries to determine status
 func (td *TodoDashboard) loadTodayStatuses() ([]HabitStatus, error) {
-	// Load goals
-	goalParser := parser.NewGoalParser()
-	schema, err := goalParser.LoadFromFile(td.paths.GoalsFile)
+	// Load habits
+	goalParser := parser.NewHabitParser()
+	schema, err := goalParser.LoadFromFile(td.paths.HabitsFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load goals: %w", err)
+		return nil, fmt.Errorf("failed to load habits: %w", err)
 	}
 
 	// Load today's entries
@@ -226,16 +226,16 @@ func (td *TodoDashboard) loadTodayStatuses() ([]HabitStatus, error) {
 
 	// Build status list
 	var statuses []HabitStatus
-	for _, goal := range schema.Goals {
+	for _, habit := range schema.Habits {
 		status := HabitStatus{
-			Goal:   goal,
+			Habit:  habit,
 			Status: "pending", // Default to pending (no EntryPending constant)
 		}
 
-		// Check if we have an entry for this goal today
+		// Check if we have an entry for this habit today
 		if todayEntry != nil {
-			for _, goalEntry := range todayEntry.Goals {
-				if goalEntry.GoalID == goal.ID {
+			for _, goalEntry := range todayEntry.Habits {
+				if goalEntry.HabitID == habit.ID {
 					status.Status = goalEntry.Status
 					status.Value = goalEntry.Value
 					status.Notes = goalEntry.Notes

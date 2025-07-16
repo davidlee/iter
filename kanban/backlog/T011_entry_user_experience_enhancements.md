@@ -15,38 +15,38 @@ context_windows: ["internal/ui/entry.go", "internal/ui/entry/*.go", "internal/mo
 *No commits yet - task is in backlog*
 
 **Context (Background)**:
-- T010: Complete entry system with goal collection flows and scoring integration
+- T010: Complete entry system with habit collection flows and scoring integration
 - Core entry functionality complete with field-type aware data collection
-- All goal types (Simple, Elastic, Informational, Checklist) fully implemented
+- All habit types (Simple, Elastic, Informational, Checklist) fully implemented
 - Scoring engine integration complete with real-time feedback
 
 **Context (Significant Code Files)**:
 - internal/ui/entry.go - Main entry collector with complete flow integration (T010/4.1 complete)
-- internal/ui/entry/goal_collection_flows.go - Complete goal collection flow implementations
-- internal/ui/entry/flow_implementations.go - All goal type flow methods with scoring and feedback
-- internal/ui/entry/flow_factory.go - Factory for creating appropriate goal flows
+- internal/ui/entry/goal_collection_flows.go - Complete habit collection flow implementations
+- internal/ui/entry/flow_implementations.go - All habit type flow methods with scoring and feedback
+- internal/ui/entry/flow_factory.go - Factory for creating appropriate habit flows
 - internal/models/entry.go - Entry data structures (DayEntry, GoalEntry, AchievementLevel)
 
-## 1. Goal / User Story
+## 1. Habit / User Story
 
 As a user, I want an enhanced entry collection experience with clear progress indication, flexible session navigation, and comprehensive feedback to make daily habit tracking efficient and motivating.
 
 **Current State Assessment:**
 Based on T010's complete entry system implementation:
 
-- ✅ **Complete Goal Collection**: All goal types with field-type aware data collection
+- ✅ **Complete Habit Collection**: All habit types with field-type aware data collection
 - ✅ **Scoring Integration**: Real-time automatic scoring with immediate feedback
-- ✅ **Achievement Display**: Visual feedback for all goal types with styled indicators
+- ✅ **Achievement Display**: Visual feedback for all habit types with styled indicators
 - ✅ **Field Input Components**: Complete bubbletea + huh integration for all field types
-- ❌ **Progress Indication**: No current goal position display (e.g., "Goal 3 of 7")
-- ❌ **Session Navigation**: No ability to skip goals, edit previous entries, or review within session
+- ❌ **Progress Indication**: No current habit position display (e.g., "Habit 3 of 7")
+- ❌ **Session Navigation**: No ability to skip habits, edit previous entries, or review within session
 - ❌ **Enhanced Styling**: Basic completion summary lacks detailed achievement overview
-- ❌ **Flow Control**: No session-level navigation or goal ordering controls
+- ❌ **Flow Control**: No session-level navigation or habit ordering controls
 
 **User Story:**
 I want an entry system that:
-- **Progress Awareness**: Clear indication of current position in goal collection session
-- **Flexible Navigation**: Ability to skip goals, go back, edit previous entries
+- **Progress Awareness**: Clear indication of current position in habit collection session
+- **Flexible Navigation**: Ability to skip habits, go back, edit previous entries
 - **Session Review**: Option to review collected entries before saving
 - **Enhanced Summary**: Detailed completion summary with achievement breakdown
 - **Flow Control**: Intuitive session management with save/cancel options
@@ -54,23 +54,23 @@ I want an entry system that:
 ## 2. Acceptance Criteria
 
 ### Core User Experience Features
-- [ ] **Progress Indication**: Display current goal position (e.g., "Goal 3 of 7") during collection
-- [ ] **Session Navigation**: Skip goals, edit previous entries, navigate within session
+- [ ] **Progress Indication**: Display current habit position (e.g., "Habit 3 of 7") during collection
+- [ ] **Session Navigation**: Skip habits, edit previous entries, navigate within session
 - [ ] **Entry Review**: Review all collected entries before final save with edit options
-- [ ] **Enhanced Summary**: Detailed completion summary with achievement breakdown by goal type
+- [ ] **Enhanced Summary**: Detailed completion summary with achievement breakdown by habit type
 - [ ] **Flow Control**: Save session, cancel session, resume interrupted sessions
 
 ### Navigation Features
-- [ ] **Skip Goal Option**: Ability to skip goals and return to them later
+- [ ] **Skip Habit Option**: Ability to skip habits and return to them later
 - [ ] **Previous Entry Edit**: Edit previously collected entries within current session
 - [ ] **Session Progress**: Visual progress bar or indicator showing completion status
-- [ ] **Goal Navigation**: Jump to specific goals within session
+- [ ] **Habit Navigation**: Jump to specific habits within session
 - [ ] **Confirmation Dialogs**: Clear confirmation for skip/cancel/save actions
 
 ### Enhanced Feedback
-- [ ] **Achievement Summary**: Breakdown of achievements by goal type (Simple pass/fail, Elastic levels, etc.)
-- [ ] **Session Statistics**: Total goals, completed, skipped, achievement levels earned
-- [ ] **Visual Progress**: Progress indicators with goal type awareness
+- [ ] **Achievement Summary**: Breakdown of achievements by habit type (Simple pass/fail, Elastic levels, etc.)
+- [ ] **Session Statistics**: Total habits, completed, skipped, achievement levels earned
+- [ ] **Visual Progress**: Progress indicators with habit type awareness
 - [ ] **Motivational Messages**: Context-aware motivational feedback based on progress
 
 ### Technical Requirements
@@ -84,7 +84,7 @@ I want an entry system that:
 
 ## System Overview
 
-The entry user experience enhancements build upon T010's complete goal collection system, adding session-level navigation and progress tracking without modifying the core collection flows.
+The entry user experience enhancements build upon T010's complete habit collection system, adding session-level navigation and progress tracking without modifying the core collection flows.
 
 ## Enhanced Entry Flow Architecture
 
@@ -96,21 +96,21 @@ The entry user experience enhancements build upon T010's complete goal collectio
 
 ## Session State Management
 
-The enhanced UX introduces session-level state management while preserving the existing goal collection flows:
+The enhanced UX introduces session-level state management while preserving the existing habit collection flows:
 
 | Component | Responsibility | Integration Point |
 |-----------|----------------|-------------------|
 | `SessionNavigator` | Navigation control and flow management | Wraps existing `EntryCollector` |
-| `ProgressTracker` | Current position and completion tracking | Integrates with goal collection flows |
+| `ProgressTracker` | Current position and completion tracking | Integrates with habit collection flows |
 | `SessionState` | State persistence and recovery | Works with existing entry storage |
-| `NavigationStack` | Back/forward navigation history | Tracks goal collection sequence |
+| `NavigationStack` | Back/forward navigation history | Tracks habit collection sequence |
 
 ## Progress Indication System
 
 The progress system provides real-time feedback on session completion:
 
 ```
-Goal 3 of 7: Exercise Tracking (Elastic Goal)
+Habit 3 of 7: Exercise Tracking (Elastic Habit)
 Progress: ██████████░░░░░░░░░░ 42% Complete
 Achievements: 2 Simple ✓, 1 Elastic ⭐⭐, 0 Informational 📊
 ```
@@ -118,7 +118,7 @@ Achievements: 2 Simple ✓, 1 Elastic ⭐⭐, 0 Informational 📊
 ## Integration with Existing T010 System
 
 ### Preserved Components (No Changes)
-- Goal collection flows (Simple, Elastic, Informational, Checklist)
+- Habit collection flows (Simple, Elastic, Informational, Checklist)
 - Field input components and validation
 - Scoring engine integration and feedback display
 - Achievement calculation and visual styling
@@ -139,7 +139,7 @@ Achievements: 2 Simple ✓, 1 Elastic ⭐⭐, 0 Informational 📊
 ## Design Principles
 
 - **Non-Disruptive**: Enhance existing T010 system without breaking changes
-- **Flow Preservation**: Maintain goal collection flow integrity and behavior
+- **Flow Preservation**: Maintain habit collection flow integrity and behavior
 - **User Control**: Provide flexible navigation without forcing linear progression
 - **Progress Transparency**: Clear indication of session state and completion
 - **Recovery Support**: Handle interrupted sessions and resume functionality
@@ -149,10 +149,10 @@ Achievements: 2 Simple ✓, 1 Elastic ⭐⭐, 0 Informational 📊
 **Overall Status:** `Planning Phase`
 
 **Architecture Analysis:**
-Building on T010's complete entry system with goal collection flows, field input components, and scoring integration. The enhancement focuses on session-level UX improvements without modifying core collection functionality.
+Building on T010's complete entry system with habit collection flows, field input components, and scoring integration. The enhancement focuses on session-level UX improvements without modifying core collection functionality.
 
 **Current Foundation (from T010 completion):**
-- ✅ Complete goal collection flows for all goal types
+- ✅ Complete habit collection flows for all habit types
 - ✅ Field-type aware data collection with bubbletea + huh integration
 - ✅ Real-time scoring engine integration with immediate feedback
 - ✅ Achievement level calculation and visual display
@@ -173,24 +173,24 @@ Building on T010's complete entry system with goal collection flows, field input
 - [ ] **1.1: Design Session Navigation Architecture**
   - [ ] Create SessionNavigator wrapper for EntryCollector
   - [ ] Design navigation state management and flow control
-  - [ ] Plan integration with existing goal collection flows
+  - [ ] Plan integration with existing habit collection flows
   - [ ] Define session lifecycle and state transitions
 
 - [ ] **1.2: Implement Progress Tracking System**
   - [ ] Create ProgressTracker for session progress indication
-  - [ ] Design progress display formatting and goal position tracking
+  - [ ] Design progress display formatting and habit position tracking
   - [ ] Implement achievement statistics and completion metrics
   - [ ] Add progress bar and visual indicators
 
 ### Phase 2: Navigation Controls
 - [ ] **2.1: Implement Session Navigation Controls**
-  - [ ] Add skip goal functionality with return-later queue
+  - [ ] Add skip habit functionality with return-later queue
   - [ ] Implement back/forward navigation within session
   - [ ] Create edit previous entry capability
   - [ ] Add session save/cancel/resume functionality
 
 - [ ] **2.2: Enhanced User Interface**
-  - [ ] Integrate progress display with goal collection
+  - [ ] Integrate progress display with habit collection
   - [ ] Add navigation prompts and confirmation dialogs
   - [ ] Implement session review before final save
   - [ ] Create enhanced completion summary with achievement breakdown
@@ -205,22 +205,22 @@ Building on T010's complete entry system with goal collection flows, field input
 ### Phase 4: Integration and Testing
 - [ ] **4.1: Integration with T010 System**
   - [ ] Integrate SessionNavigator with existing EntryCollector
-  - [ ] Ensure goal collection flows remain unmodified
+  - [ ] Ensure habit collection flows remain unmodified
   - [ ] Verify scoring integration and feedback display preservation
-  - [ ] Test all goal types with enhanced navigation
+  - [ ] Test all habit types with enhanced navigation
 
 - [ ] **4.2: Comprehensive Testing**
   - [ ] Unit tests for session navigation components
   - [ ] Integration tests for enhanced entry collection workflow
-  - [ ] End-to-end testing with real goal schemas and navigation flows
+  - [ ] End-to-end testing with real habit schemas and navigation flows
   - [ ] Performance testing for session state management
 
 **Technical Implementation Notes:**
 - **Wrapper Pattern**: Use wrapper pattern to enhance EntryCollector without modifying core
 - **State Management**: Implement session state with proper persistence and recovery
 - **Navigation Stack**: Track navigation history for back/forward functionality
-- **Progress Calculation**: Real-time progress tracking based on goal completion status
-- **Achievement Analytics**: Detailed breakdown of achievements by goal type and level
+- **Progress Calculation**: Real-time progress tracking based on habit completion status
+- **Achievement Analytics**: Detailed breakdown of achievements by habit type and level
 
 **AIDEV Anchor Comments Needed:**
 - Session navigation wrapper integration points
@@ -236,14 +236,14 @@ Building on T010's complete entry system with goal collection flows, field input
 
 **2025-07-13 - Task Creation from T010/4.2 Extraction:**
 - Extracted T010/4.2 Enhanced User Experience into dedicated task for focused implementation
-- T010 core entry system complete with all goal collection flows and scoring integration
+- T010 core entry system complete with all habit collection flows and scoring integration
 - Foundation ready for UX enhancements without breaking existing functionality
-- Focus on session-level improvements while preserving goal collection flow integrity
+- Focus on session-level improvements while preserving habit collection flow integrity
 - Architecture designed to wrap existing system rather than modify core components
 
 **Design Considerations:**
 - **Non-Breaking**: All enhancements must preserve existing T010 functionality
-- **User Control**: Provide flexible navigation without forcing linear goal progression
+- **User Control**: Provide flexible navigation without forcing linear habit progression
 - **Progress Transparency**: Clear indication of session state and completion progress
 - **Recovery Support**: Handle interrupted sessions and provide resume functionality
 - **Achievement Analytics**: Detailed breakdown of achievements and session statistics
