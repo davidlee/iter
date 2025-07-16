@@ -482,12 +482,110 @@ OPTION C: Interface-Based Data Access
 3. **Context Isolation**: Clear separation of data by context
 4. **State Management**: Natural fit with existing UI state patterns
 
-**Implementation Strategy:**
-1. Add context awareness to EntryCollector
-2. Implement ContextData containers for type safety
-3. Add lazy loading with on-demand data access
-4. Integrate with ViceEnv for context-aware file paths
-5. Preserve existing UI interfaces during transition
+#### Migration Path Analysis
+
+> **User Question**: Think about the repository vs lazy loading approaches outlined here in light of my comments. Is there a clear migration path later from the former to the latter if the need becomes apparent?
+
+**Analysis of Migration Path: Repository → Lazy Loading**
+
+The Repository Pattern (Option 1) provides an excellent foundation for later migration to sophisticated lazy loading (Option 3), with clear architectural benefits:
+
+**Migration Advantages:**
+
+1. **Interface Stability**: Repository interface abstracts implementation details
+   ```go
+   // Current Repository interface remains unchanged
+   type DataRepository interface {
+       LoadHabits(ctx Context) (*Schema, error)
+       LoadEntries(ctx Context, date Date) (*EntryLog, error)
+       SaveEntries(ctx Context, entries *EntryLog) error
+   }
+   
+   // Implementation can evolve from simple to sophisticated
+   // Phase 1: SimpleFileRepository (full reload on context switch)
+   // Phase 2: CachedFileRepository (intelligent caching)
+   // Phase 3: LazyLoadingRepository (on-demand loading)
+   ```
+
+2. **"Turn Off and On Again" Simplification**: Repository pattern naturally supports complete data unloading
+   ```go
+   func (r *Repository) SwitchContext(newContext string) error {
+       r.UnloadAllData()           // Simple: clear all state
+       r.context = newContext      // Switch context
+       // Data loads on next access through repository methods
+   }
+   ```
+
+3. **BubbleTea Integration**: Clean separation allows UI to remain unchanged
+   ```go
+   // UI components never change - always call repository
+   habits, err := repo.LoadHabits(currentContext)
+   
+   // Repository implementation evolves independently:
+   // - Phase 1: Always loads from disk
+   // - Phase 2: Caches in memory with TTL
+   // - Phase 3: Sophisticated lazy loading with dependency tracking
+   ```
+
+**Migration Path Stages:**
+
+```
+STAGE 1: Simple Repository (Immediate Implementation)
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    SimpleFileRepository                                 │
+│  • Context switching: complete unload + reload on next access          │
+│  • No caching: every call hits disk                                    │
+│  • Clear state management: loaded = true/false                         │
+│  • Minimal complexity: no race conditions                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+STAGE 2: Cached Repository (Future Enhancement)
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    CachedFileRepository                                 │
+│  • Add simple in-memory cache with TTL                                 │
+│  • Context switching: invalidate cache, lazy reload                    │
+│  • Cache per context: map[context]*ContextCache                        │
+│  • Still simple: cache hit/miss only                                   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+STAGE 3: Lazy Loading Repository (Advanced Use Cases)
+┌─────────────────────────────────────────────────────────────────────────┐
+│                   LazyLoadingRepository                                 │
+│  • Dependency-aware loading (e.g., habits before entries)              │
+│  • Partial loading for large datasets (T026 fuzzy search)              │
+│  • Background preloading for anticipated access                        │
+│  • Complex invalidation and consistency management                     │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key Migration Benefits:**
+
+1. **Zero UI Changes**: Repository interface remains constant across all stages
+2. **Testability**: Each stage can be thoroughly tested in isolation
+3. **Rollback Safety**: Can revert to simpler implementation if complexity issues arise
+4. **Incremental Complexity**: Add sophistication only when needed
+5. **Clear Boundaries**: Data access logic completely separated from UI concerns
+
+**Implementation Timeline:**
+
+- **Phase 2 (Current Task)**: Implement SimpleFileRepository with "full reload" context switching
+- **Future Enhancement**: Add caching when performance needs arise
+- **Advanced Use Cases**: Implement lazy loading for T026 (large datasets) or analytics features
+
+**Recommended Approach: Repository Pattern (Option 1) with Staged Implementation**
+
+**Immediate Implementation (Phase 2):**
+1. Create DataRepository interface with context-aware methods
+2. Implement SimpleFileRepository with ViceEnv integration
+3. "Turn off and on again" context switching for simplicity
+4. Update EntryCollector to use repository instead of direct parser/storage access
+5. Maintain all existing UI interfaces and BubbleTea patterns
+
+**Future Migration Path:**
+- Repository interface provides stable foundation for any internal implementation changes
+- Can evolve from simple file access to sophisticated caching/lazy loading
+- UI layer remains completely unaffected by internal repository evolution
+- Clear rollback path if advanced implementations prove problematic
 
 ## Implementation Plan & Progress
 
@@ -607,7 +705,9 @@ OPTION C: Interface-Based Data Access
   - Created comprehensive ASCII diagrams of current architecture
   - Analyzed EntryCollector state management and BubbleTea integration patterns
   - Evaluated 3 architectural options for context-aware data loading
-  - Recommended Enhanced EntryCollector approach (Option 2) for Phase 2
+  - Based on user feedback, updated recommendation to Repository Pattern (Option 1)
+  - Documented clear migration path from simple repository to lazy loading
+  - Recommended "turn off and on again" context switching for simplicity
 
 ## Git Commit History
 
