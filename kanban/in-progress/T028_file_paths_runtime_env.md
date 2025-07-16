@@ -178,8 +178,8 @@ TARGET ARCHITECTURE:
 **Sub-tasks:**
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
 
-- [ ] **Phase 1: Core ViceEnv Structure & XDG Compliance**
-  - [ ] **1.1: Create ViceEnv struct with full XDG support**
+- [x] **Phase 1: Core ViceEnv Structure & XDG Compliance**
+  - [x] **1.1: Create ViceEnv struct with full XDG support**
     - *Design:* New `ViceEnv` struct with all XDG directories (CONFIG/DATA/STATE/CACHE), context-aware data paths
     - *Code/Artifacts:* `internal/config/env.go` (new), replace `config.Paths` usage
     - *Testing Strategy:* Unit tests for env variable resolution, XDG path construction
@@ -187,12 +187,12 @@ TARGET ARCHITECTURE:
     - create paths if missing
     - represent default settings in code
     - stub: load default settings into ViceEnv (no config.toml yet)
-  - [ ] **1.2: Add pelletier/go-toml dependency and TOML parsing**
+  - [x] **1.2: Add pelletier/go-toml dependency and TOML parsing**
     - *Design:* Add go-toml to go.mod, parse config.toml from $VICE_CONFIG for app settings
     - *Code/Artifacts:* `internal/config/toml.go` (new), update go.mod
     - *Testing Strategy:* Unit tests for TOML parsing, invalid config handling, defaults
     - *AI Notes:* config.toml = app settings (keybindings, themes, contexts array), not user data
-  - [ ] **1.3: Create config.toml with default settings if missing**
+  - [x] **1.3: Create config.toml with default settings if missing**
     - *Design:* Initialize config.toml with default [core] contexts = ["personal", "work"] if missing
     - *Code/Artifacts:* Update `internal/config/env.go`, file initialization logic
     - *Testing Strategy:* Unit tests for config.toml creation, default value handling
@@ -218,6 +218,7 @@ TARGET ARCHITECTURE:
 - Phase out config.Paths usage across cmd files
 - Update UI constructors to accept ViceEnv instead of paths
 - Ensure backward compatibility during transition
+- Ensure good Anchor comments and grep codebase to ensure no access bypassing new design. 
 
 - [ ] **Phase 2: Context Management System**
   - [ ] **2.1: Implement context switching with immediate data unload**
@@ -280,6 +281,11 @@ TARGET ARCHITECTURE:
   - Analyzed current config.Paths usage across 11 cmd files + UI components
   - Identified key changes: full XDG compliance, context-aware paths, TOML config
   - Implementation strategy: build ViceEnv alongside config.Paths, then phase out
+- `2025-07-16 - AI:` Completed Phase 1 implementation:
+  - 1.1: Created ViceEnv struct with full XDG support (CONFIG/DATA/STATE/CACHE)
+  - 1.2: Added pelletier/go-toml dependency and TOML parsing infrastructure
+  - 1.3: Integrated config.toml creation and loading into ViceEnv initialization
+  - All functionality tested with comprehensive unit and integration tests
 
 ## Git Commit History
 

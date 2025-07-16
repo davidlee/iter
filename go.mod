@@ -45,6 +45,7 @@ require (
 	github.com/muesli/mango-pflag v0.1.0 // indirect
 	github.com/muesli/roff v0.1.0 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sahilm/fuzzy v0.1.1 // indirect

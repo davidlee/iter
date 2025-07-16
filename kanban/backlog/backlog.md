@@ -20,32 +20,49 @@ Affinity:
        missions 
 ```
 
-## Habit Management (add / edit)
+## Habit Management 
 
-        92 -    switch e.EntryStatus {
-        93 -    case models.EntryCompleted:
-        94 -      return "●" // success
-        95 -    case models.EntryFailed:
-        96 -      return "✗" // failed
-        97 -    case models.EntrySkipped:
-        98 -      return "–" // skipped
-        99 -    default:
-       100 -      return "○" // incomplete
-       101 -    }
+### Atomic Habits
+TODO: think about how to adapt / support / reinforce "Atomic Habits" framework, e.g.:
 
-- [ ] default command: if no data, enter habit add wizard 
+- focus on systems not goals
+- Cue -> Craving -> Response -> Reward
+  - inform habit creation UI / guidance
+  - support from data model?
+- Easy -> Attractive -> Obvious -> Satisfying # form
+- Invisible -> Unattractive -> Difficult -> Unsatisfying # break
+  - Cue 
+    - different "trigger" conditions (e.g. timed reminders vs ...)
+    - habit stacking: UI to support "stacks"?
+  - Craving
+    - ...
+    - guidance -> text fields -> ...?
+
+  - Response
+    - reduce friction
+    - guidance: 2 minute rule
+  - Reward
+    - gamify / score / meta-currency?
+    - reporting & analytics
+    - automate somehow: user scripts
+    - socials
+
+### (add / edit)
 - [ ] edit title
-- [ ] add optional default for boolean fields. This will set the default state for form fields during entry.
+- [ ] ? add optional default for boolean fields. This will set the default state for form fields during entry.
 
 ## data model
 
-- habits? call them habits.
 - a habit can have n fields
 - more complex (DSL?) criteria
   - combine per-field criteria
   - and / or, or ... any / all
   - criteria spanning fields (at least n of criteria true)
   - checklist % completion
+- recurrence schedules
+  - calendar vs x every y (redo from when visible or when completed)
+    - for numeric fields, quota over time
+  - only show for entry when "due"
 - checklists 
   - notes?
   - skippable items
