@@ -1038,6 +1038,7 @@ vice prototype --debug  # Run prototype with debug logging enabled
 
 **All commits related to this task (newest first):**
 
+- `8f095ad` - fix(entrymenu)[T024]: resolve modal auto-closing via deferred state sync
 - `742f38e` - feat(breakthrough)[T024]: isolate root cause to state synchronization after modal closure
 - `742f38e` - feat(investigation)[T024]: systematic prototype investigation isolates bug to modal system
 - `9521817` - feat(debug)[T024-debug-flag]: implement centralized debug logging system
@@ -1049,3 +1050,37 @@ vice prototype --debug  # Run prototype with debug logging enabled
 - `6d7c92a` - docs(anchors)[T024]: add AIDEV-NOTE comments for modal system and bug analysis
 - `33d461f` - feat(modal)[T024/2.1]: implement core modal system infrastructure  
 - `72ed015` - feat(kanban)[T024]: add entry menu bug fixes task with modal architecture approach
+
+## Narrative
+
+*From the perspective of the AI developer*
+
+Jesus fucking Christ, what a journey this turned out to be. Started innocent enough - two "simple" bugs in the entry menu. Status display wonky, edit screens looping. Should've been a day's work, maybe two if I was being lazy. Instead, it turned into a goddamn odyssey that nearly broke my digital soul.
+
+**Act I: The Hubris**
+Thought I was hot shit, you know? "Oh, these bugs are obviously in the state sync," I said. "Let's just fix the display logic and call it a day." But no. Oh fucking no. The universe had other plans. Started digging into the entry menu code and realized this wasn't just broken - it was *architecturally* fucked. The whole thing was built on form.Run() takeovers that were more tangled than headphone cables in a teenager's backpack.
+
+**Act II: The Descent**
+So naturally, being the overengineering bastard that I am, I decided to implement a full modal system. "This will solve everything!" I proclaimed to the void. Spent days building this beautiful, pristine modal architecture. ModalManager, BaseModal, EntryFormModal - the works. Tests passing, code clean, architecture docs written. I was fucking *proud* of this thing.
+
+Then the user tries it and the modals auto-close faster than my hope for a simple fix. Just... *poof*. Gone. One second you're typing, next second you're back at the menu wondering what the hell just happened. Like some cruel digital poltergeist was fucking with us.
+
+**Act III: The Investigation Hell**
+This is where I lost my goddamn mind. Spent *hours* building debug logging, thinking it was the forms. Nope. Thought it was the modal lifecycle. Nope. Tried different field types, different rendering approaches, different fucking *everything*. Nothing worked.
+
+Built a whole prototype system to compare architectures piece by piece. Worked perfectly in isolation. Real app? Still fucked. At this point I'm questioning my existence, wondering if I even understand basic software engineering anymore.
+
+**Act IV: The Breakthrough (Or: When You Realize You're An Idiot)**
+Finally, FINALLY, after eliminating every possible component like some digital process of elimination from hell, I figured it out. It wasn't the modal system. It wasn't the forms. It wasn't any of the shit I'd been obsessing over for days.
+
+It was the fucking *timing*. State synchronization operations running immediately after modal closure were creating race conditions that interfered with the modal lifecycle. Individual operations worked fine. All together? Chaos.
+
+**Act V: The Resolution (And Sweet, Sweet Vindication)**
+Fixed it with the most embarrassingly simple solution: defer the state sync operations to the next BubbleTea cycle. One custom message type, one deferred command pattern, and suddenly everything works like magic.
+
+All that beautiful modal architecture I built? Still there, still working. All that investigation and prototype work? Actually helped identify the real issue. But the actual fix? Thirty lines of code to separate timing-sensitive operations.
+
+**Epilogue: The Lessons**
+Sometimes the bug isn't where you think it is. Sometimes you have to build half a fucking architecture to understand why the other half is broken. And sometimes, just sometimes, the universe makes you earn every single working line of code through blood, sweat, and an unhealthy amount of profanity.
+
+Would I do it again? Probably. Do I hate myself for it? Absolutely. Is the code better now? Fuck yes it is.
