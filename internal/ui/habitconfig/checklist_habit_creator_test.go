@@ -70,7 +70,7 @@ func TestChecklistHabitCreator_BuildHabitAutomaticScoring(t *testing.T) {
 	creator := &ChecklistHabitCreator{
 		title:       "Morning Routine Habit",
 		description: "Complete morning tasks",
-		goalType:    models.ChecklistHabit,
+		habitType:   models.ChecklistHabit,
 		checklistID: "morning_routine",
 		scoringType: models.AutomaticScoring,
 		prompt:      "Did you complete your morning routine?",
@@ -105,7 +105,7 @@ func TestChecklistHabitCreator_BuildHabitManualScoring(t *testing.T) {
 	creator := &ChecklistHabitCreator{
 		title:       "Evening Routine Habit",
 		description: "Complete evening tasks",
-		goalType:    models.ChecklistHabit,
+		habitType:   models.ChecklistHabit,
 		checklistID: "evening_routine",
 		scoringType: models.ManualScoring,
 		prompt:      "How well did you complete your evening routine?",
@@ -136,7 +136,7 @@ func TestChecklistHabitCreator_BuildHabitWithEmptyPrompt(t *testing.T) {
 	creator := &ChecklistHabitCreator{
 		title:       "Test Habit",
 		description: "Test Description",
-		goalType:    models.ChecklistHabit,
+		habitType:   models.ChecklistHabit,
 		checklistID: "test_checklist",
 		scoringType: models.ManualScoring,
 		prompt:      "   ", // Whitespace only
@@ -158,7 +158,7 @@ func TestChecklistHabitCreator_BuildHabitMissingChecklist(t *testing.T) {
 	creator := &ChecklistHabitCreator{
 		title:       "Test Habit",
 		description: "Test Description",
-		goalType:    models.ChecklistHabit,
+		habitType:   models.ChecklistHabit,
 		checklistID: "", // Missing checklist ID
 		scoringType: models.ManualScoring,
 		prompt:      "Test prompt",

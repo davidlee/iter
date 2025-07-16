@@ -352,7 +352,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case DeferredStateSyncMsg:
 		// AIDEV-NOTE: T024-fix; Handle deferred state synchronization to prevent modal auto-closing
-		debug.EntryMenu("Received deferred state sync message for habit %s", msg.goalID)
+		debug.EntryMenu("Received deferred state sync message for habit %s", msg.habitID)
 		m.processDeferredStateSync(msg)
 		return m, nil
 
@@ -496,8 +496,8 @@ func (m *EntryMenuModel) syncStateAfterEntry() tea.Cmd {
 			// This prevents timing conflicts between modal closure and state updates
 			return tea.Cmd(func() tea.Msg {
 				return DeferredStateSyncMsg{
-					goalID: m.selectedHabitID,
-					result: result,
+					habitID: m.selectedHabitID,
+					result:  result,
 				}
 			})
 		}
@@ -509,19 +509,19 @@ func (m *EntryMenuModel) syncStateAfterEntry() tea.Cmd {
 
 // DeferredStateSyncMsg carries entry result data for deferred state synchronization
 type DeferredStateSyncMsg struct {
-	goalID string
-	result *entry.EntryResult
+	habitID string
+	result  *entry.EntryResult
 }
 
 // processDeferredStateSync handles deferred state synchronization operations
 // AIDEV-NOTE: T024-fix; Separated from modal closure to prevent auto-closing timing conflicts
 func (m *EntryMenuModel) processDeferredStateSync(msg DeferredStateSyncMsg) {
-	debug.EntryMenu("Processing deferred state sync for habit %s: value=%v, status=%v", msg.goalID, msg.result.Value, msg.result.Status)
+	debug.EntryMenu("Processing deferred state sync for habit %s: value=%v, status=%v", msg.habitID, msg.result.Value, msg.result.Status)
 
 	// Store the entry result in the collector
 	if m.entryCollector != nil {
 		debug.EntryMenu("Executing Entry Storage - StoreEntryResult")
-		m.entryCollector.StoreEntryResult(msg.goalID, msg.result)
+		m.entryCollector.StoreEntryResult(msg.habitID, msg.result)
 	}
 
 	// Update menu state after entry storage
@@ -533,7 +533,7 @@ func (m *EntryMenuModel) processDeferredStateSync(msg DeferredStateSyncMsg) {
 		debug.EntryMenu("Executing Auto-Save - SaveEntriesToFile")
 		err := m.entryCollector.SaveEntriesToFile(m.entriesFile)
 		if err != nil {
-			debug.EntryMenu("Failed to save entries for habit %s: %v", msg.goalID, err)
+			debug.EntryMenu("Failed to save entries for habit %s: %v", msg.habitID, err)
 			_ = err // TODO: Consider adding save error handling UI
 		}
 	}
@@ -657,7 +657,7 @@ func (m *EntryMenuModel) updateEntriesFromCollector() {
 		value, notes, achievement, status, hasEntry := m.entryCollector.GetHabitEntry(habit.ID)
 		if hasEntry {
 			// Convert to HabitEntry format
-			goalEntry := models.HabitEntry{
+			habitEntry := models.HabitEntry{
 				HabitID:          habit.ID,
 				Status:           status,
 				Notes:            notes,
@@ -668,20 +668,20 @@ func (m *EntryMenuModel) updateEntriesFromCollector() {
 			// Set value based on type
 			switch v := value.(type) {
 			case string:
-				goalEntry.Value = v
+				habitEntry.Value = v
 			case bool:
 				if v {
-					goalEntry.Value = "true"
+					habitEntry.Value = "true"
 				} else {
-					goalEntry.Value = "false"
+					habitEntry.Value = "false"
 				}
 			case time.Time:
-				goalEntry.Value = v.Format("15:04")
+				habitEntry.Value = v.Format("15:04")
 			default:
-				goalEntry.Value = fmt.Sprintf("%v", v)
+				habitEntry.Value = fmt.Sprintf("%v", v)
 			}
 
-			m.entries[habit.ID] = goalEntry
+			m.entries[habit.ID] = habitEntry
 		}
 	}
 

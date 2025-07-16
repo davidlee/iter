@@ -221,13 +221,13 @@ func (gp *HabitParser) ValidateFile(filePath string) error {
 
 // GetHabitByID finds a habit by its ID in the schema.
 // Returns the habit and true if found, nil and false otherwise.
-func GetHabitByID(schema *models.Schema, goalID string) (*models.Habit, bool) {
+func GetHabitByID(schema *models.Schema, habitID string) (*models.Habit, bool) {
 	if schema == nil {
 		return nil, false
 	}
 
 	for i := range schema.Habits {
-		if schema.Habits[i].ID == goalID {
+		if schema.Habits[i].ID == habitID {
 			return &schema.Habits[i], true
 		}
 	}
@@ -236,14 +236,14 @@ func GetHabitByID(schema *models.Schema, goalID string) (*models.Habit, bool) {
 }
 
 // GetHabitsByType returns all habits of a specific type from the schema.
-func GetHabitsByType(schema *models.Schema, goalType models.HabitType) []models.Habit {
+func GetHabitsByType(schema *models.Schema, habitType models.HabitType) []models.Habit {
 	if schema == nil {
 		return nil
 	}
 
 	var habits []models.Habit
 	for _, habit := range schema.Habits {
-		if habit.HabitType == goalType {
+		if habit.HabitType == habitType {
 			habits = append(habits, habit)
 		}
 	}

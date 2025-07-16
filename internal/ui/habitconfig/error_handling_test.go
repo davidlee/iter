@@ -20,7 +20,7 @@ func TestFilePermissionHandling(t *testing.T) {
 	}
 
 	tempDir := t.TempDir()
-	goalParser := parser.NewHabitParser()
+	habitParser := parser.NewHabitParser()
 
 	t.Run("read-only file handling", func(t *testing.T) {
 		habitsFile := filepath.Join(tempDir, "readonly_habits.yml")
@@ -36,12 +36,12 @@ func TestFilePermissionHandling(t *testing.T) {
 		require.NoError(t, err)
 
 		// Try to load (should work)
-		schema, err := goalParser.LoadFromFile(habitsFile)
+		schema, err := habitParser.LoadFromFile(habitsFile)
 		assert.NoError(t, err)
 		assert.NotNil(t, schema)
 
 		// Try to save (should fail)
-		err = goalParser.SaveToFile(schema, habitsFile)
+		err = habitParser.SaveToFile(schema, habitsFile)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "permission denied")
 
@@ -59,7 +59,7 @@ func TestFilePermissionHandling(t *testing.T) {
 
 func TestSchemaCorruptionRecovery(t *testing.T) {
 	tempDir := t.TempDir()
-	goalParser := parser.NewHabitParser()
+	habitParser := parser.NewHabitParser()
 
 	testCases := []struct {
 		name        string
@@ -129,7 +129,7 @@ habits: "not an array"
 			err := os.WriteFile(testFile, []byte(tc.yamlContent), 0o600)
 			require.NoError(t, err)
 
-			schema, err := goalParser.LoadFromFile(testFile)
+			schema, err := habitParser.LoadFromFile(testFile)
 
 			if tc.expectError {
 				assert.Error(t, err)
@@ -472,7 +472,7 @@ func TestConcurrentAccessSafety(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("concurrent parser operations", func(t *testing.T) {
-		goalParser := parser.NewHabitParser()
+		habitParser := parser.NewHabitParser()
 
 		// Test concurrent reads
 		done := make(chan bool, 10)
@@ -480,7 +480,7 @@ func TestConcurrentAccessSafety(t *testing.T) {
 			go func() {
 				defer func() { done <- true }()
 
-				schema, err := goalParser.LoadFromFile(habitsFile)
+				schema, err := habitParser.LoadFromFile(habitsFile)
 				assert.NoError(t, err)
 				assert.NotNil(t, schema)
 			}()
@@ -544,8 +544,8 @@ func TestMemoryAndResourceUsage(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Test YAML generation with large schema
-		goalParser := parser.NewHabitParser()
-		yamlData, err := goalParser.ToYAML(schema)
+		habitParser := parser.NewHabitParser()
+		yamlData, err := habitParser.ToYAML(schema)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, yamlData)
 	})

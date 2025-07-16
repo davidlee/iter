@@ -32,13 +32,13 @@ entry_system: {
   style.font-color: white
 }
 
-goals_file: {
+habits_file: {
   label: |md
-    **Goals Schema**
+    **Habits Schema**
     
     [External System]
     
-    YAML goal definitions from T009
+    YAML habit definitions from T009
   |
   style.fill: "#999999"
   style.font-color: white
@@ -62,7 +62,7 @@ scoring_engine: {
     
     [External System]
     
-    Automatic goal evaluation
+    Automatic habit evaluation
   |
   style.fill: "#999999"
   style.font-color: white
@@ -74,8 +74,8 @@ user -> entry_system: |md
   [Terminal]
 |
 
-entry_system -> goals_file: |md
-  Loads goal definitions
+entry_system -> habits_file: |md
+  Loads habit definitions
   
   [File I/O]
 |
@@ -87,7 +87,7 @@ entry_system -> entries_file: |md
 |
 
 entry_system -> scoring_engine: |md
-  Evaluates automatic goals
+  Evaluates automatic habits
   
   [Function calls]
 |

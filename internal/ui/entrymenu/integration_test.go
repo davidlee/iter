@@ -18,17 +18,17 @@ import (
 func TestEntryMenuIntegration_POC(t *testing.T) {
 	// Create test habits and entries
 	habits := []models.Habit{
-		{ID: "goal1", Title: "Exercise", HabitType: models.SimpleHabit},
-		{ID: "goal2", Title: "Read", HabitType: models.SimpleHabit},
-		{ID: "goal3", Title: "Meditate", HabitType: models.SimpleHabit},
+		{ID: "habit1", Title: "Exercise", HabitType: models.SimpleHabit},
+		{ID: "habit2", Title: "Read", HabitType: models.SimpleHabit},
+		{ID: "habit3", Title: "Meditate", HabitType: models.SimpleHabit},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal1": {
-			HabitID: "goal1",
+		"habit1": {
+			HabitID: "habit1",
 			Status:  models.EntryCompleted,
 		},
-		// goal2 and goal3 have no entries (incomplete)
+		// habit2 and habit3 have no entries (incomplete)
 	}
 
 	// Create the entry menu model
@@ -68,8 +68,8 @@ func TestEntryMenuIntegration_POC(t *testing.T) {
 
 	if entryMenuModel, ok := finalModel.(*EntryMenuModel); ok {
 		selectedID := entryMenuModel.SelectedHabitID()
-		if selectedID != "goal2" {
-			t.Errorf("Expected selected habit to be 'goal2', got: %s", selectedID)
+		if selectedID != "habit2" {
+			t.Errorf("Expected selected habit to be 'habit2', got: %s", selectedID)
 		}
 
 		// Verify model quit properly

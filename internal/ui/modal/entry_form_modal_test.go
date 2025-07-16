@@ -15,7 +15,7 @@ import (
 // TestEntryFormModal_Creation tests entry form modal creation.
 func TestEntryFormModal_Creation(t *testing.T) {
 	habit := models.Habit{
-		ID:        "test_goal",
+		ID:        "test_habit",
 		Title:     "Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -49,7 +49,7 @@ func TestEntryFormModal_Creation(t *testing.T) {
 // TestEntryFormModal_InitializationWithExistingEntry tests modal creation with existing entry.
 func TestEntryFormModal_InitializationWithExistingEntry(t *testing.T) {
 	habit := models.Habit{
-		ID:        "existing_goal",
+		ID:        "existing_habit",
 		Title:     "Existing Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -78,7 +78,7 @@ func TestEntryFormModal_InitializationWithExistingEntry(t *testing.T) {
 // TestEntryFormModal_Init tests modal initialization.
 func TestEntryFormModal_Init(t *testing.T) {
 	habit := models.Habit{
-		ID:        "test_goal",
+		ID:        "test_habit",
 		Title:     "Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -111,7 +111,7 @@ func TestEntryFormModal_Init(t *testing.T) {
 // TestEntryFormModal_HandleKey tests keyboard handling.
 func TestEntryFormModal_HandleKey(t *testing.T) {
 	habit := models.Habit{
-		ID:        "test_goal",
+		ID:        "test_habit",
 		Title:     "Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -143,7 +143,7 @@ func TestEntryFormModal_HandleKey(t *testing.T) {
 // TestEntryFormModal_Update tests message handling.
 func TestEntryFormModal_Update(t *testing.T) {
 	habit := models.Habit{
-		ID:        "test_goal",
+		ID:        "test_habit",
 		Title:     "Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -180,7 +180,7 @@ func TestEntryFormModal_Update(t *testing.T) {
 // TestEntryFormModal_View tests view rendering.
 func TestEntryFormModal_View(t *testing.T) {
 	habit := models.Habit{
-		ID:        "test_goal",
+		ID:        "test_habit",
 		Title:     "Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -212,7 +212,7 @@ func TestEntryFormModal_View(t *testing.T) {
 // TestEntryFormModal_ErrorView tests error rendering.
 func TestEntryFormModal_ErrorView(t *testing.T) {
 	habit := models.Habit{
-		ID:        "test_goal",
+		ID:        "test_habit",
 		Title:     "Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -246,7 +246,7 @@ func TestEntryFormModal_ErrorView(t *testing.T) {
 // TestEntryFormModal_GetEntryResult tests result retrieval.
 func TestEntryFormModal_GetEntryResult(t *testing.T) {
 	habit := models.Habit{
-		ID:        "test_goal",
+		ID:        "test_habit",
 		Title:     "Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -284,7 +284,7 @@ func TestEntryFormModal_GetEntryResult(t *testing.T) {
 // TestEntryFormModal_ProcessEntry tests entry processing.
 func TestEntryFormModal_ProcessEntry(t *testing.T) {
 	habit := models.Habit{
-		ID:        "test_goal",
+		ID:        "test_habit",
 		Title:     "Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -323,7 +323,7 @@ func TestEntryFormModal_ProcessEntry(t *testing.T) {
 // TestEntryFormModal_FormAborted tests handling of form abortion.
 func TestEntryFormModal_FormAborted(t *testing.T) {
 	habit := models.Habit{
-		ID:        "test_goal",
+		ID:        "test_habit",
 		Title:     "Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},

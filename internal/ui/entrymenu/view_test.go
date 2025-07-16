@@ -26,8 +26,8 @@ func TestViewRenderer_RenderProgressBar(t *testing.T) {
 		{
 			name: "no entries",
 			habits: []models.Habit{
-				{ID: "goal1", Title: "Test Habit 1"},
-				{ID: "goal2", Title: "Test Habit 2"},
+				{ID: "habit1", Title: "Test Habit 1"},
+				{ID: "habit2", Title: "Test Habit 2"},
 			},
 			entries:  map[string]models.HabitEntry{},
 			contains: []string{"0/2 completed", "0.0%", "2 remaining"},
@@ -35,24 +35,24 @@ func TestViewRenderer_RenderProgressBar(t *testing.T) {
 		{
 			name: "mixed completion status",
 			habits: []models.Habit{
-				{ID: "goal1", Title: "Completed Habit"},
-				{ID: "goal2", Title: "Failed Habit"},
-				{ID: "goal3", Title: "Skipped Habit"},
-				{ID: "goal4", Title: "Incomplete Habit"},
+				{ID: "habit1", Title: "Completed Habit"},
+				{ID: "habit2", Title: "Failed Habit"},
+				{ID: "habit3", Title: "Skipped Habit"},
+				{ID: "habit4", Title: "Incomplete Habit"},
 			},
 			entries: map[string]models.HabitEntry{
-				"goal1": {
-					HabitID:   "goal1",
+				"habit1": {
+					HabitID:   "habit1",
 					Status:    models.EntryCompleted,
 					CreatedAt: time.Now(),
 				},
-				"goal2": {
-					HabitID:   "goal2",
+				"habit2": {
+					HabitID:   "habit2",
 					Status:    models.EntryFailed,
 					CreatedAt: time.Now(),
 				},
-				"goal3": {
-					HabitID:   "goal3",
+				"habit3": {
+					HabitID:   "habit3",
 					Status:    models.EntrySkipped,
 					CreatedAt: time.Now(),
 				},
@@ -62,17 +62,17 @@ func TestViewRenderer_RenderProgressBar(t *testing.T) {
 		{
 			name: "all completed",
 			habits: []models.Habit{
-				{ID: "goal1", Title: "Habit 1"},
-				{ID: "goal2", Title: "Habit 2"},
+				{ID: "habit1", Title: "Habit 1"},
+				{ID: "habit2", Title: "Habit 2"},
 			},
 			entries: map[string]models.HabitEntry{
-				"goal1": {
-					HabitID:   "goal1",
+				"habit1": {
+					HabitID:   "habit1",
 					Status:    models.EntryCompleted,
 					CreatedAt: time.Now(),
 				},
-				"goal2": {
-					HabitID:   "goal2",
+				"habit2": {
+					HabitID:   "habit2",
 					Status:    models.EntryCompleted,
 					CreatedAt: time.Now(),
 				},
@@ -176,25 +176,25 @@ func TestViewRenderer_CalculateProgressStats(t *testing.T) {
 	renderer := NewViewRenderer(80, 24)
 
 	habits := []models.Habit{
-		{ID: "goal1", Title: "Completed Habit"},
-		{ID: "goal2", Title: "Failed Habit"},
-		{ID: "goal3", Title: "Skipped Habit"},
-		{ID: "goal4", Title: "Incomplete Habit"},
+		{ID: "habit1", Title: "Completed Habit"},
+		{ID: "habit2", Title: "Failed Habit"},
+		{ID: "habit3", Title: "Skipped Habit"},
+		{ID: "habit4", Title: "Incomplete Habit"},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal1": {
-			HabitID:   "goal1",
+		"habit1": {
+			HabitID:   "habit1",
 			Status:    models.EntryCompleted,
 			CreatedAt: time.Now(),
 		},
-		"goal2": {
-			HabitID:   "goal2",
+		"habit2": {
+			HabitID:   "habit2",
 			Status:    models.EntryFailed,
 			CreatedAt: time.Now(),
 		},
-		"goal3": {
-			HabitID:   "goal3",
+		"habit3": {
+			HabitID:   "habit3",
 			Status:    models.EntrySkipped,
 			CreatedAt: time.Now(),
 		},
@@ -262,12 +262,12 @@ func TestViewRenderer_RenderHeader(t *testing.T) {
 	renderer := NewViewRenderer(80, 24)
 
 	habits := []models.Habit{
-		{ID: "goal1", Title: "Test Habit"},
+		{ID: "habit1", Title: "Test Habit"},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal1": {
-			HabitID:   "goal1",
+		"habit1": {
+			HabitID:   "habit1",
 			Status:    models.EntryCompleted,
 			CreatedAt: time.Now(),
 		},
@@ -322,7 +322,7 @@ func TestProgressStats_EdgeCases(t *testing.T) {
 		{
 			name: "no entries",
 			habits: []models.Habit{
-				{ID: "goal1", Title: "Habit 1"},
+				{ID: "habit1", Title: "Habit 1"},
 			},
 			entries: map[string]models.HabitEntry{},
 			check: func(stats ProgressStats) bool {
@@ -332,11 +332,11 @@ func TestProgressStats_EdgeCases(t *testing.T) {
 		{
 			name: "more entries than habits",
 			habits: []models.Habit{
-				{ID: "goal1", Title: "Habit 1"},
+				{ID: "habit1", Title: "Habit 1"},
 			},
 			entries: map[string]models.HabitEntry{
-				"goal1": {HabitID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
-				"goal2": {HabitID: "goal2", Status: models.EntryCompleted, CreatedAt: time.Now()}, // Extra entry
+				"habit1": {HabitID: "habit1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+				"habit2": {HabitID: "habit2", Status: models.EntryCompleted, CreatedAt: time.Now()}, // Extra entry
 			},
 			check: func(stats ProgressStats) bool {
 				return stats.Total == 1 && stats.Completed == 1 && stats.Attempted == 1

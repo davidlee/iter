@@ -28,7 +28,7 @@ func TestHabitConfigurator_ElasticHabitIntegration(t *testing.T) {
 	// Test that the creator is properly initialized
 	assert.Equal(t, basicInfo.Title, creator.title)
 	assert.Equal(t, basicInfo.Description, creator.description)
-	assert.Equal(t, models.ElasticHabit, creator.goalType)
+	assert.Equal(t, models.ElasticHabit, creator.habitType)
 
 	// Test headless habit creation (the proper way to test without TTY)
 	testData := TestElasticHabitData{
@@ -73,7 +73,7 @@ func TestHabitConfigurator_ElasticHabitCreatorCreation(t *testing.T) {
 	// Verify initial state
 	assert.Equal(t, "Test Habit", creator.title)
 	assert.Equal(t, "Test Description", creator.description)
-	assert.Equal(t, models.ElasticHabit, creator.goalType)
+	assert.Equal(t, models.ElasticHabit, creator.habitType)
 	assert.Equal(t, 0, creator.currentStep)
 	assert.NotNil(t, creator.form)
 

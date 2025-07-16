@@ -52,14 +52,14 @@ func TestHabitConfigurator_ListHabits_Integration(t *testing.T) {
 		}
 
 		// Save habits file
-		goalParser := parser.NewHabitParser()
-		err := goalParser.SaveToFile(&schema, habitsFile)
+		habitParser := parser.NewHabitParser()
+		err := habitParser.SaveToFile(&schema, habitsFile)
 		require.NoError(t, err)
 
 		// Test that file loading works (this exercises the ListHabits loading logic)
 		// Note: We can't easily test the bubbletea program in unit tests, but we can verify
 		// the configurator loads habits correctly and would launch the UI
-		loadedSchema, err := goalParser.LoadFromFile(habitsFile)
+		loadedSchema, err := habitParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 		assert.Equal(t, 3, len(loadedSchema.Habits))
 		assert.Equal(t, "meditation", loadedSchema.Habits[0].ID)
@@ -100,8 +100,8 @@ func TestHabitConfigurator_ListHabits_Integration(t *testing.T) {
 			Habits:      []models.Habit{}, // Empty habits list
 		}
 
-		goalParser := parser.NewHabitParser()
-		err := goalParser.SaveToFile(&schema, habitsFile)
+		habitParser := parser.NewHabitParser()
+		err := habitParser.SaveToFile(&schema, habitsFile)
 		require.NoError(t, err)
 
 		// Test ListHabits with empty file

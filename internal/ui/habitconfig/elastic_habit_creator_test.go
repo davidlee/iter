@@ -15,7 +15,7 @@ func TestElasticHabitCreator_NewCreator(t *testing.T) {
 
 	assert.Equal(t, "Test Habit", creator.title)
 	assert.Equal(t, "Test Description", creator.description)
-	assert.Equal(t, models.ElasticHabit, creator.goalType)
+	assert.Equal(t, models.ElasticHabit, creator.habitType)
 	assert.Equal(t, models.TextFieldType, creator.selectedFieldType) // Default first option, boolean excluded for elastic
 	assert.Equal(t, 0, creator.currentStep)
 	assert.NotNil(t, creator.form)

@@ -21,13 +21,13 @@ func TestEntryIntegration_MenuToEntryFlow_DISABLED(t *testing.T) {
 	// Create test habits with different types
 	habits := []models.Habit{
 		{
-			ID:        "simple_goal",
+			ID:        "simple_habit",
 			Title:     "Exercise",
 			HabitType: models.SimpleHabit,
 			FieldType: models.FieldType{Type: "boolean"},
 		},
 		{
-			ID:        "time_goal",
+			ID:        "time_habit",
 			Title:     "Wake Up Early",
 			HabitType: models.SimpleHabit,
 			FieldType: models.FieldType{Type: "time"},

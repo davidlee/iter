@@ -25,7 +25,7 @@ type InformationalHabitCreator struct {
 	// Pre-populated basic info
 	title       string
 	description string
-	goalType    models.HabitType
+	habitType   models.HabitType
 
 	// Field configuration data - bound directly to form fields per huh documentation
 	selectedFieldType string
@@ -48,7 +48,7 @@ func NewInformationalHabitCreatorForEdit(habit *models.Habit) *InformationalHabi
 	creator := &InformationalHabitCreator{
 		title:             habit.Title,
 		description:       habit.Description,
-		goalType:          habit.HabitType,
+		habitType:         habit.HabitType,
 		selectedFieldType: habit.FieldType.Type,
 		numericSubtype:    habit.FieldType.Type,
 		unit:              habit.FieldType.Unit,
@@ -84,11 +84,11 @@ func NewInformationalHabitCreatorForEdit(habit *models.Habit) *InformationalHabi
 }
 
 // NewInformationalHabitCreator creates a new informational habit creator with pre-populated basic info
-func NewInformationalHabitCreator(title, description string, goalType models.HabitType) *InformationalHabitCreator {
+func NewInformationalHabitCreator(title, description string, habitType models.HabitType) *InformationalHabitCreator {
 	creator := &InformationalHabitCreator{
 		title:          title,
 		description:    description,
-		goalType:       goalType,
+		habitType:      habitType,
 		numericSubtype: models.UnsignedIntFieldType, // Default numeric subtype
 		unit:           "times",                     // Default unit
 		direction:      "neutral",                   // Default direction
@@ -467,7 +467,7 @@ func (m *InformationalHabitCreator) createHabitFromData() (*models.Habit, error)
 	// Expected structure:
 	//   - title: Title
 	//     id: title
-	//     goal_type: informational
+	//     habit_type: informational
 	//     field_type:
 	//       type: [boolean|text|unsigned_int|unsigned_decimal|decimal|time|duration]
 	//       unit: [for numeric fields]
@@ -481,7 +481,7 @@ func (m *InformationalHabitCreator) createHabitFromData() (*models.Habit, error)
 	habit := &models.Habit{
 		Title:       strings.TrimSpace(m.title),
 		Description: strings.TrimSpace(m.description),
-		HabitType:   m.goalType,
+		HabitType:   m.habitType,
 		FieldType:   m.createFieldType(),
 		ScoringType: models.ManualScoring, // Informational habits always use manual scoring
 		Direction:   m.direction,

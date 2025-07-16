@@ -14,7 +14,7 @@ func TestSimpleHabitCreator_NewCreator(t *testing.T) {
 
 	assert.Equal(t, "Test Habit", creator.title)
 	assert.Equal(t, "Test Description", creator.description)
-	assert.Equal(t, models.SimpleHabit, creator.goalType)
+	assert.Equal(t, models.SimpleHabit, creator.habitType)
 	assert.Equal(t, models.BooleanFieldType, creator.selectedFieldType) // Default
 	assert.Equal(t, 0, creator.currentStep)
 	assert.NotNil(t, creator.form)

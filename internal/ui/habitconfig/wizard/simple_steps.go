@@ -22,7 +22,7 @@ type BasicInfoStepHandler struct {
 	form         *huh.Form
 	formActive   bool
 	formComplete bool
-	goalType     models.HabitType
+	habitType    models.HabitType
 
 	// Form data storage
 	title       string
@@ -30,9 +30,9 @@ type BasicInfoStepHandler struct {
 }
 
 // NewBasicInfoStepHandler creates a new basic info step handler
-func NewBasicInfoStepHandler(goalType models.HabitType) *BasicInfoStepHandler {
+func NewBasicInfoStepHandler(habitType models.HabitType) *BasicInfoStepHandler {
 	return &BasicInfoStepHandler{
-		goalType: goalType,
+		habitType: habitType,
 	}
 }
 
@@ -192,7 +192,7 @@ func (h *BasicInfoStepHandler) extractFormData(state State) {
 	stepData := &BasicInfoStepData{
 		Title:       strings.TrimSpace(h.title),
 		Description: strings.TrimSpace(h.description),
-		HabitType:   h.goalType,
+		HabitType:   h.habitType,
 	}
 
 	// Store in state
@@ -204,7 +204,7 @@ type ScoringStepHandler struct {
 	form         *huh.Form
 	formActive   bool
 	formComplete bool
-	goalType     models.HabitType
+	habitType    models.HabitType
 
 	// Form data storage
 	scoringType models.ScoringType
@@ -212,9 +212,9 @@ type ScoringStepHandler struct {
 }
 
 // NewScoringStepHandler creates a new scoring step handler
-func NewScoringStepHandler(goalType models.HabitType) *ScoringStepHandler {
+func NewScoringStepHandler(habitType models.HabitType) *ScoringStepHandler {
 	return &ScoringStepHandler{
-		goalType: goalType,
+		habitType: habitType,
 	}
 }
 
@@ -235,7 +235,7 @@ func (h *ScoringStepHandler) Render(state State) string {
 			if data, ok := stepData.(*ScoringStepData); ok {
 				result := fmt.Sprintf("✅ Scoring Configuration Completed\n\nScoring Type: %s", data.ScoringType)
 
-				if h.goalType == models.InformationalHabit && data.Direction != "" {
+				if h.habitType == models.InformationalHabit && data.Direction != "" {
 					result += fmt.Sprintf("\nDirection: %s", data.Direction)
 				}
 
@@ -314,7 +314,7 @@ func (h *ScoringStepHandler) GetTitle() string {
 
 // GetDescription returns the step description
 func (h *ScoringStepHandler) GetDescription() string {
-	switch h.goalType {
+	switch h.habitType {
 	case models.SimpleHabit:
 		return "Choose how this habit will be scored"
 	case models.ElasticHabit:
@@ -329,7 +329,7 @@ func (h *ScoringStepHandler) GetDescription() string {
 // Private methods for ScoringStepHandler
 
 func (h *ScoringStepHandler) getStepIndex() int {
-	switch h.goalType {
+	switch h.habitType {
 	case models.SimpleHabit:
 		return 1 // basic_info(0) -> scoring(1)
 	case models.ElasticHabit:
@@ -352,7 +352,7 @@ func (h *ScoringStepHandler) initializeForm(state State) {
 
 	var fields []huh.Field
 
-	if h.goalType == models.InformationalHabit {
+	if h.habitType == models.InformationalHabit {
 		// Informational habits only need direction
 		fields = append(fields,
 			huh.NewSelect[string]().
@@ -393,7 +393,7 @@ func (h *ScoringStepHandler) extractFormData(state State) {
 	}
 
 	// For informational habits, always set to manual scoring
-	if h.goalType == models.InformationalHabit {
+	if h.habitType == models.InformationalHabit {
 		stepData.ScoringType = models.ManualScoring
 	}
 
@@ -431,14 +431,14 @@ type ConfirmationStepHandler struct {
 	form         *huh.Form
 	formActive   bool
 	formComplete bool
-	goalType     models.HabitType
+	habitType    models.HabitType
 	confirmed    bool
 }
 
 // NewConfirmationStepHandler creates a new confirmation step handler
-func NewConfirmationStepHandler(goalType models.HabitType) *ConfirmationStepHandler {
+func NewConfirmationStepHandler(habitType models.HabitType) *ConfirmationStepHandler {
 	return &ConfirmationStepHandler{
-		goalType: goalType,
+		habitType: habitType,
 	}
 }
 
@@ -531,7 +531,7 @@ func (h *ConfirmationStepHandler) IsConfirmed() bool {
 // Private methods for ConfirmationStepHandler
 
 func (h *ConfirmationStepHandler) getStepIndex() int {
-	switch h.goalType {
+	switch h.habitType {
 	case models.SimpleHabit:
 		return 3 // basic_info(0) -> scoring(1) -> criteria(2) -> confirmation(3)
 	case models.ElasticHabit:
@@ -588,7 +588,7 @@ func (h *ConfirmationStepHandler) generateHabitPreview(state State) string {
 
 	// Scoring configuration
 	var scoringStepIndex int
-	switch h.goalType {
+	switch h.habitType {
 	case models.SimpleHabit:
 		scoringStepIndex = 1
 	case models.ElasticHabit:
@@ -599,7 +599,7 @@ func (h *ConfirmationStepHandler) generateHabitPreview(state State) string {
 
 	if scoringData := state.GetStep(scoringStepIndex); scoringData != nil {
 		if data, ok := scoringData.(*ScoringStepData); ok {
-			if h.goalType == models.InformationalHabit {
+			if h.habitType == models.InformationalHabit {
 				preview.WriteString(fmt.Sprintf("Direction: %s\n", data.Direction))
 			} else {
 				preview.WriteString(fmt.Sprintf("Scoring: %s\n", data.ScoringType))
@@ -608,7 +608,7 @@ func (h *ConfirmationStepHandler) generateHabitPreview(state State) string {
 	}
 
 	// Criteria (if automatic scoring)
-	if h.goalType == models.SimpleHabit {
+	if h.habitType == models.SimpleHabit {
 		if criteriaData := state.GetStep(2); criteriaData != nil {
 			if data, ok := criteriaData.(*CriteriaStepData); ok {
 				if data.Description != "" {

@@ -47,19 +47,19 @@ func TestSimpleHabitCreation(t *testing.T) {
 		}
 
 		// Save the habit using configurator's internal logic
-		goalParser := parser.NewHabitParser()
-		schema, err := goalParser.LoadFromFile(habitsFile)
+		habitParser := parser.NewHabitParser()
+		schema, err := habitParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 
 		// Clear existing habits and add our test habit
 		schema.Habits = []models.Habit{*habit}
 
 		// Save updated schema
-		err = goalParser.SaveToFile(schema, habitsFile)
+		err = habitParser.SaveToFile(schema, habitsFile)
 		require.NoError(t, err)
 
 		// Verify habit was saved correctly
-		reloadedSchema, err := goalParser.LoadFromFile(habitsFile)
+		reloadedSchema, err := habitParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 		require.Len(t, reloadedSchema.Habits, 1)
 
@@ -92,17 +92,17 @@ func TestSimpleHabitCreation(t *testing.T) {
 		}
 
 		// Save the habit
-		goalParser := parser.NewHabitParser()
-		schema, err := goalParser.LoadFromFile(habitsFile)
+		habitParser := parser.NewHabitParser()
+		schema, err := habitParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 
 		// Clear existing habits and add our test habit
 		schema.Habits = []models.Habit{*habit}
-		err = goalParser.SaveToFile(schema, habitsFile)
+		err = habitParser.SaveToFile(schema, habitsFile)
 		require.NoError(t, err)
 
 		// Verify habit with criteria was saved correctly
-		reloadedSchema, err := goalParser.LoadFromFile(habitsFile)
+		reloadedSchema, err := habitParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 		require.Len(t, reloadedSchema.Habits, 1)
 
@@ -125,7 +125,7 @@ func TestInformationalHabitCreation(t *testing.T) {
 	err := initializer.EnsureConfigFiles(habitsFile, entriesFile)
 	require.NoError(t, err)
 
-	goalParser := parser.NewHabitParser()
+	habitParser := parser.NewHabitParser()
 
 	testCases := []struct {
 		name          string
@@ -214,16 +214,16 @@ func TestInformationalHabitCreation(t *testing.T) {
 			}
 
 			// Save the habit
-			schema, err := goalParser.LoadFromFile(habitsFile)
+			schema, err := habitParser.LoadFromFile(habitsFile)
 			require.NoError(t, err)
 
 			// Clear existing habits and add our test habit
 			schema.Habits = []models.Habit{*habit}
-			err = goalParser.SaveToFile(schema, habitsFile)
+			err = habitParser.SaveToFile(schema, habitsFile)
 			require.NoError(t, err)
 
 			// Verify habit was saved correctly
-			reloadedSchema, err := goalParser.LoadFromFile(habitsFile)
+			reloadedSchema, err := habitParser.LoadFromFile(habitsFile)
 			require.NoError(t, err)
 			require.Len(t, reloadedSchema.Habits, 1)
 
@@ -266,7 +266,7 @@ func TestHabitValidationWorkflow(t *testing.T) {
 	err := initializer.EnsureConfigFiles(habitsFile, entriesFile)
 	require.NoError(t, err)
 
-	goalParser := parser.NewHabitParser()
+	habitParser := parser.NewHabitParser()
 
 	t.Run("valid habit passes validation", func(t *testing.T) {
 		habit := &models.Habit{
@@ -285,7 +285,7 @@ func TestHabitValidationWorkflow(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Test validation through schema
-		schema, err := goalParser.LoadFromFile(habitsFile)
+		schema, err := habitParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 
 		// Clear existing habits and add our test habit
@@ -341,7 +341,7 @@ func TestYAMLGenerationWorkflow(t *testing.T) {
 	err := initializer.EnsureConfigFiles(habitsFile, entriesFile)
 	require.NoError(t, err)
 
-	goalParser := parser.NewHabitParser()
+	habitParser := parser.NewHabitParser()
 	_ = NewHabitConfigurator() // configurator for future use
 
 	t.Run("dry-run mode generates valid YAML", func(t *testing.T) {
@@ -358,19 +358,19 @@ func TestYAMLGenerationWorkflow(t *testing.T) {
 		}
 
 		// Add habit to schema
-		schema, err := goalParser.LoadFromFile(habitsFile)
+		schema, err := habitParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 
 		// Clear existing habits and add our test habit
 		schema.Habits = []models.Habit{*habit}
 
 		// Test YAML generation
-		yamlOutput, err := goalParser.ToYAML(schema)
+		yamlOutput, err := habitParser.ToYAML(schema)
 		require.NoError(t, err)
 		assert.NotEmpty(t, yamlOutput)
 
 		// Verify generated YAML is parseable
-		parsedSchema, err := goalParser.ParseYAML([]byte(yamlOutput))
+		parsedSchema, err := habitParser.ParseYAML([]byte(yamlOutput))
 		require.NoError(t, err)
 		require.Len(t, parsedSchema.Habits, 1)
 
@@ -391,11 +391,11 @@ func TestYAMLGenerationWorkflow(t *testing.T) {
 		initialModTime := initialStat.ModTime()
 
 		// Load schema
-		schema, err := goalParser.LoadFromFile(habitsFile)
+		schema, err := habitParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 
 		// Generate YAML (simulating dry-run)
-		_, err = goalParser.ToYAML(schema)
+		_, err = habitParser.ToYAML(schema)
 		require.NoError(t, err)
 
 		// Verify file wasn't modified

@@ -91,7 +91,7 @@ func TestHabitEntry_HumanReadableYAMLMarshaling(t *testing.T) {
 func TestHabitEntry_PermissiveYAMLUnmarshaling(t *testing.T) {
 	t.Run("unmarshal human-readable time formats", func(t *testing.T) {
 		yamlData := `
-goal_id: "wake_up"
+habit_id: "wake_up"
 value: "08:30"
 status: "completed"
 created_at: "2025-07-15 09:11:27"
@@ -124,7 +124,7 @@ updated_at: "2025-07-15 09:15:32"
 
 	t.Run("unmarshal legacy RFC3339 formats", func(t *testing.T) {
 		yamlData := `
-goal_id: "wake_up"
+habit_id: "wake_up"
 value: "0000-01-01T08:30:00Z"
 status: "completed"
 created_at: "2025-07-15T09:11:27.886682863+10:00"
@@ -162,7 +162,7 @@ created_at: "2025-07-15T09:11:27.886682863+10:00"
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				yamlData := `
-goal_id: "test"
+habit_id: "test"
 value: ` + tc.value + `
 status: "completed"
 created_at: "2025-07-15 09:00:00"
@@ -181,7 +181,7 @@ created_at: "2025-07-15 09:00:00"
 
 	t.Run("unmarshal non-time values unchanged", func(t *testing.T) {
 		yamlData := `
-goal_id: "steps"
+habit_id: "steps"
 value: 12000
 status: "completed"
 created_at: "2025-07-15 09:11:27"
@@ -196,7 +196,7 @@ created_at: "2025-07-15 09:11:27"
 
 	t.Run("unmarshal boolean values", func(t *testing.T) {
 		yamlData := `
-goal_id: "meditation"
+habit_id: "meditation"
 value: true
 status: "completed"
 created_at: "2025-07-15 09:11:27"
@@ -211,7 +211,7 @@ created_at: "2025-07-15 09:11:27"
 
 	t.Run("unmarshal string values", func(t *testing.T) {
 		yamlData := `
-goal_id: "routine"
+habit_id: "routine"
 value: "Completed morning routine"
 status: "completed"
 created_at: "2025-07-15 09:11:27"
@@ -288,7 +288,7 @@ func TestHabitEntry_BackwardCompatibility(t *testing.T) {
 	t.Run("parse legacy YAML with RFC3339 timestamps", func(t *testing.T) {
 		// This simulates old entries.yml format
 		legacyYAML := `
-goal_id: "morning_meditation"
+habit_id: "morning_meditation"
 value: true
 achievement_level: mini
 notes: "Great session today"
@@ -315,7 +315,7 @@ status: "completed"
 
 	t.Run("parse legacy time field with RFC3339", func(t *testing.T) {
 		legacyYAML := `
-goal_id: "wake_up"
+habit_id: "wake_up"
 value: "0000-01-01T08:30:00Z"
 status: "completed"
 created_at: "2024-01-01T10:00:00Z"
@@ -362,7 +362,7 @@ func TestEntryLog_HumanReadableFormat(t *testing.T) {
 		// Check structure matches specification
 		assert.Contains(t, yamlStr, `version: 1.0.0`)
 		assert.Contains(t, yamlStr, `date: "2025-07-15"`)
-		assert.Contains(t, yamlStr, `goal_id: wake_up`)
+		assert.Contains(t, yamlStr, `habit_id: wake_up`)
 		assert.Contains(t, yamlStr, `value: "08:30"`)
 		assert.Contains(t, yamlStr, `created_at: "2025-07-15 09:11:27"`)
 		assert.Contains(t, yamlStr, `status: completed`)

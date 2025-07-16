@@ -21,7 +21,7 @@ type Habit struct {
 	ID          string      `yaml:"id,omitempty"`
 	Position    int         `yaml:"position"`
 	Description string      `yaml:"description,omitempty"`
-	HabitType   HabitType   `yaml:"goal_type"`
+	HabitType   HabitType   `yaml:"habit_type"`
 	FieldType   FieldType   `yaml:"field_type"`
 	ScoringType ScoringType `yaml:"scoring_type,omitempty"`
 	Criteria    *Criteria   `yaml:"criteria,omitempty"`
@@ -173,12 +173,12 @@ func (g *Habit) validateInternal() error {
 
 	// Habit type is required
 	if g.HabitType == "" {
-		return fmt.Errorf("goal_type is required")
+		return fmt.Errorf("habit_type is required")
 	}
 
 	// Validate habit type
 	if !isValidHabitType(g.HabitType) {
-		return fmt.Errorf("invalid goal_type: %s", g.HabitType)
+		return fmt.Errorf("invalid habit_type: %s", g.HabitType)
 	}
 
 	// Validate field type
@@ -387,11 +387,11 @@ func (s *Schema) ValidateAndTrackChanges() (bool, error) {
 		// Auto-assign position based on array index (1-based)
 		s.Habits[i].Position = i + 1
 
-		goalModified, err := s.Habits[i].ValidateAndTrackChanges()
+		habitModified, err := s.Habits[i].ValidateAndTrackChanges()
 		if err != nil {
 			return false, fmt.Errorf("habit at index %d: %w", i, err)
 		}
-		if goalModified {
+		if habitModified {
 			wasModified = true
 		}
 
@@ -423,7 +423,7 @@ func generateIDFromTitle(title string) string {
 
 	// Ensure it's not empty
 	if id == "" {
-		id = "unnamed_goal"
+		id = "unnamed_habit"
 	}
 
 	return id

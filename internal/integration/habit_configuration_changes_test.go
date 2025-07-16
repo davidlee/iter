@@ -112,7 +112,7 @@ func TestHabitConfigurationChanges(t *testing.T) {
 
 				habit := models.Habit{
 					Title:       "Test Habit",
-					ID:          "test_goal",
+					ID:          "test_habit",
 					HabitType:   models.SimpleHabit,
 					FieldType:   models.FieldType{Type: tc.fieldType},
 					ScoringType: models.AutomaticScoring,
@@ -131,13 +131,13 @@ func TestHabitConfigurationChanges(t *testing.T) {
 		}
 	})
 
-	t.Run("different_goal_types_with_automatic_scoring", func(t *testing.T) {
+	t.Run("different_habit_types_with_automatic_scoring", func(t *testing.T) {
 		// Ensure that all habit types can use automatic scoring appropriately
 
 		factory := entry.NewEntryFieldInputFactory()
 		scoringEngine := scoring.NewEngine()
 
-		t.Run("simple_goal_automatic", func(t *testing.T) {
+		t.Run("simple_habit_automatic", func(t *testing.T) {
 			habit := models.Habit{
 				ID:          "simple_auto",
 				HabitType:   models.SimpleHabit,
@@ -156,7 +156,7 @@ func TestHabitConfigurationChanges(t *testing.T) {
 			assert.Equal(t, models.AchievementMini, *result.AchievementLevel)
 		})
 
-		t.Run("elastic_goal_automatic", func(t *testing.T) {
+		t.Run("elastic_habit_automatic", func(t *testing.T) {
 			habit := models.Habit{
 				ID:          "elastic_auto",
 				HabitType:   models.ElasticHabit,

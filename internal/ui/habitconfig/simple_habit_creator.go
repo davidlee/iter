@@ -28,7 +28,7 @@ type SimpleHabitCreator struct {
 	// Pre-populated basic info
 	title       string
 	description string
-	goalType    models.HabitType
+	habitType   models.HabitType
 
 	// Field configuration data - bound directly to form fields per huh documentation
 	selectedFieldType string
@@ -55,11 +55,11 @@ type SimpleHabitCreator struct {
 }
 
 // NewSimpleHabitCreator creates a new simple habit creator with pre-populated basic info
-func NewSimpleHabitCreator(title, description string, goalType models.HabitType) *SimpleHabitCreator {
+func NewSimpleHabitCreator(title, description string, habitType models.HabitType) *SimpleHabitCreator {
 	creator := &SimpleHabitCreator{
 		title:             title,
 		description:       description,
-		goalType:          goalType,
+		habitType:         habitType,
 		selectedFieldType: models.BooleanFieldType, // Default to boolean for quick path
 		numericSubtype:    models.UnsignedIntFieldType,
 		unit:              "times",
@@ -97,12 +97,12 @@ type TestHabitData struct {
 // NewSimpleHabitCreatorForEdit creates a habit creator pre-populated with existing habit data for editing.
 // AIDEV-NOTE: edit-mode-support; habit-to-data conversion enables editing existing habits
 func NewSimpleHabitCreatorForEdit(habit *models.Habit) *SimpleHabitCreator {
-	data := goalToTestData(habit)
+	data := habitToTestData(habit)
 
 	creator := &SimpleHabitCreator{
 		title:             habit.Title,
 		description:       habit.Description,
-		goalType:          habit.HabitType,
+		habitType:         habit.HabitType,
 		selectedFieldType: data.FieldType,
 		numericSubtype:    data.NumericSubtype,
 		unit:              data.Unit,
@@ -131,8 +131,8 @@ func NewSimpleHabitCreatorForEdit(habit *models.Habit) *SimpleHabitCreator {
 // AIDEV-NOTE: habit-to-data-conversion; Phase 3 critical pattern for edit mode support
 // Reverse engineers from models.Habit back to form data structures for seamless editing
 // This pattern enables position preservation and ID retention during habit editing
-// goalToTestData converts a models.Habit to TestHabitData for pre-population
-func goalToTestData(habit *models.Habit) TestHabitData {
+// habitToTestData converts a models.Habit to TestHabitData for pre-population
+func habitToTestData(habit *models.Habit) TestHabitData {
 	if habit == nil {
 		return TestHabitData{}
 	}
@@ -225,11 +225,11 @@ func convertCriteriaToData(criteria *models.Criteria) (criteriaType, value, valu
 }
 
 // NewSimpleHabitCreatorForTesting creates a habit creator with pre-populated test data, bypassing UI
-func NewSimpleHabitCreatorForTesting(title, description string, goalType models.HabitType, data TestHabitData) *SimpleHabitCreator {
+func NewSimpleHabitCreatorForTesting(title, description string, habitType models.HabitType, data TestHabitData) *SimpleHabitCreator {
 	creator := &SimpleHabitCreator{
 		title:             title,
 		description:       description,
-		goalType:          goalType,
+		habitType:         habitType,
 		selectedFieldType: data.FieldType,
 		numericSubtype:    data.NumericSubtype,
 		unit:              data.Unit,
@@ -845,7 +845,7 @@ func (m *SimpleHabitCreator) createHabitFromData() (*models.Habit, error) {
 	habit := &models.Habit{
 		Title:       strings.TrimSpace(m.title),
 		Description: strings.TrimSpace(m.description),
-		HabitType:   m.goalType,
+		HabitType:   m.habitType,
 		FieldType:   fieldType,
 		ScoringType: m.scoringType,
 		Prompt:      strings.TrimSpace(m.prompt),

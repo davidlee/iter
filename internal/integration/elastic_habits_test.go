@@ -33,8 +33,8 @@ func TestElasticHabitsEndToEnd(t *testing.T) {
 	require.NoError(t, err)
 
 	// Step 2: Load and verify habits
-	goalParser := parser.NewHabitParser()
-	schema, err := goalParser.LoadFromFile(habitsFile)
+	habitParser := parser.NewHabitParser()
+	schema, err := habitParser.LoadFromFile(habitsFile)
 	require.NoError(t, err)
 	assert.Len(t, schema.Habits, 4) // 2 simple + 2 elastic habits
 
@@ -113,10 +113,10 @@ func TestElasticHabitsEndToEnd(t *testing.T) {
 		}
 
 		// Simulate collecting entries with scoring
-		for goalID, value := range testEntries {
+		for habitID, value := range testEntries {
 			var habit models.Habit
 			for _, g := range schema.Habits {
-				if g.ID == goalID {
+				if g.ID == habitID {
 					habit = g
 					break
 				}
@@ -128,7 +128,7 @@ func TestElasticHabitsEndToEnd(t *testing.T) {
 				require.NoError(t, err)
 
 				// Store in collector
-				collector.SetEntryForTesting(goalID, value, &result.AchievementLevel, "Test notes")
+				collector.SetEntryForTesting(habitID, value, &result.AchievementLevel, "Test notes")
 			}
 		}
 
@@ -146,20 +146,20 @@ func TestElasticHabitsEndToEnd(t *testing.T) {
 		require.True(t, found, "today's entry should exist")
 
 		// Verify elastic habit entries
-		goalEntryMap := make(map[string]models.HabitEntry)
-		for _, goalEntry := range dayEntry.Habits {
-			goalEntryMap[goalEntry.HabitID] = goalEntry
+		habitEntryMap := make(map[string]models.HabitEntry)
+		for _, habitEntry := range dayEntry.Habits {
+			habitEntryMap[habitEntry.HabitID] = habitEntry
 		}
 
 		// Check exercise duration entry
-		exerciseEntry, found := goalEntryMap["exercise_duration"]
+		exerciseEntry, found := habitEntryMap["exercise_duration"]
 		require.True(t, found, "exercise duration entry should exist")
 		assert.Equal(t, "45m", exerciseEntry.Value)
 		require.NotNil(t, exerciseEntry.AchievementLevel)
 		assert.Equal(t, models.AchievementMidi, *exerciseEntry.AchievementLevel)
 
 		// Check water intake entry
-		waterEntry, found := goalEntryMap["water_intake"]
+		waterEntry, found := habitEntryMap["water_intake"]
 		require.True(t, found, "water intake entry should exist")
 		assert.Equal(t, 8.0, waterEntry.Value)
 		require.NotNil(t, waterEntry.AchievementLevel)
@@ -200,8 +200,8 @@ func TestBackwardsCompatibility(t *testing.T) {
 	require.NoError(t, err)
 
 	// Load schema
-	goalParser := parser.NewHabitParser()
-	schema, err := goalParser.LoadFromFile(habitsFile)
+	habitParser := parser.NewHabitParser()
+	schema, err := habitParser.LoadFromFile(habitsFile)
 	require.NoError(t, err)
 
 	// Verify we have both simple and elastic habits
@@ -247,27 +247,27 @@ func TestBackwardsCompatibility(t *testing.T) {
 	assert.Len(t, dayEntry.Habits, 4, "all 4 habits should be saved")
 
 	// Verify each habit type
-	goalEntryMap := make(map[string]models.HabitEntry)
-	for _, goalEntry := range dayEntry.Habits {
-		goalEntryMap[goalEntry.HabitID] = goalEntry
+	habitEntryMap := make(map[string]models.HabitEntry)
+	for _, habitEntry := range dayEntry.Habits {
+		habitEntryMap[habitEntry.HabitID] = habitEntry
 	}
 
 	// Simple boolean habits
-	morningExercise := goalEntryMap["morning_exercise"]
+	morningExercise := habitEntryMap["morning_exercise"]
 	assert.Equal(t, true, morningExercise.Value)
 	assert.Nil(t, morningExercise.AchievementLevel) // Simple habits don't have achievement levels
 
-	dailyReading := goalEntryMap["daily_reading"]
+	dailyReading := habitEntryMap["daily_reading"]
 	assert.Equal(t, false, dailyReading.Value)
 	assert.Nil(t, dailyReading.AchievementLevel)
 
 	// Elastic habits
-	exerciseDuration := goalEntryMap["exercise_duration"]
+	exerciseDuration := habitEntryMap["exercise_duration"]
 	assert.Equal(t, "30m", exerciseDuration.Value)
 	require.NotNil(t, exerciseDuration.AchievementLevel)
 	assert.Equal(t, models.AchievementMidi, *exerciseDuration.AchievementLevel)
 
-	waterIntake := goalEntryMap["water_intake"]
+	waterIntake := habitEntryMap["water_intake"]
 	assert.Equal(t, 8.0, waterIntake.Value)
 	require.NotNil(t, waterIntake.AchievementLevel)
 	assert.Equal(t, models.AchievementMaxi, *waterIntake.AchievementLevel)

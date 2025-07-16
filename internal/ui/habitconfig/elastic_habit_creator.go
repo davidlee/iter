@@ -25,7 +25,7 @@ type ElasticHabitCreator struct {
 	// Pre-populated basic info
 	title       string
 	description string
-	goalType    models.HabitType
+	habitType   models.HabitType
 
 	// Field configuration data - reuses SimpleHabitCreator patterns
 	selectedFieldType string
@@ -64,11 +64,11 @@ type ElasticHabitCreator struct {
 }
 
 // NewElasticHabitCreator creates a new elastic habit creator with pre-populated basic info
-func NewElasticHabitCreator(title, description string, goalType models.HabitType) *ElasticHabitCreator {
+func NewElasticHabitCreator(title, description string, habitType models.HabitType) *ElasticHabitCreator {
 	creator := &ElasticHabitCreator{
 		title:             title,
 		description:       description,
-		goalType:          goalType,
+		habitType:         habitType,
 		selectedFieldType: models.BooleanFieldType, // Default, but elastic rarely uses boolean
 		numericSubtype:    models.UnsignedIntFieldType,
 		unit:              "times",
@@ -121,12 +121,12 @@ type TestElasticHabitData struct {
 
 // NewElasticHabitCreatorForEdit creates an elastic habit creator pre-populated with existing habit data for editing
 func NewElasticHabitCreatorForEdit(habit *models.Habit) *ElasticHabitCreator {
-	data := goalToTestElasticData(habit)
+	data := habitToTestElasticData(habit)
 	return NewElasticHabitCreatorForTesting(habit.Title, habit.Description, habit.HabitType, data)
 }
 
-// goalToTestElasticData converts a models.Habit to TestElasticHabitData for pre-population
-func goalToTestElasticData(habit *models.Habit) TestElasticHabitData {
+// habitToTestElasticData converts a models.Habit to TestElasticHabitData for pre-population
+func habitToTestElasticData(habit *models.Habit) TestElasticHabitData {
 	data := TestElasticHabitData{
 		FieldType:   habit.FieldType.Type,
 		ScoringType: habit.ScoringType,
@@ -200,11 +200,11 @@ func convertCriteriaToElasticData(criteria *models.Criteria) (criteriaType, valu
 }
 
 // NewElasticHabitCreatorForTesting creates an elastic habit creator with pre-populated test data, bypassing UI
-func NewElasticHabitCreatorForTesting(title, description string, goalType models.HabitType, data TestElasticHabitData) *ElasticHabitCreator {
+func NewElasticHabitCreatorForTesting(title, description string, habitType models.HabitType, data TestElasticHabitData) *ElasticHabitCreator {
 	creator := &ElasticHabitCreator{
 		title:             title,
 		description:       description,
-		goalType:          goalType,
+		habitType:         habitType,
 		selectedFieldType: data.FieldType,
 		numericSubtype:    data.NumericSubtype,
 		unit:              data.Unit,
@@ -834,7 +834,7 @@ func (m *ElasticHabitCreator) createHabitFromData() (*models.Habit, error) {
 	habit := &models.Habit{
 		Title:       strings.TrimSpace(m.title),
 		Description: strings.TrimSpace(m.description),
-		HabitType:   m.goalType,
+		HabitType:   m.habitType,
 		FieldType:   fieldType,
 		ScoringType: m.scoringType,
 		Prompt:      strings.TrimSpace(m.prompt),

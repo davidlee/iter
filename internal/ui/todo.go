@@ -199,8 +199,8 @@ func (td *TodoDashboard) displaySimpleTable(statuses []HabitStatus) error {
 // loadTodayStatuses loads all habits and today's entries to determine status
 func (td *TodoDashboard) loadTodayStatuses() ([]HabitStatus, error) {
 	// Load habits
-	goalParser := parser.NewHabitParser()
-	schema, err := goalParser.LoadFromFile(td.paths.HabitsFile)
+	habitParser := parser.NewHabitParser()
+	schema, err := habitParser.LoadFromFile(td.paths.HabitsFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load habits: %w", err)
 	}
@@ -234,11 +234,11 @@ func (td *TodoDashboard) loadTodayStatuses() ([]HabitStatus, error) {
 
 		// Check if we have an entry for this habit today
 		if todayEntry != nil {
-			for _, goalEntry := range todayEntry.Habits {
-				if goalEntry.HabitID == habit.ID {
-					status.Status = goalEntry.Status
-					status.Value = goalEntry.Value
-					status.Notes = goalEntry.Notes
+			for _, habitEntry := range todayEntry.Habits {
+				if habitEntry.HabitID == habit.ID {
+					status.Status = habitEntry.Status
+					status.Value = habitEntry.Value
+					status.Notes = habitEntry.Notes
 					break
 				}
 			}

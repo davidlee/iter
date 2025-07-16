@@ -21,14 +21,14 @@ created_date: "2024-01-01"
 habits:
   - title: "Morning Meditation"
     position: 1
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
     prompt: "Did you meditate this morning?"
   - title: "Daily Exercise"
     position: 2
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "automatic"
@@ -47,24 +47,24 @@ habits:
 		assert.Len(t, schema.Habits, 2)
 
 		// Check first habit
-		goal1 := schema.Habits[0]
-		assert.Equal(t, "Morning Meditation", goal1.Title)
-		assert.Equal(t, "morning_meditation", goal1.ID) // Auto-generated
-		assert.Equal(t, 1, goal1.Position)
-		assert.Equal(t, models.SimpleHabit, goal1.HabitType)
-		assert.Equal(t, models.BooleanFieldType, goal1.FieldType.Type)
-		assert.Equal(t, models.ManualScoring, goal1.ScoringType)
-		assert.Equal(t, "Did you meditate this morning?", goal1.Prompt)
+		habit1 := schema.Habits[0]
+		assert.Equal(t, "Morning Meditation", habit1.Title)
+		assert.Equal(t, "morning_meditation", habit1.ID) // Auto-generated
+		assert.Equal(t, 1, habit1.Position)
+		assert.Equal(t, models.SimpleHabit, habit1.HabitType)
+		assert.Equal(t, models.BooleanFieldType, habit1.FieldType.Type)
+		assert.Equal(t, models.ManualScoring, habit1.ScoringType)
+		assert.Equal(t, "Did you meditate this morning?", habit1.Prompt)
 
 		// Check second habit
-		goal2 := schema.Habits[1]
-		assert.Equal(t, "Daily Exercise", goal2.Title)
-		assert.Equal(t, "daily_exercise", goal2.ID)
-		assert.Equal(t, models.AutomaticScoring, goal2.ScoringType)
-		require.NotNil(t, goal2.Criteria)
-		assert.Equal(t, "Exercise completed", goal2.Criteria.Description)
-		require.NotNil(t, goal2.Criteria.Condition.Equals)
-		assert.True(t, *goal2.Criteria.Condition.Equals)
+		habit2 := schema.Habits[1]
+		assert.Equal(t, "Daily Exercise", habit2.Title)
+		assert.Equal(t, "daily_exercise", habit2.ID)
+		assert.Equal(t, models.AutomaticScoring, habit2.ScoringType)
+		require.NotNil(t, habit2.Criteria)
+		assert.Equal(t, "Exercise completed", habit2.Criteria.Description)
+		require.NotNil(t, habit2.Criteria.Condition.Equals)
+		assert.True(t, *habit2.Criteria.Condition.Equals)
 	})
 
 	t.Run("schema with custom IDs", func(t *testing.T) {
@@ -74,7 +74,7 @@ habits:
   - title: "Morning Meditation"
     id: "custom_meditation"
     position: 1
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -117,7 +117,7 @@ version: "1.0.0"
 habits:
   - title: "Test Habit"
     position: 1
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     # Missing scoring_type for simple habit
@@ -135,13 +135,13 @@ version: "1.0.0"
 habits:
   - title: "Habit 1"
     position: 1
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
   - title: "Habit 2"
     position: 1  # Duplicate position - should be auto-corrected
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -163,7 +163,7 @@ created_date: "2024-01-01"
 habits:
   - title: "Exercise Duration"
     position: 1
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "duration"
     scoring_type: "automatic"
@@ -219,7 +219,7 @@ version: "1.0.0"
 habits:
   - title: "Daily Steps"
     position: 1
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "unsigned_int"
       unit: "steps"
@@ -263,7 +263,7 @@ version: "1.0.0"
 habits:
   - title: "Reading Quality"
     position: 1
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "text"
     scoring_type: "manual"
@@ -293,7 +293,7 @@ version: "1.0.0"
 habits:
   - title: "Exercise Duration"
     position: 1
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "duration"
     scoring_type: "automatic"
@@ -318,7 +318,7 @@ version: "1.0.0"
 habits:
   - title: "Exercise Duration"
     position: 1
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "duration"
     scoring_type: "automatic"
@@ -344,7 +344,7 @@ version: "1.0.0"
 habits:
   - title: "Exercise Duration"
     position: 1
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "duration"
     scoring_type: "automatic"
@@ -371,7 +371,7 @@ version: "1.0.0"
 habits:
   - title: "Daily Steps"
     position: 1
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "unsigned_int"
       unit: "steps"
@@ -399,7 +399,7 @@ version: "1.0.0"
 habits:
   - title: "Reading Quality"
     position: 1
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "text"
     scoring_type: "automatic"
@@ -435,7 +435,7 @@ created_date: "2024-01-01"
 habits:
   - title: "Test Habit"
     position: 1
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -582,7 +582,7 @@ version: "1.0.0"
 habits:
   - title: "Test Habit"
     position: 1
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -604,7 +604,7 @@ version: "1.0.0"
 habits:
   - title: "Test Habit"
     position: 1
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     # Missing scoring_type - should fail validation
@@ -623,18 +623,18 @@ func TestGetHabitByID(t *testing.T) {
 	schema := &models.Schema{
 		Habits: []models.Habit{
 			{
-				ID:    "goal1",
+				ID:    "habit1",
 				Title: "Habit 1",
 			},
 			{
-				ID:    "goal2",
+				ID:    "habit2",
 				Title: "Habit 2",
 			},
 		},
 	}
 
 	t.Run("existing habit", func(t *testing.T) {
-		habit, found := GetHabitByID(schema, "goal1")
+		habit, found := GetHabitByID(schema, "habit1")
 		assert.True(t, found)
 		require.NotNil(t, habit)
 		assert.Equal(t, "Habit 1", habit.Title)
@@ -647,7 +647,7 @@ func TestGetHabitByID(t *testing.T) {
 	})
 
 	t.Run("nil schema", func(t *testing.T) {
-		habit, found := GetHabitByID(nil, "goal1")
+		habit, found := GetHabitByID(nil, "habit1")
 		assert.False(t, found)
 		assert.Nil(t, habit)
 	})

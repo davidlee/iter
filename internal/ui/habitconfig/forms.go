@@ -102,13 +102,13 @@ func (fb *HabitFormBuilder) CreateBasicInfoForm() (*huh.Form, *HabitBasicInfo) {
 }
 
 // CreateFieldTypeForm creates a form for selecting field type based on habit type
-func (fb *HabitFormBuilder) CreateFieldTypeForm(goalType models.HabitType) (*huh.Form, *FieldTypeInfo) {
+func (fb *HabitFormBuilder) CreateFieldTypeForm(habitType models.HabitType) (*huh.Form, *FieldTypeInfo) {
 	info := &FieldTypeInfo{}
 
 	var fieldTypeOptions []huh.Option[string]
 	var defaultSelection string
 
-	switch goalType {
+	switch habitType {
 	case models.SimpleHabit:
 		// Simple habits are always boolean
 		fieldTypeOptions = []huh.Option[string]{
@@ -210,12 +210,12 @@ func (fb *HabitFormBuilder) CreateFieldDetailsForm(fieldType string) (*huh.Form,
 }
 
 // CreateScoringForm creates a form for configuring scoring behavior
-func (fb *HabitFormBuilder) CreateScoringForm(goalType models.HabitType) (*huh.Form, *ScoringInfo) {
+func (fb *HabitFormBuilder) CreateScoringForm(habitType models.HabitType) (*huh.Form, *ScoringInfo) {
 	info := &ScoringInfo{}
 
 	var fields []huh.Field
 
-	if goalType == models.InformationalHabit {
+	if habitType == models.InformationalHabit {
 		// Informational habits only need direction
 		fields = append(fields,
 			huh.NewSelect[string]().

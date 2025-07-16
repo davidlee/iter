@@ -16,7 +16,7 @@ import (
 func TestNewFileInitializer(t *testing.T) {
 	initializer := NewFileInitializer()
 	require.NotNil(t, initializer)
-	assert.NotNil(t, initializer.goalParser)
+	assert.NotNil(t, initializer.habitParser)
 	assert.NotNil(t, initializer.entryStorage)
 }
 
@@ -32,8 +32,8 @@ func TestFileInitializer_EnsureConfigFiles(t *testing.T) {
 
 		// Verify habits file was created and is valid
 		assert.FileExists(t, habitsFile)
-		goalParser := parser.NewHabitParser()
-		schema, err := goalParser.LoadFromFile(habitsFile)
+		habitParser := parser.NewHabitParser()
+		schema, err := habitParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 		assert.Equal(t, "1.0.0", schema.Version)
 		assert.Len(t, schema.Habits, 4)
@@ -124,58 +124,58 @@ func TestFileInitializer_createSampleHabitsFile(t *testing.T) {
 	require.NoError(t, err)
 
 	// Load and validate the created file
-	goalParser := parser.NewHabitParser()
-	schema, err := goalParser.LoadFromFile(habitsFile)
+	habitParser := parser.NewHabitParser()
+	schema, err := habitParser.LoadFromFile(habitsFile)
 	require.NoError(t, err)
 
 	assert.Equal(t, "1.0.0", schema.Version)
 	assert.Len(t, schema.Habits, 4)
 
 	// Check first habit (simple boolean)
-	goal1 := schema.Habits[0]
-	assert.Equal(t, "Morning Exercise", goal1.Title)
-	assert.Equal(t, "morning_exercise", goal1.ID)
-	assert.Equal(t, 1, goal1.Position)
-	assert.Equal(t, models.SimpleHabit, goal1.HabitType)
-	assert.Equal(t, models.BooleanFieldType, goal1.FieldType.Type)
-	assert.Equal(t, models.ManualScoring, goal1.ScoringType)
-	assert.NotEmpty(t, goal1.Description)
-	assert.NotEmpty(t, goal1.Prompt)
-	assert.NotEmpty(t, goal1.HelpText)
+	habit1 := schema.Habits[0]
+	assert.Equal(t, "Morning Exercise", habit1.Title)
+	assert.Equal(t, "morning_exercise", habit1.ID)
+	assert.Equal(t, 1, habit1.Position)
+	assert.Equal(t, models.SimpleHabit, habit1.HabitType)
+	assert.Equal(t, models.BooleanFieldType, habit1.FieldType.Type)
+	assert.Equal(t, models.ManualScoring, habit1.ScoringType)
+	assert.NotEmpty(t, habit1.Description)
+	assert.NotEmpty(t, habit1.Prompt)
+	assert.NotEmpty(t, habit1.HelpText)
 
 	// Check second habit (simple boolean)
-	goal2 := schema.Habits[1]
-	assert.Equal(t, "Daily Reading", goal2.Title)
-	assert.Equal(t, "daily_reading", goal2.ID)
-	assert.Equal(t, 2, goal2.Position)
-	assert.Equal(t, models.SimpleHabit, goal2.HabitType)
-	assert.Equal(t, models.BooleanFieldType, goal2.FieldType.Type)
-	assert.Equal(t, models.ManualScoring, goal2.ScoringType)
+	habit2 := schema.Habits[1]
+	assert.Equal(t, "Daily Reading", habit2.Title)
+	assert.Equal(t, "daily_reading", habit2.ID)
+	assert.Equal(t, 2, habit2.Position)
+	assert.Equal(t, models.SimpleHabit, habit2.HabitType)
+	assert.Equal(t, models.BooleanFieldType, habit2.FieldType.Type)
+	assert.Equal(t, models.ManualScoring, habit2.ScoringType)
 
 	// Check third habit (elastic duration)
-	goal3 := schema.Habits[2]
-	assert.Equal(t, "Exercise Duration", goal3.Title)
-	assert.Equal(t, "exercise_duration", goal3.ID)
-	assert.Equal(t, 3, goal3.Position)
-	assert.Equal(t, models.ElasticHabit, goal3.HabitType)
-	assert.Equal(t, models.DurationFieldType, goal3.FieldType.Type)
-	assert.Equal(t, models.AutomaticScoring, goal3.ScoringType)
-	assert.NotNil(t, goal3.MiniCriteria)
-	assert.NotNil(t, goal3.MidiCriteria)
-	assert.NotNil(t, goal3.MaxiCriteria)
+	habit3 := schema.Habits[2]
+	assert.Equal(t, "Exercise Duration", habit3.Title)
+	assert.Equal(t, "exercise_duration", habit3.ID)
+	assert.Equal(t, 3, habit3.Position)
+	assert.Equal(t, models.ElasticHabit, habit3.HabitType)
+	assert.Equal(t, models.DurationFieldType, habit3.FieldType.Type)
+	assert.Equal(t, models.AutomaticScoring, habit3.ScoringType)
+	assert.NotNil(t, habit3.MiniCriteria)
+	assert.NotNil(t, habit3.MidiCriteria)
+	assert.NotNil(t, habit3.MaxiCriteria)
 
 	// Check fourth habit (elastic numeric with units)
-	goal4 := schema.Habits[3]
-	assert.Equal(t, "Water Intake", goal4.Title)
-	assert.Equal(t, "water_intake", goal4.ID)
-	assert.Equal(t, 4, goal4.Position)
-	assert.Equal(t, models.ElasticHabit, goal4.HabitType)
-	assert.Equal(t, models.UnsignedIntFieldType, goal4.FieldType.Type)
-	assert.Equal(t, "glasses", goal4.FieldType.Unit)
-	assert.Equal(t, models.AutomaticScoring, goal4.ScoringType)
-	assert.NotNil(t, goal4.MiniCriteria)
-	assert.NotNil(t, goal4.MidiCriteria)
-	assert.NotNil(t, goal4.MaxiCriteria)
+	habit4 := schema.Habits[3]
+	assert.Equal(t, "Water Intake", habit4.Title)
+	assert.Equal(t, "water_intake", habit4.ID)
+	assert.Equal(t, 4, habit4.Position)
+	assert.Equal(t, models.ElasticHabit, habit4.HabitType)
+	assert.Equal(t, models.UnsignedIntFieldType, habit4.FieldType.Type)
+	assert.Equal(t, "glasses", habit4.FieldType.Unit)
+	assert.Equal(t, models.AutomaticScoring, habit4.ScoringType)
+	assert.NotNil(t, habit4.MiniCriteria)
+	assert.NotNil(t, habit4.MidiCriteria)
+	assert.NotNil(t, habit4.MaxiCriteria)
 }
 
 func TestFileInitializer_createEmptyEntriesFile(t *testing.T) {

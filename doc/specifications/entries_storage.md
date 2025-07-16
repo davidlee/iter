@@ -19,7 +19,7 @@ version: "1.0.0"
 entries:
   - date: "2025-07-15"          # ISO date format (YYYY-MM-DD)
     habits:
-      - goal_id: "wake_up"
+      - habit_id: "wake_up"
         value: "08:30"          # Human-readable time format (HH:MM)
         achievement_level: mini # Optional: none|mini|midi|maxi
         notes: "slept well"     # Optional user notes
@@ -81,8 +81,8 @@ All write operations follow the same pattern:
 | **Read** | `LoadFromFile()` | Load entire file, return empty if missing | Load only |
 | **Update Day** | `UpdateDayEntry()` | Most common - update single day's entries | ✅ |
 | **Add Day** | `AddDayEntry()` | Create new day entry | ✅ |
-| **Update Habit** | `UpdateGoalEntry()` | Update single habit within day | ✅ |
-| **Add Habit** | `AddGoalEntry()` | Add habit to existing/new day | ✅ |
+| **Update Habit** | `UpdateHabitEntry()` | Update single habit within day | ✅ |
+| **Add Habit** | `AddHabitEntry()` | Add habit to existing/new day | ✅ |
 | **Backup** | `BackupFile()` | Copy to .backup suffix | Read only |
 
 ### Data Validation
@@ -126,13 +126,13 @@ All write operations follow the same pattern:
 Time fields use custom marshaling for human readability:
 
 ```go
-// GoalEntry implements MarshalYAML/UnmarshalYAML
-func (ge *GoalEntry) MarshalYAML() (interface{}, error) {
+// HabitEntry implements MarshalYAML/UnmarshalYAML
+func (ge *HabitEntry) MarshalYAML() (interface{}, error) {
     // Formats timestamps as "2025-07-15 09:11:27"  
     // Formats time values as "08:30"
 }
 
-func (ge *GoalEntry) UnmarshalYAML(node *yaml.Node) error {
+func (ge *HabitEntry) UnmarshalYAML(node *yaml.Node) error {
     // Permissive parsing of multiple time formats
     // Backward compatible with RFC3339
 }

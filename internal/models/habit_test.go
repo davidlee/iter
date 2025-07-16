@@ -90,7 +90,7 @@ func TestHabit_Validate(t *testing.T) {
 		}
 
 		err := habit.Validate()
-		assert.EqualError(t, err, "goal_type is required")
+		assert.EqualError(t, err, "habit_type is required")
 	})
 
 	t.Run("invalid habit type", func(t *testing.T) {
@@ -105,7 +105,7 @@ func TestHabit_Validate(t *testing.T) {
 		}
 
 		err := habit.Validate()
-		assert.EqualError(t, err, "invalid goal_type: invalid_type")
+		assert.EqualError(t, err, "invalid habit_type: invalid_type")
 	})
 
 	t.Run("scoring type required for simple habits", func(t *testing.T) {
@@ -338,7 +338,7 @@ func TestGenerateIDFromTitle(t *testing.T) {
 		{"Sleep Quality (1-10)", "sleep_quality_1_10"},
 		{"   Spaced   Out   ", "spaced_out"},
 		{"Special@Characters#Here", "special_characters_here"},
-		{"", "unnamed_goal"},
+		{"", "unnamed_habit"},
 		{"123 Numbers", "123_numbers"},
 		{"___underscores___", "underscores"},
 	}
@@ -504,8 +504,8 @@ func TestHabit_ElasticValidation(t *testing.T) {
 func TestHabit_HelperMethods(t *testing.T) {
 	t.Run("IsElastic", func(t *testing.T) {
 		tests := []struct {
-			goalType HabitType
-			expected bool
+			habitType HabitType
+			expected  bool
 		}{
 			{ElasticHabit, true},
 			{SimpleHabit, false},
@@ -513,15 +513,15 @@ func TestHabit_HelperMethods(t *testing.T) {
 		}
 
 		for _, tt := range tests {
-			habit := Habit{HabitType: tt.goalType}
+			habit := Habit{HabitType: tt.habitType}
 			assert.Equal(t, tt.expected, habit.IsElastic())
 		}
 	})
 
 	t.Run("IsSimple", func(t *testing.T) {
 		tests := []struct {
-			goalType HabitType
-			expected bool
+			habitType HabitType
+			expected  bool
 		}{
 			{SimpleHabit, true},
 			{ElasticHabit, false},
@@ -529,15 +529,15 @@ func TestHabit_HelperMethods(t *testing.T) {
 		}
 
 		for _, tt := range tests {
-			habit := Habit{HabitType: tt.goalType}
+			habit := Habit{HabitType: tt.habitType}
 			assert.Equal(t, tt.expected, habit.IsSimple())
 		}
 	})
 
 	t.Run("IsInformational", func(t *testing.T) {
 		tests := []struct {
-			goalType HabitType
-			expected bool
+			habitType HabitType
+			expected  bool
 		}{
 			{InformationalHabit, true},
 			{SimpleHabit, false},
@@ -545,7 +545,7 @@ func TestHabit_HelperMethods(t *testing.T) {
 		}
 
 		for _, tt := range tests {
-			habit := Habit{HabitType: tt.goalType}
+			habit := Habit{HabitType: tt.habitType}
 			assert.Equal(t, tt.expected, habit.IsInformational())
 		}
 	})

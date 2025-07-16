@@ -13,7 +13,7 @@ entry_collector: {
     
     [Container: Go Module]
     
-    Main orchestrator that coordinates goal loading, entry collection, and persistence
+    Main orchestrator that coordinates habit loading, entry collection, and persistence
   |
   style.fill: "#1168bd"
   style.font-color: white
@@ -31,13 +31,13 @@ field_input_factory: {
   style.font-color: white
 }
 
-goal_entry_handlers: {
+habit_entry_handlers: {
   label: |md
-    **Goal Entry Handlers**
+    **Habit Entry Handlers**
     
     [Container: Go Module]
     
-    Handles goal-type-specific collection for Simple, Elastic, Informational, Checklist goals
+    Handles habit-type-specific collection for Simple, Elastic, Informational, Checklist habits
   |
   style.fill: "#1168bd"
   style.font-color: white
@@ -55,13 +55,13 @@ scoring_integration: {
   style.font-color: white
 }
 
-goal_schema: {
+habit_schema: {
   label: |md
-    **Goal Schema**
+    **Habit Schema**
     
     [External Data Store: YAML]
     
-    Goal definitions with field types and criteria from T009
+    Habit definitions with field types and criteria from T009
   |
   shape: cylinder
   style.fill: "#999999"
@@ -87,7 +87,7 @@ scoring_engine: {
     
     [External System]
     
-    Achievement evaluation against goal criteria
+    Achievement evaluation against habit criteria
   |
   style.fill: "#999999"
   style.font-color: white
@@ -111,13 +111,13 @@ entry_collector -> field_input_factory: |md
   [Function calls]
 |
 
-entry_collector -> goal_entry_handlers: |md
-  Delegates goal-specific collection
+entry_collector -> habit_entry_handlers: |md
+  Delegates habit-specific collection
   
   [Function calls]
 |
 
-goal_entry_handlers -> scoring_integration: |md
+habit_entry_handlers -> scoring_integration: |md
   Requests immediate scoring
   
   [Function calls]
@@ -129,8 +129,8 @@ scoring_integration -> scoring_engine: |md
   [Function calls]
 |
 
-entry_collector -> goal_schema: |md
-  Loads goal definitions
+entry_collector -> habit_schema: |md
+  Loads habit definitions
   
   [File I/O]
 |
@@ -147,7 +147,7 @@ field_input_factory -> bubbletea_huh: |md
   [Library calls]
 |
 
-goal_entry_handlers -> bubbletea_huh: |md
+habit_entry_handlers -> bubbletea_huh: |md
   Displays achievement feedback
   
   [Library calls]

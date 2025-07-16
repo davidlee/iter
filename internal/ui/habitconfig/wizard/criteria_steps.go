@@ -23,7 +23,7 @@ type CriteriaStepHandler struct {
 	form         *huh.Form
 	formActive   bool
 	formComplete bool
-	goalType     models.HabitType
+	habitType    models.HabitType
 	level        string // "simple", "mini", "midi", "maxi"
 
 	// Form data storage
@@ -34,10 +34,10 @@ type CriteriaStepHandler struct {
 }
 
 // NewCriteriaStepHandler creates a new criteria step handler
-func NewCriteriaStepHandler(goalType models.HabitType, level string) *CriteriaStepHandler {
+func NewCriteriaStepHandler(habitType models.HabitType, level string) *CriteriaStepHandler {
 	return &CriteriaStepHandler{
-		goalType: goalType,
-		level:    level,
+		habitType: habitType,
+		level:     level,
 	}
 }
 
@@ -68,7 +68,7 @@ func (h *CriteriaStepHandler) Render(state State) string {
 				}
 
 				// Show criteria details
-				if h.goalType == models.SimpleHabit {
+				if h.habitType == models.SimpleHabit {
 					result += fmt.Sprintf("Habit achieved when: %t\n", data.BooleanValue)
 				} else {
 					result += fmt.Sprintf("Comparison: %s\nValue: %s\n", data.ComparisonType, data.Value)
@@ -138,7 +138,7 @@ func (h *CriteriaStepHandler) Validate(state State) []ValidationError {
 
 	if data, ok := stepData.(*CriteriaStepData); ok {
 		// Validate criteria data
-		if h.goalType != models.SimpleHabit {
+		if h.habitType != models.SimpleHabit {
 			if strings.TrimSpace(data.Value) == "" {
 				errors = append(errors, ValidationError{
 					Step:    h.getStepIndex(),
@@ -223,7 +223,7 @@ func (h *CriteriaStepHandler) renderSkipped() string {
 }
 
 func (h *CriteriaStepHandler) getStepIndex() int {
-	switch h.goalType {
+	switch h.habitType {
 	case models.SimpleHabit:
 		return 2 // basic_info(0) -> scoring(1) -> criteria(2)
 	case models.ElasticHabit:
@@ -240,7 +240,7 @@ func (h *CriteriaStepHandler) getStepIndex() int {
 }
 
 func (h *CriteriaStepHandler) getScoringStepIndex() int {
-	switch h.goalType {
+	switch h.habitType {
 	case models.SimpleHabit:
 		return 1
 	case models.ElasticHabit:
@@ -292,7 +292,7 @@ func (h *CriteriaStepHandler) initializeForm(state State) {
 			Value(&h.description),
 	)
 
-	if h.goalType == models.SimpleHabit {
+	if h.habitType == models.SimpleHabit {
 		// Simple boolean criteria
 		fields = append(fields,
 			huh.NewConfirm().

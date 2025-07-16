@@ -159,7 +159,7 @@ func TestSimpleHabitAutomaticScoringWithRealEngine(t *testing.T) {
 	// Test with a simple habit that has criteria for automatic scoring
 	habit := models.Habit{
 		Title:       "Test Automatic Habit",
-		ID:          "test_goal",
+		ID:          "test_habit",
 		HabitType:   models.SimpleHabit, // Simple habit with automatic scoring
 		ScoringType: models.AutomaticScoring,
 		FieldType:   models.FieldType{Type: models.UnsignedIntFieldType},
@@ -329,7 +329,7 @@ func TestSimpleHabitCollectEntryDirectly(t *testing.T) {
 			name: "Automatic scoring with simple criteria",
 			habit: models.Habit{
 				Title:       "Steps Habit",
-				ID:          "steps_goal",
+				ID:          "steps_habit",
 				HabitType:   models.SimpleHabit, // Simple habit with automatic scoring
 				ScoringType: models.AutomaticScoring,
 				FieldType:   models.FieldType{Type: models.UnsignedIntFieldType, Unit: "steps"},

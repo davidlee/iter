@@ -25,18 +25,18 @@ func NewLegacyHabitAdapter() *LegacyHabitAdapter {
 }
 
 // CreateHabitWithLegacyForms creates a habit using simplified forms (delegates to wizard for now)
-func (a *LegacyHabitAdapter) CreateHabitWithLegacyForms(goalType models.HabitType, existingHabits []models.Habit) (*models.Habit, error) {
+func (a *LegacyHabitAdapter) CreateHabitWithLegacyForms(habitType models.HabitType, existingHabits []models.Habit) (*models.Habit, error) {
 	// AIDEV-TODO: Implement true legacy form support without import cycles
 	// For now, delegate to wizard as it provides better UX
-	return a.CreateHabitWithHybridForms(goalType, existingHabits)
+	return a.CreateHabitWithHybridForms(habitType, existingHabits)
 }
 
 // CreateHabitWithHybridForms creates a habit using huh forms embedded in bubbletea for enhanced UX
-func (a *LegacyHabitAdapter) CreateHabitWithHybridForms(goalType models.HabitType, existingHabits []models.Habit) (*models.Habit, error) {
+func (a *LegacyHabitAdapter) CreateHabitWithHybridForms(habitType models.HabitType, existingHabits []models.Habit) (*models.Habit, error) {
 	// This demonstrates how to wrap existing forms with bubbletea for enhanced UX
 	// while maintaining the same underlying logic
 
-	switch goalType {
+	switch habitType {
 	case models.SimpleHabit:
 		return a.createSimpleHabitWithHybrid(existingHabits)
 	case models.ElasticHabit:
@@ -44,7 +44,7 @@ func (a *LegacyHabitAdapter) CreateHabitWithHybridForms(goalType models.HabitTyp
 	case models.InformationalHabit:
 		return a.createInformationalHabitWithHybrid(existingHabits)
 	default:
-		return nil, fmt.Errorf("unsupported habit type for hybrid forms: %s", goalType)
+		return nil, fmt.Errorf("unsupported habit type for hybrid forms: %s", habitType)
 	}
 }
 
@@ -112,37 +112,37 @@ const (
 )
 
 // CreateHabitWithMode creates a habit using the specified compatibility mode
-func (a *LegacyHabitAdapter) CreateHabitWithMode(goalType models.HabitType, existingHabits []models.Habit, mode BackwardsCompatibilityMode) (*models.Habit, error) {
+func (a *LegacyHabitAdapter) CreateHabitWithMode(habitType models.HabitType, existingHabits []models.Habit, mode BackwardsCompatibilityMode) (*models.Habit, error) {
 	switch mode {
 	case AutoSelect:
 		// Use intelligent selection based on habit type complexity
-		return a.createHabitAutoSelect(goalType, existingHabits)
+		return a.createHabitAutoSelect(habitType, existingHabits)
 	case PreferWizard, ForceWizard:
 		// Use wizard interface
-		return a.CreateHabitWithHybridForms(goalType, existingHabits)
+		return a.CreateHabitWithHybridForms(habitType, existingHabits)
 	case PreferLegacy, ForceLegacy:
 		// Use legacy forms
-		return a.CreateHabitWithLegacyForms(goalType, existingHabits)
+		return a.CreateHabitWithLegacyForms(habitType, existingHabits)
 	default:
 		return nil, fmt.Errorf("unsupported compatibility mode: %d", mode)
 	}
 }
 
 // createHabitAutoSelect automatically selects the best interface
-func (a *LegacyHabitAdapter) createHabitAutoSelect(goalType models.HabitType, existingHabits []models.Habit) (*models.Habit, error) {
-	switch goalType {
+func (a *LegacyHabitAdapter) createHabitAutoSelect(habitType models.HabitType, existingHabits []models.Habit) (*models.Habit, error) {
+	switch habitType {
 	case models.SimpleHabit:
 		// Simple habits can use either interface - prefer wizard for better UX
-		return a.CreateHabitWithHybridForms(goalType, existingHabits)
+		return a.CreateHabitWithHybridForms(habitType, existingHabits)
 	case models.ElasticHabit:
 		// Elastic habits require wizard due to complexity
-		return a.CreateHabitWithHybridForms(goalType, existingHabits)
+		return a.CreateHabitWithHybridForms(habitType, existingHabits)
 	case models.InformationalHabit:
 		// Informational habits require wizard for direction configuration
-		return a.CreateHabitWithHybridForms(goalType, existingHabits)
+		return a.CreateHabitWithHybridForms(habitType, existingHabits)
 	default:
 		// Unknown types: fallback to legacy forms
-		return a.CreateHabitWithLegacyForms(goalType, existingHabits)
+		return a.CreateHabitWithLegacyForms(habitType, existingHabits)
 	}
 }
 
@@ -153,7 +153,7 @@ func (a *LegacyHabitAdapter) CreateHabitWithBasicInfo(_ interface{}, existingHab
 	// AIDEV-TODO: Extract habit type from basicInfo and pass it properly
 
 	// Default to simple habit if we can't extract the type
-	goalType := models.SimpleHabit
+	habitType := models.SimpleHabit
 
-	return a.CreateHabitWithMode(goalType, existingHabits, mode)
+	return a.CreateHabitWithMode(habitType, existingHabits, mode)
 }

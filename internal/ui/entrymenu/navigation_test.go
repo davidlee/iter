@@ -11,15 +11,15 @@ func TestNavigationHelper_FindNextIncompleteHabit(t *testing.T) {
 	helper := NewNavigationHelper()
 
 	habits := []models.Habit{
-		{ID: "goal1", Title: "Completed Habit"},
-		{ID: "goal2", Title: "Incomplete Habit 1"},
-		{ID: "goal3", Title: "Skipped Habit"},
-		{ID: "goal4", Title: "Incomplete Habit 2"},
+		{ID: "habit1", Title: "Completed Habit"},
+		{ID: "habit2", Title: "Incomplete Habit 1"},
+		{ID: "habit3", Title: "Skipped Habit"},
+		{ID: "habit4", Title: "Incomplete Habit 2"},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal1": {HabitID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
-		"goal3": {HabitID: "goal3", Status: models.EntrySkipped, CreatedAt: time.Now()},
+		"habit1": {HabitID: "habit1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+		"habit3": {HabitID: "habit3", Status: models.EntrySkipped, CreatedAt: time.Now()},
 	}
 
 	tests := []struct {
@@ -30,22 +30,22 @@ func TestNavigationHelper_FindNextIncompleteHabit(t *testing.T) {
 		{
 			name:         "from start, find first incomplete",
 			currentIndex: 0,
-			expectedNext: 1, // goal2 is incomplete
+			expectedNext: 1, // habit2 is incomplete
 		},
 		{
 			name:         "from incomplete habit, find next incomplete",
 			currentIndex: 1,
-			expectedNext: 3, // goal4 is incomplete
+			expectedNext: 3, // habit4 is incomplete
 		},
 		{
 			name:         "from last habit, wrap to first incomplete",
 			currentIndex: 3,
-			expectedNext: 1, // wrap around to goal2
+			expectedNext: 1, // wrap around to habit2
 		},
 		{
 			name:         "from skipped habit, find next incomplete",
 			currentIndex: 2,
-			expectedNext: 3, // goal4 is incomplete
+			expectedNext: 3, // habit4 is incomplete
 		},
 	}
 
@@ -63,15 +63,15 @@ func TestNavigationHelper_FindPreviousIncompleteHabit(t *testing.T) {
 	helper := NewNavigationHelper()
 
 	habits := []models.Habit{
-		{ID: "goal1", Title: "Incomplete Habit 1"},
-		{ID: "goal2", Title: "Completed Habit"},
-		{ID: "goal3", Title: "Skipped Habit"},
-		{ID: "goal4", Title: "Incomplete Habit 2"},
+		{ID: "habit1", Title: "Incomplete Habit 1"},
+		{ID: "habit2", Title: "Completed Habit"},
+		{ID: "habit3", Title: "Skipped Habit"},
+		{ID: "habit4", Title: "Incomplete Habit 2"},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal2": {HabitID: "goal2", Status: models.EntryCompleted, CreatedAt: time.Now()},
-		"goal3": {HabitID: "goal3", Status: models.EntrySkipped, CreatedAt: time.Now()},
+		"habit2": {HabitID: "habit2", Status: models.EntryCompleted, CreatedAt: time.Now()},
+		"habit3": {HabitID: "habit3", Status: models.EntrySkipped, CreatedAt: time.Now()},
 	}
 
 	tests := []struct {
@@ -82,17 +82,17 @@ func TestNavigationHelper_FindPreviousIncompleteHabit(t *testing.T) {
 		{
 			name:         "from end, find previous incomplete",
 			currentIndex: 3,
-			expectedPrev: 0, // goal1 is incomplete
+			expectedPrev: 0, // habit1 is incomplete
 		},
 		{
 			name:         "from incomplete habit, find previous incomplete",
 			currentIndex: 0,
-			expectedPrev: 3, // wrap around to goal4
+			expectedPrev: 3, // wrap around to habit4
 		},
 		{
 			name:         "from middle, find previous incomplete",
 			currentIndex: 2,
-			expectedPrev: 0, // goal1 is incomplete
+			expectedPrev: 0, // habit1 is incomplete
 		},
 	}
 
@@ -110,16 +110,16 @@ func TestNavigationHelper_GetVisibleHabitsAfterFilter(t *testing.T) {
 	helper := NewNavigationHelper()
 
 	habits := []models.Habit{
-		{ID: "goal1", Title: "Completed Habit"},
-		{ID: "goal2", Title: "Failed Habit"},
-		{ID: "goal3", Title: "Skipped Habit"},
-		{ID: "goal4", Title: "Incomplete Habit"},
+		{ID: "habit1", Title: "Completed Habit"},
+		{ID: "habit2", Title: "Failed Habit"},
+		{ID: "habit3", Title: "Skipped Habit"},
+		{ID: "habit4", Title: "Incomplete Habit"},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal1": {HabitID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
-		"goal2": {HabitID: "goal2", Status: models.EntryFailed, CreatedAt: time.Now()},
-		"goal3": {HabitID: "goal3", Status: models.EntrySkipped, CreatedAt: time.Now()},
+		"habit1": {HabitID: "habit1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+		"habit2": {HabitID: "habit2", Status: models.EntryFailed, CreatedAt: time.Now()},
+		"habit3": {HabitID: "habit3", Status: models.EntrySkipped, CreatedAt: time.Now()},
 	}
 
 	tests := []struct {
@@ -130,22 +130,22 @@ func TestNavigationHelper_GetVisibleHabitsAfterFilter(t *testing.T) {
 		{
 			name:        "no filter",
 			filterState: FilterNone,
-			expectedIDs: []string{"goal1", "goal2", "goal3", "goal4"},
+			expectedIDs: []string{"habit1", "habit2", "habit3", "habit4"},
 		},
 		{
 			name:        "hide skipped",
 			filterState: FilterHideSkipped,
-			expectedIDs: []string{"goal1", "goal2", "goal4"},
+			expectedIDs: []string{"habit1", "habit2", "habit4"},
 		},
 		{
 			name:        "hide previous",
 			filterState: FilterHidePrevious,
-			expectedIDs: []string{"goal3", "goal4"},
+			expectedIDs: []string{"habit3", "habit4"},
 		},
 		{
 			name:        "hide skipped and previous",
 			filterState: FilterHideSkippedAndPrevious,
-			expectedIDs: []string{"goal4"},
+			expectedIDs: []string{"habit4"},
 		},
 	}
 
@@ -231,26 +231,26 @@ func TestNavigationHelper_GetFilterDescription(t *testing.T) {
 
 func TestNavigationEnhancer_SelectNextIncompleteHabit(t *testing.T) {
 	habits := []models.Habit{
-		{ID: "goal1", Title: "Completed Habit"},
-		{ID: "goal2", Title: "Incomplete Habit"},
-		{ID: "goal3", Title: "Another Incomplete Habit"},
+		{ID: "habit1", Title: "Completed Habit"},
+		{ID: "habit2", Title: "Incomplete Habit"},
+		{ID: "habit3", Title: "Another Incomplete Habit"},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal1": {HabitID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+		"habit1": {HabitID: "habit1", Status: models.EntryCompleted, CreatedAt: time.Now()},
 	}
 
 	model := NewEntryMenuModelForTesting(habits, entries)
 	model.width = 80
 	model.height = 24
 
-	// Start at goal1 (completed)
+	// Start at habit1 (completed)
 	model.list.Select(0)
 
 	// Select next incomplete habit
 	model.navEnhancer.SelectNextIncompleteHabit(model)
 
-	// Should now be at goal2 (incomplete)
+	// Should now be at habit2 (incomplete)
 	if model.list.Index() != 1 {
 		t.Errorf("Expected selection at index 1, got %d", model.list.Index())
 	}
@@ -258,14 +258,14 @@ func TestNavigationEnhancer_SelectNextIncompleteHabit(t *testing.T) {
 
 func TestNavigationEnhancer_UpdateListAfterFilterChange(t *testing.T) {
 	habits := []models.Habit{
-		{ID: "goal1", Title: "Completed Habit"},
-		{ID: "goal2", Title: "Skipped Habit"},
-		{ID: "goal3", Title: "Incomplete Habit"},
+		{ID: "habit1", Title: "Completed Habit"},
+		{ID: "habit2", Title: "Skipped Habit"},
+		{ID: "habit3", Title: "Incomplete Habit"},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal1": {HabitID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
-		"goal2": {HabitID: "goal2", Status: models.EntrySkipped, CreatedAt: time.Now()},
+		"habit1": {HabitID: "habit1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+		"habit2": {HabitID: "habit2", Status: models.EntrySkipped, CreatedAt: time.Now()},
 	}
 
 	model := NewEntryMenuModelForTesting(habits, entries)
@@ -282,11 +282,11 @@ func TestNavigationEnhancer_UpdateListAfterFilterChange(t *testing.T) {
 		t.Errorf("Expected 2 items after filter, got %d", len(items))
 	}
 
-	// Should auto-select the incomplete habit (goal3)
+	// Should auto-select the incomplete habit (habit3)
 	selectedItem := model.list.SelectedItem()
 	if menuItem, ok := selectedItem.(EntryMenuItem); ok {
-		if menuItem.Habit.ID != "goal3" {
-			t.Errorf("Expected goal3 to be selected, got %s", menuItem.Habit.ID)
+		if menuItem.Habit.ID != "habit3" {
+			t.Errorf("Expected habit3 to be selected, got %s", menuItem.Habit.ID)
 		}
 	} else {
 		t.Error("Expected EntryMenuItem to be selected")
@@ -342,25 +342,25 @@ func TestHabitInfo_StatusMethods(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			goalInfo := &HabitInfo{
+			habitInfo := &HabitInfo{
 				HasEntry: tt.hasEntry,
 			}
 
 			if tt.hasEntry {
-				goalInfo.Entry = models.HabitEntry{Status: tt.status}
+				habitInfo.Entry = models.HabitEntry{Status: tt.status}
 			}
 
-			if goalInfo.IsComplete() != tt.isComplete {
-				t.Errorf("IsComplete() = %t, expected %t", goalInfo.IsComplete(), tt.isComplete)
+			if habitInfo.IsComplete() != tt.isComplete {
+				t.Errorf("IsComplete() = %t, expected %t", habitInfo.IsComplete(), tt.isComplete)
 			}
-			if goalInfo.IsIncomplete() != tt.isIncomplete {
-				t.Errorf("IsIncomplete() = %t, expected %t", goalInfo.IsIncomplete(), tt.isIncomplete)
+			if habitInfo.IsIncomplete() != tt.isIncomplete {
+				t.Errorf("IsIncomplete() = %t, expected %t", habitInfo.IsIncomplete(), tt.isIncomplete)
 			}
-			if goalInfo.IsSkipped() != tt.isSkipped {
-				t.Errorf("IsSkipped() = %t, expected %t", goalInfo.IsSkipped(), tt.isSkipped)
+			if habitInfo.IsSkipped() != tt.isSkipped {
+				t.Errorf("IsSkipped() = %t, expected %t", habitInfo.IsSkipped(), tt.isSkipped)
 			}
-			if goalInfo.IsFailed() != tt.isFailed {
-				t.Errorf("IsFailed() = %t, expected %t", goalInfo.IsFailed(), tt.isFailed)
+			if habitInfo.IsFailed() != tt.isFailed {
+				t.Errorf("IsFailed() = %t, expected %t", habitInfo.IsFailed(), tt.isFailed)
 			}
 		})
 	}

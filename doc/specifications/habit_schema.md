@@ -82,7 +82,7 @@ parsing capabilities.
 Boolean pass/fail habits with manual or automatic scoring.
 
 ``` 
-  goal_type: "simple"
+  habit_type: "simple"
   scoring_type: "manual" | "automatic"
   criteria: # Required if scoring_type="automatic"
     # Criteria specification (see below)
@@ -93,7 +93,7 @@ Boolean pass/fail habits with manual or automatic scoring.
 Three-tier achievement habits (mini/midi/maxi) with manual or automatic scoring.
 
 ``` 
-  goal_type: "elastic"
+  habit_type: "elastic"
   scoring_type: "manual" | "automatic"
   mini_criteria: # Required if scoring_type="automatic"
     # Criteria for minimum achievement level
@@ -108,7 +108,7 @@ Three-tier achievement habits (mini/midi/maxi) with manual or automatic scoring.
 Data collection without success/failure scoring.
 
 ``` 
-  goal_type: "informational"
+  habit_type: "informational"
   direction: "higher_better" | "lower_better" | "neutral" # Optional, for display
 ```
 
@@ -117,7 +117,7 @@ Data collection without success/failure scoring.
 Checklist completion tracking with automatic or manual scoring.
 
 ```
-  goal_type: "checklist"
+  habit_type: "checklist"
   field_type:
     type: "checklist"
     checklist_id: "checklist_identifier" # Reference to checklist in checklists.yml
@@ -182,11 +182,11 @@ Boolean Criteria
 
 ```
   title: "Habit Title" # Human-readable name
-  id: "goal_id" # Optional unique identifier (auto-generated if missing)
+  id: "habit_id" # Optional unique identifier (auto-generated if missing)
   description: | # Optional markdown description
     Multi-line description
     supports **markdown**
-  goal_type: "simple" | "elastic" | "informational"
+  habit_type: "simple" | "elastic" | "informational"
   field_type:
     # Field type specification (see above)
   scoring_type: "manual" | "automatic" # Required for simple/elastic
@@ -233,7 +233,7 @@ Boolean Criteria
 
 1. Structure: Valid YAML matching specification
 2. Uniqueness: All habit IDs must be unique
-3. Completeness: Required fields present based on goal_type and scoring_type
+3. Completeness: Required fields present based on habit_type and scoring_type
 4. Consistency: Field types compatible with criteria
 5. References: All criteria reference valid field types
 
@@ -254,7 +254,7 @@ Boolean Criteria
     - title: "Daily Exercise"
       id: "daily_exercise"
       description: "Track daily physical activity"
-      goal_type: "elastic"
+      habit_type: "elastic"
       field_type:
         type: "duration"
         format: "minutes"
@@ -275,14 +275,14 @@ Boolean Criteria
       help_text: "Include any physical activity: walking, gym, sports, etc."
 
     - title: "Morning Meditation"
-      goal_type: "simple"
+      habit_type: "simple"
       field_type:
         type: "boolean"
       scoring_type: "manual"
       prompt: "Did you meditate this morning?"
 
     - title: "Sleep Quality"
-      goal_type: "informational"
+      habit_type: "informational"
       field_type:
         type: "unsigned_int"
         unit: "rating"

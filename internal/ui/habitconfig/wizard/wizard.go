@@ -30,13 +30,13 @@ type HabitWizardModel struct {
 }
 
 // NewHabitWizardModel creates a new habit wizard model
-func NewHabitWizardModel(goalType models.HabitType, _ []models.Habit) *HabitWizardModel {
-	state := NewHabitState(goalType)
+func NewHabitWizardModel(habitType models.HabitType, _ []models.Habit) *HabitWizardModel {
+	state := NewHabitState(habitType)
 	navigation := NewDefaultNavigationController()
 	renderer := NewDefaultFormRenderer()
 
 	// Create step handlers based on habit type
-	steps := createStepHandlers(goalType)
+	steps := createStepHandlers(habitType)
 
 	return &HabitWizardModel{
 		state:      state,
@@ -51,8 +51,8 @@ func NewHabitWizardModel(goalType models.HabitType, _ []models.Habit) *HabitWiza
 }
 
 // NewHabitWizardModelWithBasicInfo creates a new habit wizard model with pre-populated basic info
-func NewHabitWizardModelWithBasicInfo(goalType models.HabitType, _ []models.Habit, title, description string) *HabitWizardModel {
-	state := NewHabitState(goalType)
+func NewHabitWizardModelWithBasicInfo(habitType models.HabitType, _ []models.Habit, title, description string) *HabitWizardModel {
+	state := NewHabitState(habitType)
 	navigation := NewDefaultNavigationController()
 	renderer := NewDefaultFormRenderer()
 
@@ -60,14 +60,14 @@ func NewHabitWizardModelWithBasicInfo(goalType models.HabitType, _ []models.Habi
 	basicInfo := &BasicInfoStepData{
 		Title:       title,
 		Description: description,
-		HabitType:   goalType,
+		HabitType:   habitType,
 		valid:       true,
 	}
 	state.SetStep(0, basicInfo)
 	state.MarkStepCompleted(0)
 
 	// Create step handlers based on habit type
-	steps := createStepHandlers(goalType)
+	steps := createStepHandlers(habitType)
 
 	// Start from step 1 since basic info is pre-populated
 	state.SetCurrentStep(1)
@@ -329,33 +329,33 @@ func (m *HabitWizardModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // 4. Update total step count in state.go calculateTotalSteps()
 
 // createStepHandlers creates the appropriate step handlers for the habit type
-func createStepHandlers(goalType models.HabitType) []StepHandler {
+func createStepHandlers(habitType models.HabitType) []StepHandler {
 	var handlers []StepHandler
 
 	// All habit types start with basic info
-	handlers = append(handlers, NewBasicInfoStepHandler(goalType))
+	handlers = append(handlers, NewBasicInfoStepHandler(habitType))
 
-	switch goalType {
+	switch habitType {
 	case models.SimpleHabit:
 		handlers = append(handlers,
-			NewScoringStepHandler(goalType),
-			NewCriteriaStepHandler(goalType, "simple"),
-			NewConfirmationStepHandler(goalType),
+			NewScoringStepHandler(habitType),
+			NewCriteriaStepHandler(habitType, "simple"),
+			NewConfirmationStepHandler(habitType),
 		)
 	case models.ElasticHabit:
 		handlers = append(handlers,
-			NewFieldConfigStepHandler(goalType),      // Step 1: Field type & config
-			NewScoringStepHandler(goalType),          // Step 2: Scoring type
-			NewCriteriaStepHandler(goalType, "mini"), // Step 3: Mini criteria
-			NewCriteriaStepHandler(goalType, "midi"), // Step 4: Midi criteria
-			NewCriteriaStepHandler(goalType, "maxi"), // Step 5: Maxi criteria
-			NewValidationStepHandler(goalType),       // Step 6: Validation
-			NewConfirmationStepHandler(goalType),     // Step 7: Confirmation
+			NewFieldConfigStepHandler(habitType),      // Step 1: Field type & config
+			NewScoringStepHandler(habitType),          // Step 2: Scoring type
+			NewCriteriaStepHandler(habitType, "mini"), // Step 3: Mini criteria
+			NewCriteriaStepHandler(habitType, "midi"), // Step 4: Midi criteria
+			NewCriteriaStepHandler(habitType, "maxi"), // Step 5: Maxi criteria
+			NewValidationStepHandler(habitType),       // Step 6: Validation
+			NewConfirmationStepHandler(habitType),     // Step 7: Confirmation
 		)
 	case models.InformationalHabit:
 		handlers = append(handlers,
-			NewFieldConfigStepHandler(goalType),  // Step 1: Field config & direction
-			NewConfirmationStepHandler(goalType), // Step 2: Confirmation
+			NewFieldConfigStepHandler(habitType),  // Step 1: Field config & direction
+			NewConfirmationStepHandler(habitType), // Step 2: Confirmation
 		)
 	}
 

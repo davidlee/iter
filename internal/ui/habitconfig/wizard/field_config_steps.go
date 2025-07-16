@@ -23,7 +23,7 @@ type FieldConfigStepHandler struct {
 	form         *huh.Form
 	formActive   bool
 	formComplete bool
-	goalType     models.HabitType
+	habitType    models.HabitType
 
 	// Form data storage
 	fieldType string
@@ -35,9 +35,9 @@ type FieldConfigStepHandler struct {
 }
 
 // NewFieldConfigStepHandler creates a new field configuration step handler
-func NewFieldConfigStepHandler(goalType models.HabitType) *FieldConfigStepHandler {
+func NewFieldConfigStepHandler(habitType models.HabitType) *FieldConfigStepHandler {
 	return &FieldConfigStepHandler{
-		goalType: goalType,
+		habitType: habitType,
 	}
 }
 
@@ -76,7 +76,7 @@ func (h *FieldConfigStepHandler) Render(state State) string {
 					result += "Multi-line: Yes\n"
 				}
 
-				if h.goalType == models.InformationalHabit && h.direction != "" {
+				if h.habitType == models.InformationalHabit && h.direction != "" {
 					result += fmt.Sprintf("Direction: %s\n", h.direction)
 				}
 
@@ -190,7 +190,7 @@ func (h *FieldConfigStepHandler) GetDescription() string {
 // Private methods
 
 func (h *FieldConfigStepHandler) getStepIndex() int {
-	switch h.goalType {
+	switch h.habitType {
 	case models.ElasticHabit:
 		return 1 // basic_info(0) -> field_config(1)
 	case models.InformationalHabit:
@@ -254,7 +254,7 @@ func (h *FieldConfigStepHandler) initializeForm(state State) {
 	)
 
 	// Multi-line option for text fields
-	if h.goalType == models.InformationalHabit {
+	if h.habitType == models.InformationalHabit {
 		fields = append(fields,
 			huh.NewConfirm().
 				Title("Multi-line Text?").
@@ -314,7 +314,7 @@ func (h *FieldConfigStepHandler) extractFormData(state State) {
 }
 
 func (h *FieldConfigStepHandler) getFieldTypeOptions() []huh.Option[string] {
-	if h.goalType == models.ElasticHabit {
+	if h.habitType == models.ElasticHabit {
 		return []huh.Option[string]{
 			huh.NewOption("Whole numbers (0, 1, 2, ...)", models.UnsignedIntFieldType),
 			huh.NewOption("Decimal numbers (0.5, 1.25, ...)", models.DecimalFieldType),

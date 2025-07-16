@@ -12,12 +12,12 @@ import (
 )
 
 func TestYAMLFixtureValidation(t *testing.T) {
-	goalParser := parser.NewHabitParser()
+	habitParser := parser.NewHabitParser()
 
 	t.Run("valid simple habit fixture", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "habits", "valid_simple_habit.yml")
 
-		schema, err := goalParser.LoadFromFile(fixturePath)
+		schema, err := habitParser.LoadFromFile(fixturePath)
 		require.NoError(t, err)
 		assert.NotNil(t, schema)
 
@@ -27,30 +27,30 @@ func TestYAMLFixtureValidation(t *testing.T) {
 		assert.Len(t, schema.Habits, 2)
 
 		// Verify first habit (manual scoring)
-		goal1 := schema.Habits[0]
-		assert.Equal(t, "Daily Exercise", goal1.Title)
-		assert.Equal(t, "daily_exercise", goal1.ID)
-		assert.Equal(t, models.SimpleHabit, goal1.HabitType)
-		assert.Equal(t, models.BooleanFieldType, goal1.FieldType.Type)
-		assert.Equal(t, models.ManualScoring, goal1.ScoringType)
-		assert.Equal(t, "Did you exercise today?", goal1.Prompt)
-		assert.Nil(t, goal1.Criteria)
+		habit1 := schema.Habits[0]
+		assert.Equal(t, "Daily Exercise", habit1.Title)
+		assert.Equal(t, "daily_exercise", habit1.ID)
+		assert.Equal(t, models.SimpleHabit, habit1.HabitType)
+		assert.Equal(t, models.BooleanFieldType, habit1.FieldType.Type)
+		assert.Equal(t, models.ManualScoring, habit1.ScoringType)
+		assert.Equal(t, "Did you exercise today?", habit1.Prompt)
+		assert.Nil(t, habit1.Criteria)
 
 		// Verify second habit (automatic scoring)
-		goal2 := schema.Habits[1]
-		assert.Equal(t, "Read for 30 Minutes", goal2.Title)
-		assert.Equal(t, "daily_reading", goal2.ID)
-		assert.Equal(t, models.AutomaticScoring, goal2.ScoringType)
-		require.NotNil(t, goal2.Criteria)
-		assert.Equal(t, "Reading completed", goal2.Criteria.Description)
-		require.NotNil(t, goal2.Criteria.Condition.Equals)
-		assert.Equal(t, true, *goal2.Criteria.Condition.Equals)
+		habit2 := schema.Habits[1]
+		assert.Equal(t, "Read for 30 Minutes", habit2.Title)
+		assert.Equal(t, "daily_reading", habit2.ID)
+		assert.Equal(t, models.AutomaticScoring, habit2.ScoringType)
+		require.NotNil(t, habit2.Criteria)
+		assert.Equal(t, "Reading completed", habit2.Criteria.Description)
+		require.NotNil(t, habit2.Criteria.Condition.Equals)
+		assert.Equal(t, true, *habit2.Criteria.Condition.Equals)
 	})
 
 	t.Run("valid informational habits fixture", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "habits", "valid_informational_habits.yml")
 
-		schema, err := goalParser.LoadFromFile(fixturePath)
+		schema, err := habitParser.LoadFromFile(fixturePath)
 		require.NoError(t, err)
 		assert.NotNil(t, schema)
 
@@ -66,7 +66,7 @@ func TestYAMLFixtureValidation(t *testing.T) {
 
 		// Test specific field type examples
 		fieldTypeTests := map[string]struct {
-			goalIndex    int
+			habitIndex   int
 			expectedType string
 			hasUnit      bool
 			hasMultiline bool
@@ -75,30 +75,30 @@ func TestYAMLFixtureValidation(t *testing.T) {
 			direction    string
 		}{
 			"boolean": {
-				goalIndex:    0,
+				habitIndex:   0,
 				expectedType: models.BooleanFieldType,
 				direction:    "neutral",
 			},
 			"text_single": {
-				goalIndex:    1,
+				habitIndex:   1,
 				expectedType: models.TextFieldType,
 				hasMultiline: true,
 				direction:    "neutral",
 			},
 			"text_multi": {
-				goalIndex:    2,
+				habitIndex:   2,
 				expectedType: models.TextFieldType,
 				hasMultiline: true,
 				direction:    "neutral",
 			},
 			"unsigned_int": {
-				goalIndex:    3,
+				habitIndex:   3,
 				expectedType: models.UnsignedIntFieldType,
 				hasUnit:      true,
 				direction:    "higher_better",
 			},
 			"unsigned_decimal_constrained": {
-				goalIndex:    4,
+				habitIndex:   4,
 				expectedType: models.UnsignedDecimalFieldType,
 				hasUnit:      true,
 				hasMin:       true,
@@ -106,7 +106,7 @@ func TestYAMLFixtureValidation(t *testing.T) {
 				direction:    "neutral",
 			},
 			"decimal_constrained": {
-				goalIndex:    5,
+				habitIndex:   5,
 				expectedType: models.DecimalFieldType,
 				hasUnit:      true,
 				hasMin:       true,
@@ -114,12 +114,12 @@ func TestYAMLFixtureValidation(t *testing.T) {
 				direction:    "neutral",
 			},
 			"time": {
-				goalIndex:    6,
+				habitIndex:   6,
 				expectedType: models.TimeFieldType,
 				direction:    "lower_better",
 			},
 			"duration": {
-				goalIndex:    7,
+				habitIndex:   7,
 				expectedType: models.DurationFieldType,
 				direction:    "higher_better",
 			},
@@ -127,7 +127,7 @@ func TestYAMLFixtureValidation(t *testing.T) {
 
 		for name, test := range fieldTypeTests {
 			t.Run(name, func(t *testing.T) {
-				habit := schema.Habits[test.goalIndex]
+				habit := schema.Habits[test.habitIndex]
 				assert.Equal(t, test.expectedType, habit.FieldType.Type)
 				assert.Equal(t, test.direction, habit.Direction)
 
@@ -150,7 +150,7 @@ func TestYAMLFixtureValidation(t *testing.T) {
 	t.Run("complex configuration fixture", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "habits", "complex_configuration.yml")
 
-		schema, err := goalParser.LoadFromFile(fixturePath)
+		schema, err := habitParser.LoadFromFile(fixturePath)
 		require.NoError(t, err)
 		assert.NotNil(t, schema)
 
@@ -194,13 +194,13 @@ func TestYAMLFixtureValidation(t *testing.T) {
 }
 
 func TestInvalidYAMLHandling(t *testing.T) {
-	goalParser := parser.NewHabitParser()
+	habitParser := parser.NewHabitParser()
 
 	t.Run("invalid habits fixture fails validation", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "habits", "invalid_habits.yml")
 
 		// The file should parse (YAML is syntactically valid) but fail validation
-		schema, err := goalParser.LoadFromFile(fixturePath)
+		schema, err := habitParser.LoadFromFile(fixturePath)
 
 		// Check if parsing fails due to malformed YAML or validation fails
 		if err != nil {
@@ -217,14 +217,14 @@ func TestInvalidYAMLHandling(t *testing.T) {
 	t.Run("non-existent file", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "habits", "non_existent.yml")
 
-		_, err := goalParser.LoadFromFile(fixturePath)
+		_, err := habitParser.LoadFromFile(fixturePath)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not found")
 	})
 }
 
 func TestYAMLRoundtripConsistency(t *testing.T) {
-	goalParser := parser.NewHabitParser()
+	habitParser := parser.NewHabitParser()
 
 	fixtures := []string{
 		"valid_simple_habit.yml",
@@ -237,16 +237,16 @@ func TestYAMLRoundtripConsistency(t *testing.T) {
 			fixturePath := filepath.Join("..", "..", "..", "testdata", "habits", fixture)
 
 			// Load original schema
-			originalSchema, err := goalParser.LoadFromFile(fixturePath)
+			originalSchema, err := habitParser.LoadFromFile(fixturePath)
 			require.NoError(t, err)
 
 			// Convert to YAML
-			yamlData, err := goalParser.ToYAML(originalSchema)
+			yamlData, err := habitParser.ToYAML(originalSchema)
 			require.NoError(t, err)
 			assert.NotEmpty(t, yamlData)
 
 			// Parse the generated YAML
-			reparsedSchema, err := goalParser.ParseYAML([]byte(yamlData))
+			reparsedSchema, err := habitParser.ParseYAML([]byte(yamlData))
 			require.NoError(t, err)
 
 			// Verify consistency
@@ -274,12 +274,12 @@ func TestYAMLRoundtripConsistency(t *testing.T) {
 }
 
 func TestFieldTypeValidationAcrossFixtures(t *testing.T) {
-	goalParser := parser.NewHabitParser()
+	habitParser := parser.NewHabitParser()
 
 	t.Run("all field types represented", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "habits", "valid_informational_habits.yml")
 
-		schema, err := goalParser.LoadFromFile(fixturePath)
+		schema, err := habitParser.LoadFromFile(fixturePath)
 		require.NoError(t, err)
 
 		// Collect all field types used
@@ -307,7 +307,7 @@ func TestFieldTypeValidationAcrossFixtures(t *testing.T) {
 	t.Run("numeric constraints properly set", func(t *testing.T) {
 		fixturePath := filepath.Join("..", "..", "..", "testdata", "habits", "valid_informational_habits.yml")
 
-		schema, err := goalParser.LoadFromFile(fixturePath)
+		schema, err := habitParser.LoadFromFile(fixturePath)
 		require.NoError(t, err)
 
 		// Find habits with constraints

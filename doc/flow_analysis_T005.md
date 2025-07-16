@@ -322,7 +322,7 @@ type WizardState interface {
     GetStep(index int) StepData
     SetStep(index int, data StepData) 
     Validate() []ValidationError
-    ToGoal() (*models.Habit, error)
+    ToHabit() (*models.Habit, error)
     Serialize() ([]byte, error)
     Deserialize([]byte) error
 }
@@ -492,11 +492,11 @@ Field Type Selection:
 
 **Enhanced Solution:**
 ```go
-type ElasticGoalWizardState struct {
+type ElasticHabitWizardState struct {
     // Step 1: Basic Info
     Title       string
     Description string
-    GoalType    models.GoalType // Always Elastic
+    HabitType    models.HabitType // Always Elastic
     
     // Step 2: Field Type
     FieldType   string
@@ -559,7 +559,7 @@ The elastic habit flow is the most complex and will benefit most from the enhanc
 **Test Case 2: Quick Forms Flow**  
 - ✅ Basic info collection works correctly
 - ❌ Legacy forms show validation error: "Basic information is required"
-- **Root Cause**: GoalBuilder.BuildGoal() still tries to collect basic info
+- **Root Cause**: HabitBuilder.BuildHabit() still tries to collect basic info
 
 ### Corrected Implementation Plan
 
@@ -576,8 +576,8 @@ The elastic habit flow is the most complex and will benefit most from the enhanc
    - Update validation logic to recognize completed basic info
 
 3. **Fix Legacy Forms Integration**
-   - Modify GoalBuilder to skip basic info collection when pre-populated
-   - Ensure BuildGoalWithBasicInfo() actually uses the provided basic info
+   - Modify HabitBuilder to skip basic info collection when pre-populated
+   - Ensure BuildHabitWithBasicInfo() actually uses the provided basic info
    - Maintain backwards compatibility for non-pre-populated flows
 
 ### Optimal Flow (Revised)

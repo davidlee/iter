@@ -42,10 +42,10 @@ This section provides context on the key documentation files that inform the arc
 
 - **[CLAUDE.md](./CLAUDE.md)** - Primary development guide with design principles, dependencies, and standards. Essential for understanding the clean architecture approach and charmbracelet UI framework usage.
 - **[initial_brief.md](./initial_brief.md)** - Original project vision and requirements. Defines core habits: low-friction entry, flexibility, resilience to schema changes, and text-based interoperability.
-- **[goal_schema.md](./doc/specifications/goal_schema.md)** - Complete specification of the YAML-based habit configuration format. Critical for understanding data structures and validation rules.
+- **[habit_schema.md](./doc/specifications/habit_schema.md)** - Complete specification of the YAML-based habit configuration format. Critical for understanding data structures and validation rules.
 - **[T001_minimal_end_to_end_release.md](./T001_minimal_end_to_end_release.md)** - Foundation implementation covering project setup, configuration management, habit parsing, entry collection, and CLI interface. Shows the core architectural decisions.
-- **[T003_implement_elastic_goals_end_to_end.md](./T003_implement_elastic_goals_end_to_end.md)** - Elastic habits with mini/midi/maxi achievement levels. Demonstrates the scoring engine architecture and strategy pattern for habit handlers.
-- **[T005_goal_configuration_ui.md](./T005_goal_configuration_ui.md)** - Interactive habit creation system with bubbletea wizards and huh forms. Shows the hybrid UI approach for simple vs complex interactions.
+- **[T003_implement_elastic_habits_end_to_end.md](./T003_implement_elastic_habits_end_to_end.md)** - Elastic habits with mini/midi/maxi achievement levels. Demonstrates the scoring engine architecture and strategy pattern for habit handlers.
+- **[T005_habit_configuration_ui.md](./T005_habit_configuration_ui.md)** - Interactive habit creation system with bubbletea wizards and huh forms. Shows the hybrid UI approach for simple vs complex interactions.
 - **[T007_dynamic_checklist_system.md](./T007_dynamic_checklist_system.md)** - Checklist habits with dynamic item management. Illustrates separation between templates (checklists.yml) and instances (checklist_entries.yml).
 - **[T010_iter_entry_ui_system.md](./T010_iter_entry_ui_system.md)** - Comprehensive entry collection system with field-type awareness and habit-type adaptation. Shows the strategy pattern for entry handlers and immediate scoring feedback. **Contains architectural diagrams referenced throughout this document.**
 - **[flow_analysis_T005.md](./flow_analysis_T005.md)** - Detailed UX flow analysis for habit configuration. Documents the evolution from simple huh forms to enhanced bubbletea wizards.
@@ -70,8 +70,8 @@ The following diagrams are available in the [diagrams](./diagrams) directory and
 
 ### Process Flow Diagrams
 
-1. ![habit collection flow](./diagrams/goal_collection_flow.svg)
-   *Habit-based entry collection process flow ([src](./diagrams/goal_collection_flow.d2))*
+1. ![habit collection flow](./diagrams/habit_collection_flow.svg)
+   *Habit-based entry collection process flow ([src](./diagrams/habit_collection_flow.d2))*
 
 These diagrams complement the textual architecture descriptions and provide visual reference for developers implementing and extending the system.
 
@@ -123,7 +123,7 @@ graph LR
 ### Key Architectural Decisions
 
 - **Text-First Storage**: YAML files as primary storage for version control compatibility and user transparency
-- **Strategy Pattern**: Habit type and field type handlers for extensible entry collection (*detailed in [goal_collection_flow.svg](./diagrams/goal_collection_flow.svg)*)
+- **Strategy Pattern**: Habit type and field type handlers for extensible entry collection (*detailed in [habit_collection_flow.svg](./diagrams/habit_collection_flow.svg)*)
 - **Hybrid UI**: Simple huh forms for basic interactions, bubbletea wizards for complex multi-step flows (*see [entry_system_containers.svg](./diagrams/entry_system_containers.svg)*)
 - **Separation of Concerns**: Clear boundaries between schema definition, entry collection, scoring, and storage
 - **Resilience Design**: Historical entries preserved through schema changes via stable habit IDs
@@ -140,7 +140,7 @@ created_date: "2024-01-01"
 habits:
   - title: "Daily Exercise"
     id: "daily_exercise"  # Auto-generated if missing
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "duration"
       format: "minutes"
@@ -236,7 +236,7 @@ vice/
 │   ├── storage/           # Entry persistence and atomic operations
 │   ├── scoring/           # Criteria evaluation engine
 │   ├── ui/                # User interface components
-│   │   ├── goalconfig/    # Habit creation wizards and forms
+│   │   ├── habitconfig/    # Habit creation wizards and forms
 │   │   ├── entry/         # Entry collection system (T010)
 │   │   └── checklist/     # Checklist management UI
 │   └── init/              # File initialization and samples
@@ -248,7 +248,7 @@ vice/
 
 ### Parser Layer Architecture
 
-**GoalParser** (`internal/parser/habits.go`):
+**HabitParser** (`internal/parser/habits.go`):
 - YAML marshaling/unmarshaling with goccy/go-yaml
 - Schema validation with automatic ID generation
 - Atomic file operations with backup on corruption
@@ -266,13 +266,13 @@ vice/
 type Habit struct {
     Title       string      `yaml:"title"`
     ID          string      `yaml:"id,omitempty"`
-    GoalType    GoalType    `yaml:"goal_type"`
+    HabitType    HabitType    `yaml:"habit_type"`
     FieldType   FieldType   `yaml:"field_type"`
     ScoringType ScoringType `yaml:"scoring_type"`
     // Habit-type specific criteria fields
 }
 
-type GoalEntry struct {
+type HabitEntry struct {
     Value            interface{}        `yaml:"value"`
     AchievementLevel *AchievementLevel `yaml:"achievement_level,omitempty"`
     Notes            string            `yaml:"notes,omitempty"`
@@ -309,7 +309,7 @@ type Engine struct {
     // Stateless evaluation engine
 }
 
-func (e *Engine) ScoreElasticGoal(habit models.Habit, value interface{}) 
+func (e *Engine) ScoreElasticHabit(habit models.Habit, value interface{}) 
     (*models.AchievementLevel, error) {
     // Value conversion → Criteria evaluation → Achievement calculation
 }
@@ -321,7 +321,7 @@ func (e *Engine) ScoreElasticGoal(habit models.Habit, value interface{})
 3. **Achievement Calculation**: Determine highest achieved level (none/mini/midi/maxi)
 4. **Error Handling**: Graceful fallback for incompatible value types
 
-*The complete entry collection process flow is visualized in [goal_collection_flow.svg](./diagrams/goal_collection_flow.svg).*
+*The complete entry collection process flow is visualized in [habit_collection_flow.svg](./diagrams/habit_collection_flow.svg).*
 
 ## User Interface Architecture
 
@@ -362,7 +362,7 @@ func (m FormStepModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 The entry collection system implements a strategy pattern to handle different habit types with specialized UI flows. Each habit type has its own handler that provides appropriate input methods and immediate scoring feedback.
 
 ```go
-type GoalEntryHandler interface {
+type HabitEntryHandler interface {
     CollectEntry(habit Habit, existing *ExistingEntry) (*EntryResult, error)
     GetPromptText(habit Habit) string
     ValidateInput(habit Habit, input interface{}) error
@@ -371,12 +371,12 @@ type GoalEntryHandler interface {
 ```
 
 **Habit-Type Specific Handlers:**
-- **SimpleGoalHandler**: Binary completion with confirmation prompts
-- **ElasticGoalHandler**: Numeric input with real-time achievement level feedback
-- **InformationalGoalHandler**: Data collection without scoring constraints  
-- **ChecklistGoalHandler**: Interactive item selection with completion tracking
+- **SimpleHabitHandler**: Binary completion with confirmation prompts
+- **ElasticHabitHandler**: Numeric input with real-time achievement level feedback
+- **InformationalHabitHandler**: Data collection without scoring constraints  
+- **ChecklistHabitHandler**: Interactive item selection with completion tracking
 
-*The entry collection flow and habit-based routing are documented in [goal_collection_flow.svg](./diagrams/goal_collection_flow.svg).*
+*The entry collection flow and habit-based routing are documented in [habit_collection_flow.svg](./diagrams/habit_collection_flow.svg).*
 
 ### Form Generation and Field Type Adaptation
 
@@ -476,7 +476,7 @@ vice
 ```go
 type Paths struct {
     ConfigDir        string  // ~/.config/vice/
-    GoalsFile        string  // habits.yml
+    HabitsFile        string  // habits.yml
     EntriesFile      string  // entries.yml 
     ChecklistsFile   string  // checklists.yml
     ChecklistEntries string  // checklist_entries.yml
@@ -501,11 +501,11 @@ type Paths struct {
 **Headless Testing Architecture:**
 ```go
 // UI components provide testing constructors
-func NewSimpleGoalCreatorForTesting() *SimpleGoalCreator
+func NewSimpleHabitCreatorForTesting() *SimpleHabitCreator
 func NewEntryCollectorForTesting(habits []Habit) *EntryCollector
 
 // Business logic exposed for direct testing
-func (c *SimpleGoalCreator) CreateGoalDirectly(data SimpleGoalData) (*Habit, error)
+func (c *SimpleHabitCreator) CreateHabitDirectly(data SimpleHabitData) (*Habit, error)
 ```
 
 **Testing Pyramid:**
@@ -522,22 +522,22 @@ func (c *SimpleGoalCreator) CreateGoalDirectly(data SimpleGoalData) (*Habit, err
 **Habit Type Extension Pattern:**
 1. **Model Extension**: Add new habit type constant and validation rules
 2. **Parser Support**: YAML structure definition and parsing logic
-3. **UI Handler**: Implement `GoalEntryHandler` interface for entry collection (*see strategy pattern in [goal_collection_flow.svg](./diagrams/goal_collection_flow.svg)*)
+3. **UI Handler**: Implement `HabitEntryHandler` interface for entry collection (*see strategy pattern in [habit_collection_flow.svg](./diagrams/habit_collection_flow.svg)*)
 4. **Scoring Integration**: Extend scoring engine for new criteria types
 5. **Configuration UI**: Add habit creation wizard or form components
 
 **Example - Custom Habit Addition:**
 ```go
 // 1. Model extension
-const CustomGoal GoalType = "custom"
+const CustomHabit HabitType = "custom"
 
 // 2. UI handler implementation  
-type CustomGoalHandler struct {
+type CustomHabitHandler struct {
     scoringEngine *scoring.Engine
     validator     *validation.Engine
 }
 
-func (h *CustomGoalHandler) CollectEntry(habit Habit, existing *ExistingEntry) (*EntryResult, error) {
+func (h *CustomHabitHandler) CollectEntry(habit Habit, existing *ExistingEntry) (*EntryResult, error) {
     // Custom habit-specific entry collection logic
     // Implement FieldValueInput interface for custom input types
 }

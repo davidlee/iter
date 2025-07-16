@@ -27,8 +27,8 @@ func NewHabitCollectionFlowFactory(fieldInputFactory *EntryFieldInputFactory, sc
 }
 
 // CreateFlow creates the appropriate collection flow for a given habit type
-func (f *HabitCollectionFlowFactory) CreateFlow(goalType string) (HabitCollectionFlow, error) {
-	switch goalType {
+func (f *HabitCollectionFlowFactory) CreateFlow(habitType string) (HabitCollectionFlow, error) {
+	switch habitType {
 	case string(models.SimpleHabit):
 		return NewSimpleHabitCollectionFlow(f.fieldInputFactory, f.scoringEngine), nil
 
@@ -42,7 +42,7 @@ func (f *HabitCollectionFlowFactory) CreateFlow(goalType string) (HabitCollectio
 		return NewChecklistHabitCollectionFlow(f.fieldInputFactory, f.scoringEngine, f.checklistsPath), nil
 
 	default:
-		return nil, fmt.Errorf("unsupported habit type: %s", goalType)
+		return nil, fmt.Errorf("unsupported habit type: %s", habitType)
 	}
 }
 
@@ -86,17 +86,17 @@ func (f *HabitCollectionFlowFactory) GetSupportedHabitTypes() []string {
 }
 
 // GetFlowInfo returns information about a specific habit type flow
-func (f *HabitCollectionFlowFactory) GetFlowInfo(goalType string) (*FlowInfo, error) {
-	flow, err := f.CreateFlow(goalType)
+func (f *HabitCollectionFlowFactory) GetFlowInfo(habitType string) (*FlowInfo, error) {
+	flow, err := f.CreateFlow(habitType)
 	if err != nil {
 		return nil, err
 	}
 
 	return &FlowInfo{
-		HabitType:           goalType,
+		HabitType:           habitType,
 		RequiresScoring:     flow.RequiresScoring(),
 		SupportedFieldTypes: flow.GetExpectedFieldTypes(),
-		Description:         f.getFlowDescription(goalType),
+		Description:         f.getFlowDescription(habitType),
 	}, nil
 }
 
@@ -110,8 +110,8 @@ type FlowInfo struct {
 
 // Private helper methods
 
-func (f *HabitCollectionFlowFactory) getFlowDescription(goalType string) string {
-	switch goalType {
+func (f *HabitCollectionFlowFactory) getFlowDescription(habitType string) string {
+	switch habitType {
 	case string(models.SimpleHabit):
 		return "Pass/fail collection with optional additional data and automatic/manual scoring support"
 	case string(models.ElasticHabit):
@@ -140,20 +140,20 @@ func NewCollectionFlowCoordinator(factory *HabitCollectionFlowFactory) *Collecti
 }
 
 // GetOrCreateFlow gets an existing flow or creates a new one for the habit type
-func (c *CollectionFlowCoordinator) GetOrCreateFlow(goalType string) (HabitCollectionFlow, error) {
+func (c *CollectionFlowCoordinator) GetOrCreateFlow(habitType string) (HabitCollectionFlow, error) {
 	// Check if we already have an active flow for this habit type
-	if flow, exists := c.activeFlows[goalType]; exists {
+	if flow, exists := c.activeFlows[habitType]; exists {
 		return flow, nil
 	}
 
 	// Create new flow
-	flow, err := c.factory.CreateFlow(goalType)
+	flow, err := c.factory.CreateFlow(habitType)
 	if err != nil {
 		return nil, err
 	}
 
 	// Cache the flow for reuse
-	c.activeFlows[goalType] = flow
+	c.activeFlows[habitType] = flow
 
 	return flow, nil
 }

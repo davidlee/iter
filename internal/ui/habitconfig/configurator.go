@@ -16,8 +16,8 @@ import (
 
 // HabitConfigurator provides UI for managing habit configurations
 type HabitConfigurator struct {
-	goalParser         *parser.HabitParser
-	goalBuilder        *HabitBuilder
+	habitParser        *parser.HabitParser
+	habitBuilder       *HabitBuilder
 	legacyAdapter      *wizard.LegacyHabitAdapter
 	preferLegacy       bool   // Configuration option for backwards compatibility
 	checklistsFilePath string // Path to checklists.yml for checklist habit creation
@@ -26,8 +26,8 @@ type HabitConfigurator struct {
 // NewHabitConfigurator creates a new habit configurator instance
 func NewHabitConfigurator() *HabitConfigurator {
 	return &HabitConfigurator{
-		goalParser:    parser.NewHabitParser(),
-		goalBuilder:   NewHabitBuilder(),
+		habitParser:   parser.NewHabitParser(),
+		habitBuilder:  NewHabitBuilder(),
 		legacyAdapter: wizard.NewLegacyHabitAdapter(),
 		preferLegacy:  false, // Default to enhanced interfaces
 	}
@@ -146,12 +146,12 @@ func (gc *HabitConfigurator) displayHabitAdded(habit *models.Habit) {
 		Foreground(lipgloss.Color("10")). // Bright green
 		Margin(1, 0)
 
-	goalStyle := lipgloss.NewStyle().
+	habitStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("14")). // Bright cyan
 		Bold(true)
 
 	fmt.Println(successStyle.Render("✅ Habit Added Successfully!"))
-	fmt.Printf("Habit: %s\n", goalStyle.Render(habit.Title))
+	fmt.Printf("Habit: %s\n", habitStyle.Render(habit.Title))
 	fmt.Printf("Type: %s\n", habit.HabitType)
 	fmt.Printf("Field: %s\n", habit.FieldType.Type)
 	if habit.ScoringType != "" {
@@ -163,7 +163,7 @@ func (gc *HabitConfigurator) displayHabitAdded(habit *models.Habit) {
 // ListHabits displays all existing habits in an interactive list view
 func (gc *HabitConfigurator) ListHabits(habitsFilePath string) error {
 	// Load existing habits
-	schema, err := gc.goalParser.LoadFromFile(habitsFilePath)
+	schema, err := gc.habitParser.LoadFromFile(habitsFilePath)
 	if err != nil {
 		// Handle file not found gracefully
 		if strings.Contains(err.Error(), "habits file not found") {
@@ -198,7 +198,7 @@ func (gc *HabitConfigurator) ListHabits(habitsFilePath string) error {
 					return fmt.Errorf("failed to edit habit: %w", err)
 				}
 				// Reload habits after editing and continue the loop
-				schema, err = gc.goalParser.LoadFromFile(habitsFilePath)
+				schema, err = gc.habitParser.LoadFromFile(habitsFilePath)
 				if err != nil {
 					return fmt.Errorf("failed to reload habits after edit: %w", err)
 				}
@@ -209,7 +209,7 @@ func (gc *HabitConfigurator) ListHabits(habitsFilePath string) error {
 					return fmt.Errorf("failed to delete habit: %w", err)
 				}
 				// Reload habits after deletion and continue the loop
-				schema, err = gc.goalParser.LoadFromFile(habitsFilePath)
+				schema, err = gc.habitParser.LoadFromFile(habitsFilePath)
 				if err != nil {
 					return fmt.Errorf("failed to reload habits after delete: %w", err)
 				}
@@ -241,7 +241,7 @@ func (gc *HabitConfigurator) EditHabit(habitsFilePath string) error {
 // EditHabitByID modifies a specific habit by ID (used internally by habit list UI).
 // AIDEV-NOTE: position-preservation-architecture; maintains habit.Position and habit.ID during edits
 // Critical for future reordering feature - habits stay in same list position after editing
-func (gc *HabitConfigurator) EditHabitByID(habitsFilePath string, goalID string) error {
+func (gc *HabitConfigurator) EditHabitByID(habitsFilePath string, habitID string) error {
 	// Load existing schema
 	schema, err := gc.loadSchema(habitsFilePath)
 	if err != nil {
@@ -249,55 +249,55 @@ func (gc *HabitConfigurator) EditHabitByID(habitsFilePath string, goalID string)
 	}
 
 	// Find the habit to edit
-	var goalToEdit *models.Habit
-	var goalIndex int
+	var habitToEdit *models.Habit
+	var habitIndex int
 	for i, habit := range schema.Habits {
-		if habit.ID == goalID {
-			goalToEdit = &habit
-			goalIndex = i
+		if habit.ID == habitID {
+			habitToEdit = &habit
+			habitIndex = i
 			break
 		}
 	}
 
-	if goalToEdit == nil {
-		return fmt.Errorf("habit with ID %s not found", goalID)
+	if habitToEdit == nil {
+		return fmt.Errorf("habit with ID %s not found", habitID)
 	}
 
 	// Display edit welcome message
-	gc.displayEditHabitWelcome(goalToEdit)
+	gc.displayEditHabitWelcome(habitToEdit)
 
 	// AIDEV-NOTE: habit-edit-routing; preserve position and ID during edit operations
 	// Route to appropriate habit creator based on habit type
 	var editedHabit *models.Habit
 
-	switch goalToEdit.HabitType {
+	switch habitToEdit.HabitType {
 	case models.InformationalHabit:
-		editedHabit, err = gc.runInformationalHabitEditor(goalToEdit)
+		editedHabit, err = gc.runInformationalHabitEditor(habitToEdit)
 		if err != nil {
 			return fmt.Errorf("informational habit editing failed: %w", err)
 		}
 	case models.SimpleHabit:
-		editedHabit, err = gc.runSimpleHabitEditor(goalToEdit)
+		editedHabit, err = gc.runSimpleHabitEditor(habitToEdit)
 		if err != nil {
 			return fmt.Errorf("simple habit editing failed: %w", err)
 		}
 	case models.ElasticHabit:
-		editedHabit, err = gc.runElasticHabitEditor(goalToEdit)
+		editedHabit, err = gc.runElasticHabitEditor(habitToEdit)
 		if err != nil {
 			return fmt.Errorf("elastic habit editing failed: %w", err)
 		}
 	case models.ChecklistHabit:
-		editedHabit, err = gc.runChecklistHabitEditor(goalToEdit)
+		editedHabit, err = gc.runChecklistHabitEditor(habitToEdit)
 		if err != nil {
 			return fmt.Errorf("checklist habit editing failed: %w", err)
 		}
 	default:
-		return fmt.Errorf("unsupported habit type for editing: %s", goalToEdit.HabitType)
+		return fmt.Errorf("unsupported habit type for editing: %s", habitToEdit.HabitType)
 	}
 
 	// Preserve original ID and position
-	editedHabit.ID = goalToEdit.ID
-	editedHabit.Position = goalToEdit.Position
+	editedHabit.ID = habitToEdit.ID
+	editedHabit.Position = habitToEdit.Position
 
 	// Validate the edited habit
 	if err := editedHabit.Validate(); err != nil {
@@ -305,7 +305,7 @@ func (gc *HabitConfigurator) EditHabitByID(habitsFilePath string, goalID string)
 	}
 
 	// Replace habit in schema at same position
-	schema.Habits[goalIndex] = *editedHabit
+	schema.Habits[habitIndex] = *editedHabit
 
 	// Validate complete schema
 	if err := schema.Validate(); err != nil {
@@ -333,7 +333,7 @@ func (gc *HabitConfigurator) RemoveHabit(habitsFilePath string) error {
 }
 
 // RemoveHabitByID removes a specific habit by ID (used internally by habit list UI)
-func (gc *HabitConfigurator) RemoveHabitByID(habitsFilePath string, goalID string) error {
+func (gc *HabitConfigurator) RemoveHabitByID(habitsFilePath string, habitID string) error {
 	// Load existing schema
 	schema, err := gc.loadSchema(habitsFilePath)
 	if err != nil {
@@ -341,22 +341,22 @@ func (gc *HabitConfigurator) RemoveHabitByID(habitsFilePath string, goalID strin
 	}
 
 	// Find the habit to delete
-	var goalToDelete *models.Habit
-	var goalIndex int
+	var habitToDelete *models.Habit
+	var habitIndex int
 	for i, habit := range schema.Habits {
-		if habit.ID == goalID {
-			goalToDelete = &habit
-			goalIndex = i
+		if habit.ID == habitID {
+			habitToDelete = &habit
+			habitIndex = i
 			break
 		}
 	}
 
-	if goalToDelete == nil {
-		return fmt.Errorf("habit with ID %s not found", goalID)
+	if habitToDelete == nil {
+		return fmt.Errorf("habit with ID %s not found", habitID)
 	}
 
 	// Show confirmation dialog with backup option
-	confirmed, createBackup, err := gc.confirmHabitDeletion(goalToDelete)
+	confirmed, createBackup, err := gc.confirmHabitDeletion(habitToDelete)
 	if err != nil {
 		return fmt.Errorf("failed to get deletion confirmation: %w", err)
 	}
@@ -376,7 +376,7 @@ func (gc *HabitConfigurator) RemoveHabitByID(habitsFilePath string, goalID strin
 	}
 
 	// Remove habit from schema
-	schema.Habits = append(schema.Habits[:goalIndex], schema.Habits[goalIndex+1:]...)
+	schema.Habits = append(schema.Habits[:habitIndex], schema.Habits[habitIndex+1:]...)
 
 	// Validate complete schema
 	if err := schema.Validate(); err != nil {
@@ -389,19 +389,19 @@ func (gc *HabitConfigurator) RemoveHabitByID(habitsFilePath string, goalID strin
 	}
 
 	// Display success message
-	gc.displayHabitDeleted(goalToDelete)
+	gc.displayHabitDeleted(habitToDelete)
 
 	return nil
 }
 
 // loadSchema loads and parses the habits schema from file
 func (gc *HabitConfigurator) loadSchema(habitsFilePath string) (*models.Schema, error) {
-	return gc.goalParser.LoadFromFileWithIDPersistence(habitsFilePath, true)
+	return gc.habitParser.LoadFromFileWithIDPersistence(habitsFilePath, true)
 }
 
 // saveSchema saves the habits schema back to file
 func (gc *HabitConfigurator) saveSchema(schema *models.Schema, habitsFilePath string) error {
-	return gc.goalParser.SaveToFile(schema, habitsFilePath)
+	return gc.habitParser.SaveToFile(schema, habitsFilePath)
 }
 
 // BasicInfo holds the pre-collected basic information for all habits
@@ -414,7 +414,7 @@ type BasicInfo struct {
 // collectBasicInformation collects title, description, and habit type upfront
 func (gc *HabitConfigurator) collectBasicInformation() (*BasicInfo, error) {
 	var title, description string
-	var goalType models.HabitType
+	var habitType models.HabitType
 
 	// Step 1: Collect Title and Description
 	basicInfoForm := huh.NewForm(
@@ -446,7 +446,7 @@ func (gc *HabitConfigurator) collectBasicInformation() (*BasicInfo, error) {
 	}
 
 	// Step 2: Habit type selection
-	goalTypeForm := huh.NewForm(
+	habitTypeForm := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[models.HabitType]().
 				Title("Habit Type").
@@ -457,18 +457,18 @@ func (gc *HabitConfigurator) collectBasicInformation() (*BasicInfo, error) {
 					huh.NewOption("Informational (Data tracking only)", models.InformationalHabit),
 					huh.NewOption("Checklist (Complete checklist items)", models.ChecklistHabit),
 				).
-				Value(&goalType),
+				Value(&habitType),
 		),
 	)
 
-	if err := goalTypeForm.Run(); err != nil {
+	if err := habitTypeForm.Run(); err != nil {
 		return nil, err
 	}
 
 	basicInfo := &BasicInfo{
 		Title:       strings.TrimSpace(title),
 		Description: strings.TrimSpace(description),
-		HabitType:   goalType,
+		HabitType:   habitType,
 	}
 
 	return basicInfo, nil
@@ -647,7 +647,7 @@ func (gc *HabitConfigurator) AddHabitWithYAMLOutput(habitsFilePath string) (stri
 	}
 
 	// Convert to YAML string
-	yamlOutput, err := gc.goalParser.ToYAML(schema)
+	yamlOutput, err := gc.habitParser.ToYAML(schema)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate YAML output: %w", err)
 	}
@@ -740,12 +740,12 @@ func (gc *HabitConfigurator) displayHabitEdited(habit *models.Habit) {
 		Foreground(lipgloss.Color("10")). // Bright green
 		Margin(1, 0)
 
-	goalStyle := lipgloss.NewStyle().
+	habitStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("14")). // Bright cyan
 		Bold(true)
 
 	fmt.Println(successStyle.Render("✅ Habit Updated Successfully!"))
-	fmt.Printf("Habit: %s\n", goalStyle.Render(habit.Title))
+	fmt.Printf("Habit: %s\n", habitStyle.Render(habit.Title))
 	fmt.Printf("Type: %s\n", habit.HabitType)
 	fmt.Printf("Field: %s\n", habit.FieldType.Type)
 	if habit.ScoringType != "" {
@@ -981,12 +981,12 @@ func (gc *HabitConfigurator) displayDeleteHabitWelcome(habit *models.Habit) {
 		Foreground(lipgloss.Color("8")). // Gray
 		Margin(0, 0, 1, 0)
 
-	goalStyle := lipgloss.NewStyle().
+	habitStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("15")). // White
 		Bold(true)
 
 	fmt.Println(welcomeStyle.Render("🗑️ Delete Habit"))
-	fmt.Printf("Habit: %s\n", goalStyle.Render(habit.Title))
+	fmt.Printf("Habit: %s\n", habitStyle.Render(habit.Title))
 	if habit.Description != "" {
 		fmt.Printf("Description: %s\n", habit.Description)
 	}
@@ -1001,11 +1001,11 @@ func (gc *HabitConfigurator) displayHabitDeleted(habit *models.Habit) {
 		Foreground(lipgloss.Color("10")). // Bright green
 		Margin(1, 0)
 
-	goalStyle := lipgloss.NewStyle().
+	habitStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("14")). // Bright cyan
 		Bold(true)
 
 	fmt.Println(successStyle.Render("✅ Habit Deleted Successfully!"))
-	fmt.Printf("Deleted: %s\n", goalStyle.Render(habit.Title))
+	fmt.Printf("Deleted: %s\n", habitStyle.Render(habit.Title))
 	fmt.Println()
 }

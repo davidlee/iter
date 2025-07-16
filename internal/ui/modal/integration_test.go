@@ -14,7 +14,7 @@ import (
 // TestEntryFormModal_BasicIntegration tests basic modal functionality without teatest.
 func TestEntryFormModal_BasicIntegration(t *testing.T) {
 	habit := models.Habit{
-		ID:        "test_goal",
+		ID:        "test_habit",
 		Title:     "Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -84,7 +84,7 @@ func (m *TestModalModel) View() string {
 // TestModalManager_Integration tests the modal manager integration.
 func TestModalManager_Integration(t *testing.T) {
 	habit := models.Habit{
-		ID:        "integration_goal",
+		ID:        "integration_habit",
 		Title:     "Integration Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},
@@ -132,7 +132,7 @@ func TestModalManager_Integration(t *testing.T) {
 // TestEntryFormModal_FormIntegration tests form integration within modal.
 func TestEntryFormModal_FormIntegration(t *testing.T) {
 	habit := models.Habit{
-		ID:        "form_test_goal",
+		ID:        "form_test_habit",
 		Title:     "Form Test Habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{Type: models.BooleanFieldType},

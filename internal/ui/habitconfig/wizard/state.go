@@ -14,18 +14,18 @@ type HabitState struct {
 	TotalSteps     int              `json:"totalSteps"`
 	Steps          map[int]StepData `json:"steps"`
 	CompletedSteps map[int]bool     `json:"completedSteps"`
-	HabitType      models.HabitType `json:"goalType"`
+	HabitType      models.HabitType `json:"habitType"`
 }
 
 // NewHabitState creates a new habit wizard state
-func NewHabitState(goalType models.HabitType) *HabitState {
-	totalSteps := calculateTotalSteps(goalType)
+func NewHabitState(habitType models.HabitType) *HabitState {
+	totalSteps := calculateTotalSteps(habitType)
 	return &HabitState{
 		CurrentStep:    0,
 		TotalSteps:     totalSteps,
 		Steps:          make(map[int]StepData),
 		CompletedSteps: make(map[int]bool),
-		HabitType:      goalType,
+		HabitType:      habitType,
 	}
 }
 
@@ -459,8 +459,8 @@ func (d *CriteriaStepData) SetData(data interface{}) error {
 // - InformationalHabit: 3 steps (basic_info → field_config → confirmation)
 
 // Helper function to calculate total steps based on habit type
-func calculateTotalSteps(goalType models.HabitType) int {
-	switch goalType {
+func calculateTotalSteps(habitType models.HabitType) int {
+	switch habitType {
 	case models.SimpleHabit:
 		return 4 // Basic info, scoring, criteria (if auto), confirmation
 	case models.ElasticHabit:

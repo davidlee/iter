@@ -190,7 +190,7 @@ func TestEngine_ScoreElasticHabit(t *testing.T) {
 
 		// Non-elastic habit
 		simpleHabit := &models.Habit{
-			ID:        "simple_goal",
+			ID:        "simple_habit",
 			HabitType: models.SimpleHabit,
 		}
 		_, err = engine.ScoreElasticHabit(simpleHabit, 1000)
@@ -199,7 +199,7 @@ func TestEngine_ScoreElasticHabit(t *testing.T) {
 
 		// Manual scoring habit
 		manualHabit := &models.Habit{
-			ID:          "manual_goal",
+			ID:          "manual_habit",
 			HabitType:   models.ElasticHabit,
 			ScoringType: models.ManualScoring,
 		}
@@ -430,7 +430,7 @@ func TestEngine_ParseTimeToMinutes(t *testing.T) {
 
 func createTestElasticHabit(fieldType string, mini, midi, maxi float64) *models.Habit {
 	return &models.Habit{
-		ID:        "test_elastic_goal",
+		ID:        "test_elastic_habit",
 		HabitType: models.ElasticHabit,
 		FieldType: models.FieldType{
 			Type: fieldType,
@@ -457,7 +457,7 @@ func createTestElasticHabit(fieldType string, mini, midi, maxi float64) *models.
 func createTestBooleanElasticHabit() *models.Habit {
 	trueValue := true
 	return &models.Habit{
-		ID:        "test_boolean_goal",
+		ID:        "test_boolean_habit",
 		HabitType: models.ElasticHabit,
 		FieldType: models.FieldType{
 			Type: models.BooleanFieldType,
@@ -476,7 +476,7 @@ func createTestTextElasticHabit() *models.Habit {
 	midiLength := 15.0
 	maxiLength := 30.0
 	return &models.Habit{
-		ID:        "test_text_goal",
+		ID:        "test_text_habit",
 		HabitType: models.ElasticHabit,
 		FieldType: models.FieldType{
 			Type: models.TextFieldType,
@@ -502,7 +502,7 @@ func createTestTextElasticHabit() *models.Habit {
 
 func createTestSimpleHabit(fieldType string, threshold float64) models.Habit {
 	return models.Habit{
-		ID:        "test_simple_goal",
+		ID:        "test_simple_habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{
 			Type: fieldType,
@@ -519,7 +519,7 @@ func createTestSimpleHabit(fieldType string, threshold float64) models.Habit {
 func createTestSimpleBooleanHabit() models.Habit {
 	trueValue := true
 	return models.Habit{
-		ID:        "test_simple_boolean_goal",
+		ID:        "test_simple_boolean_habit",
 		HabitType: models.SimpleHabit,
 		FieldType: models.FieldType{
 			Type: models.BooleanFieldType,

@@ -62,7 +62,7 @@ Files & patterns in this project worth knowing about:
 
 **State Synchronization Complexity**:
 - Entry menu state sync between file storage, EntryCollector, and UI display
-- Multiple type conversions (interface{} → GoalEntry) can hide bugs
+- Multiple type conversions (interface{} → HabitEntry) can hide bugs
 - Consider simplifying the state management chain
 
 ### BubbleTea Patterns & Best Practices

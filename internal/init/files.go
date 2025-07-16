@@ -13,14 +13,14 @@ import (
 
 // FileInitializer handles creation of sample configuration files.
 type FileInitializer struct {
-	goalParser   *parser.HabitParser
+	habitParser  *parser.HabitParser
 	entryStorage *storage.EntryStorage
 }
 
 // NewFileInitializer creates a new file initializer instance.
 func NewFileInitializer() *FileInitializer {
 	return &FileInitializer{
-		goalParser:   parser.NewHabitParser(),
+		habitParser:  parser.NewHabitParser(),
 		entryStorage: storage.NewEntryStorage(),
 	}
 }
@@ -130,7 +130,7 @@ func (fi *FileInitializer) createSampleHabitsFile(habitsFile string) error {
 		},
 	}
 
-	return fi.goalParser.SaveToFile(schema, habitsFile)
+	return fi.habitParser.SaveToFile(schema, habitsFile)
 }
 
 // floatPtr returns a pointer to a float64 value.

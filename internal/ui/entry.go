@@ -18,7 +18,7 @@ import (
 // AIDEV-NOTE: T010-entry-system-complete; All habit collection flows with field input components and scoring integration
 // Architecture: Uses habit collection flows from internal/ui/entry/ package with complete scoring engine integration
 type EntryCollector struct {
-	goalParser    *parser.HabitParser
+	habitParser   *parser.HabitParser
 	entryStorage  *storage.EntryStorage
 	scoringEngine *scoring.Engine
 	flowFactory   *entry.HabitCollectionFlowFactory
@@ -36,7 +36,7 @@ func NewEntryCollector(checklistsPath string) *EntryCollector {
 	flowFactory := entry.NewHabitCollectionFlowFactory(fieldInputFactory, scoringEngine, checklistsPath)
 
 	return &EntryCollector{
-		goalParser:    parser.NewHabitParser(),
+		habitParser:   parser.NewHabitParser(),
 		entryStorage:  storage.NewEntryStorage(),
 		scoringEngine: scoringEngine,
 		flowFactory:   flowFactory,
@@ -50,7 +50,7 @@ func NewEntryCollector(checklistsPath string) *EntryCollector {
 // CollectTodayEntries runs the interactive UI to collect today's habit entries.
 func (ec *EntryCollector) CollectTodayEntries(habitsFile, entriesFile string) error {
 	// Load habit schema
-	schema, err := ec.goalParser.LoadFromFile(habitsFile)
+	schema, err := ec.habitParser.LoadFromFile(habitsFile)
 	if err != nil {
 		return fmt.Errorf("failed to load habits: %w", err)
 	}
@@ -98,14 +98,14 @@ func (ec *EntryCollector) loadExistingEntries(entriesFile string) error {
 	}
 
 	// Load existing entries into our maps
-	for _, goalEntry := range dayEntry.Habits {
-		ec.entries[goalEntry.HabitID] = goalEntry.Value
-		ec.notes[goalEntry.HabitID] = goalEntry.Notes
-		ec.statuses[goalEntry.HabitID] = goalEntry.Status
+	for _, habitEntry := range dayEntry.Habits {
+		ec.entries[habitEntry.HabitID] = habitEntry.Value
+		ec.notes[habitEntry.HabitID] = habitEntry.Notes
+		ec.statuses[habitEntry.HabitID] = habitEntry.Status
 
 		// Load achievement level for elastic habits
-		if goalEntry.AchievementLevel != nil {
-			ec.achievements[goalEntry.HabitID] = goalEntry.AchievementLevel
+		if habitEntry.AchievementLevel != nil {
+			ec.achievements[habitEntry.HabitID] = habitEntry.AchievementLevel
 		}
 	}
 
@@ -155,29 +155,29 @@ func (ec *EntryCollector) saveEntries(entriesFile string) error {
 	today := time.Now().Format("2006-01-02")
 
 	// Create habit entries from collected data
-	var goalEntries []models.HabitEntry
+	var habitEntries []models.HabitEntry
 	for _, habit := range ec.habits {
 		value, exists := ec.entries[habit.ID]
 		if !exists {
 			continue // Skip habits that weren't processed
 		}
 
-		goalEntry := models.HabitEntry{
+		habitEntry := models.HabitEntry{
 			HabitID:          habit.ID,
 			Value:            value,
 			AchievementLevel: ec.achievements[habit.ID], // Will be nil for simple/informational habits
 			Notes:            ec.notes[habit.ID],
 			Status:           ec.statuses[habit.ID], // Use collected status
 		}
-		goalEntry.MarkCreated()
+		habitEntry.MarkCreated()
 
-		goalEntries = append(goalEntries, goalEntry)
+		habitEntries = append(habitEntries, habitEntry)
 	}
 
 	// Create day entry
 	dayEntry := models.DayEntry{
 		Date:   today,
-		Habits: goalEntries,
+		Habits: habitEntries,
 	}
 
 	// Save to storage
@@ -200,14 +200,14 @@ func (ec *EntryCollector) displayWelcome() {
 	today := time.Now().Format("Monday, January 2, 2006")
 	welcome := fmt.Sprintf("🎯 Habit Tracker - %s", today)
 
-	goalCountStyle := lipgloss.NewStyle().
+	habitCountStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("8")). // Gray
 		Margin(0, 0, 1, 0)
 
-	goalCount := goalCountStyle.Render(fmt.Sprintf("Ready to track %d habits for today!", len(ec.habits)))
+	habitCount := habitCountStyle.Render(fmt.Sprintf("Ready to track %d habits for today!", len(ec.habits)))
 
 	fmt.Println(headerStyle.Render(welcome))
-	fmt.Println(goalCount)
+	fmt.Println(habitCount)
 }
 
 // displayCompletion shows a completion message with summary.
@@ -216,11 +216,11 @@ func (ec *EntryCollector) displayCompletion() {
 	totalCount := len(ec.habits)
 
 	// Count completions based on habit type and value
-	for goalID, value := range ec.entries {
+	for habitID, value := range ec.entries {
 		// Find the habit to determine how to interpret completion
 		var habit *models.Habit
 		for i := range ec.habits {
-			if ec.habits[i].ID == goalID {
+			if ec.habits[i].ID == habitID {
 				habit = &ec.habits[i]
 				break
 			}
@@ -239,7 +239,7 @@ func (ec *EntryCollector) displayCompletion() {
 			}
 		case models.ElasticHabit:
 			// Elastic habits: consider any achievement level as completion
-			if achievementLevel := ec.achievements[goalID]; achievementLevel != nil && *achievementLevel != models.AchievementNone {
+			if achievementLevel := ec.achievements[habitID]; achievementLevel != nil && *achievementLevel != models.AchievementNone {
 				completedCount++
 			}
 		case models.InformationalHabit:
@@ -320,11 +320,11 @@ func (ec *EntryCollector) CollectSingleHabitEntry(habit models.Habit) error {
 
 // GetHabitEntry returns the current entry data for a habit.
 // AIDEV-NOTE: T018/3.1-state-sync; used by menu to sync state after entry collection
-func (ec *EntryCollector) GetHabitEntry(goalID string) (interface{}, string, *models.AchievementLevel, models.EntryStatus, bool) {
-	value, hasValue := ec.entries[goalID]
-	notes := ec.notes[goalID]
-	achievement := ec.achievements[goalID]
-	status, hasStatus := ec.statuses[goalID]
+func (ec *EntryCollector) GetHabitEntry(habitID string) (interface{}, string, *models.AchievementLevel, models.EntryStatus, bool) {
+	value, hasValue := ec.entries[habitID]
+	notes := ec.notes[habitID]
+	achievement := ec.achievements[habitID]
+	status, hasStatus := ec.statuses[habitID]
 
 	return value, notes, achievement, status, hasValue && hasStatus
 }
@@ -361,14 +361,14 @@ func (ec *EntryCollector) SaveEntriesToFile(entriesFile string) error {
 
 // StoreEntryResult stores an entry result from modal processing into the collector.
 // AIDEV-NOTE: T024-modal-integration; stores modal results in collector for menu state sync
-func (ec *EntryCollector) StoreEntryResult(goalID string, result *entry.EntryResult) {
-	ec.entries[goalID] = result.Value
-	ec.notes[goalID] = result.Notes
-	ec.statuses[goalID] = result.Status
+func (ec *EntryCollector) StoreEntryResult(habitID string, result *entry.EntryResult) {
+	ec.entries[habitID] = result.Value
+	ec.notes[habitID] = result.Notes
+	ec.statuses[habitID] = result.Status
 
 	// Store achievement level if present (for elastic habits)
 	if result.AchievementLevel != nil {
-		ec.achievements[goalID] = result.AchievementLevel
+		ec.achievements[habitID] = result.AchievementLevel
 	}
 }
 
@@ -380,25 +380,25 @@ func (ec *EntryCollector) SetHabitsForTesting(habits []models.Habit) {
 }
 
 // SetEntryForTesting sets an entry for testing purposes.
-func (ec *EntryCollector) SetEntryForTesting(goalID string, value interface{}, achievementLevel *models.AchievementLevel, notes string) {
-	ec.entries[goalID] = value
-	ec.notes[goalID] = notes
+func (ec *EntryCollector) SetEntryForTesting(habitID string, value interface{}, achievementLevel *models.AchievementLevel, notes string) {
+	ec.entries[habitID] = value
+	ec.notes[habitID] = notes
 	if achievementLevel != nil {
-		ec.achievements[goalID] = achievementLevel
+		ec.achievements[habitID] = achievementLevel
 	}
 
 	// Determine status based on value and achievement level
 	if value == nil {
-		ec.statuses[goalID] = models.EntrySkipped
+		ec.statuses[habitID] = models.EntrySkipped
 	} else if boolVal, ok := value.(bool); ok {
 		if boolVal {
-			ec.statuses[goalID] = models.EntryCompleted
+			ec.statuses[habitID] = models.EntryCompleted
 		} else {
-			ec.statuses[goalID] = models.EntryFailed
+			ec.statuses[habitID] = models.EntryFailed
 		}
 	} else {
 		// Non-boolean values default to completed
-		ec.statuses[goalID] = models.EntryCompleted
+		ec.statuses[habitID] = models.EntryCompleted
 	}
 }
 

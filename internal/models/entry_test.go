@@ -139,19 +139,19 @@ func TestDayEntry_Validate(t *testing.T) {
 
 func TestHabitEntry_Validate(t *testing.T) {
 	t.Run("valid boolean habit entry", func(t *testing.T) {
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
-		err := goalEntry.Validate()
+		err := habitEntry.Validate()
 		assert.NoError(t, err)
 	})
 
 	t.Run("valid habit entry with notes", func(t *testing.T) {
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:   "exercise",
 			Value:     false,
 			Status:    EntryFailed,
@@ -159,48 +159,48 @@ func TestHabitEntry_Validate(t *testing.T) {
 			Notes:     "Was feeling sick today",
 		}
 
-		err := goalEntry.Validate()
+		err := habitEntry.Validate()
 		assert.NoError(t, err)
 	})
 
 	t.Run("habit ID is required", func(t *testing.T) {
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
-		err := goalEntry.Validate()
+		err := habitEntry.Validate()
 		assert.EqualError(t, err, "habit ID is required")
 	})
 
 	t.Run("whitespace-only habit ID is invalid", func(t *testing.T) {
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:   "   ",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
-		err := goalEntry.Validate()
+		err := habitEntry.Validate()
 		assert.EqualError(t, err, "habit ID is required")
 	})
 
 	t.Run("value is required for completed/failed entries", func(t *testing.T) {
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:   "meditation",
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 			// Value is nil
 		}
 
-		err := goalEntry.Validate()
+		err := habitEntry.Validate()
 		assert.EqualError(t, err, "completed and failed entries must have values")
 	})
 
 	t.Run("skipped entries with achievement levels are allowed", func(t *testing.T) {
 		achievementLevel := AchievementMini
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:          "meditation",
 			Status:           EntrySkipped,
 			AchievementLevel: &achievementLevel,
@@ -208,19 +208,19 @@ func TestHabitEntry_Validate(t *testing.T) {
 			// Value is nil (valid for skipped entries)
 		}
 
-		err := goalEntry.Validate()
+		err := habitEntry.Validate()
 		assert.NoError(t, err, "skipped entries should allow achievement levels per ADR-001")
 	})
 
 	t.Run("skipped entries with values are still invalid", func(t *testing.T) {
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntrySkipped,
 			CreatedAt: time.Now(),
 		}
 
-		err := goalEntry.Validate()
+		err := habitEntry.Validate()
 		assert.EqualError(t, err, "skipped entries cannot have values")
 	})
 }
@@ -368,14 +368,14 @@ func TestDayEntry_AddHabitEntry(t *testing.T) {
 			Habits: []HabitEntry{},
 		}
 
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
-		err := dayEntry.AddHabitEntry(goalEntry)
+		err := dayEntry.AddHabitEntry(habitEntry)
 		assert.NoError(t, err)
 		assert.Len(t, dayEntry.Habits, 1)
 		assert.Equal(t, "meditation", dayEntry.Habits[0].HabitID)
@@ -389,14 +389,14 @@ func TestDayEntry_AddHabitEntry(t *testing.T) {
 			},
 		}
 
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:   "meditation",
 			Value:     false,
 			Status:    EntryFailed,
 			CreatedAt: time.Now(),
 		}
 
-		err := dayEntry.AddHabitEntry(goalEntry)
+		err := dayEntry.AddHabitEntry(habitEntry)
 		assert.EqualError(t, err, "entry for habit meditation already exists on date 2024-01-01")
 	})
 }
@@ -431,14 +431,14 @@ func TestDayEntry_UpdateHabitEntry(t *testing.T) {
 			Habits: []HabitEntry{},
 		}
 
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
-		err := dayEntry.UpdateHabitEntry(goalEntry)
+		err := dayEntry.UpdateHabitEntry(habitEntry)
 		assert.NoError(t, err)
 		assert.Len(t, dayEntry.Habits, 1)
 	})
@@ -446,39 +446,39 @@ func TestDayEntry_UpdateHabitEntry(t *testing.T) {
 
 func TestHabitEntry_BooleanValue(t *testing.T) {
 	t.Run("get boolean value", func(t *testing.T) {
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:   "meditation",
 			Value:     true,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
 		}
 
-		value, ok := goalEntry.GetBooleanValue()
+		value, ok := habitEntry.GetBooleanValue()
 		assert.True(t, ok)
 		assert.True(t, value)
 	})
 
 	t.Run("non-boolean value", func(t *testing.T) {
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID: "steps",
 			Value:   12345,
 		}
 
-		value, ok := goalEntry.GetBooleanValue()
+		value, ok := habitEntry.GetBooleanValue()
 		assert.False(t, ok)
 		assert.False(t, value)
 	})
 
 	t.Run("set boolean value", func(t *testing.T) {
-		goalEntry := HabitEntry{
+		habitEntry := HabitEntry{
 			HabitID:   "meditation",
 			Value:     false,
 			Status:    EntryFailed,
 			CreatedAt: time.Now(),
 		}
 
-		goalEntry.SetBooleanValue(true)
-		assert.Equal(t, true, goalEntry.Value)
+		habitEntry.SetBooleanValue(true)
+		assert.Equal(t, true, habitEntry.Value)
 	})
 }
 
@@ -601,7 +601,7 @@ func TestEntryLog_GetEntriesForDateRange(t *testing.T) {
 func TestHabitEntry_AchievementLevel(t *testing.T) {
 	t.Run("GetAchievementLevel with no level set", func(t *testing.T) {
 		entry := HabitEntry{
-			HabitID:   "test_goal",
+			HabitID:   "test_habit",
 			Value:     30,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
@@ -615,7 +615,7 @@ func TestHabitEntry_AchievementLevel(t *testing.T) {
 
 	t.Run("SetAchievementLevel and GetAchievementLevel", func(t *testing.T) {
 		entry := HabitEntry{
-			HabitID:   "test_goal",
+			HabitID:   "test_habit",
 			Value:     30,
 			Status:    EntryCompleted,
 			CreatedAt: time.Now(),
@@ -632,7 +632,7 @@ func TestHabitEntry_AchievementLevel(t *testing.T) {
 	t.Run("ClearAchievementLevel", func(t *testing.T) {
 		level := AchievementMidi
 		entry := HabitEntry{
-			HabitID:          "test_goal",
+			HabitID:          "test_habit",
 			Value:            30,
 			AchievementLevel: &level,
 			Status:           EntryCompleted,
@@ -660,7 +660,7 @@ func TestHabitEntry_AchievementLevel(t *testing.T) {
 		for _, levelValue := range validLevels {
 			level := levelValue // Create a copy for pointer
 			entry := HabitEntry{
-				HabitID:          "test_goal",
+				HabitID:          "test_habit",
 				Value:            30,
 				AchievementLevel: &level,
 				Status:           EntryCompleted,
@@ -675,7 +675,7 @@ func TestHabitEntry_AchievementLevel(t *testing.T) {
 	t.Run("validate invalid achievement level", func(t *testing.T) {
 		invalidLevel := AchievementLevel("invalid")
 		entry := HabitEntry{
-			HabitID:          "test_goal",
+			HabitID:          "test_habit",
 			Value:            30,
 			AchievementLevel: &invalidLevel,
 			Status:           EntryCompleted,

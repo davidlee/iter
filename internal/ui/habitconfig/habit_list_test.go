@@ -24,7 +24,7 @@ func TestHabitItem_FilterValue(t *testing.T) {
 
 	t.Run("handles different habit types", func(t *testing.T) {
 		testCases := []struct {
-			goalType     models.HabitType
+			habitType    models.HabitType
 			expectedType string
 		}{
 			{models.SimpleHabit, "simple"},
@@ -36,7 +36,7 @@ func TestHabitItem_FilterValue(t *testing.T) {
 		for _, tc := range testCases {
 			habit := models.Habit{
 				Title:     "Test Habit",
-				HabitType: tc.goalType,
+				HabitType: tc.habitType,
 			}
 			item := HabitItem{Habit: habit}
 
@@ -88,7 +88,7 @@ func TestHabitItem_Description(t *testing.T) {
 func TestHabitItem_getHabitTypeEmoji(t *testing.T) {
 	t.Run("returns correct emoji for each habit type", func(t *testing.T) {
 		testCases := []struct {
-			goalType      models.HabitType
+			habitType     models.HabitType
 			expectedEmoji string
 		}{
 			{models.SimpleHabit, "✅"},
@@ -99,7 +99,7 @@ func TestHabitItem_getHabitTypeEmoji(t *testing.T) {
 
 		for _, tc := range testCases {
 			habit := models.Habit{
-				HabitType: tc.goalType,
+				HabitType: tc.habitType,
 			}
 			item := HabitItem{Habit: habit}
 

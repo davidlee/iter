@@ -14,13 +14,13 @@ func TestNewEntryMenuModelForTesting(t *testing.T) {
 	// Create test habits
 	habits := []models.Habit{
 		{
-			ID:          "goal1",
+			ID:          "habit1",
 			Title:       "Test Habit 1",
 			Description: "Test description",
 			HabitType:   models.SimpleHabit,
 		},
 		{
-			ID:          "goal2",
+			ID:          "habit2",
 			Title:       "Test Habit 2",
 			Description: "Another test",
 			HabitType:   models.ElasticHabit,
@@ -29,8 +29,8 @@ func TestNewEntryMenuModelForTesting(t *testing.T) {
 
 	// Create test entries
 	entries := map[string]models.HabitEntry{
-		"goal1": {
-			HabitID:   "goal1",
+		"habit1": {
+			HabitID:   "habit1",
 			Value:     true,
 			Status:    models.EntryCompleted,
 			CreatedAt: time.Now(),
@@ -248,15 +248,15 @@ func TestShouldFilterOut(t *testing.T) {
 func TestEntryMenuModel_View(t *testing.T) {
 	habits := []models.Habit{
 		{
-			ID:        "goal1",
+			ID:        "habit1",
 			Title:     "Test Habit",
 			HabitType: models.SimpleHabit,
 		},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal1": {
-			HabitID:   "goal1",
+		"habit1": {
+			HabitID:   "habit1",
 			Status:    models.EntryCompleted,
 			CreatedAt: time.Now(),
 		},
@@ -284,13 +284,13 @@ func TestEntryMenuModel_View(t *testing.T) {
 
 func TestEntryMenuModel_ViewWithFilters(t *testing.T) {
 	habits := []models.Habit{
-		{ID: "goal1", Title: "Completed Habit", HabitType: models.SimpleHabit},
-		{ID: "goal2", Title: "Skipped Habit", HabitType: models.SimpleHabit},
+		{ID: "habit1", Title: "Completed Habit", HabitType: models.SimpleHabit},
+		{ID: "habit2", Title: "Skipped Habit", HabitType: models.SimpleHabit},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal1": {HabitID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
-		"goal2": {HabitID: "goal2", Status: models.EntrySkipped, CreatedAt: time.Now()},
+		"habit1": {HabitID: "habit1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+		"habit2": {HabitID: "habit2", Status: models.EntrySkipped, CreatedAt: time.Now()},
 	}
 
 	model := NewEntryMenuModelForTesting(habits, entries)
@@ -312,15 +312,15 @@ func TestEntryMenuModel_ViewWithFilters(t *testing.T) {
 
 func TestEntryMenuModel_NavigationEnhancements(t *testing.T) {
 	habits := []models.Habit{
-		{ID: "goal1", Title: "Completed Habit", HabitType: models.SimpleHabit},
-		{ID: "goal2", Title: "Incomplete Habit 1", HabitType: models.SimpleHabit},
-		{ID: "goal3", Title: "Skipped Habit", HabitType: models.SimpleHabit},
-		{ID: "goal4", Title: "Incomplete Habit 2", HabitType: models.SimpleHabit},
+		{ID: "habit1", Title: "Completed Habit", HabitType: models.SimpleHabit},
+		{ID: "habit2", Title: "Incomplete Habit 1", HabitType: models.SimpleHabit},
+		{ID: "habit3", Title: "Skipped Habit", HabitType: models.SimpleHabit},
+		{ID: "habit4", Title: "Incomplete Habit 2", HabitType: models.SimpleHabit},
 	}
 
 	entries := map[string]models.HabitEntry{
-		"goal1": {HabitID: "goal1", Status: models.EntryCompleted, CreatedAt: time.Now()},
-		"goal3": {HabitID: "goal3", Status: models.EntrySkipped, CreatedAt: time.Now()},
+		"habit1": {HabitID: "habit1", Status: models.EntryCompleted, CreatedAt: time.Now()},
+		"habit3": {HabitID: "habit3", Status: models.EntrySkipped, CreatedAt: time.Now()},
 	}
 
 	model := NewEntryMenuModelForTesting(habits, entries)
@@ -333,8 +333,8 @@ func TestEntryMenuModel_NavigationEnhancements(t *testing.T) {
 	}
 
 	// Test GetCurrentHabitInfo
-	goalInfo := model.GetCurrentHabitInfo()
-	if goalInfo == nil {
+	habitInfo := model.GetCurrentHabitInfo()
+	if habitInfo == nil {
 		t.Error("Expected habit info to be available")
 	}
 

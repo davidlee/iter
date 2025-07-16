@@ -23,7 +23,7 @@ From analyzing the charmbracelet ecosystem:
 
 **Current Flow** (problematic):
 ```
-EntryMenu → CollectSingleGoalEntry() → flow.CollectEntry() → form.Run() → [TAKEOVER]
+EntryMenu → CollectSingleHabitEntry() → flow.CollectEntry() → form.Run() → [TAKEOVER]
 ```
 
 **Desired Flow** (modal):

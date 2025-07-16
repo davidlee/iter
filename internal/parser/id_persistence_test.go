@@ -20,13 +20,13 @@ func TestHabitParser_LoadFromFileWithIDPersistence(t *testing.T) {
 		yamlContent := `version: "1.0.0"
 habits:
   - title: "Morning Exercise"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
     prompt: "Did you exercise this morning?"
   - title: "Daily Reading"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -73,13 +73,13 @@ habits:
 habits:
   - title: "Morning Exercise"
     id: "custom_exercise_id"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
   - title: "Daily Reading"
     id: "custom_reading_id"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -117,7 +117,7 @@ habits:
 		yamlContent := `version: "1.0.0"
 habits:
   - title: "Morning Exercise"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -153,7 +153,7 @@ habits:
 		yamlContent := `version: "1.0.0"
 habits:
   - title: "Morning Exercise"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -189,17 +189,17 @@ habits:
 habits:
   - title: "Morning Exercise"
     id: "existing_exercise_id"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
   - title: "Daily Reading"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
   - title: "Water Intake"
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "unsigned_int"
       unit: "glasses"
@@ -248,7 +248,7 @@ func TestSchema_ValidateAndTrackChanges(t *testing.T) {
 		wasModified, err := schema.ValidateAndTrackChanges()
 		require.NoError(t, err)
 		assert.True(t, wasModified, "should detect that ID was generated")
-		assert.Equal(t, "test_goal", schema.Habits[0].ID)
+		assert.Equal(t, "test_habit", schema.Habits[0].ID)
 	})
 
 	t.Run("does not track changes when IDs already exist", func(t *testing.T) {
@@ -295,7 +295,7 @@ func TestSchema_ValidateAndTrackChanges(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, wasModified, "should detect that one ID was generated")
 		assert.Equal(t, "existing_id", schema.Habits[0].ID)
-		assert.Equal(t, "goal_2", schema.Habits[1].ID)
+		assert.Equal(t, "habit_2", schema.Habits[1].ID)
 	})
 }
 
@@ -311,7 +311,7 @@ func TestHabit_ValidateAndTrackChanges(t *testing.T) {
 		wasModified, err := habit.ValidateAndTrackChanges()
 		require.NoError(t, err)
 		assert.True(t, wasModified)
-		assert.Equal(t, "test_goal", habit.ID)
+		assert.Equal(t, "test_habit", habit.ID)
 	})
 
 	t.Run("does not track when ID exists", func(t *testing.T) {

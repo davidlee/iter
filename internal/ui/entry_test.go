@@ -18,7 +18,7 @@ func TestNewEntryCollector(t *testing.T) {
 
 	// Test basic initialization
 	assert.NotNil(t, collector)
-	assert.NotNil(t, collector.goalParser)
+	assert.NotNil(t, collector.habitParser)
 	assert.NotNil(t, collector.entryStorage)
 	assert.NotNil(t, collector.scoringEngine)
 	assert.NotNil(t, collector.flowFactory)
@@ -299,8 +299,8 @@ func TestEntryCollector_CollectTodayEntries_ErrorCases(t *testing.T) {
 			Habits:  []models.Habit{},
 		}
 
-		goalParser := parser.NewHabitParser()
-		err := goalParser.SaveToFile(schema, habitsFile)
+		habitParser := parser.NewHabitParser()
+		err := habitParser.SaveToFile(schema, habitsFile)
 		require.NoError(t, err)
 
 		collector := NewEntryCollector("checklists.yml")
@@ -343,15 +343,15 @@ func TestEntryCollector_Integration(t *testing.T) {
 			},
 		}
 
-		goalParser := parser.NewHabitParser()
-		err := goalParser.SaveToFile(schema, habitsFile)
+		habitParser := parser.NewHabitParser()
+		err := habitParser.SaveToFile(schema, habitsFile)
 		require.NoError(t, err)
 
 		// Test that collector can load habits successfully
 		collector := NewEntryCollector("checklists.yml")
 
 		// Load habits manually to test without UI interaction
-		loadedSchema, err := collector.goalParser.LoadFromFile(habitsFile)
+		loadedSchema, err := collector.habitParser.LoadFromFile(habitsFile)
 		require.NoError(t, err)
 
 		collector.habits = parser.GetSimpleBooleanHabits(loadedSchema)

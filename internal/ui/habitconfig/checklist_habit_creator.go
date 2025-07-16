@@ -25,7 +25,7 @@ type ChecklistHabitCreator struct {
 	// Form data - bound directly to form fields per huh documentation
 	title       string
 	description string
-	goalType    models.HabitType
+	habitType   models.HabitType
 	checklistID string
 	scoringType models.ScoringType
 	prompt      string
@@ -40,7 +40,7 @@ func NewChecklistHabitCreatorForEdit(habit *models.Habit, checklistsFilePath str
 	creator := &ChecklistHabitCreator{
 		title:           habit.Title,
 		description:     habit.Description,
-		goalType:        habit.HabitType,
+		habitType:       habit.HabitType,
 		checklistID:     habit.FieldType.ChecklistID,
 		scoringType:     habit.ScoringType,
 		prompt:          habit.Prompt,
@@ -60,11 +60,11 @@ func NewChecklistHabitCreatorForEdit(habit *models.Habit, checklistsFilePath str
 }
 
 // NewChecklistHabitCreator creates a new checklist habit creator with pre-populated basic info
-func NewChecklistHabitCreator(title, description string, goalType models.HabitType, checklistsFilePath string) *ChecklistHabitCreator {
+func NewChecklistHabitCreator(title, description string, habitType models.HabitType, checklistsFilePath string) *ChecklistHabitCreator {
 	creator := &ChecklistHabitCreator{
 		title:           title,
 		description:     description,
-		goalType:        goalType,
+		habitType:       habitType,
 		prompt:          "Complete your checklist items today", // Default prompt
 		checklistParser: parser.NewChecklistParser(),
 	}
@@ -233,7 +233,7 @@ func (cgc *ChecklistHabitCreator) buildResult() error {
 	habit := &models.Habit{
 		Title:       cgc.title,
 		Description: cgc.description,
-		HabitType:   cgc.goalType,
+		HabitType:   cgc.habitType,
 		FieldType: models.FieldType{
 			Type:        models.ChecklistFieldType,
 			ChecklistID: cgc.checklistID,

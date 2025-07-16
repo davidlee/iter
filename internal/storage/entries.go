@@ -220,7 +220,7 @@ func (es *EntryStorage) GetTodayEntry(filePath string) (*models.DayEntry, error)
 
 // AddHabitEntry adds a habit entry to a specific day in the entry log file.
 // If the day doesn't exist, it creates a new day entry.
-func (es *EntryStorage) AddHabitEntry(filePath string, date string, goalEntry models.HabitEntry) error {
+func (es *EntryStorage) AddHabitEntry(filePath string, date string, habitEntry models.HabitEntry) error {
 	// Load existing entry log
 	entryLog, err := es.LoadFromFile(filePath)
 	if err != nil {
@@ -242,7 +242,7 @@ func (es *EntryStorage) AddHabitEntry(filePath string, date string, goalEntry mo
 	}
 
 	// Add the habit entry
-	if err := dayEntry.AddHabitEntry(goalEntry); err != nil {
+	if err := dayEntry.AddHabitEntry(habitEntry); err != nil {
 		return fmt.Errorf("failed to add habit entry: %w", err)
 	}
 
@@ -256,7 +256,7 @@ func (es *EntryStorage) AddHabitEntry(filePath string, date string, goalEntry mo
 
 // UpdateHabitEntry updates or creates a habit entry for a specific day in the entry log file.
 // If the day doesn't exist, it creates a new day entry.
-func (es *EntryStorage) UpdateHabitEntry(filePath string, date string, goalEntry models.HabitEntry) error {
+func (es *EntryStorage) UpdateHabitEntry(filePath string, date string, habitEntry models.HabitEntry) error {
 	// Load existing entry log
 	entryLog, err := es.LoadFromFile(filePath)
 	if err != nil {
@@ -278,7 +278,7 @@ func (es *EntryStorage) UpdateHabitEntry(filePath string, date string, goalEntry
 	}
 
 	// Update the habit entry
-	if err := dayEntry.UpdateHabitEntry(goalEntry); err != nil {
+	if err := dayEntry.UpdateHabitEntry(habitEntry); err != nil {
 		return fmt.Errorf("failed to update habit entry: %w", err)
 	}
 
@@ -291,9 +291,9 @@ func (es *EntryStorage) UpdateHabitEntry(filePath string, date string, goalEntry
 }
 
 // UpdateTodayHabitEntry updates or creates a habit entry for today.
-func (es *EntryStorage) UpdateTodayHabitEntry(filePath string, goalEntry models.HabitEntry) error {
+func (es *EntryStorage) UpdateTodayHabitEntry(filePath string, habitEntry models.HabitEntry) error {
 	today := models.CreateTodayEntry().Date
-	return es.UpdateHabitEntry(filePath, today, goalEntry)
+	return es.UpdateHabitEntry(filePath, today, habitEntry)
 }
 
 // GetEntriesForDateRange retrieves all entries within the specified date range.

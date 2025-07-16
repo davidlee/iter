@@ -23,7 +23,7 @@ type ValidationStepHandler struct {
 	form             *huh.Form
 	formActive       bool
 	formComplete     bool
-	goalType         models.HabitType
+	habitType        models.HabitType
 	validationOk     bool
 	validationErrors []string
 
@@ -32,9 +32,9 @@ type ValidationStepHandler struct {
 }
 
 // NewValidationStepHandler creates a new validation step handler
-func NewValidationStepHandler(goalType models.HabitType) *ValidationStepHandler {
+func NewValidationStepHandler(habitType models.HabitType) *ValidationStepHandler {
 	return &ValidationStepHandler{
-		goalType: goalType,
+		habitType: habitType,
 	}
 }
 
@@ -106,7 +106,7 @@ func (h *ValidationStepHandler) CanNavigateFrom(_ State) bool {
 // CanNavigateTo checks if we can enter this step
 func (h *ValidationStepHandler) CanNavigateTo(state State) bool {
 	// Can navigate to validation if all criteria steps are complete
-	if h.goalType != models.ElasticHabit {
+	if h.habitType != models.ElasticHabit {
 		return true // Skip validation for non-elastic habits
 	}
 
@@ -175,7 +175,7 @@ func (h *ValidationStepHandler) runValidation(state State) {
 	h.validationErrors = []string{}
 	h.validationOk = true
 
-	if h.goalType != models.ElasticHabit {
+	if h.habitType != models.ElasticHabit {
 		return // No validation needed for non-elastic habits
 	}
 

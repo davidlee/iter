@@ -407,8 +407,8 @@ func (m *HabitListModel) GetSelectedHabitForDelete() string {
 }
 
 // getHabitTypeEmojiForHabit returns emoji for habit type (helper for modal).
-func getHabitTypeEmojiForHabit(goalType models.HabitType) string {
-	switch goalType {
+func getHabitTypeEmojiForHabit(habitType models.HabitType) string {
+	switch habitType {
 	case models.SimpleHabit:
 		return "✅"
 	case models.ElasticHabit:

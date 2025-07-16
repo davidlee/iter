@@ -326,9 +326,9 @@ func TestHabitCollectionFlowFactory(t *testing.T) {
 	factory := NewHabitCollectionFlowFactory(fieldInputFactory, nil, "checklists.yml")
 
 	tests := []struct {
-		name     string
-		goalType string
-		wantErr  bool
+		name      string
+		habitType string
+		wantErr   bool
 	}{
 		{"Simple habit", string(models.SimpleHabit), false},
 		{"Elastic habit", string(models.ElasticHabit), false},
@@ -339,7 +339,7 @@ func TestHabitCollectionFlowFactory(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flow, err := factory.CreateFlow(tt.goalType)
+			flow, err := factory.CreateFlow(tt.habitType)
 
 			if tt.wantErr {
 				if err == nil {
@@ -358,8 +358,8 @@ func TestHabitCollectionFlowFactory(t *testing.T) {
 				return
 			}
 
-			if flow.GetFlowType() != tt.goalType {
-				t.Errorf("GetFlowType() = %v, want %v", flow.GetFlowType(), tt.goalType)
+			if flow.GetFlowType() != tt.habitType {
+				t.Errorf("GetFlowType() = %v, want %v", flow.GetFlowType(), tt.habitType)
 			}
 		})
 	}

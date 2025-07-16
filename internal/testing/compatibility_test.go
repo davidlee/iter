@@ -32,8 +32,8 @@ func TestUserDataBackwardsCompatibility(t *testing.T) {
 			description: "Minimal user configuration with single habit",
 		},
 		{
-			name:        "mixed_goal_types",
-			file:        "mixed_goal_types.yml",
+			name:        "mixed_habit_types",
+			file:        "mixed_habit_types.yml",
 			description: "Mix of simple, elastic, and informational habits",
 		},
 	}
@@ -46,8 +46,8 @@ func TestUserDataBackwardsCompatibility(t *testing.T) {
 			require.NoError(t, err, "Should be able to read user pattern %s", pattern.file)
 
 			// Test that parser can load it
-			goalParser := parser.NewHabitParser()
-			schema, err := goalParser.ParseYAML(data)
+			habitParser := parser.NewHabitParser()
+			schema, err := habitParser.ParseYAML(data)
 			require.NoError(t, err, "Parser should handle user pattern %s: %s", pattern.file, pattern.description)
 
 			// Test that validation passes
@@ -87,7 +87,7 @@ func TestSchemaVersionCompatibility(t *testing.T) {
 	baseHabit := `
 habits:
   - title: "Test Habit"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -101,8 +101,8 @@ habits:
 			}
 			yamlContent += baseHabit
 
-			goalParser := parser.NewHabitParser()
-			schema, err := goalParser.ParseYAML([]byte(yamlContent))
+			habitParser := parser.NewHabitParser()
+			schema, err := habitParser.ParseYAML([]byte(yamlContent))
 
 			if tc.valid {
 				require.NoError(t, err, "Version %s should be parseable", tc.version)
@@ -126,26 +126,26 @@ func TestPositionInferenceFromFileOrder(t *testing.T) {
 version: "1.0.0"
 habits:
   - title: "First Habit"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
     prompt: "First prompt"
   - title: "Second Habit"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
     prompt: "Second prompt"
   - title: "Third Habit"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
     prompt: "Third prompt"`
 
-	goalParser := parser.NewHabitParser()
-	schema, err := goalParser.ParseYAML([]byte(yamlContent))
+	habitParser := parser.NewHabitParser()
+	schema, err := habitParser.ParseYAML([]byte(yamlContent))
 	require.NoError(t, err)
 
 	err = schema.Validate()
@@ -176,7 +176,7 @@ func TestMissingFieldsHandling(t *testing.T) {
 version: "1.0.0"
 habits:
   - title: "Test Habit"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -189,7 +189,7 @@ habits:
 version: "1.0.0"
 habits:
   - title: "Test Habit"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -202,7 +202,7 @@ habits:
 version: "1.0.0"
 habits:
   - title: "Test Habit"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -213,8 +213,8 @@ habits:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			goalParser := parser.NewHabitParser()
-			schema, err := goalParser.ParseYAML([]byte(tc.yamlContent))
+			habitParser := parser.NewHabitParser()
+			schema, err := habitParser.ParseYAML([]byte(tc.yamlContent))
 
 			if tc.shouldWork {
 				require.NoError(t, err, "Should parse successfully")
