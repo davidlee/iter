@@ -65,3 +65,18 @@ which is used everywhere these values are referenced.
 the override priority (example for config dir) is:
 
 `$HOME -> $XDG_CONFIG_HOME -> $VICE_CONFIG -> (command line flag --config-dir or -c) ->  ViceEnv.config`
+
+---
+
+## Implementation Status
+
+**Current Implementation**: See [T028 File Paths & Runtime Environment](../kanban/in-progress/T028_file_paths_runtime_env.md)
+
+- Phase 1 Complete: ViceEnv struct with full XDG compliance and TOML configuration
+- Phase 2 In Progress: Context-aware data loading with Repository Pattern
+- Architectural decision: Repository Pattern with "turn off and on again" context switching
+
+**Key Design Decisions**:
+- Repository Pattern chosen over lazy loading for simplicity and clear migration path
+- Context switching performs complete data unload/reload for race condition avoidance
+- Interface-based design allows future evolution to sophisticated caching/lazy loading

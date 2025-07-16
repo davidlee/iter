@@ -671,6 +671,13 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
     - *Testing Strategy:* Environment variable integration tests
     - *AI Notes:* ENV var should override persisted state but not modify it
 
+- [ ] **Phase 5: Documentation & Specification Updates**
+  - [ ] **5.1: Extract implementation details to specification**
+    - *Design:* Update `doc/specifications/file_paths_runtime_env.md` with implementation learnings
+    - *Code/Artifacts:* Update specification with architectural decisions, data loading patterns
+    - *Testing Strategy:* Documentation review, specification accuracy validation
+    - *AI Notes:* Include Repository Pattern decision, migration path, BubbleTea integration patterns
+
 ## Roadblocks
 
 *None currently identified*
@@ -708,6 +715,8 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
   - Based on user feedback, updated recommendation to Repository Pattern (Option 1)
   - Documented clear migration path from simple repository to lazy loading
   - Recommended "turn off and on again" context switching for simplicity
+- `2025-07-16 - User:` Accepted Repository Pattern approach
+- `2025-07-16 - AI:` Added specification cross-reference and Phase 5 documentation task
 
 ## Git Commit History
 
