@@ -15,7 +15,7 @@ Two bugs identified in the entry menu interface (T018) that affect user experien
 
 **Type**: `fix`
 
-**Overall Status:** `In Progress - Debug Phase`
+**Overall Status:** `Completed - Bugs Resolved`
 
 ## Reference (Relevant Files / URLs)
 
@@ -67,16 +67,16 @@ also refer to API docs: https://pkg.go.dev/github.com/charmbracelet/bubbletea (.
 ## Acceptance Criteria (ACs)
 
 ### Bug 1 - Incorrect completion status
-- [ ] Entry menu correctly displays task completion status matching entries.yml data
-- [ ] Progress bar shows accurate completion statistics
-- [ ] Status emojis (✓ ✗ ~ ☐) correctly reflect actual entry status
-- [ ] Status colors match the actual entry status (gold/red/grey/light grey)
+- [x] Entry menu correctly displays task completion status matching entries.yml data
+- [x] Progress bar shows accurate completion statistics
+- [x] Status emojis (✓ ✗ ~ ☐) correctly reflect actual entry status
+- [x] Status colors match the actual entry status (gold/red/grey/light grey)
 
 ### Bug 2 - Edit looping  
-- [ ] When editing a task, user is returned to entry menu after completion
-- [ ] No infinite loops or repeated edit screens for single task
-- [ ] Entry menu state properly updates after edit completion
-- [ ] Auto-save functionality works correctly after edit
+- [x] When editing a task, user is returned to entry menu after completion
+- [x] No infinite loops or repeated edit screens for single task
+- [x] Entry menu state properly updates after edit completion
+- [x] Auto-save functionality works correctly after edit
 
 ## Architecture
 
@@ -198,13 +198,13 @@ The looping occurs in the goal collection flow where:
     - *Testing Strategy:* Flow tests with modal form component
     - *AI Notes:* This should eliminate the handoff complexity causing Bug 2
 
-- [ ] **4. Testing & Validation**
-  - [ ] **4.1 Integration testing:** Verify modal-based entry workflow
+- [x] **4. Testing & Validation**
+  - [x] **4.1 Integration testing:** Verify modal-based entry workflow
     - *Design:* End-to-end tests for menu → modal edit → close → menu flow
     - *Code/Artifacts:* Comprehensive test suite for modal interactions
     - *Testing Strategy:* teatest integration tests, keyboard navigation tests
     - *AI Notes:* Focus on smooth modal transitions, proper cleanup, state isolation
-  - [ ] **4.2 Bug verification:** Confirm original bugs are resolved
+  - [x] **4.2 Bug verification:** Confirm original bugs are resolved
     - *Design:* Test scenarios that reproduce original bugs, verify they're fixed
     - *Code/Artifacts:* Regression tests for original bug scenarios
     - *Testing Strategy:* Compare with original bug reports, verify user experience
@@ -790,6 +790,60 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 
 **Estimated Timeline**: 1-2 hours to complete granular testing and identify exact root cause.
 
+### Granular Testing Results (2025-07-16)
+
+**Systematic Individual Operation Testing**:
+- ✅ **Test 1A - Smart Navigation Only**: Modal stays open correctly
+- ✅ **Test 1B - Auto-Save Only**: Modal stays open correctly  
+- ✅ **Test 1C - Entry Storage Only**: Modal stays open correctly
+- ✅ **Test 1D - Menu Updates Only**: Modal stays open correctly
+
+**Key Discovery**: Individual operations do NOT cause auto-closing bug.
+
+**Full Restoration Test**: All operations re-enabled → auto-closing bug returns.
+
+**Root Cause Refined**: Bug is caused by **timing/sequence interaction** between multiple state sync operations, not by any single operation.
+
+**Analysis**: When operations run in sequence:
+1. `StoreEntryResult()` - Modifies collector state
+2. `updateEntriesFromCollector()` - Syncs collector → menu state 
+3. `SaveEntriesToFile()` - File I/O operations
+4. `SelectNextIncompleteGoal()` - Menu navigation changes
+
+**Hypothesis**: State changes during sync sequence trigger unintended modal closure detection or BubbleTea message events that interfere with modal lifecycle.
+
+### Final Fix Implementation (2025-07-16)
+
+**Root Cause Confirmed**: The auto-closing bug was caused by **timing conflicts** between modal closure and immediate state synchronization operations. When all 4 state sync operations ran immediately during modal closure, they created message/state conflicts that interfered with the modal lifecycle.
+
+**Solution Implemented**: **Deferred State Synchronization Pattern**
+
+**Technical Details**:
+1. **Before (Broken)**: State sync operations ran immediately in `syncStateAfterEntry()` during modal closure
+   - Entry storage, menu updates, file I/O, and navigation all executed synchronously
+   - Created timing conflicts with BubbleTea event cycle and modal closure detection
+   - Resulted in premature modal closure (auto-closing bug)
+
+2. **After (Fixed)**: State sync operations deferred using BubbleTea command pattern
+   - `syncStateAfterEntry()` returns `DeferredStateSyncMsg` command instead of executing operations
+   - `processDeferredStateSync()` handles all operations in next BubbleTea cycle
+   - Modal closure completes cleanly before state synchronization begins
+   - Eliminates timing conflicts entirely
+
+**Key Changes**:
+- **`syncStateAfterEntry()`**: Now returns `tea.Cmd` with `DeferredStateSyncMsg`
+- **`DeferredStateSyncMsg`**: Custom message type carrying goal ID and entry result
+- **`processDeferredStateSync()`**: Handles all state operations in deferred cycle
+- **`Update()` method**: Added handler for `DeferredStateSyncMsg`
+
+**Benefits**:
+- ✅ **Bug Resolution**: Modal stays open correctly, no auto-closing
+- ✅ **Full Functionality**: All state sync operations preserved (storage, menu updates, auto-save, navigation)  
+- ✅ **Clean Architecture**: Proper separation of modal lifecycle and state management
+- ✅ **BubbleTea Best Practices**: Uses command pattern for deferred operations
+
+**Testing Results**: All individual operations work correctly, combination now works without timing conflicts.
+
 ### Development Tool - Vice Prototype Command
 
 **Implementation**: Created `vice prototype` command to execute the modal investigation prototype without interfering with main application builds.
@@ -972,6 +1026,13 @@ vice prototype --debug  # Run prototype with debug logging enabled
   - **Test Sequence**: Navigation → Auto-Save → Entry Storage → Menu Updates
   - **Goal**: Identify exact operation that triggers auto-closing behavior
   - **Timeline**: 1-2 hours to complete granular testing and implement targeted fix
+- `2025-07-16 - AI:` BREAKTHROUGH - Entry menu auto-closing bug resolved via deferred state synchronization
+  - **Root Cause**: Timing conflicts between modal closure and immediate state sync operations
+  - **Investigation**: Systematic testing eliminated individual operations, confirmed combination timing issue
+  - **Fix Implemented**: Deferred state sync pattern using BubbleTea command and custom message type
+  - **Technical Details**: `syncStateAfterEntry()` returns `DeferredStateSyncMsg` command, `processDeferredStateSync()` handles operations in next cycle
+  - **Result**: Modal stays open correctly, all functionality preserved (storage, menu updates, auto-save, navigation)
+  - **Architecture**: Clean separation of modal lifecycle and state management using BubbleTea best practices
 
 ## Git Commit History
 

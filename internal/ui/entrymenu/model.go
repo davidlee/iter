@@ -207,7 +207,7 @@ type EntryMenuModel struct {
 
 	// Modal system for entry editing
 	// modalManager      *modal.ModalManager  // TEMPORARILY REMOVED for ModalManager experiment
-	directModal       modal.Modal            // Direct modal handling like prototype
+	directModal       modal.Modal // Direct modal handling like prototype
 	fieldInputFactory *entry.EntryFieldInputFactory
 
 	// Navigation state
@@ -238,18 +238,18 @@ func NewEntryMenuModel(goals []models.Goal, entries map[string]models.GoalEntry,
 	}
 
 	return &EntryMenuModel{
-		list:              l,
-		goals:             goals,
-		entries:           entries,
-		keys:              keyMap,
-		filterState:       FilterNone,
-		returnBehavior:    ReturnToMenu,
-		entryCollector:    collector,
-		entriesFile:       entriesFile,
-		viewRenderer:      NewViewRenderer(0, 0), // Will be updated on first WindowSizeMsg
-		navEnhancer:       NewNavigationEnhancer(),
+		list:           l,
+		goals:          goals,
+		entries:        entries,
+		keys:           keyMap,
+		filterState:    FilterNone,
+		returnBehavior: ReturnToMenu,
+		entryCollector: collector,
+		entriesFile:    entriesFile,
+		viewRenderer:   NewViewRenderer(0, 0), // Will be updated on first WindowSizeMsg
+		navEnhancer:    NewNavigationEnhancer(),
 		// modalManager:      modal.NewModalManager(0, 0), // TEMPORARILY REMOVED for ModalManager experiment
-		directModal:       nil,                          // Direct modal handling like prototype
+		directModal:       nil, // Direct modal handling like prototype
 		fieldInputFactory: entry.NewEntryFieldInputFactory(),
 	}
 }
@@ -263,16 +263,16 @@ func NewEntryMenuModelForTesting(goals []models.Goal, entries map[string]models.
 	l.Title = "Entry Menu"
 
 	return &EntryMenuModel{
-		list:              l,
-		goals:             goals,
-		entries:           entries,
-		keys:              DefaultEntryMenuKeyMap(),
-		filterState:       FilterNone,
-		returnBehavior:    ReturnToMenu,
-		viewRenderer:      NewViewRenderer(80, 24), // Fixed size for testing
-		navEnhancer:       NewNavigationEnhancer(),
+		list:           l,
+		goals:          goals,
+		entries:        entries,
+		keys:           DefaultEntryMenuKeyMap(),
+		filterState:    FilterNone,
+		returnBehavior: ReturnToMenu,
+		viewRenderer:   NewViewRenderer(80, 24), // Fixed size for testing
+		navEnhancer:    NewNavigationEnhancer(),
 		// modalManager:      modal.NewModalManager(80, 24), // TEMPORARILY REMOVED for ModalManager experiment
-		directModal:       nil,                             // Direct modal handling like prototype
+		directModal:       nil, // Direct modal handling like prototype
 		fieldInputFactory: entry.NewEntryFieldInputFactory(),
 	}
 }
@@ -350,13 +350,19 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case DeferredStateSyncMsg:
+		// AIDEV-NOTE: T024-fix; Handle deferred state synchronization to prevent modal auto-closing
+		debug.EntryMenu("Received deferred state sync message for goal %s", msg.goalID)
+		m.processDeferredStateSync(msg)
+		return m, nil
+
 	case tea.KeyMsg:
 		// AIDEV-NOTE: T024-experiment; direct modal handling replacing ModalManager
 		// Route key messages to modal if active (direct handling like prototype)
 		if m.directModal != nil && m.directModal.IsOpen() {
 			var cmd tea.Cmd
 			m.directModal, cmd = m.directModal.Update(msg)
-			
+
 			// Check if modal was closed and sync state (simple cleanup)
 			if m.directModal.IsClosed() {
 				m.directModal = nil
@@ -430,7 +436,7 @@ func (m *EntryMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.directModal != nil && m.directModal.IsOpen() {
 		var cmd tea.Cmd
 		m.directModal, cmd = m.directModal.Update(msg)
-		
+
 		// Check if modal was closed and sync state (simple cleanup)
 		if m.directModal.IsClosed() {
 			m.directModal = nil
@@ -473,51 +479,71 @@ func (m *EntryMenuModel) View() string {
 	return baseView
 }
 
-// syncStateAfterEntry handles state synchronization after modal closes (for ModalManager experiment)
+// syncStateAfterEntry handles state synchronization after modal closes using deferred command pattern
+// AIDEV-NOTE: T024-fix; Uses BubbleTea command to defer state sync, preventing timing conflicts with modal closure
 func (m *EntryMenuModel) syncStateAfterEntry() tea.Cmd {
-	// AIDEV-NOTE: T024-experiment1; TEMPORARILY DISABLED all state sync logic to test if this causes modal auto-closing
-	debug.EntryMenu("EXPERIMENT 1: State synchronization DISABLED - modal should stay open")
-	return nil
-	
-	/* TEMPORARILY COMMENTED OUT FOR EXPERIMENT 1:
 	if m.directModal == nil {
 		return nil
 	}
-	
+
 	// Get the entry result from the modal
 	if entryFormModal, ok := m.directModal.(*modal.EntryFormModal); ok {
 		result := entryFormModal.GetEntryResult()
 		if result != nil {
-			debug.EntryMenu("Processing entry result for goal %s: value=%v, status=%v", m.selectedGoalID, result.Value, result.Status)
-			
-			// Store the entry result in the collector
-			if m.entryCollector != nil {
-				m.entryCollector.StoreEntryResult(m.selectedGoalID, result)
-			}
-			
-			// Update menu state after entry storage
-			m.updateEntriesFromCollector()
-			
-			// Auto-save entries after collection
-			if m.entriesFile != "" && m.entryCollector != nil {
-				err := m.entryCollector.SaveEntriesToFile(m.entriesFile)
-				if err != nil {
-					debug.EntryMenu("Failed to save entries for goal %s: %v", m.selectedGoalID, err)
-					_ = err // TODO: Consider adding save error handling UI
+			debug.EntryMenu("Deferring state sync for goal %s: value=%v, status=%v", m.selectedGoalID, result.Value, result.Status)
+
+			// Return command to defer state synchronization until next BubbleTea cycle
+			// This prevents timing conflicts between modal closure and state updates
+			return tea.Cmd(func() tea.Msg {
+				return DeferredStateSyncMsg{
+					goalID: m.selectedGoalID,
+					result: result,
 				}
-			}
-			
-			// Smart navigation based on return behavior preference
-			if m.returnBehavior == ReturnToNextGoal {
-				m.navEnhancer.SelectNextIncompleteGoal(m)
-			}
+			})
 		} else {
 			debug.EntryMenu("Modal closed for goal %s with no result (cancelled)", m.selectedGoalID)
 		}
 	}
-	
+
 	return nil
-	*/
+}
+
+// DeferredStateSyncMsg carries entry result data for deferred state synchronization
+type DeferredStateSyncMsg struct {
+	goalID string
+	result *entry.EntryResult
+}
+
+// processDeferredStateSync handles deferred state synchronization operations
+// AIDEV-NOTE: T024-fix; Separated from modal closure to prevent auto-closing timing conflicts
+func (m *EntryMenuModel) processDeferredStateSync(msg DeferredStateSyncMsg) {
+	debug.EntryMenu("Processing deferred state sync for goal %s: value=%v, status=%v", msg.goalID, msg.result.Value, msg.result.Status)
+
+	// Store the entry result in the collector
+	if m.entryCollector != nil {
+		debug.EntryMenu("Executing Entry Storage - StoreEntryResult")
+		m.entryCollector.StoreEntryResult(msg.goalID, msg.result)
+	}
+
+	// Update menu state after entry storage
+	debug.EntryMenu("Executing Menu Updates - updateEntriesFromCollector")
+	m.updateEntriesFromCollector()
+
+	// Auto-save entries after collection
+	if m.entriesFile != "" && m.entryCollector != nil {
+		debug.EntryMenu("Executing Auto-Save - SaveEntriesToFile")
+		err := m.entryCollector.SaveEntriesToFile(m.entriesFile)
+		if err != nil {
+			debug.EntryMenu("Failed to save entries for goal %s: %v", msg.goalID, err)
+			_ = err // TODO: Consider adding save error handling UI
+		}
+	}
+
+	// Smart navigation based on return behavior preference
+	if m.returnBehavior == ReturnToNextGoal {
+		debug.EntryMenu("Executing Smart Navigation - SelectNextIncompleteGoal")
+		m.navEnhancer.SelectNextIncompleteGoal(m)
+	}
 }
 
 // renderWithDirectModal renders modal overlay directly (for ModalManager experiment)
@@ -526,7 +552,7 @@ func (m *EntryMenuModel) renderWithDirectModal(background, modalContent string) 
 	dimmedBg := lipgloss.NewStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: "#888888", Dark: "#444444"}).
 		Render(background)
-	
+
 	// Center the modal
 	modalBox := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
@@ -534,9 +560,9 @@ func (m *EntryMenuModel) renderWithDirectModal(background, modalContent string) 
 		Padding(1, 2).
 		Background(lipgloss.Color("#1a1a1a")).
 		Render(modalContent)
-	
+
 	centeredModal := lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modalBox)
-	
+
 	// Overlay the modal on the background
 	return lipgloss.JoinVertical(lipgloss.Left, dimmedBg, centeredModal)
 }
