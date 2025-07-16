@@ -107,7 +107,7 @@ func (f *SimpleGoalCollectionFlow) CollectEntry(goal models.Goal, existing *Exis
 
 	// AIDEV-NOTE: T012/2.1-skip-integration; status-aware processing with skip detection for Boolean inputs
 	// Determine entry status - check if input supports skip functionality
-	var status = models.EntryCompleted // Default status
+	status := models.EntryCompleted // Default status
 	if boolInput, ok := input.(*BooleanEntryInput); ok {
 		status = boolInput.GetStatus()
 	} else if value == nil {
@@ -594,7 +594,7 @@ func (f *ChecklistGoalCollectionFlow) CollectEntry(goal models.Goal, existing *E
 
 	// AIDEV-NOTE: T012/2.3-skip-integration; status-aware processing with skip detection for Checklist inputs
 	// Determine entry status - check if input supports skip functionality
-	var status = models.EntryCompleted // Default status
+	status := models.EntryCompleted // Default status
 	if checklistInput, ok := input.(*ChecklistEntryInput); ok {
 		status = checklistInput.GetStatus()
 	} else if value == nil {

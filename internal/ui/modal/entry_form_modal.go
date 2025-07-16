@@ -19,8 +19,8 @@ import (
 // AIDEV-NOTE: T024-experiment; temporarily replaced BaseModal with simple boolean to test lifecycle hypothesis
 type EntryFormModal struct {
 	// *BaseModal  // TEMPORARILY REMOVED for BaseModal experiment
-	isOpen       bool  // Simple boolean flag replacing BaseModal state machine
-	result       interface{}  // Simple result storage
+	isOpen       bool        // Simple boolean flag replacing BaseModal state machine
+	result       interface{} // Simple result storage
 	goal         models.Goal
 	collector    *ui.EntryCollector
 	fieldInput   entry.EntryFieldInput
@@ -69,7 +69,7 @@ func NewEntryFormModal(goal models.Goal, collector *ui.EntryCollector, fieldInpu
 
 	modal := &EntryFormModal{
 		// BaseModal:  NewBaseModal(),  // TEMPORARILY REMOVED for BaseModal experiment
-		isOpen:     false,  // Simple boolean flag - will be set to true in Init()
+		isOpen:     false, // Simple boolean flag - will be set to true in Init()
 		goal:       goal,
 		collector:  collector,
 		fieldInput: fieldInput,
@@ -92,18 +92,19 @@ func (efm *EntryFormModal) Init() tea.Cmd {
 }
 
 // Modal interface compliance - replaced BaseModal methods with simple boolean operations
-func (efm *EntryFormModal) IsOpen() bool { return efm.isOpen }
+func (efm *EntryFormModal) IsOpen() bool   { return efm.isOpen }
 func (efm *EntryFormModal) IsClosed() bool { return !efm.isOpen }
-func (efm *EntryFormModal) Open() { 
+func (efm *EntryFormModal) Open() {
 	debug.Modal("Goal %s: Opening modal (simple boolean)", efm.goal.ID)
-	efm.isOpen = true 
+	efm.isOpen = true
 }
-func (efm *EntryFormModal) Close() { 
+
+func (efm *EntryFormModal) Close() {
 	debug.Modal("Goal %s: Closing modal (simple boolean)", efm.goal.ID)
-	efm.isOpen = false 
+	efm.isOpen = false
 }
 func (efm *EntryFormModal) SetResult(result interface{}) { efm.result = result }
-func (efm *EntryFormModal) GetResult() interface{} { return efm.result }
+func (efm *EntryFormModal) GetResult() interface{}       { return efm.result }
 
 // Update handles messages for the entry form modal.
 func (efm *EntryFormModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
