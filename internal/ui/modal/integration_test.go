@@ -168,7 +168,7 @@ func TestEntryFormModal_FormIntegration(t *testing.T) {
 	}
 
 	// Test ESC key handling
-	updatedModal, cmd := modal.HandleKey(tea.KeyMsg{Type: tea.KeyEsc})
+	updatedModal, cmd := modal.Update(tea.KeyMsg{Type: tea.KeyEsc})
 	if !updatedModal.IsClosed() {
 		t.Error("Expected modal to be closed after ESC")
 	}

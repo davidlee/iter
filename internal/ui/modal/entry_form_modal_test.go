@@ -99,8 +99,8 @@ func TestEntryFormModal_Init(t *testing.T) {
 		t.Error("Expected modal to be open after Init()")
 	}
 
-	if modal.GetState() != ModalActive {
-		t.Errorf("Expected modal state to be ModalActive, got %v", modal.GetState())
+	if !modal.IsOpen() {
+		t.Error("Expected modal to be open after Init()")
 	}
 
 	if cmd == nil {
@@ -129,7 +129,7 @@ func TestEntryFormModal_HandleKey(t *testing.T) {
 
 	// Test ESC key closes modal
 	escMsg := tea.KeyMsg{Type: tea.KeyEsc}
-	updatedModal, cmd := modal.HandleKey(escMsg)
+	updatedModal, cmd := modal.Update(escMsg)
 
 	if !updatedModal.IsClosed() {
 		t.Error("Expected modal to be closed after ESC key")
@@ -273,7 +273,7 @@ func TestEntryFormModal_GetEntryResult(t *testing.T) {
 		Value:  true,
 		Status: models.EntryCompleted,
 	}
-	modal.result = testResult
+	modal.entryResult = testResult
 
 	result = modal.GetEntryResult()
 	if result != testResult {

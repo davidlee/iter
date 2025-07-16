@@ -137,6 +137,9 @@ func (mm *MockModal) Init() tea.Cmd {
 
 // Update implements Modal interface.
 func (mm *MockModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
+	if keyMsg, ok := msg.(tea.KeyMsg); ok {
+		return mm.HandleKey(keyMsg)
+	}
 	return mm, nil
 }
 

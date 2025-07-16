@@ -271,6 +271,7 @@ func (efm *EntryFormModal) renderError() string {
 }
 
 // renderDisabledForm renders a static message when form is disabled for testing
+//revive:disable-next-line:unused
 func (efm *EntryFormModal) renderDisabledForm() string {
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).

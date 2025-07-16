@@ -500,9 +500,8 @@ func (m *EntryMenuModel) syncStateAfterEntry() tea.Cmd {
 					result: result,
 				}
 			})
-		} else {
-			debug.EntryMenu("Modal closed for goal %s with no result (cancelled)", m.selectedGoalID)
 		}
+		debug.EntryMenu("Modal closed for goal %s with no result (cancelled)", m.selectedGoalID)
 	}
 
 	return nil
