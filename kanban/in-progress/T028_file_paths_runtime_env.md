@@ -859,8 +859,6 @@ STAGE 3: Lazy Loading Repository (Advanced Use Cases)
 - `b8feecc` - docs(kanban)[T028]: update plan based on user clarifications
 - `7486b46` - docs(kanban)[T028]: add comprehensive Phase 1 pre-flight analysis
 - `1f80ede` - feat(config)[T028/1.1-1.3]: implement ViceEnv with full XDG compliance and TOML config
-- **Ready for commit:** feat(init)[T028/2.2]: implement context-aware data directory management
-  - Added EnsureContextFiles(env *ViceEnv) method with full 4-file initialization per context
-  - Updated all cmd files to use ViceEnv instead of config.Paths with backward compatibility
-  - Integrated FileInitializer with Repository pattern for automatic file creation on data access
-  - Updated Justfile with lint-single command and all tests passing
+- `0e06438` - docs(kanban)[T028]: detailed Phase 2.2 pre-flight analysis and step-by-step plan
+- `f922930` - docs(anchor)[T028]: add comprehensive ANCHOR comments for future reference
+- `bc71812` - feat(init)[T028/2.2]: implement context-aware data directory management
