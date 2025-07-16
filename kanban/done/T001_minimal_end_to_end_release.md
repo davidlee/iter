@@ -3,7 +3,7 @@ title: "Minimal End-to-End Release with Simple Boolean Habits"
 type: ["feature"]
 tags: ["epic", "mvp", "cli", "parser", "ui"]
 related_tasks: []
-context_windows: ["./CLAUDE.md", "./go.mod", "./doc/specifications/goal_structure.md", "./*.go", "./cmd/*.go", "./internal/**/*.go"]
+context_windows: ["./CLAUDE.md", "./go.mod", "./doc/specifications/habit_structure.md", "./*.go", "./cmd/*.go", "./internal/**/*.go"]
 ---
 
 # Minimal End-to-End Release with Simple Boolean Habits
@@ -80,7 +80,7 @@ This task is important because it establishes the architectural foundation and c
 
 - [x] **3. Habit Parser & Validation**: Parse simple boolean habits from habits.yml
     - [x] **3.1 Habit structure definition:** Define Go structs for simple boolean habits
-        - *Design:* Habit struct with ID, Name, Type fields; GoalSet for collection
+        - *Design:* Habit struct with ID, Name, Type fields; HabitSet for collection
         - *Code/Artifacts to be created or modified:* `internal/models/habit.go`
         - *Testing Strategy:* Unit tests for habit struct validation
         - *AI Notes:* Design should be extensible for future habit types
@@ -92,7 +92,7 @@ This task is important because it establishes the architectural foundation and c
 
 - [x] **4. Entry Management**: Implement entry collection and storage
     - [x] **4.1 Entry data model:** Define entry structure for boolean habit completion
-        - *Design:* Entry struct with Date, GoalID, Value fields; EntrySet for collection
+        - *Design:* Entry struct with Date, HabitID, Value fields; EntrySet for collection
         - *Code/Artifacts to be created or modified:* `internal/models/entry.go`
         - *Testing Strategy:* Unit tests for entry validation and serialization
         - *AI Notes:* Consider partial entry support for future incremental updates
@@ -143,9 +143,9 @@ This task is important because it establishes the architectural foundation and c
 - `2025-01-10 - AI:` Subtask 1.2 completed - Setup .golangci.yml with staticcheck, revive, gosec, errcheck, govet, gocritic, nilnil, nilerr, ineffassign, unused, misspell. Installed gofumpt and golangci-lint tools. Both run successfully on current code.
 - `2025-01-10 - AI:` Subtask 2.1 completed - Implemented XDG Base Directory specification support in internal/config/paths.go. Created Paths struct with GetDefaultPaths() and GetPathsWithConfigDir() functions. Added comprehensive unit tests covering XDG_CONFIG_HOME scenarios. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 2.2 completed - Added --config-dir CLI flag support using cobra. Created cmd/root.go with persistent flag handling and cmd/entry.go with placeholder entry command. CLI properly resolves paths from flag or XDG defaults, creates config directories, and includes comprehensive unit tests. All tests pass and linter reports 0 issues.
-- `2025-01-10 - AI:` Subtask 3.1 completed - Defined comprehensive Go structs for habit schema in internal/models/habit.go. Implemented Schema, Habit, FieldType, Criteria, and Condition structs following doc/specifications/goal_schema.md closely. Added validation methods, ID generation, and extensible design for future habit types. Created 35 unit tests covering all validation scenarios. All tests pass and linter reports 0 issues.
-- `2025-01-10 - AI:` Subtask 3.2 completed - Implemented comprehensive YAML parsing in internal/parser/habits.go using goccy/go-yaml. Created GoalParser with LoadFromFile, SaveToFile, ParseYAML methods and validation. Added helper functions for habit lookup and filtering. Fixed schema validation to properly generate IDs. Created 28 unit tests with comprehensive error handling. All tests pass and linter reports 0 issues.
-- `2025-01-10 - AI:` Subtask 4.1 completed - Defined comprehensive entry data structures in internal/models/entry.go. Implemented EntryLog, DayEntry, and GoalEntry structs with full CRUD operations. Added validation, date handling, boolean value helpers, and range queries. Designed for partial entry support and future incremental updates. Created 48 unit tests covering all functionality. All tests pass and linter reports 0 issues.
+- `2025-01-10 - AI:` Subtask 3.1 completed - Defined comprehensive Go structs for habit schema in internal/models/habit.go. Implemented Schema, Habit, FieldType, Criteria, and Condition structs following doc/specifications/habit_schema.md closely. Added validation methods, ID generation, and extensible design for future habit types. Created 35 unit tests covering all validation scenarios. All tests pass and linter reports 0 issues.
+- `2025-01-10 - AI:` Subtask 3.2 completed - Implemented comprehensive YAML parsing in internal/parser/habits.go using goccy/go-yaml. Created HabitParser with LoadFromFile, SaveToFile, ParseYAML methods and validation. Added helper functions for habit lookup and filtering. Fixed schema validation to properly generate IDs. Created 28 unit tests with comprehensive error handling. All tests pass and linter reports 0 issues.
+- `2025-01-10 - AI:` Subtask 4.1 completed - Defined comprehensive entry data structures in internal/models/entry.go. Implemented EntryLog, DayEntry, and HabitEntry structs with full CRUD operations. Added validation, date handling, boolean value helpers, and range queries. Designed for partial entry support and future incremental updates. Created 48 unit tests covering all functionality. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 4.2 completed - Implemented comprehensive entry storage in internal/storage/entries.go. Created EntryStorage with atomic writes, YAML parsing, validation, and backup functionality. Added high-level operations for day/habit entry management with automatic file creation. Includes date range queries and today-specific helpers. Created 37 unit tests covering all storage operations and error scenarios. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 5.1 completed - Built interactive UI for today's entry collection in internal/ui/entry.go. Created EntryCollector with charmbracelet libraries: huh for forms, lipgloss for styling. Features include welcome/completion messages, habit-by-habit entry collection, optional notes, existing entry loading/updating, and comprehensive error handling. Updated cmd/entry.go to integrate UI with CLI. Created comprehensive unit tests covering all functionality. All tests pass and linter reports 0 issues.
 - `2025-01-10 - AI:` Subtask 5.3 completed - Added file initialization feature in internal/init/files.go. Created FileInitializer that checks for missing habits.yml/entries.yml and creates user-friendly samples. Sample habits: "Morning Exercise" and "Daily Reading" with descriptions, prompts, and help text. Empty entries.yml with proper YAML structure. Updated cmd/entry.go to call initializer before UI. Created comprehensive unit tests covering all scenarios. All tests pass and linter reports 0 issues.

@@ -17,7 +17,7 @@ context_windows: ["internal/models/entry.go", "internal/models/habit.go", "inter
 - `db22a13` - style(entry)[T012]: clean up formatting and code organization post-skip integration
 - `d145e43` - feat(entry)[T012/2.1]: implement boolean habit skip functionality with three-option selection
 - `464f2b6` - feat(storage)[T012/1.2]: implement EntryStatus storage layer with backward compatibility
-- `61471c0` - feat(goalconfig)[T012/1.1]: implement EntryStatus enum and timestamp improvements for skip functionality
+- `61471c0` - feat(habitconfig)[T012/1.1]: implement EntryStatus enum and timestamp improvements for skip functionality
 - `8070a8c` - feat(tasks): create T012 habit skip functionality with EntryStatus enum design
 
 **Context (Background)**:
@@ -27,9 +27,9 @@ context_windows: ["internal/models/entry.go", "internal/models/habit.go", "inter
 - Real-world usage: Distinguish between "couldn't do" (skip) vs "chose not to do" (fail)
 
 **Context (Significant Code Files)**:
-- internal/models/entry.go - Entry data structures (DayEntry, GoalEntry)
+- internal/models/entry.go - Entry data structures (DayEntry, HabitEntry)
 - internal/models/habit.go - Habit types and field types
-- internal/ui/entry/goal_collection_flows.go - Habit collection flow implementations
+- internal/ui/entry/habit_collection_flows.go - Habit collection flow implementations
 - internal/ui/entry/field_input_*.go - Field input components for different types
 - internal/storage/entry_storage.go - Entry persistence and loading
 
@@ -43,7 +43,7 @@ Based on T010's complete entry system:
 - ✅ **Complete Entry System**: All habit types with field-type aware data collection
 - ✅ **Habit Collection Flows**: Simple, Elastic, Informational, Checklist fully implemented
 - ✅ **Field Input Components**: Boolean, Text, Numeric, Time, Duration, Checklist inputs
-- ✅ **Data Persistence**: EntryStorage with DayEntry and GoalEntry structures
+- ✅ **Data Persistence**: EntryStorage with DayEntry and HabitEntry structures
 - ❌ **Skip State**: No concept of "skipped" vs "not completed" in data model
 - ❌ **Skip UI**: No skip option in any habit collection flows
 - ❌ **Skip Analytics**: No differentiation between skip and failure in reporting
@@ -67,8 +67,8 @@ I want to skip habits when:
 
 From `internal/models/entry.go`:
 ```go
-type GoalEntry struct {
-    GoalID           string                   `yaml:"goal_id"`
+type HabitEntry struct {
+    HabitID           string                   `yaml:"habit_id"`
     Value            interface{}              `yaml:"value"`
     AchievementLevel *AchievementLevel        `yaml:"achievement_level,omitempty"`
     Notes            string                   `yaml:"notes,omitempty"`
@@ -96,8 +96,8 @@ const (
     EntryFailed    EntryStatus = "failed"      // Habit attempted but not achieved
 )
 
-type GoalEntry struct {
-    GoalID           string            `yaml:"goal_id"`
+type HabitEntry struct {
+    HabitID           string            `yaml:"habit_id"`
     Value            interface{}       `yaml:"value,omitempty"`              // nil for skipped entries
     AchievementLevel *AchievementLevel `yaml:"achievement_level,omitempty"`
     Notes            string            `yaml:"notes,omitempty"`
@@ -118,7 +118,7 @@ type GoalEntry struct {
 
 **2. Validation Logic**
 ```go
-func (ge *GoalEntry) IsValid() bool {
+func (ge *HabitEntry) IsValid() bool {
     switch ge.Status {
     case EntrySkipped:
         return ge.Value == nil && ge.AchievementLevel == nil
@@ -171,39 +171,39 @@ case EntrySkipped:
 
 **Status-Based Helper Methods:**
 ```go
-func (ge *GoalEntry) IsSkipped() bool {
+func (ge *HabitEntry) IsSkipped() bool {
     return ge.Status == EntrySkipped
 }
 
-func (ge *GoalEntry) IsCompleted() bool {
+func (ge *HabitEntry) IsCompleted() bool {
     return ge.Status == EntryCompleted
 }
 
-func (ge *GoalEntry) HasFailure() bool {
+func (ge *HabitEntry) HasFailure() bool {
     return ge.Status == EntryFailed
 }
 
-func (ge *GoalEntry) IsFinalized() bool {
+func (ge *HabitEntry) IsFinalized() bool {
     return ge.Status != "" // Has been processed
 }
 
-func (ge *GoalEntry) RequiresValue() bool {
+func (ge *HabitEntry) RequiresValue() bool {
     return ge.Status != EntrySkipped
 }
 ```
 
 **Timestamp Management:**
 ```go
-func (ge *GoalEntry) MarkCreated() {
+func (ge *HabitEntry) MarkCreated() {
     ge.CreatedAt = time.Now()
 }
 
-func (ge *GoalEntry) MarkUpdated() {
+func (ge *HabitEntry) MarkUpdated() {
     now := time.Now()
     ge.UpdatedAt = &now
 }
 
-func (ge *GoalEntry) GetLastModified() time.Time {
+func (ge *HabitEntry) GetLastModified() time.Time {
     if ge.UpdatedAt != nil {
         return *ge.UpdatedAt
     }
@@ -317,7 +317,7 @@ All UI and data model questions resolved. Core implementation approach:
 
 ### Data Model Changes
 
-**GoalEntry with Status Enum + Clear Timestamps:**
+**HabitEntry with Status Enum + Clear Timestamps:**
 ```go
 type EntryStatus string
 const (
@@ -326,8 +326,8 @@ const (
     EntryFailed    EntryStatus = "failed"
 )
 
-type GoalEntry struct {
-    GoalID           string            `yaml:"goal_id"`
+type HabitEntry struct {
+    HabitID           string            `yaml:"habit_id"`
     Value            interface{}       `yaml:"value,omitempty"`              // nil for skipped
     AchievementLevel *AchievementLevel `yaml:"achievement_level,omitempty"`
     Notes            string            `yaml:"notes,omitempty"`
@@ -339,10 +339,10 @@ type GoalEntry struct {
 
 **Status-Based Helper Methods:**
 ```go
-func (ge *GoalEntry) IsSkipped() bool    { return ge.Status == EntrySkipped }
-func (ge *GoalEntry) IsCompleted() bool  { return ge.Status == EntryCompleted }
-func (ge *GoalEntry) HasFailure() bool   { return ge.Status == EntryFailed }
-func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
+func (ge *HabitEntry) IsSkipped() bool    { return ge.Status == EntrySkipped }
+func (ge *HabitEntry) IsCompleted() bool  { return ge.Status == EntryCompleted }
+func (ge *HabitEntry) HasFailure() bool   { return ge.Status == EntryFailed }
+func (ge *HabitEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 ```
 
 ### UI Implementation Strategy
@@ -364,16 +364,16 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 #### Phase 1: Data Model Foundation
 - [x] **1.1: Implement Entry Status Enum + Timestamp Improvements** ✅ COMPLETED
   - [x] Add `EntryStatus` enum (completed, skipped, failed) - Added to `internal/models/entry.go:32-40`
-  - [x] Replace `CompletedAt` with `CreatedAt` + `UpdatedAt` fields - Updated GoalEntry struct with clean timestamp semantics
+  - [x] Replace `CompletedAt` with `CreatedAt` + `UpdatedAt` fields - Updated HabitEntry struct with clean timestamp semantics
   - [x] Implement status-based helper methods (IsSkipped, IsCompleted, HasFailure, RequiresValue) - Added at `internal/models/entry.go:116-139`
-  - [x] Update GoalEntry validation for status-based logic - Enhanced validation prevents invalid state combinations
+  - [x] Update HabitEntry validation for status-based logic - Enhanced validation prevents invalid state combinations
   - [x] Timestamp management methods (MarkCreated, MarkUpdated, GetLastModified) - Added at `internal/models/entry.go:141-159`
 
   **Implementation Details for 1.1:**
   - **EntryStatus enum** provides single source of truth for entry state (completed/skipped/failed)
   - **Timestamp refactor** replaces confusing `CompletedAt` with clear `CreatedAt` (required) + `UpdatedAt` (optional) semantics
   - **Status-based validation** prevents impossible states (skipped + value, failed without value) with type safety
-  - **Factory functions updated** - Enhanced existing factory methods + added `CreateSkippedGoalEntry()` for skipped entries
+  - **Factory functions updated** - Enhanced existing factory methods + added `CreateSkippedHabitEntry()` for skipped entries
   - **Helper methods** enable clean business logic with readable status-based switch statements
   - **Comprehensive testing** - All existing tests updated, new skip functionality tests added
   - **Storage layer compatibility** - Updated UI entry creation and storage sample data generation
@@ -402,7 +402,7 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 #### Phase 2: UI Components Enhancement
 - [x] **2.1: Boolean Habit Skip Integration** ✅ COMPLETED (commit: d145e43)
   - [x] Extend boolean input to three-option select ("Yes / No / Skip") - Implemented BooleanOption enum with three-way selection
-  - [x] Update SimpleGoalCollectionFlow for EntryStatus handling - Status-aware processing with skip detection
+  - [x] Update SimpleHabitCollectionFlow for EntryStatus handling - Status-aware processing with skip detection
   - [x] Skip sets Status=EntrySkipped, Value=nil, AchievementLevel=nil - Proper skip state management
   - [x] Skip bypasses note collection but preserves existing notes - Notes preserved without new prompts for skipped entries
 
@@ -423,11 +423,11 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 
 - [x] **2.3: Checklist Habit Skip Integration** ✅ **COMPLETED**
   - **DEPENDENCY RESOLVED**: T007 Phase 4.2-4.4 and 5.2 complete (commits `1cb8efb`, `d11d4e8`, `04973be`)
-  - **ISSUE RESOLVED**: ChecklistGoalCollectionFlow fully implemented with real data integration
+  - **ISSUE RESOLVED**: ChecklistHabitCollectionFlow fully implemented with real data integration
   - **CONFIRMED AVAILABLE**: T007 Phase 4.2-4.4 (Automatic/manual scoring, criteria validation), 5.2 (Entry recording)
   - [x] Add InputAction field and two-field form pattern to ChecklistEntryInput (multi-select + action selector)
   - [x] Update ChecklistEntryInput GetStatus() and GetValue() methods for ActionSkip handling
-  - [x] Add status-aware processing to ChecklistGoalCollectionFlow (replace hardcoded EntryCompleted)
+  - [x] Add status-aware processing to ChecklistHabitCollectionFlow (replace hardcoded EntryCompleted)
   - [x] Implement skip-aware scoring logic (bypass scoring for skipped entries)
   - [x] Add status-aware notes handling (preserve existing notes for skipped entries)
 
@@ -435,7 +435,7 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 - **Implementation Complete**: ChecklistEntryInput skip functionality fully integrated with ActionSubmit/ActionSkip pattern
 - **Files Modified**: 
   - `internal/ui/entry/checklist_input.go` - Added `action InputAction` field, two-field form pattern (multi-select + action selector)
-  - `internal/ui/entry/goal_collection_flows.go` - Replaced hardcoded status with input.GetStatus(), added skip-aware scoring and notes
+  - `internal/ui/entry/habit_collection_flows.go` - Replaced hardcoded status with input.GetStatus(), added skip-aware scoring and notes
 - **Pattern Applied**: ActionSubmit/ActionSkip pattern from Phase 2.2 successfully extended to checklist habits
 - **Integration Points**: Status-aware achievement level handling (null for skipped), notes preservation working correctly
 - **Implementation Time**: ~1.5 hours (faster than estimated due to established patterns)
@@ -445,17 +445,17 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 - **ChecklistEntryInput**: Added `action InputAction` field, updated constructor with ActionSubmit default
 - **Form Pattern**: Two-field form (multi-select + action selector) following established UI pattern
 - **Status Methods**: `GetStatus()` returns actual status based on action, `GetValue()` returns nil for skipped
-- **Collection Flow**: Status-aware processing pattern from SimpleGoalCollectionFlow successfully applied
+- **Collection Flow**: Status-aware processing pattern from SimpleHabitCollectionFlow successfully applied
 - **Scoring Logic**: Skip-aware scoring (bypass for EntrySkipped), status-aware notes handling implemented
 - **Quality Gates**: All tests passing ✓, Linter clean ✓, Pattern consistency maintained ✓
 
 #### Phase 3: Collection Flow Integration ✅ **READY FOR IMPLEMENTATION**
 - [ ] **3.1: Habit Collection Flow Updates** (⚠️ 2 flows need updates)
-  - [x] SimpleGoalCollectionFlow - ✅ COMPLETE (Phase 2.1 - fully status-aware)
-  - [x] ChecklistGoalCollectionFlow - ✅ COMPLETE (Phase 2.3 - fully status-aware)
-  - [ ] ElasticGoalCollectionFlow - Update line 291 hardcoded `Status: models.EntryCompleted`
-  - [ ] InformationalGoalCollectionFlow - Update line 457 hardcoded `Status: models.EntryCompleted`
-  - [ ] Apply SimpleGoalCollectionFlow status-aware pattern (proven approach)
+  - [x] SimpleHabitCollectionFlow - ✅ COMPLETE (Phase 2.1 - fully status-aware)
+  - [x] ChecklistHabitCollectionFlow - ✅ COMPLETE (Phase 2.3 - fully status-aware)
+  - [ ] ElasticHabitCollectionFlow - Update line 291 hardcoded `Status: models.EntryCompleted`
+  - [ ] InformationalHabitCollectionFlow - Update line 457 hardcoded `Status: models.EntryCompleted`
+  - [ ] Apply SimpleHabitCollectionFlow status-aware pattern (proven approach)
 
 - [ ] **3.2: Entry Result Processing** (⚠️ 1 critical loading fix needed)
   - [x] EntryResult Status field - ✅ COMPLETE (Phase 2.1 - field exists and working)
@@ -468,7 +468,7 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 **Phase 3 Pre-Flight Check Results (2025-07-13):**
 - **Scope Reduction**: Most work already complete from Phases 2.1-2.3
 - **Required Changes**: Only 2 collection flows + 1 loading fix needed
-- **Pattern Established**: SimpleGoalCollectionFlow provides proven status-aware approach
+- **Pattern Established**: SimpleHabitCollectionFlow provides proven status-aware approach
 - **Dependencies**: ✅ All input types support GetStatus(), EntryResult has Status field, storage ready
 - **Implementation Estimate**: 2-3 hours (low complexity, established patterns)
 - **Critical Discovery**: EntryCollector missing status loading in loadExistingEntries() method
@@ -505,11 +505,11 @@ func (ge *GoalEntry) RequiresValue() bool { return ge.Status != EntrySkipped }
 **Phase 3 Implementation Guide:**
 
 **Files to Modify:**
-1. `internal/ui/entry/goal_collection_flows.go` - ElasticGoalCollectionFlow.CollectEntry() (line 291)
-2. `internal/ui/entry/goal_collection_flows.go` - InformationalGoalCollectionFlow.CollectEntry() (line 457)  
+1. `internal/ui/entry/habit_collection_flows.go` - ElasticHabitCollectionFlow.CollectEntry() (line 291)
+2. `internal/ui/entry/habit_collection_flows.go` - InformationalHabitCollectionFlow.CollectEntry() (line 457)  
 3. `internal/ui/entry.go` - EntryCollector.loadExistingEntries() (line ~103)
 
-**Pattern to Apply (from SimpleGoalCollectionFlow lines 107-176):**
+**Pattern to Apply (from SimpleHabitCollectionFlow lines 107-176):**
 ```go
 // Replace hardcoded Status: models.EntryCompleted with:
 var status = models.EntryCompleted
@@ -537,7 +537,7 @@ return &EntryResult{..., Status: status}
 **Critical Fix Pattern:**
 ```go
 // EntryCollector.loadExistingEntries() - add missing line:
-ec.statuses[goalEntry.GoalID] = goalEntry.Status
+ec.statuses[habitEntry.HabitID] = habitEntry.Status
 ```
 
 **Technical Implementation Notes:**
@@ -577,7 +577,7 @@ ec.statuses[goalEntry.GoalID] = goalEntry.Status
 **Current Status**: Phase 2.1 Complete - Boolean Habit Skip Integration Implemented, **Phase 2.3 BLOCKED**
 **Dependencies**: T010 completion provides foundation for skip functionality; **T007 Phase 4.2-4.4 and 5.2 required for Phase 2.3**
 **Implementation Approach**: Extend existing system without architectural changes
-**Critical Blocker**: ChecklistGoalCollectionFlow incomplete - missing scoring integration and entry recording
+**Critical Blocker**: ChecklistHabitCollectionFlow incomplete - missing scoring integration and entry recording
 **Compatibility**: Future-compatible with planned flexible habit frequencies and enhanced analytics
 
 **Phase 1.1 Completion Notes (2025-07-13):**
@@ -597,8 +597,8 @@ ec.statuses[goalEntry.GoalID] = goalEntry.Status
 - **BooleanOption Enum**: Added type-safe option handling (BooleanYes/BooleanNo/BooleanSkip)
 - **Status Integration**: BooleanEntryInput.GetStatus() maps options to EntryStatus correctly
 - **EntryResult Enhancement**: Added Status field to EntryResult for proper skip propagation
-- **SimpleGoalCollectionFlow Updates**: Status-aware processing, skip bypasses scoring and note prompts
-- **EntryCollector Integration**: Added statuses map, proper EntryResult→GoalEntry conversion
+- **SimpleHabitCollectionFlow Updates**: Status-aware processing, skip bypasses scoring and note prompts
+- **EntryCollector Integration**: Added statuses map, proper EntryResult→HabitEntry conversion
 - **Comprehensive Testing**: Updated all existing tests, added skip functionality test coverage
 - **All Collection Flows Updated**: Elastic, Informational, Checklist flows include Status field
 - **Quality Assurance**: All tests passing, linter clean (0 issues), integration tests updated
@@ -611,7 +611,7 @@ ec.statuses[goalEntry.GoalID] = goalEntry.Status
 - `db22a13` - style(entry)[T012]: clean up formatting and code organization post-skip integration
 - `d145e43` - feat(entry)[T012/2.1]: implement boolean habit skip functionality with three-option selection
 - `464f2b6` - feat(storage)[T012/1.2]: implement EntryStatus storage layer with backward compatibility
-- `61471c0` - feat(goalconfig)[T012/1.1]: implement EntryStatus enum and timestamp improvements for skip functionality
+- `61471c0` - feat(habitconfig)[T012/1.1]: implement EntryStatus enum and timestamp improvements for skip functionality
 - `8070a8c` - feat(tasks): create T012 habit skip functionality with EntryStatus enum design
 
 **Next Logical Steps:**
@@ -636,14 +636,14 @@ ec.statuses[goalEntry.GoalID] = goalEntry.Status
 - **T007 Status Confirmed**: ✅ **COMPLETE** via analysis of kanban/in-progress/T007_dynamic_checklist_system.md
 - **Phase 4 Complete**: All checklist habit functionality implemented (commits `1cb8efb`, `d11d4e8`)
 - **Phase 5.2 Complete**: Entry recording fully integrated (commit `04973be`)
-- **Integration Ready**: ChecklistGoalCollectionFlow uses real data, proper scoring, comprehensive error handling
+- **Integration Ready**: ChecklistHabitCollectionFlow uses real data, proper scoring, comprehensive error handling
 - **Quality Gates**: 540+ lines test coverage, all tests passing, linter clean
 - **Dependency Impact**: T012 Phase 2.3 fully unblocked - ready for skip functionality implementation
 
 **Phase 2.3 Completion Notes (2025-07-13):**
 - **Checklist Skip Integration**: ActionSubmit/ActionSkip pattern successfully extended to checklist habits
 - **Two-Field Form Pattern**: Multi-select checklist + action selector following established UI consistency
-- **Status-Aware Processing**: ChecklistGoalCollectionFlow now uses input.GetStatus() instead of hardcoded EntryCompleted
+- **Status-Aware Processing**: ChecklistHabitCollectionFlow now uses input.GetStatus() instead of hardcoded EntryCompleted
 - **Skip-Aware Logic**: Scoring bypassed for skipped entries, notes preservation implemented
 - **Quality Assurance**: All tests passing, linter clean (0 issues), build successful
 - **Implementation Time**: ~1.5 hours (faster than estimated due to proven patterns)

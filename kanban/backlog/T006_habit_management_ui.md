@@ -3,7 +3,7 @@ title: "Habit Management UI"
 type: ["feature"]
 tags: ["ui", "habits", "management", "cli"]
 related_tasks: ["depends-on:T005"]
-context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./internal/models/*.go", "./internal/parser/*.go", "./internal/ui/*.go", "./cmd/*.go"]
+context_windows: ["./CLAUDE.md", "./doc/specifications/habit_schema.md", "./internal/models/*.go", "./internal/parser/*.go", "./internal/ui/*.go", "./cmd/*.go"]
 ---
 
 # Habit Management UI
@@ -79,7 +79,7 @@ This builds upon T005 (Habit Configuration UI) to provide comprehensive habit li
 ### Phase 1: Habit Listing Infrastructure
 
 - [ ] **1.1 Habit Listing Foundation**
-  - [ ] Create `ListGoals()` method in GoalConfigurator
+  - [ ] Create `ListHabits()` method in HabitConfigurator
   - [ ] Design habit listing model using bubbletea following T005 patterns
   - [ ] Implement habit selection interface with keyboard navigation
   - [ ] Create habit summary display components
@@ -98,7 +98,7 @@ This builds upon T005 (Habit Configuration UI) to provide comprehensive habit li
   - [ ] Habit selection with pre-edit confirmation
 
 - [ ] **2.2 Edit Wizard Implementation**
-  - [ ] Create GoalEditWizard bubbletea model
+  - [ ] Create HabitEditWizard bubbletea model
   - [ ] Pre-populate forms with existing habit values
   - [ ] Support editing basic info (title, description)
   - [ ] Support editing field configuration
@@ -118,7 +118,7 @@ This builds upon T005 (Habit Configuration UI) to provide comprehensive habit li
 ### Phase 3: Habit Removal System
 
 - [ ] **3.1 Safe Habit Removal**
-  - [ ] Create GoalRemovalConfirmation interface
+  - [ ] Create HabitRemovalConfirmation interface
   - [ ] Scan for habit usage in entries.yml
   - [ ] Display impact analysis to user
   - [ ] Multi-step confirmation for habits with data
@@ -150,7 +150,7 @@ This builds upon T005 (Habit Configuration UI) to provide comprehensive habit li
 
 **Implementation Strategy:**
 - Build on T005 patterns and infrastructure
-- Reuse GoalConfigurator and bubbletea models where possible
+- Reuse HabitConfigurator and bubbletea models where possible
 - Follow established UI patterns for consistency
 - Prioritize data safety and atomic operations
 - Implement comprehensive backup and recovery systems

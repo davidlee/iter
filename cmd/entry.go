@@ -65,8 +65,8 @@ func runEntry(_ *cobra.Command, _ []string) error {
 // AIDEV-NOTE: entry-menu-integration; T018 command integration for --menu flag
 func runEntryMenu(paths *config.Paths) error {
 	// Load habits
-	goalParser := parser.NewHabitParser()
-	schema, err := goalParser.LoadFromFile(paths.HabitsFile)
+	habitParser := parser.NewHabitParser()
+	schema, err := habitParser.LoadFromFile(paths.HabitsFile)
 	if err != nil {
 		return fmt.Errorf("failed to load habits: %w", err)
 	}
@@ -116,8 +116,8 @@ func loadTodayEntries(entryStorage *storage.EntryStorage, entriesFile string) (m
 		if dayEntry.Date == today {
 			// Convert to map for easy lookup
 			entriesMap := make(map[string]models.HabitEntry)
-			for _, goalEntry := range dayEntry.Habits {
-				entriesMap[goalEntry.HabitID] = goalEntry
+			for _, habitEntry := range dayEntry.Habits {
+				entriesMap[habitEntry.HabitID] = habitEntry
 			}
 			return entriesMap, nil
 		}

@@ -11,7 +11,7 @@ habits:
     scoring_type: "manual"
   # Habit with invalid habit type
   - title: "Invalid Habit Type"
-    id: "invalid_goal_type"
+    id: "invalid_habit_type"
     position: 2
     description: "This habit has an invalid type"
     habit_type: "invalid_type"
@@ -59,7 +59,7 @@ habits:
     direction: "neutral"
 # Malformed YAML structure below this line
 invalid_yaml_structure:
-  - this_is: not_a_valid_goal
+  - this_is: not_a_valid_habit
     missing: required_fields
   - another: malformed_entry
     [ invalid_yaml_syntax

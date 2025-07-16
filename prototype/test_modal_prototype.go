@@ -377,7 +377,7 @@ func NewEntryMenuModel(width, height int) *EntryMenuModel {
 	// Create habits and entries with complex state
 	habits := []models.Habit{
 		{
-			ID:        "test_goal",
+			ID:        "test_habit",
 			Title:     "Exercise",
 			HabitType: "simple",
 		},
@@ -386,8 +386,8 @@ func NewEntryMenuModel(width, height int) *EntryMenuModel {
 	// Create existing entries with achievement levels and notes
 	achievementLevel := models.AchievementMidi
 	entries := map[string]models.HabitEntry{
-		"test_goal": {
-			HabitID:          "test_goal",
+		"test_habit": {
+			HabitID:          "test_habit",
 			Value:            true, // Existing boolean value
 			AchievementLevel: &achievementLevel,
 			Notes:            "Previous completion with notes",
@@ -468,7 +468,7 @@ func NewModel() Model {
 func (m Model) Init() tea.Cmd {
 	// Open the entry form modal on startup via entry menu with collector context
 	habit := Habit{
-		ID:    "test_goal",
+		ID:    "test_habit",
 		Title: "Exercise",
 	}
 	return m.entryMenu.OpenEntryFormModal(habit)

@@ -3,7 +3,7 @@ title: "Ensure Habit ID Persistence in habits.yml"
 type: ["bug", "feature"]
 tags: ["parser", "habits", "data-integrity"]
 related_tasks: []
-context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./internal/models/*.go", "./internal/parser/*.go"]
+context_windows: ["./CLAUDE.md", "./doc/specifications/habit_schema.md", "./internal/models/*.go", "./internal/parser/*.go"]
 ---
 
 # Ensure Habit ID Persistence in habits.yml
@@ -43,8 +43,8 @@ The system should automatically write inferred IDs back to habits.yml after succ
 
 **Investigation completed:**
 - [x] **Current ID generation logic** - IDs generated in `Habit.Validate()` method (`internal/models/habit.go:129`) using `generateIDFromTitle()` if missing
-- [x] **Parser architecture** - Habits loaded via `GoalParser.LoadFromFile()` which calls `ParseYAML()` then `schema.Validate()` where ID generation happens
-- [x] **File writing approach** - `GoalParser.SaveToFile()` uses `yaml.MarshalWithOptions()` with indent formatting, completely rewrites file
+- [x] **Parser architecture** - Habits loaded via `HabitParser.LoadFromFile()` which calls `ParseYAML()` then `schema.Validate()` where ID generation happens
+- [x] **File writing approach** - `HabitParser.SaveToFile()` uses `yaml.MarshalWithOptions()` with indent formatting, completely rewrites file
 - [x] **Error handling strategy** - Current pattern returns errors, atomic writes via `os.WriteFile()`
 - [x] **Integration points** - Primary entry point is `EntryCollector.CollectTodayEntries()` in `entry` command
 

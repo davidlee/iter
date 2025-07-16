@@ -12,14 +12,14 @@ context_windows: ["internal/scoring/**/*.go", "internal/ui/entry/**/*.go", "inte
 The system lacks resilience when users modify habit configurations, particularly when changing field types, scoring methods, or habit types. The immediate issue is automatic scoring failing for simple numeric habits, but this points to broader systemic issues with data type transitions and backward compatibility that could affect multiple areas of the application.
 
 **Context (Significant Code Files)**:
-- `internal/scoring/engine.go:ScoreSimpleGoal()` - NEW: Dedicated simple habit scoring method (T016 fix)
+- `internal/scoring/engine.go:ScoreSimpleHabit()` - NEW: Dedicated simple habit scoring method (T016 fix)
 - `internal/ui/entry/flow_implementations.go:performAutomaticScoring()` - FIXED: Now uses proper scoring method
-- `internal/integration/goal_configuration_changes_test.go` - NEW: Integration tests for config changes
-- `internal/scoring/engine_test.go:TestEngine_ScoreSimpleGoal()` - NEW: Unit tests for simple habit scoring
+- `internal/integration/habit_configuration_changes_test.go` - NEW: Integration tests for config changes
+- `internal/scoring/engine_test.go:TestEngine_ScoreSimpleHabit()` - NEW: Unit tests for simple habit scoring
 - `internal/models/habit.go` - Habit type definitions and validation methods (IsSimple, IsElastic, etc.)
 - `internal/models/entry.go` - Entry data structures and type handling
 - `internal/parser/` - YAML parsing and schema validation  
-- `internal/ui/goalconfig/` - Habit editing workflows (future Phase 2 enhancement target)
+- `internal/ui/habitconfig/` - Habit editing workflows (future Phase 2 enhancement target)
 - User data: `/home/david/.config/vice/habits.yml` and `entries.yml`
 
 ## 1. Habit / User Story
@@ -65,7 +65,7 @@ As a user, I should be able to modify any aspect of my habit configurations (fie
 # Current habit configuration (correct)
 - title: Do 10 push-ups
   id: do_10_push_ups
-  goal_type: simple          # Simple habit, not elastic
+  habit_type: simple          # Simple habit, not elastic
   field_type:
     type: unsigned_int
   scoring_type: automatic    # Automatic scoring with criteria
@@ -74,7 +74,7 @@ As a user, I should be able to modify any aspect of my habit configurations (fie
       greater_than: 10.0
 
 # Historical entry data (shows previous boolean values)
-- goal_id: do_10_push_ups
+- habit_id: do_10_push_ups
   value: false              # Old boolean data from when it was manual
   achievement_level: none
 ```
@@ -147,25 +147,25 @@ As a user, I should be able to modify any aspect of my habit configurations (fie
   - *Design:* Analyze scoring system to identify hard-coded habit type assumptions
   - *Code/Artifacts:* `internal/scoring/` - Find logic that restricts automatic scoring to elastic habits
   - *Testing Strategy:* Create test cases for all habit type + scoring type combinations
-  - *AI Notes:* ✅ Found root cause: `SimpleGoalCollectionFlow.performAutomaticScoring` tries to fake simple habits as elastic habits by copying habit and setting MiniCriteria, then calls `ScoreElasticGoal()`. But `ScoreElasticGoal()` checks `habit.IsElastic()` on original habit type, causing "not an elastic habit" error. Design flaw: simple habits with automatic scoring need their own scoring method, not elastic habit masquerading.
+  - *AI Notes:* ✅ Found root cause: `SimpleHabitCollectionFlow.performAutomaticScoring` tries to fake simple habits as elastic habits by copying habit and setting MiniCriteria, then calls `ScoreElasticHabit()`. But `ScoreElasticHabit()` checks `habit.IsElastic()` on original habit type, causing "not an elastic habit" error. Design flaw: simple habits with automatic scoring need their own scoring method, not elastic habit masquerading.
 
 - [x] **Sub-task 1.2:** Fix automatic scoring for simple habits
   - *Design:* Remove habit type restrictions from automatic scoring logic
   - *Code/Artifacts:* Update scoring validation to allow simple habits with automatic scoring
   - *Testing Strategy:* Test simple boolean→numeric habit conversion with automatic scoring
-  - *AI Notes:* ✅ Added `ScoreSimpleGoal()` method to scoring engine that properly handles simple habits with automatic scoring. Updated `SimpleGoalCollectionFlow.performAutomaticScoring()` to use the new method instead of faking elastic habits. Fixed existing tests that incorrectly used elastic habits for simple habit testing. Added comprehensive tests for the new scoring method covering numeric and boolean habits plus error cases.
+  - *AI Notes:* ✅ Added `ScoreSimpleHabit()` method to scoring engine that properly handles simple habits with automatic scoring. Updated `SimpleHabitCollectionFlow.performAutomaticScoring()` to use the new method instead of faking elastic habits. Fixed existing tests that incorrectly used elastic habits for simple habit testing. Added comprehensive tests for the new scoring method covering numeric and boolean habits plus error cases.
 
 - [x] **Sub-task 1.3:** Improve error messages for scoring failures
   - *Design:* Replace misleading error messages with accurate, actionable feedback
   - *Code/Artifacts:* Update error handling in scoring and entry collection
   - *Testing Strategy:* Verify error messages accurately describe actual issues
-  - *AI Notes:* ✅ Error messages are now accurate with the core fix. The new `ScoreSimpleGoal()` method provides clear, specific error messages: "habit X is not a simple habit", "does not require automatic scoring", "has no criteria for automatic scoring". The misleading "not an elastic habit" error is eliminated since simple habits now use their own scoring method.
+  - *AI Notes:* ✅ Error messages are now accurate with the core fix. The new `ScoreSimpleHabit()` method provides clear, specific error messages: "habit X is not a simple habit", "does not require automatic scoring", "has no criteria for automatic scoring". The misleading "not an elastic habit" error is eliminated since simple habits now use their own scoring method.
 
 - [x] **Sub-task 1.4:** Test habit configuration change workflows
   - *Design:* Comprehensive testing of habit editing followed by entry collection
   - *Code/Artifacts:* Integration tests covering habit type/field type/scoring changes
   - *Testing Strategy:* Test all realistic habit conversion scenarios
-  - *AI Notes:* ✅ Created `internal/integration/goal_configuration_changes_test.go` with comprehensive tests covering: boolean→numeric automatic scoring (user's exact scenario), manual→automatic scoring conversions for different field types, and verification that both simple and elastic habits work correctly with automatic scoring. All tests pass, confirming the fix resolves the reported issue and prevents similar problems.
+  - *AI Notes:* ✅ Created `internal/integration/habit_configuration_changes_test.go` with comprehensive tests covering: boolean→numeric automatic scoring (user's exact scenario), manual→automatic scoring conversions for different field types, and verification that both simple and elastic habits work correctly with automatic scoring. All tests pass, confirming the fix resolves the reported issue and prevents similar problems.
 
 ### Phase 2: Type Assumption Audit and Architectural Resilience Plan (Next)
 **Focus:** Systematic audit and planning for type assumption vulnerabilities revealed by T016
@@ -188,7 +188,7 @@ As a user, I should be able to modify any aspect of my habit configurations (fie
 - Data migration and backward compatibility strategies
 
 **Audit Methodologies (from Sub-task 2.1):**
-1. **Type Masquerading Pattern Detection**: Search for components creating fake instances of other types (e.g., SimpleGoalCollectionFlow faking elastic habits)
+1. **Type Masquerading Pattern Detection**: Search for components creating fake instances of other types (e.g., SimpleHabitCollectionFlow faking elastic habits)
 2. **Hard-coded Type Assumption Analysis**: Identify conditional logic with missing type combinations (e.g., automatic scoring assumed = elastic only)
 3. **Cross-Component Type Dependency Mapping**: Trace data flow between components with implicit type assumptions
 4. **Error Message Accuracy Audit**: Validate error messages match actual failure conditions
@@ -199,7 +199,7 @@ As a user, I should be able to modify any aspect of my habit configurations (fie
 - **Lower**: Data persistence and historical data compatibility
 
 **Search Patterns:**
-- Type field manipulation + method calls: `rg -A 5 -B 5 "(habit|entry).*\.(goal_type|field_type|scoring_type).*="`
+- Type field manipulation + method calls: `rg -A 5 -B 5 "(habit|entry).*\.(habit_type|field_type|scoring_type).*="`
 - Missing case coverage: `rg -A 10 -B 5 "IsElastic\(\)" | rg -v "IsSimple"`
 - Hard-coded assumptions: `rg "automatic.*elastic|elastic.*automatic"`
 - Error message issues: `rg -A 3 -B 3 "not.*elastic|not.*simple|invalid.*habit"`
@@ -230,8 +230,8 @@ As a user, I should be able to modify any aspect of my habit configurations (fie
 
   1. Type Masquerading Patterns (MODERATE RISK)
 
-  - No active patterns found: The T016 fix eliminated the main type masquerading issue where SimpleGoalCollectionFlow was faking simple habits as elastic habits
-  - Scoring engine separation: Both ScoreSimpleGoal() and ScoreElasticGoal() have proper type validation preventing cross-type usage
+  - No active patterns found: The T016 fix eliminated the main type masquerading issue where SimpleHabitCollectionFlow was faking simple habits as elastic habits
+  - Scoring engine separation: Both ScoreSimpleHabit() and ScoreElasticHabit() have proper type validation preventing cross-type usage
 
   2. Hard-coded Type Assumptions (HIGH IMPACT)
 
@@ -246,7 +246,7 @@ As a user, I should be able to modify any aspect of my habit configurations (fie
 
   3. Cross-Component Type Dependencies (LOW RISK)
 
-  - Scoring engine interface: Proper separation between ScoreSimpleGoal() and ScoreElasticGoal() methods
+  - Scoring engine interface: Proper separation between ScoreSimpleHabit() and ScoreElasticHabit() methods
   - Entry collection flows: Clean routing based on habit types without assumptions
 
   4. Error Message Accuracy (RESOLVED)
@@ -317,17 +317,17 @@ As a user, I should be able to modify any aspect of my habit configurations (fie
 - `2025-07-14 - User:` Reported bug when editing habit from simple boolean to automatic numeric scoring: "habit do_10_push_ups is not an elastic habit"
 - `2025-07-14 - User:` Requested generalization to look for opportunities to improve resilience to changed data types elsewhere
 - `2025-07-14 - AI:` Expanded scope from simple bug fix to comprehensive data type resilience. Issue reveals broader architectural vulnerabilities: hard-coded type assumptions, missing data migration handling, inadequate configuration change validation, and poor error messaging. This affects scoring, entry collection, habit editing, and validation systems.
-- `2025-07-14 - AI:` Phase 1 COMPLETE: Fixed the immediate scoring issue. Root cause was `SimpleGoalCollectionFlow.performAutomaticScoring()` trying to masquerade simple habits as elastic habits, which failed because `ScoreElasticGoal()` validates the original habit type. Solution: Added dedicated `ScoreSimpleGoal()` method for simple habits with automatic scoring. Updated flow to use proper method. Added comprehensive tests. User's scenario (boolean→numeric automatic scoring) now works correctly. No more "not an elastic habit" errors for simple habits.
+- `2025-07-14 - AI:` Phase 1 COMPLETE: Fixed the immediate scoring issue. Root cause was `SimpleHabitCollectionFlow.performAutomaticScoring()` trying to masquerade simple habits as elastic habits, which failed because `ScoreElasticHabit()` validates the original habit type. Solution: Added dedicated `ScoreSimpleHabit()` method for simple habits with automatic scoring. Updated flow to use proper method. Added comprehensive tests. User's scenario (boolean→numeric automatic scoring) now works correctly. No more "not an elastic habit" errors for simple habits.
 
 ### Key Learnings & Implementation Guidance:
 
 **1. Architecture Pattern Discovered:**
-- Problem: Type masquerading anti-pattern where SimpleGoalCollectionFlow tried to fake simple habits as elastic habits
+- Problem: Type masquerading anti-pattern where SimpleHabitCollectionFlow tried to fake simple habits as elastic habits
 - Solution: Dedicated scoring methods per habit type with proper type validation
 - Principle: Each habit type should have its own appropriate handling, not try to reuse others' logic
 
 **2. Critical Code Paths:**
-- `internal/scoring/engine.go:ScoreSimpleGoal()` - New method for simple habit automatic scoring
+- `internal/scoring/engine.go:ScoreSimpleHabit()` - New method for simple habit automatic scoring
 - `internal/ui/entry/flow_implementations.go:performAutomaticScoring()` - Fixed to use proper method
 - Integration point: Entry collection → Flow routing → Scoring engine method selection
 

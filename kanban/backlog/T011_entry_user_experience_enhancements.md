@@ -22,10 +22,10 @@ context_windows: ["internal/ui/entry.go", "internal/ui/entry/*.go", "internal/mo
 
 **Context (Significant Code Files)**:
 - internal/ui/entry.go - Main entry collector with complete flow integration (T010/4.1 complete)
-- internal/ui/entry/goal_collection_flows.go - Complete habit collection flow implementations
+- internal/ui/entry/habit_collection_flows.go - Complete habit collection flow implementations
 - internal/ui/entry/flow_implementations.go - All habit type flow methods with scoring and feedback
 - internal/ui/entry/flow_factory.go - Factory for creating appropriate habit flows
-- internal/models/entry.go - Entry data structures (DayEntry, GoalEntry, AchievementLevel)
+- internal/models/entry.go - Entry data structures (DayEntry, HabitEntry, AchievementLevel)
 
 ## 1. Habit / User Story
 

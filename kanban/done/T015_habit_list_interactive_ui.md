@@ -9,11 +9,11 @@ context_windows: ["cmd/habit/**/*.go", "internal/ui/**/*.go", "internal/models/h
 # Interactive Habit List UI - vice habit list
 
 **Context (Background)**:
-The CLI currently has placeholder implementations for habit listing, editing, and removal. Habit creation is fully implemented using bubbletea/huh patterns. The interactive list UI should integrate with existing GoalConfigurator routing and reuse established habit loading/validation patterns.
+The CLI currently has placeholder implementations for habit listing, editing, and removal. Habit creation is fully implemented using bubbletea/huh patterns. The interactive list UI should integrate with existing HabitConfigurator routing and reuse established habit loading/validation patterns.
 
 **Context (Significant Code Files)**:
-- `cmd/goal_list.go` - Current placeholder calling configurator.ListGoals()
-- `internal/ui/goalconfig/configurator.go` - Main habit orchestrator with routing methods
+- `cmd/habit_list.go` - Current placeholder calling configurator.ListHabits()
+- `internal/ui/habitconfig/configurator.go` - Main habit orchestrator with routing methods
 - `internal/parser/habits.go` - Habit loading/saving with ID persistence  
 - `internal/models/habit.go` - Habit data structures and validation
 - `internal/ui/todo.go` - Reference table UI implementation patterns
@@ -22,7 +22,7 @@ The CLI currently has placeholder implementations for habit listing, editing, an
 
 **All commits related to this task (newest first):**
 
-- `4327c9b` - feat(goalconfig)[T015/3]: Phase 3 complete - edit and delete operations
+- `4327c9b` - feat(habitconfig)[T015/3]: Phase 3 complete - edit and delete operations
 - Previous commits from Phases 1-2 in git history
 
 ## 1. Habit / User Story
@@ -79,7 +79,7 @@ This enhances the current habit management workflow by providing a unified inter
 - Custom delegate needed to achieve table-like rendering within list items
 
 **Technical approach:**
-- Implement `GoalItem` type satisfying `list.Item` interface
+- Implement `HabitItem` type satisfying `list.Item` interface
 - Custom delegate for tabular-style rendering within list items  
 - Configure fuzzy filtering on habit title and type fields
 - Follow existing bubbletea Model-View-Update patterns from habit creators
@@ -92,19 +92,19 @@ This enhances the current habit management workflow by providing a unified inter
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
 
 - [x] **Phase 1: Core List Implementation**
-  - [x] **Sub-task 1.1:** Create GoalItem type implementing list.Item interface
+  - [x] **Sub-task 1.1:** Create HabitItem type implementing list.Item interface
     - *Design:* Implement FilterValue(), Title(), Description() for habit display
-    - *Code/Artifacts:* `internal/ui/goalconfig/goal_list.go` - New list model
-    - *Testing Strategy:* Unit tests for GoalItem formatting and filtering
+    - *Code/Artifacts:* `internal/ui/habitconfig/habit_list.go` - New list model
+    - *Testing Strategy:* Unit tests for HabitItem formatting and filtering
     - *AI Notes:* Follow existing bubbletea patterns, reuse habit loading from parser
-  - [x] **Sub-task 1.2:** Implement basic GoalListModel with bubbles/list
+  - [x] **Sub-task 1.2:** Implement basic HabitListModel with bubbles/list
     - *Design:* Bubbletea Model-View-Update pattern, integration with configurator
     - *Code/Artifacts:* List model with habit loading, basic navigation
     - *Testing Strategy:* Integration tests with sample habits.yml files
     - *AI Notes:* Handle empty lists gracefully, follow styling from todo.go
-  - [x] **Sub-task 1.3:** Integrate with GoalConfigurator.ListGoals()
+  - [x] **Sub-task 1.3:** Integrate with HabitConfigurator.ListHabits()
     - *Design:* Replace placeholder implementation, maintain error handling patterns
-    - *Code/Artifacts:* `internal/ui/goalconfig/configurator.go:165` update
+    - *Code/Artifacts:* `internal/ui/habitconfig/configurator.go:165` update
     - *Testing Strategy:* CLI integration tests with existing habit files
     - *AI Notes:* Preserve existing path management and validation flows
 
@@ -118,19 +118,19 @@ This enhances the current habit management workflow by providing a unified inter
     - *Design:* Centralized keybinding definitions, vim-style navigation
     - *Code/Artifacts:* Key definitions for list navigation, modal, edit, delete operations
     - *Testing Strategy:* Test all keybinding scenarios, ensure no conflicts
-    - *AI Notes:* Implemented comprehensive keybinding system with GoalListKeyMap struct, default bindings with vim-style navigation (j/k + arrows), modal controls (enter/space/ESC), prepared future operations (e/d//) with TODO placeholders, and WithKeyMap() method for user configurability. Added extensive tests for all keybinding scenarios.
+    - *AI Notes:* Implemented comprehensive keybinding system with HabitListKeyMap struct, default bindings with vim-style navigation (j/k + arrows), modal controls (enter/space/ESC), prepared future operations (e/d//) with TODO placeholders, and WithKeyMap() method for user configurability. Added extensive tests for all keybinding scenarios.
 
 - [x] **Phase 3: Edit and Delete Operations**
   - [x] **Sub-task 3.1:** Integrate habit editing with existing creators
     - *Design:* Launch appropriate habit creator (Simple/Elastic/Checklist/Informational) for selected habit
     - *Code/Artifacts:* Edit operation routing, habit pre-population in creators
     - *Testing Strategy:* Test editing for all habit types, validate data preservation
-    - *AI Notes:* Implemented edit-mode constructors for all habit creators with habit-to-data conversion. Added EditGoalByID method with position preservation and ID retention. Integrated 'e' key in habit list UI with quit-and-edit pattern. Edit operations maintain habit position in list and preserve original ID as requested.
+    - *AI Notes:* Implemented edit-mode constructors for all habit creators with habit-to-data conversion. Added EditHabitByID method with position preservation and ID retention. Integrated 'e' key in habit list UI with quit-and-edit pattern. Edit operations maintain habit position in list and preserve original ID as requested.
   - [x] **Sub-task 3.2:** Implement habit deletion with backup option
     - *Design:* Confirmation dialog with backup file creation option (default yes)
     - *Code/Artifacts:* Delete confirmation UI, backup file generation, habit removal
     - *Testing Strategy:* Test delete operation, backup file creation, validation after removal
-    - *AI Notes:* Implemented RemoveGoalByID with confirmation dialog including backup option (defaults to yes). Added backup file handling with overwrite protection - prompts before overwriting existing .backup files. Habit removal from schema by filtering out target habit. Integrated 'd' key in habit list UI. Handles empty habit list after deletion gracefully.
+    - *AI Notes:* Implemented RemoveHabitByID with confirmation dialog including backup option (defaults to yes). Added backup file handling with overwrite protection - prompts before overwriting existing .backup files. Habit removal from schema by filtering out target habit. Integrated 'd' key in habit list UI. Handles empty habit list after deletion gracefully.
 
 
 ## 5. Roadblocks
@@ -147,24 +147,24 @@ This enhances the current habit management workflow by providing a unified inter
 - `2025-07-14 - User:` Requirements clarified: Show all habits (ID, Title, Type, Status), modal overlay for details, existing UI for editing, vim keybindings, backup option for deletion, future search with "/" key for title filtering.
 - `2025-07-14 - User:` Technical considerations: viewport/paginator may be needed for long lists. Consider bubbles/list component instead of table - already has fuzzy search and appropriate bindings built-in.
 - `2025-07-14 - AI:` Analysis complete. Recommendation: Use bubbles/list component over table for built-in fuzzy filtering, better UX patterns, and future extensibility. Implementation plan created with 4 phases covering core list, modal views, operations, and search functionality.
-- `2025-07-14 - AI:` Phase 1 complete. Implemented GoalItem and GoalListModel with bubbles/list integration. Created comprehensive unit and integration tests. Successfully integrated with GoalConfigurator.ListGoals() with proper error handling for missing/empty files.
+- `2025-07-14 - AI:` Phase 1 complete. Implemented HabitItem and HabitListModel with bubbles/list integration. Created comprehensive unit and integration tests. Successfully integrated with HabitConfigurator.ListHabits() with proper error handling for missing/empty files.
 - `2025-07-14 - AI:` UI revision complete. Changed from tabular to clean vertical list format with emojis (✅🎯📊📝), inverted title styling, item count display, and legend. Removed custom delegate in favor of default bubbles/list styling for better UX.
 - `2025-07-14 - AI:` Phase 2.1 complete. Implemented habit detail modal overlay with enter/space to open and ESC to close. Modal displays comprehensive habit information including title with emoji, description, habit details (ID, type, field, scoring), habit-type specific details (achievement levels for elastic habits, direction for informational habits), criteria with proper formatting, and UI prompts. Added proper styling with purple border and organized layout. Created extensive tests for modal functionality and criteria rendering.
-- `2025-07-14 - AI:` Phase 2.2 complete. Implemented centralized keybinding management using bubbles/key. Created GoalListKeyMap struct with vim-style navigation (j/k + arrows), modal controls (enter/space/ESC), and prepared future operations (e/d//) with TODO placeholders. Added WithKeyMap() method for user configurability. Enhanced Update() method to use key.Matches() for cleaner key handling. Modal keys are properly isolated to prevent interference. Created comprehensive tests for all keybinding scenarios and custom keymap functionality.
+- `2025-07-14 - AI:` Phase 2.2 complete. Implemented centralized keybinding management using bubbles/key. Created HabitListKeyMap struct with vim-style navigation (j/k + arrows), modal controls (enter/space/ESC), and prepared future operations (e/d//) with TODO placeholders. Added WithKeyMap() method for user configurability. Enhanced Update() method to use key.Matches() for cleaner key handling. Modal keys are properly isolated to prevent interference. Created comprehensive tests for all keybinding scenarios and custom keymap functionality.
 - `2025-07-14 - AI:` UX improvements: Added 'q' key to close modal for consistency. Integrated ShowDetail key into main help system via AdditionalShortHelpKeys. Made modal footer dynamic using Help().Key instead of hardcoded text. Added AIDEV anchor comments documenting key architectural patterns: keybinding-architecture (centralized management), help-integration (bubbles/list integration), dynamic-help-text (configurability), and modal-key-isolation (event handling priority).
-- `2025-07-14 - AI:` Phase 3 complete. Implemented comprehensive habit editing and deletion operations. Edit functionality: Created NewXXXGoalCreatorForEdit constructors for all habit types with habit-to-data conversion logic. Edit operations preserve habit position and ID as requested. Added EditGoalByID method with routing to appropriate creators. Integrated 'e' key in habit list with quit-and-edit pattern that returns to updated list after editing. Delete functionality: Implemented RemoveGoalByID with dual confirmation dialog (delete + backup option). Backup handling includes overwrite protection for existing .backup files. Habit removal updates schema and handles empty list gracefully. Integrated 'd' key in habit list. Both operations use habit list UI for selection, maintaining consistent UX. CLI commands (vice habit edit/remove) delegate to interactive list for seamless user experience.
+- `2025-07-14 - AI:` Phase 3 complete. Implemented comprehensive habit editing and deletion operations. Edit functionality: Created NewXXXHabitCreatorForEdit constructors for all habit types with habit-to-data conversion logic. Edit operations preserve habit position and ID as requested. Added EditHabitByID method with routing to appropriate creators. Integrated 'e' key in habit list with quit-and-edit pattern that returns to updated list after editing. Delete functionality: Implemented RemoveHabitByID with dual confirmation dialog (delete + backup option). Backup handling includes overwrite protection for existing .backup files. Habit removal updates schema and handles empty list gracefully. Integrated 'd' key in habit list. Both operations use habit list UI for selection, maintaining consistent UX. CLI commands (vice habit edit/remove) delegate to interactive list for seamless user experience.
 - `2025-07-14 - AI:` Task completion: All acceptance criteria met. Built-in bubbles/list filtering with "/" key provides complete search functionality. Help text updated to show edit/delete operations. Boolean habit editing crash fixed. Task ready for completion.
 
 ### Key Code Files Modified in Phase 3:
-- `internal/ui/goalconfig/configurator.go` - EditGoalByID/RemoveGoalByID methods, confirmation dialogs, backup handling
-- `internal/ui/goalconfig/goal_list.go` - Edit/delete integration with selectedGoalForEdit/Delete fields
-- `internal/ui/goalconfig/simple_goal_creator.go` - NewSimpleGoalCreatorForEdit with goalToTestData conversion
-- `internal/ui/goalconfig/elastic_goal_creator.go` - NewElasticGoalCreatorForEdit with goalToTestElasticData conversion
-- `internal/ui/goalconfig/informational_goal_creator.go` - NewInformationalGoalCreatorForEdit with pre-population
-- `internal/ui/goalconfig/checklist_goal_creator.go` - NewChecklistGoalCreatorForEdit with checklist ID preservation
+- `internal/ui/habitconfig/configurator.go` - EditHabitByID/RemoveHabitByID methods, confirmation dialogs, backup handling
+- `internal/ui/habitconfig/habit_list.go` - Edit/delete integration with selectedHabitForEdit/Delete fields
+- `internal/ui/habitconfig/simple_habit_creator.go` - NewSimpleHabitCreatorForEdit with habitToTestData conversion
+- `internal/ui/habitconfig/elastic_habit_creator.go` - NewElasticHabitCreatorForEdit with habitToTestElasticData conversion
+- `internal/ui/habitconfig/informational_habit_creator.go` - NewInformationalHabitCreatorForEdit with pre-population
+- `internal/ui/habitconfig/checklist_habit_creator.go` - NewChecklistHabitCreatorForEdit with checklist ID preservation
 
 ### Critical Design Patterns Established:
-1. **Habit-to-Data Conversion**: Reverse engineering from models.Habit to TestGoalData structures enables seamless edit mode
+1. **Habit-to-Data Conversion**: Reverse engineering from models.Habit to TestHabitData structures enables seamless edit mode
 2. **Position Preservation Architecture**: Edit operations maintain habit.Position and habit.ID for future reordering support
 3. **Quit-and-Return UI Pattern**: Operations exit list UI, perform action, then return to refreshed list for consistent UX
 4. **Backup Protection Strategy**: Default yes for backups with overwrite confirmation prevents accidental data loss

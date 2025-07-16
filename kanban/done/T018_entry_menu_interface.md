@@ -15,15 +15,15 @@ Entry menu interface provides streamlined daily habit tracking by combining habi
 - `cmd/entry.go` - Entry command with --menu flag integration (MODIFIED) + updated help text
 - `cmd/root.go` - Root command configuration for default behavior + Fang integration (MODIFIED)
 - `cmd/habit.go` - Habit command help text updated for comprehensive feature set (MODIFIED)
-- `cmd/goal_add.go` - Habit add command help text updated (MODIFIED)
+- `cmd/habit_add.go` - Habit add command help text updated (MODIFIED)
 - `internal/ui/entry.go` - EntryCollector orchestrates entry workflow + menu integration methods
 - `internal/ui/entrymenu/model.go` - Complete BubbleTea model with navigation, filtering, return behavior (COMPLETE)
 - `internal/ui/entrymenu/view.go` - ViewRenderer for progress bar, filters, return behavior display (COMPLETE)
 - `internal/ui/entrymenu/navigation.go` - NavigationHelper with filtering and smart navigation (COMPLETE)
 - `internal/ui/entrymenu/*_test.go` - Comprehensive test suite including teatest integration tests (COMPLETE)
-- `internal/ui/goalconfig/goal_list.go` - GoalListModel provides habit browsing patterns (REFERENCE)
-- `internal/ui/entry/goal_collection_flows.go` - Habit-specific entry collection flows (INTEGRATION)
-- `doc/specifications/goal_schema.md` - Complete feature set documentation (REFERENCE)
+- `internal/ui/habitconfig/habit_list.go` - HabitListModel provides habit browsing patterns (REFERENCE)
+- `internal/ui/entry/habit_collection_flows.go` - Habit-specific entry collection flows (INTEGRATION)
+- `doc/specifications/habit_schema.md` - Complete feature set documentation (REFERENCE)
 
 ## Git Commit History
 
@@ -54,7 +54,7 @@ This interface should become the primary entry point for the application, making
 
 ### Design Strategy: Loose Coupling Through Existing Interfaces
 
-**Interface Reuse Pattern**: Entry menu will leverage existing abstractions (`EntryCollector`, `GoalCollectionFlow`) rather than direct habit type coupling, supporting T017's loose coupling habits.
+**Interface Reuse Pattern**: Entry menu will leverage existing abstractions (`EntryCollector`, `HabitCollectionFlow`) rather than direct habit type coupling, supporting T017's loose coupling habits.
 
 **Color System Integration**: Will use lipgloss with termenv for cross-platform color support:
 - Success: `lipgloss.Color("214")` (gold)
@@ -66,8 +66,8 @@ This interface should become the primary entry point for the application, making
 ```
 EntryMenuModel (BubbleTea UI)
 ├── EntryCollector (existing orchestration)
-├── GoalCollectionFlow (existing entry flows)
-├── GoalListModel patterns (navigation/display)
+├── HabitCollectionFlow (existing entry flows)
+├── HabitListModel patterns (navigation/display)
 └── MenuState (progress tracking, filters)
 ```
 
@@ -85,17 +85,17 @@ EntryMenuModel (BubbleTea UI)
 
 - [x] **1. Analysis & Design Phase**
   - [x] **1.1 Research existing UI patterns:** Analyze current habit list and entry implementations
-    - *Design:* GoalListModel uses bubbles/list, EntryCollector orchestrates flows, BubbleTea Model-View-Update
-    - *Code/Artifacts:* Understanding of GoalListKeyMap, EntryCollectionFlow interface, styling patterns
+    - *Design:* HabitListModel uses bubbles/list, EntryCollector orchestrates flows, BubbleTea Model-View-Update
+    - *Code/Artifacts:* Understanding of HabitListKeyMap, EntryCollectionFlow interface, styling patterns
     - *Testing Strategy:* N/A - research phase
-    - *AI Notes:* Strong foundation with GoalListModel patterns and EntryCollector abstraction
+    - *AI Notes:* Strong foundation with HabitListModel patterns and EntryCollector abstraction
   
 - [ ] **2. Core Menu Interface Implementation**
   - [x] **2.1 Create EntryMenuModel structure:** Build BubbleTea model for menu interface
-    - *Design:* Adapt GoalListModel patterns with entry-specific state (progress, filters, return behavior)
+    - *Design:* Adapt HabitListModel patterns with entry-specific state (progress, filters, return behavior)
     - *Code/Artifacts:* `internal/ui/entrymenu/model.go` with BubbleTea implementation
     - *Testing Strategy:* Unit tests for model state transitions, headless constructor for testing
-    - *AI Notes:* Follow established patterns from GoalListModel, maintain loose coupling to habit types
+    - *AI Notes:* Follow established patterns from HabitListModel, maintain loose coupling to habit types
   
   - [x] **2.2 Implement habit status rendering:** Add color-coded habit status display with progress bar
     - *Design:* Status colors via lipgloss.Color(), progress calculation across all habits
@@ -104,7 +104,7 @@ EntryMenuModel (BubbleTea UI)
     - *AI Notes:* Use termenv-compatible colors: gold(214), dark red(88), dark grey(240), light grey(250)
   
   - [x] **2.3 Add menu navigation and filtering:** Implement keybindings for menu operations
-    - *Design:* Extend GoalListKeyMap patterns: r(return behavior), s(skip filter), p(previous filter)
+    - *Design:* Extend HabitListKeyMap patterns: r(return behavior), s(skip filter), p(previous filter)
     - *Code/Artifacts:* Keybinding definitions and filter state management
     - *Testing Strategy:* Navigation behavior tests, filter state persistence tests
     - *AI Notes:* Follow established keybinding patterns, maintain help text generation consistency
@@ -118,7 +118,7 @@ EntryMenuModel (BubbleTea UI)
     - *AI Notes:* POC SUCCESSFUL - teatest recommended for Phase 3.1+ complex flows; keeps unit tests for fast feedback
   
   - [x] **3.1 Create menu-entry integration:** Connect menu to existing EntryCollector system
-    - *Design:* Launch EntryCollector.CollectSingleGoalEntry() method, handle return flow
+    - *Design:* Launch EntryCollector.CollectSingleHabitEntry() method, handle return flow
     - *Code/Artifacts:* Integration methods in EntryMenuModel, updateEntriesFromCollector(), habit selection flow
     - *Testing Strategy:* teatest integration test verifying menu→entry→menu flow
     - *AI Notes:* Clean integration via EntryCollector abstraction, maintains loose coupling to habit types
@@ -147,7 +147,7 @@ EntryMenuModel (BubbleTea UI)
     - *Design:* Menu state tracking return preference, toggle keybinding
     - *Code/Artifacts:* Return behavior state management and toggle logic in model.go, footer display
     - *Testing Strategy:* Behavior toggle tests, state persistence across menu sessions
-    - *AI Notes:* ALREADY IMPLEMENTED - r key toggles between ReturnToMenu/ReturnToNextGoal with footer display
+    - *AI Notes:* ALREADY IMPLEMENTED - r key toggles between ReturnToMenu/ReturnToNextHabit with footer display
   
   - [x] **5.2 Add habit filtering capabilities:** Implement "s" and "p" keys for status filtering
     - *Design:* Filter state management, habit list filtering based on entry status
@@ -157,7 +157,7 @@ EntryMenuModel (BubbleTea UI)
 
   - [x] **5.3 Update CLI help messages for comprehensive feature set:** Reflect all habit types and features
     - *Design:* Update help text to mention simple/elastic/informational/checklist habits, automatic criteria
-    - *Code/Artifacts:* Updated help in cmd/root.go, cmd/habit.go, cmd/entry.go, cmd/goal_add.go
+    - *Code/Artifacts:* Updated help in cmd/root.go, cmd/habit.go, cmd/entry.go, cmd/habit_add.go
     - *Testing Strategy:* Verify help output accuracy, ensure examples are current
     - *AI Notes:* Help now accurately reflects elastic achievement tiers, automatic success evaluation
 
@@ -178,13 +178,13 @@ EntryMenuModel (BubbleTea UI)
   - Enhancement: "r" key to toggle return behavior (menu vs next habit after entry)
   - Enhancement: "s" key to filter out skipped habits, "p" key to filter out previously entered habits (successful/failed)
 - `2025-07-14 - AI:` Analysis phase completed. Key findings:
-  - Strong foundation with GoalListModel patterns and EntryCollector abstraction
+  - Strong foundation with HabitListModel patterns and EntryCollector abstraction
   - Existing system supports loose coupling via EntryCollector interface
   - T017 architectural insights guide interface-based design for extensibility
   - Color system uses lipgloss with termenv: gold(214), dark red(88), dark grey(240), light grey(250)
   - Implementation plan updated with detailed sub-tasks based on existing patterns
 - `2025-07-14 - AI:` Sub-task 2.1 completed: EntryMenuModel structure implemented
-  - Created `internal/ui/entrymenu/model.go` with BubbleTea patterns adapted from GoalListModel
+  - Created `internal/ui/entrymenu/model.go` with BubbleTea patterns adapted from HabitListModel
   - Implemented EntryMenuItem with status colors and indicators per requirements
   - Added filtering (skip/previous) and return behavior toggle functionality
   - Created comprehensive test suite with 100% test coverage
@@ -201,13 +201,13 @@ EntryMenuModel (BubbleTea UI)
   - Enhanced keybindings: n/tab (next incomplete), N/shift+tab (prev incomplete), c (clear filters)
   - Implemented smart navigation: auto-select next incomplete habit, wrap-around search
   - Added comprehensive filtering with visual feedback and state management
-  - Created GoalInfo system for habit status queries and navigation decisions
+  - Created HabitInfo system for habit status queries and navigation decisions
   - Extended help system with proper keybinding documentation and grouping
   - All tests passing including comprehensive navigation and filtering test coverage
 - `2025-07-14 - AI:` Sub-task 4.1 completed: Entry command integration with --menu flag
   - Modified `cmd/entry.go` to support `--menu` flag with full integration
   - Created `runEntryMenu()` function that loads real habits/entries and launches TUI
-  - Uses existing data loading patterns (goalParser, entryStorage) for consistency
+  - Uses existing data loading patterns (habitParser, entryStorage) for consistency
   - Integrates with BubbleTea program runner for proper TUI handling
   - **WORKING SOFTWARE**: `vice entry --menu` now launches functional UI
   
@@ -240,7 +240,7 @@ EntryMenuModel (BubbleTea UI)
   - **COMMIT**: `b0a762b` - feat(test)[T018/3.0]: POC BubbleTea integration testing with teatest
   - **READY FOR**: Phase 3.1 entry integration with comprehensive testing framework
 - `2025-07-14 - AI:` Sub-tasks 3.1 & 3.2 completed: Entry integration and auto-save implemented
-  - **ENTRY INTEGRATION**: Habit selection (Enter key) now launches EntryCollector.CollectSingleGoalEntry()
+  - **ENTRY INTEGRATION**: Habit selection (Enter key) now launches EntryCollector.CollectSingleHabitEntry()
   - **STATE SYNC**: updateEntriesFromCollector() syncs menu state with collector after entry collection
   - **AUTO-SAVE**: entries.yml automatically updated after each habit completion via SaveEntriesToFile()
   - **NAVIGATION**: Return behavior toggle ('r' key) between return-to-menu vs advance-to-next-habit
@@ -283,19 +283,19 @@ EntryMenuModel (BubbleTea UI)
 
 **Key Design Decision**: Loose coupling via EntryCollector abstraction
 - Menu model holds `*ui.EntryCollector` but doesn't know about specific habit types
-- `CollectSingleGoalEntry(habit)` method handles all habit type complexity internally
+- `CollectSingleHabitEntry(habit)` method handles all habit type complexity internally
 - `InitializeForMenu(habits, entries)` sets up collector state for menu usage
 - This maintains T017 architecture habits and allows easy extension
 
 **Integration Flow**:
 1. User presses Enter → `keys.Select` in Update()
-2. `CollectSingleGoalEntry()` launches appropriate entry collection flow
+2. `CollectSingleHabitEntry()` launches appropriate entry collection flow
 3. `updateEntriesFromCollector()` syncs menu state with collector results  
 4. `SaveEntriesToFile()` auto-saves entries.yml (if path provided)
 5. Return behavior handling: menu vs next-habit navigation
 
 **State Management Gotchas**:
-- EntryCollector uses `interface{}` for values, menu uses `models.GoalEntry`
+- EntryCollector uses `interface{}` for values, menu uses `models.HabitEntry`
 - Type conversion in `updateEntriesFromCollector()` handles: string, bool, time.Time, default
 - Menu entries map gets completely refreshed after each entry collection
 - Both collector and menu track same data but in different formats
@@ -317,7 +317,7 @@ EntryMenuModel (BubbleTea UI)
 
 **Core Implementation**:
 - `internal/ui/entrymenu/model.go`: Main model with entry integration (lines 304-335)
-- `internal/ui/entry.go`: Added CollectSingleGoalEntry(), GetGoalEntry(), InitializeForMenu()  
+- `internal/ui/entry.go`: Added CollectSingleHabitEntry(), GetHabitEntry(), InitializeForMenu()  
 - `cmd/entry.go`: Menu launch with EntryCollector initialization (lines 85-90)
 
 **Testing Framework**:
@@ -332,8 +332,8 @@ EntryMenuModel (BubbleTea UI)
 
 **EntryCollector Methods Added for Menu**:
 ```go
-CollectSingleGoalEntry(habit) error          // Main integration point
-GetGoalEntry(goalID) (value, notes, ...)    // State query for sync
+CollectSingleHabitEntry(habit) error          // Main integration point
+GetHabitEntry(habitID) (value, notes, ...)    // State query for sync
 InitializeForMenu(habits, entries)           // Setup collector state  
 SaveEntriesToFile(path) error               // Auto-save capability
 ```
@@ -347,7 +347,7 @@ SaveEntriesToFile(path) error               // Auto-save capability
 
 **Return Behavior Toggle ('r' key)**:
 - `ReturnToMenu`: Stay on current habit after entry (default)
-- `ReturnToNextGoal`: Auto-advance to next incomplete habit
+- `ReturnToNextHabit`: Auto-advance to next incomplete habit
 - Persistent during menu session, resets on restart
 
 **Smart Navigation**:
@@ -395,10 +395,10 @@ SaveEntriesToFile(path) error               // Auto-save capability
   - **SCOPE**: Updated help text across all commands to reflect comprehensive feature set
   - **FEATURES DOCUMENTED**: Simple/elastic/informational/checklist habits, automatic criteria evaluation
   - **IMPROVEMENTS**: Added achievement tier explanations, better examples, accurate capability descriptions
-  - **FILES UPDATED**: cmd/root.go, cmd/habit.go, cmd/entry.go, cmd/goal_add.go
+  - **FILES UPDATED**: cmd/root.go, cmd/habit.go, cmd/entry.go, cmd/habit_add.go
   - **VERIFICATION**: All help outputs tested and accurately reflect current functionality
 - `2025-07-15 - AI:` Sub-task 5.1 already complete: Return behavior toggle functionality discovered
-  - **EXISTING IMPLEMENTATION**: 'r' key toggle between ReturnToMenu/ReturnToNextGoal modes
+  - **EXISTING IMPLEMENTATION**: 'r' key toggle between ReturnToMenu/ReturnToNextHabit modes
   - **VISUAL INDICATION**: Footer displays "Return: menu" or "Return: next habit"
   - **INTEGRATION**: Works with navigation flow - auto-advance to next habit or stay on current
   - **TESTING**: Complete test coverage in model_test.go

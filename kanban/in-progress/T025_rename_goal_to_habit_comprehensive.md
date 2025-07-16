@@ -196,4 +196,6 @@ The approach will be systematic:
 
 **All commits related to this task (newest first):**
 
-*No commits yet - task is in backlog*
+- `2e23867` - refactor(T025)[2.2]: complete goal→habit content replacement using perl batch operations
+- `0df4c0b` - feat(T025): comprehensive goal→habit terminology refactor
+- `574f705` - docs(tasks)[T025]: create comprehensive goal→habit rename task

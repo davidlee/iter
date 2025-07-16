@@ -61,7 +61,7 @@ Boolean habits with pass/fail tracking:
 version: "1.0.0"
 habits:
   - title: "Morning Exercise"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -76,7 +76,7 @@ Multi-level achievement habits with mini/midi/maxi levels:
 ```yaml
 habits:
   - title: "Exercise Duration"
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "duration"
     scoring_type: "automatic"
@@ -100,7 +100,7 @@ Data collection without scoring:
 ```yaml
 habits:
   - title: "Sleep Quality"
-    goal_type: "informational"
+    habit_type: "informational"
     field_type:
       type: "unsigned_int"
       unit: "rating"
@@ -189,9 +189,9 @@ Each habit supports these fields:
 
 ```yaml
 title: "Habit Title"                    # Required: Human-readable name
-id: "goal_id"                         # Optional: auto-generated from title
+id: "habit_id"                         # Optional: auto-generated from title
 description: "Habit description"        # Optional: markdown supported
-goal_type: "simple|elastic|informational"  # Required
+habit_type: "simple|elastic|informational"  # Required
 field_type:                           # Required: see field types above
   type: "boolean"
 scoring_type: "manual|automatic"      # Required for simple/elastic habits
@@ -221,7 +221,7 @@ version: "1.0.0"
 habits:
   # Simple boolean habit
   - title: "Morning Meditation"
-    goal_type: "simple"
+    habit_type: "simple"
     field_type:
       type: "boolean"
     scoring_type: "manual"
@@ -229,7 +229,7 @@ habits:
 
   # Elastic habit with automatic scoring
   - title: "Exercise Duration"
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "duration"
     scoring_type: "automatic"
@@ -247,7 +247,7 @@ habits:
 
   # Numeric habit with units
   - title: "Water Intake"
-    goal_type: "elastic"
+    habit_type: "elastic"
     field_type:
       type: "unsigned_int"
       unit: "glasses"
@@ -265,7 +265,7 @@ habits:
 
   # Informational data collection
   - title: "Sleep Quality"
-    goal_type: "informational"
+    habit_type: "informational"
     field_type:
       type: "unsigned_int"
       unit: "rating"
@@ -304,11 +304,11 @@ version: "1.0.0"
 entries:
   - date: "2024-01-15"
     habits:
-      - goal_id: "morning_exercise"
+      - habit_id: "morning_exercise"
         value: true
         completed_at: "2024-01-15T07:30:00Z"
         notes: "Great workout!"
-      - goal_id: "exercise_duration"
+      - habit_id: "exercise_duration"
         value: "45m"
         achievement_level: "midi"
         completed_at: "2024-01-15T07:30:00Z"
@@ -316,7 +316,7 @@ entries:
 
 ## Specification
 
-For complete technical details, see [Habit Schema Specification](doc/specifications/goal_schema.md).
+For complete technical details, see [Habit Schema Specification](doc/specifications/habit_schema.md).
 
 ## Development
 

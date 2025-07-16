@@ -29,7 +29,7 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
 
 - [ ] Create `checklists.yml` configuration file format for storing checklist definitions
 - [ ] Implement checklist management commands: `vice list add`, `vice list edit`, `vice list entry`
-- [ ] Add `ChecklistGoal` as a new habit type in the existing habit system
+- [ ] Add `ChecklistHabit` as a new habit type in the existing habit system
 - [ ] Support automatic scoring when all checklist items are completed
 - [ ] Support manual scoring for partial checklist completion
 - [ ] Maintain backward compatibility with existing habit types
@@ -42,7 +42,7 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
 - [x] 1.1: Define checklist YAML schema and data structures
 - [x] 1.2: Create checklist parser for loading/saving `checklists.yml`
 - [x] 1.3: Extend habit models to support checklist habit type
-  - refer to [doc/specifications/goal_schema.md]; update it as required
+  - refer to [doc/specifications/habit_schema.md]; update it as required
 - [x] 1.4: Add checklist validation logic
 
 ### Phase 2: Checklist Management Commands (Priority: High)
@@ -82,24 +82,24 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
 - [x] 3.4: Add ChecklistEntriesFile to config paths and initialization
 
 ### Phase 4: Habit Integration (Priority: High)
-- [x] 4.1: Add ChecklistGoal support to habit configuration UI
+- [x] 4.1: Add ChecklistHabit support to habit configuration UI
 - [x] 4.2: Implement automatic scoring for checklist completion
-  - **COMPLETED**: ChecklistGoalCollectionFlow now fully integrated with actual checklist system
+  - **COMPLETED**: ChecklistHabitCollectionFlow now fully integrated with actual checklist system
   - **IMPLEMENTED CHANGES**:
-    - Added ChecklistParser integration to ChecklistGoalCollectionFlow
+    - Added ChecklistParser integration to ChecklistHabitCollectionFlow
     - Replaced hardcoded placeholders with actual checklist data loading
     - Implemented criteria-based automatic scoring using ChecklistCompletionCondition
     - Added proper error handling for missing/invalid checklists
     - Updated factory patterns to pass checklistsPath configuration
     - Fixed bubbletea test issues by using proper headless testing patterns
      - **FILES MODIFIED**:
-     - `internal/ui/entry/goal_collection_flows.go` - Added checklist parser and data loading
+     - `internal/ui/entry/habit_collection_flows.go` - Added checklist parser and data loading
      - `internal/ui/entry/flow_implementations.go` - Fixed hardcoded placeholders and lint issues
      - `internal/ui/entry/flow_factory.go` - Updated factory to pass checklist configuration
      - `internal/ui/entry.go` - Updated EntryCollector to pass checklistsPath via constructor
      - `cmd/entry.go` - Updated entry collector creation
      - `internal/ui/entry_test.go` - Updated test signatures
-     - `internal/ui/goalconfig/configurator_elastic_integration_test.go` - Fixed bubbletea test issues
+     - `internal/ui/habitconfig/configurator_elastic_integration_test.go` - Fixed bubbletea test issues
      - **SUCCESS CRITERIA ACHIEVED**: 
      - Real checklist data replaces all hardcoded placeholders ✓
      - Criteria-based scoring works with ChecklistCompletionCondition ✓
@@ -109,15 +109,15 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
 - [x] 4.3: Implement manual scoring support
   - **COMPLETED**: Manual scoring fully implemented with comprehensive error handling and testing
   - **IMPLEMENTED CHANGES**:
-    - Added `CollectEntryDirectly` method to ChecklistGoalCollectionFlow for headless testing
+    - Added `CollectEntryDirectly` method to ChecklistHabitCollectionFlow for headless testing
     - Implemented `determineTestingAchievementLevel` for percentage-based achievement calculation
     - Fixed hardcoded fallback (`total = 3`) with proper error handling and user feedback
     - Enhanced error messages to show detailed context when checklist loading fails
-    - Added comprehensive test coverage in `checklist_goal_collection_test.go`
+    - Added comprehensive test coverage in `checklist_habit_collection_test.go`
   - **FILES MODIFIED**:
-    - `internal/ui/entry/goal_collection_flows.go` - Added CollectEntryDirectly and determineTestingAchievementLevel methods
+    - `internal/ui/entry/habit_collection_flows.go` - Added CollectEntryDirectly and determineTestingAchievementLevel methods
     - `internal/ui/entry/flow_implementations.go` - Fixed hardcoded fallback with better error handling
-    - `internal/ui/entry/checklist_goal_collection_test.go` - Created comprehensive test file with 540 lines of tests
+    - `internal/ui/entry/checklist_habit_collection_test.go` - Created comprehensive test file with 540 lines of tests
   - **SUCCESS CRITERIA ACHIEVED**:
     - Manual scoring works reliably with real checklist data ✓
     - Graceful error handling for missing/invalid checklists ✓
@@ -132,10 +132,10 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
     - Added validateChecklistCriteria() method for detailed criteria checking
     - Implemented ValidateWithChecklistContext() for cross-reference validation
     - Enhanced ChecklistCompletionCondition.Validate() with detailed error messages
-    - Added comprehensive test coverage in `checklist_goal_validation_test.go`
+    - Added comprehensive test coverage in `checklist_habit_validation_test.go`
   - **FILES MODIFIED**:
     - `internal/models/habit.go` - Integrated checklist criteria validation into Habit.Validate()
-    - `internal/models/checklist_goal_validation_test.go` - Created comprehensive validation test file
+    - `internal/models/checklist_habit_validation_test.go` - Created comprehensive validation test file
   - **SUCCESS CRITERIA ACHIEVED**:
     - Habit validation catches invalid checklist criteria early ✓
     - Clear error messages for missing/invalid checklist references ✓
@@ -145,8 +145,8 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
     - Enhanced error context for debugging ✓
 
 **Phase 4 Critical Status Analysis:**
-- **4.1 Complete**: ChecklistGoal can be created via habit configuration UI ✓
-- **4.2 Complete**: ChecklistGoalCollectionFlow fully integrated with checklist system ✓
+- **4.1 Complete**: ChecklistHabit can be created via habit configuration UI ✓
+- **4.2 Complete**: ChecklistHabitCollectionFlow fully integrated with checklist system ✓
   - **Actual Data Loading**: Real checklist data replaces all hardcoded placeholders ✓
   - **Criteria-Based Scoring**: performChecklistScoring() uses ChecklistCompletionCondition ✓
   - **Proper Error Handling**: Handles missing/invalid checklists gracefully ✓
@@ -166,12 +166,12 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
 - **Quality Gates**: All tests passing ✓, Linter clean ✓, Comprehensive test coverage ✓
 
 **Required for T012 Skip Integration:**
-- ✅ Complete actual checklist item loading in ChecklistGoalCollectionFlow
+- ✅ Complete actual checklist item loading in ChecklistHabitCollectionFlow
 - ✅ Implement proper automatic scoring based on checklist completion criteria
 - ✅ Add manual scoring support with proper error handling  
 - ✅ Add comprehensive validation for checklist criteria
 
-**T012 Phase 2.3 Dependencies Fully Met** - ChecklistGoalCollectionFlow ready for skip functionality integration
+**T012 Phase 2.3 Dependencies Fully Met** - ChecklistHabitCollectionFlow ready for skip functionality integration
 
 ### T007 Phase 4 Implementation Results:
 
@@ -183,12 +183,12 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
 - ✅ All lint checks pass (golangci-lint run)
 - ✅ Comprehensive test coverage for both automatic and manual scoring
 - ✅ Error scenarios properly handled with clear user feedback
-- ✅ Consistent API patterns with SimpleGoal/ElasticGoal flows
+- ✅ Consistent API patterns with SimpleHabit/ElasticHabit flows
 - ✅ Cross-reference validation prevents runtime errors
 - ✅ Enhanced error messages for debugging
 
 **Technical Implementation Quality:**
-- **Code Consistency**: ChecklistGoalCollectionFlow follows established patterns from other habit flows
+- **Code Consistency**: ChecklistHabitCollectionFlow follows established patterns from other habit flows
 - **Test Coverage**: 540+ lines of comprehensive test coverage across multiple test files
 - **Error Handling**: Graceful degradation with informative error messages
 - **API Consistency**: CollectEntryDirectly method maintains consistent interface
@@ -225,7 +225,7 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
 - **5.3**: Basic implementation exists, enhancement needed (4-5 hours)
 
 **Critical Discovery**: Phase 5.2 already complete with comprehensive implementation:
-- ChecklistGoalCollectionFlow uses real checklist data (no hardcoded placeholders)
+- ChecklistHabitCollectionFlow uses real checklist data (no hardcoded placeholders)
 - Entry recording fully integrated via EntryCollector
 - Achievement levels and scoring working with actual checklist data
 - 540+ lines of test coverage validates implementation
@@ -253,7 +253,7 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
 - [x] **5.2: Entry Recording Integration** ✅ **COMPLETE**
   - **Implementation Status**: Fully complete and production-ready
   - **Evidence of Completion**:
-    - `ChecklistGoalCollectionFlow` uses `ChecklistParser` for real data loading
+    - `ChecklistHabitCollectionFlow` uses `ChecklistParser` for real data loading
     - `EntryCollector` properly saves checklist completion to `entries.yml`
     - Achievement levels (50%/75%/100%) calculated from actual completion data
     - No hardcoded placeholders remain in collection flows
@@ -263,9 +263,9 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
     - ✅ All tests passing (540+ lines of test coverage)
     - ✅ Linter clean (golangci-lint run)
     - ✅ Real data flows throughout the system
-    - ✅ Proper persistence to entries.yml via GoalEntry model
+    - ✅ Proper persistence to entries.yml via HabitEntry model
   - **Files Implementing Complete Solution**:
-    - `internal/ui/entry/goal_collection_flows.go` - Real checklist data integration
+    - `internal/ui/entry/habit_collection_flows.go` - Real checklist data integration
     - `internal/ui/entry.go` - Complete entry recording via EntryCollector
     - `internal/ui/entry/flow_implementations.go` - Achievement calculation
     - Comprehensive test files validate all functionality
@@ -293,12 +293,12 @@ Extend the static checklist prototype (`vice checklist`) to support configurable
 
 #### **Phase 5.2 Status Correction:**
 ~~**Missing Integration**: Flow doesn't connect to actual checklist definitions from checklists.yml~~
-✅ **COMPLETE**: ChecklistGoalCollectionFlow fully integrated with ChecklistParser and real data
+✅ **COMPLETE**: ChecklistHabitCollectionFlow fully integrated with ChecklistParser and real data
 
-~~**Entry Recording Impact**: ChecklistGoal entries may not persist properly to entries.yml~~
+~~**Entry Recording Impact**: ChecklistHabit entries may not persist properly to entries.yml~~
 ✅ **COMPLETE**: EntryCollector properly saves checklist completion state with achievement levels
 
-~~**Required Work**: Connect ChecklistGoalCollectionFlow to ChecklistParser and actual checklist data loading~~
+~~**Required Work**: Connect ChecklistHabitCollectionFlow to ChecklistParser and actual checklist data loading~~
 ✅ **COMPLETE**: Full integration implemented with comprehensive error handling and testing
 
 **Overall Status**: `[phase_5_ready_for_implementation]`
@@ -352,7 +352,7 @@ checklists:
 ```yaml
 # Example checklist habit with automatic scoring
 - title: "Morning Setup"
-  goal_type: "checklist"
+  habit_type: "checklist"
   field_type:
     type: "checklist"
     checklist_id: "morning_routine"
@@ -365,7 +365,7 @@ checklists:
 
 # Example checklist habit with manual scoring  
 - title: "Weekly Review"
-  goal_type: "checklist"
+  habit_type: "checklist"
   field_type:
     type: "checklist"
     checklist_id: "weekly_review"
@@ -411,9 +411,9 @@ const (
     ChecklistFieldType = "checklist"
 )
 
-// Add to existing GoalType constants
+// Add to existing HabitType constants
 const (
-    ChecklistGoal GoalType = "checklist"
+    ChecklistHabit HabitType = "checklist"
 )
 
 // Extend FieldType struct
@@ -442,14 +442,14 @@ internal/
 │   └── habit.go                # Extended habit models (existing)
 ├── parser/
 │   ├── checklist_parser.go    # YAML parsing for checklists
-│   └── goal_parser.go         # Extended habit parser (existing)
+│   └── habit_parser.go         # Extended habit parser (existing)
 ├── ui/
 │   ├── checklist/
 │   │   ├── manager.go         # Checklist management UI
 │   │   ├── editor.go          # Checklist creation/editing
 │   │   ├── selector.go        # Checklist selection menu
 │   │   └── completion.go      # Interactive checklist completion
-│   ├── goalconfig/            # Extended habit configuration (existing)
+│   ├── habitconfig/            # Extended habit configuration (existing)
 │   └── checklist.go           # Enhanced checklist UI (existing)
 ├── commands/
 │   └── list.go                # List management commands
@@ -566,13 +566,13 @@ vice entry                            # Extended to handle checklist entry recor
 - Ready for Phase 4 habit system integration
 
 **Phase 4.1 Complete (2025-07-12):**
-- Added ChecklistGoal support to habit configuration UI following existing patterns
-- Created ChecklistGoalCreator component with checklist selection and scoring configuration
-- Extended GoalConfigurator to handle ChecklistGoal type with new switch case
+- Added ChecklistHabit support to habit configuration UI following existing patterns
+- Created ChecklistHabitCreator component with checklist selection and scoring configuration
+- Extended HabitConfigurator to handle ChecklistHabit type with new switch case
 - Added "Checklist (Complete checklist items)" option to habit type selection
 - Implemented automatic and manual scoring modes for checklist habits
 - Added WithChecklistsFile() method to configure checklists.yml path
-- Updated goal_add command to pass ChecklistsFile path to configurator
+- Updated habit_add command to pass ChecklistsFile path to configurator
 - Comprehensive unit tests covering all functionality and edge cases
 - All code properly formatted and linted according to project standards
 
@@ -580,7 +580,7 @@ vice entry                            # Extended to handle checklist entry recor
 
 **T012 Dependency Status (Updated):**
 - ✅ **T012 Phase 2.3 Fully Unblocked** - All dependencies complete
-- ✅ **ChecklistGoalCollectionFlow**: Uses real checklist data, no hardcoded placeholders
+- ✅ **ChecklistHabitCollectionFlow**: Uses real checklist data, no hardcoded placeholders
 - ✅ **Scoring Integration**: Both automatic and manual scoring fully implemented
 - ✅ **Entry Recording**: Complete integration with EntryCollector and entries.yml persistence
 - ✅ **Quality Gates**: All tests passing, linter clean, comprehensive coverage

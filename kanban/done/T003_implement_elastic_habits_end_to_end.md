@@ -3,7 +3,7 @@ title: "Implement Elastic Habits End-to-End (Mini/Midi/Maxi)"
 type: ["feature"]
 tags: ["elastic", "habits", "ui", "parser", "scoring"]
 related_tasks: ["depends-on:T001"]
-context_windows: ["./CLAUDE.md", "./doc/specifications/goal_schema.md", "./internal/models/*.go", "./internal/parser/*.go", "./internal/ui/*.go"]
+context_windows: ["./CLAUDE.md", "./doc/specifications/habit_schema.md", "./internal/models/*.go", "./internal/parser/*.go", "./internal/ui/*.go"]
 ---
 
 # Implement Elastic Habits End-to-End (Mini/Midi/Maxi)
@@ -59,7 +59,7 @@ This builds upon the boolean habit foundation from T001 to provide more sophisti
         - *Testing Strategy:* Unit tests for elastic habit validation and criteria parsing
         - *AI Notes:* Completed - elastic criteria fields were already present, added validation logic and helper methods
     - [x] **1.2 Update Entry model for achievement levels**
-        - *Design:* Add AchievementLevel field to GoalEntry, support "none"/"mini"/"midi"/"maxi"
+        - *Design:* Add AchievementLevel field to HabitEntry, support "none"/"mini"/"midi"/"maxi"
         - *Code/Artifacts to be created or modified:* `internal/models/entry.go`, tests
         - *Testing Strategy:* Unit tests for achievement level serialization and validation
         - *AI Notes:* Completed - added AchievementLevel type, validation, helper methods, and convenience functions
@@ -89,8 +89,8 @@ This builds upon the boolean habit foundation from T001 to provide more sophisti
         - *AI Notes:* **COMPREHENSIVE ANALYSIS & IMPLEMENTATION PLAN**
 
 **Current System Analysis:**
-- EntryCollector only handles simple boolean habits via `parser.GetSimpleBooleanGoals()`
-- collectGoalEntry() method is hardcoded for boolean input using `huh.NewConfirm()`
+- EntryCollector only handles simple boolean habits via `parser.GetSimpleBooleanHabits()`
+- collectHabitEntry() method is hardcoded for boolean input using `huh.NewConfirm()`
 - Data storage: `map[string]bool` for entries, no achievement level support
 - No field type awareness or scoring integration
 
@@ -109,20 +109,20 @@ Strategy pattern provides: clean separation, testability, extensibility, SOLID c
 
 **Phase 1: Handler Infrastructure**
 ```go
-type GoalEntryHandler interface {
+type HabitEntryHandler interface {
     CollectEntry(habit models.Habit, existing *ExistingEntry) (*EntryResult, error)
 }
 type ExistingEntry struct { Value interface{}; Notes string; AchievementLevel *models.AchievementLevel }
 type EntryResult struct { Value interface{}; AchievementLevel *models.AchievementLevel; Notes string }
-func CreateGoalHandler(habit models.Habit, scoringEngine *scoring.Engine) GoalEntryHandler
+func CreateHabitHandler(habit models.Habit, scoringEngine *scoring.Engine) HabitEntryHandler
 ```
 
-**Phase 2: SimpleGoalHandler (Backwards Compatibility)**
+**Phase 2: SimpleHabitHandler (Backwards Compatibility)**
 - Extract existing boolean logic into handler
 - Maintain exact same UI behavior
 - Validates new architecture works
 
-**Phase 3: ElasticGoalHandler**
+**Phase 3: ElasticHabitHandler**
 - Field type input collection (boolean: Confirm, numeric: Input+validation, duration: Input+hints, time: Input+format, text: Input)
 - Automatic scoring integration with scoring engine
 - Achievement display with lipgloss styling
@@ -131,11 +131,11 @@ func CreateGoalHandler(habit models.Habit, scoringEngine *scoring.Engine) GoalEn
 **Phase 4: EntryCollector Integration**
 - Add scoring engine: `scoringEngine *scoring.Engine`
 - Update data: `entries map[string]interface{}`, `achievements map[string]*models.AchievementLevel`
-- Handler delegation in collectGoalEntry()
+- Handler delegation in collectHabitEntry()
 - Support all habit types in CollectTodayEntries()
 
 **Phase 5: Testing**
-- Unit tests per handler (SimpleGoalHandler, ElasticGoalHandler, factory)
+- Unit tests per handler (SimpleHabitHandler, ElasticHabitHandler, factory)
 - Integration tests (scoring, mixed habit types, error handling)
 - UI flow validation
 
@@ -145,16 +145,16 @@ func CreateGoalHandler(habit models.Habit, scoringEngine *scoring.Engine) GoalEn
 Successfully implemented all 5 phases of the strategy pattern approach:
 
 **Phase 1: Handler Infrastructure ✅**
-- Created GoalEntryHandler interface with CollectEntry method
+- Created HabitEntryHandler interface with CollectEntry method
 - Added ExistingEntry and EntryResult supporting types
-- Implemented CreateGoalHandler factory function
+- Implemented CreateHabitHandler factory function
 
-**Phase 2: SimpleGoalHandler ✅** 
+**Phase 2: SimpleHabitHandler ✅** 
 - Extracted existing boolean logic maintaining exact same UI behavior
 - Preserved backwards compatibility for existing simple habits
 - Comprehensive notes collection functionality
 
-**Phase 3: ElasticGoalHandler ✅**
+**Phase 3: ElasticHabitHandler ✅**
 - Field type input collection for all 5 types (boolean, numeric, duration, time, text)
 - Automatic scoring integration with scoring engine  
 - Achievement display with lipgloss styling (none/mini/midi/maxi)
@@ -164,7 +164,7 @@ Successfully implemented all 5 phases of the strategy pattern approach:
 **Phase 4: EntryCollector Integration ✅**
 - Added scoring engine to EntryCollector struct
 - Updated data storage: entries (map[string]interface{}), achievements (map[string]*AchievementLevel)
-- Implemented handler delegation in collectGoalEntry()
+- Implemented handler delegation in collectHabitEntry()
 - Expanded habit loading to support all habit types
 - Updated saveEntries() to store achievement levels
 - Enhanced displayCompletion() for multi-habit-type completion calculation
@@ -182,7 +182,7 @@ Successfully implemented all 5 phases of the strategy pattern approach:
         - *Design:* Different input prompts based on field types (numeric with units, duration formats)
         - *Code/Artifacts to be created or modified:* `internal/ui/entry.go`, form builders
         - *Testing Strategy:* Manual testing of different elastic habit types, unit tests for logic
-        - *AI Notes:* **COMPLETED** - Implemented in ElasticGoalHandler with collectValueByFieldType() method supporting all field types (boolean, numeric, duration, time, text). Includes unit display in prompts, format hints, and field-specific validation. Also shows criteria thresholds via formatCriteriaInfo() for user motivation.
+        - *AI Notes:* **COMPLETED** - Implemented in ElasticHabitHandler with collectValueByFieldType() method supporting all field types (boolean, numeric, duration, time, text). Includes unit display in prompts, format hints, and field-specific validation. Also shows criteria thresholds via formatCriteriaInfo() for user motivation.
     - [x] **4.2 Display achievement results clearly**
         - *Design:* Show achievement level with appropriate styling (colors, emojis for levels)
         - *Code/Artifacts to be created or modified:* `internal/ui/entry.go`, result display
@@ -194,7 +194,7 @@ Successfully implemented all 5 phases of the strategy pattern approach:
         - *Design:* Store both raw values and computed achievement levels in entries.yml
         - *Code/Artifacts to be created or modified:* `internal/storage/entries.go`
         - *Testing Strategy:* Unit tests for elastic entry serialization/deserialization
-        - *AI Notes:* **COMPLETED** - Achievement level storage was already implemented in EntryCollector.saveEntries() and loadExistingEntries(). GoalEntry struct has AchievementLevel field with YAML serialization support. Both saving and loading handle achievement levels properly.
+        - *AI Notes:* **COMPLETED** - Achievement level storage was already implemented in EntryCollector.saveEntries() and loadExistingEntries(). HabitEntry struct has AchievementLevel field with YAML serialization support. Both saving and loading handle achievement levels properly.
     - [x] **5.2 Add sample elastic habits to file initialization**
         - *Design:* Include 1-2 elastic habit examples in sample habits.yml
         - *Code/Artifacts to be created or modified:* `internal/init/files.go`
@@ -206,7 +206,7 @@ Successfully implemented all 5 phases of the strategy pattern approach:
         - *Design:* Test complete workflow: define elastic habit → enter value → see achievement
         - *Code/Artifacts to be created or modified:* Integration tests, manual testing
         - *Testing Strategy:* Test automatic scoring, manual scoring, edge cases
-        - *AI Notes:* **COMPLETED** - Created comprehensive integration test (internal/integration/elastic_goals_test.go) that verifies: 1) Sample elastic habits creation and parsing, 2) Scoring engine with duration and numeric field types, 3) Entry collection and storage with achievement levels, 4) Loading existing entries, 5) Backwards compatibility with simple habits. All tests pass.
+        - *AI Notes:* **COMPLETED** - Created comprehensive integration test (internal/integration/elastic_habits_test.go) that verifies: 1) Sample elastic habits creation and parsing, 2) Scoring engine with duration and numeric field types, 3) Entry collection and storage with achievement levels, 4) Loading existing entries, 5) Backwards compatibility with simple habits. All tests pass.
     - [x] **6.2 Code quality and documentation**
         - *Design:* Ensure all new code meets project standards
         - *Code/Artifacts to be created or modified:* Code formatting, linting fixes, documentation
@@ -261,7 +261,7 @@ The system now supports sophisticated habit tracking with elastic habits alongsi
 - `2025-07-11 - User:` Requested implementation of elastic habits with mini/midi/maxi achievement levels
 - `2025-07-11 - AI:` Created comprehensive task breakdown building on T001 foundation, focusing on scoring engine and UI enhancements for multi-level achievements
 - `2025-07-11 - AI:` Subtask 1.1 completed - Updated Habit model with elastic habit validation. Added validation for required criteria fields when using automatic scoring, plus helper methods (IsElastic, RequiresAutomaticScoring, etc.). Added comprehensive unit tests for elastic habit validation and helper methods. All tests pass, no linting issues.
-- `2025-07-11 - AI:` Subtask 1.2 completed - Updated Entry model with achievement levels. Added AchievementLevel type with constants (none/mini/midi/maxi), AchievementLevel field to GoalEntry struct, validation for achievement levels, helper methods (GetAchievementLevel, SetAchievementLevel, HasAchievementLevel, ClearAchievementLevel), and convenience functions (CreateElasticGoalEntry, CreateValueOnlyGoalEntry). Added 13 new unit tests covering all achievement level functionality. All tests pass, code properly formatted, no linting issues.
+- `2025-07-11 - AI:` Subtask 1.2 completed - Updated Entry model with achievement levels. Added AchievementLevel type with constants (none/mini/midi/maxi), AchievementLevel field to HabitEntry struct, validation for achievement levels, helper methods (GetAchievementLevel, SetAchievementLevel, HasAchievementLevel, ClearAchievementLevel), and convenience functions (CreateElasticHabitEntry, CreateValueOnlyHabitEntry). Added 13 new unit tests covering all achievement level functionality. All tests pass, code properly formatted, no linting issues.
 
 ## 6. Code Snippets & Artifacts 
 

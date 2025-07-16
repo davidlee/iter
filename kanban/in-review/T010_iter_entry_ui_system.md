@@ -3,7 +3,7 @@ title: "Vice Entry: Habit Data Collection UI System"
 type: ["feature"] # feature | fix | documentation | testing | refactor | chore
 tags: ["ui", "data-collection", "scoring"] 
 related_tasks: ["depends:T009", "related-to:T005", "related-to:T007", "spawned:T011"] # T009 completes habit configuration support, T011 extracted from T010/4.2
-context_windows: ["internal/ui/entry*.go", "internal/ui/entry/*.go", "internal/ui/*_handler.go", "internal/ui/goalconfig/*.go", "internal/models/*.go", "internal/scoring/*.go", "CLAUDE.md", "doc/workflow.md"] # List of glob patterns useful to build the context window required for this task
+context_windows: ["internal/ui/entry*.go", "internal/ui/entry/*.go", "internal/ui/*_handler.go", "internal/ui/habitconfig/*.go", "internal/models/*.go", "internal/scoring/*.go", "CLAUDE.md", "doc/workflow.md"] # List of glob patterns useful to build the context window required for this task
 ---
 
 # Vice Entry: Habit Data Collection UI System
@@ -13,8 +13,8 @@ context_windows: ["internal/ui/entry*.go", "internal/ui/entry/*.go", "internal/u
 **All commits related to this task (newest first):**
 
 - `c577c4c` - feat(entry)[T010/4.1]: integrate habit collection flows with complete scoring engine
-- `9b86d7d` - feat(goalconfig)[T010/3.3]: implement direction-aware feedback for informational habits
-- `d0df56f` - feat(goalconfig)[T010/3.3]: implement InformationalGoalCollectionFlow with comprehensive testing
+- `9b86d7d` - feat(habitconfig)[T010/3.3]: implement direction-aware feedback for informational habits
+- `d0df56f` - feat(habitconfig)[T010/3.3]: implement InformationalHabitCollectionFlow with comprehensive testing
 - `ab70682` - feat(entry)[T010/3.2]: implement elastic habit collection with three-tier achievement system
 - `aa234eb` - feat(entry)[T010/3.1]: implement simple habit collection with comprehensive scoring
 - `3d7be81` - feat(entry)[T010/2.3]: integrate checklist input system with dynamic loading
@@ -29,7 +29,7 @@ context_windows: ["internal/ui/entry*.go", "internal/ui/entry/*.go", "internal/u
 **Context (Background)**:
 - CLAUDE.md (CLI patterns, bubbletea + huh framework usage)
 - doc/workflow.md (task workflow, stopping conditions)
-- doc/specifications/goal_schema.md (complete habit type and field type specifications)
+- doc/specifications/habit_schema.md (complete habit type and field type specifications)
 - T009: Habit Management UI Redux (comprehensive habit configuration system)
 - T005: Habit Configuration UI (foundation patterns)
 - T007: Dynamic Checklist System (checklist habit support)
@@ -37,9 +37,9 @@ context_windows: ["internal/ui/entry*.go", "internal/ui/entry/*.go", "internal/u
 **Context (Significant Code Files)**:
 - internal/ui/entry.go - Current entry collection system (basic implementation, 250+ lines)
 - internal/ui/*_handler.go - Habit type-specific entry handlers (elastic_handler.go, informational_handler.go, etc.)
-- internal/ui/goalconfig/ - Complete habit configuration system (patterns for field type handling)
-- internal/models/habit.go - Habit and field type data models (SimpleGoal, ElasticGoal, InformationalGoal, ChecklistGoal)
-- internal/models/entry.go - Entry data structures (DayEntry, GoalEntry, AchievementLevel)
+- internal/ui/habitconfig/ - Complete habit configuration system (patterns for field type handling)
+- internal/models/habit.go - Habit and field type data models (SimpleHabit, ElasticHabit, InformationalHabit, ChecklistHabit)
+- internal/models/entry.go - Entry data structures (DayEntry, HabitEntry, AchievementLevel)
 - internal/scoring/ - Scoring engine for automatic habit evaluation
 - internal/storage/ - Entry persistence system
 
@@ -102,7 +102,7 @@ I want an entry system that:
 
 ### Technical Requirements
 - [ ] **Bubbletea Integration**: Follow established patterns from T009 habit configuration system
-- [ ] **Field Type Reuse**: Leverage field configuration logic from goalconfig system
+- [ ] **Field Type Reuse**: Leverage field configuration logic from habitconfig system
 - [ ] **Scoring Engine Integration**: Seamless integration with existing scoring.Engine
 - [ ] **Entry Persistence**: Proper integration with storage.EntryStorage
 - [ ] **Error Handling**: Comprehensive error handling with user-friendly messages
@@ -128,7 +128,7 @@ The `vice entry` system provides field-type-aware data collection for all habit 
 
 ## Habit Type Collection Flow
 
-![Habit Collection Flow](/doc/diagrams/goal_collection_flow.svg)
+![Habit Collection Flow](/doc/diagrams/habit_collection_flow.svg)
 
 ## Field Type to Input Widget Mapping
 
@@ -149,15 +149,15 @@ The scoring integration provides immediate feedback during entry collection. For
 ## Existing Foundation Integration
 
 ### Reusable Components from T009/T005
-- **FieldValueInputFactory** (`internal/ui/goalconfig/field_value_input.go`) - Complete field input component system
-- **Bubbletea + Huh Patterns** - Established in SimpleGoalCreator and ElasticGoalCreator
+- **FieldValueInputFactory** (`internal/ui/habitconfig/field_value_input.go`) - Complete field input component system
+- **Bubbletea + Huh Patterns** - Established in SimpleHabitCreator and ElasticHabitCreator
 - **Validation Framework** - Type-specific validation with user-friendly error messages
 - **Scoring Engine** (`internal/scoring/engine.go`) - Ready for integration with immediate feedback
 
 ### Entry System Foundation
 - **EntryCollector** (`internal/ui/entry.go`) - Basic structure with proper dependencies
 - **Handler Pattern** (`internal/ui/handlers.go`) - Habit-type-specific entry collection interface
-- **Data Models** - Complete entry persistence with `models.DayEntry` and `models.GoalEntry`
+- **Data Models** - Complete entry persistence with `models.DayEntry` and `models.HabitEntry`
 
 ### Integration Points
 1. **Field Input Factory**: Direct reuse of existing `FieldValueInputFactory` for input widget creation
@@ -182,18 +182,18 @@ The scoring integration provides immediate feedback during entry collection. For
 Building on T009's successful habit configuration patterns and existing entry.go foundation:
 
 **Current Foundation (from entry.go analysis):**
-- ✅ EntryCollector struct with proper dependencies (goalParser, entryStorage, scoringEngine)
+- ✅ EntryCollector struct with proper dependencies (habitParser, entryStorage, scoringEngine)
 - ✅ Habit loading and basic collection loop structure
 - ✅ Entry persistence and data model integration
 - ✅ Welcome/completion displays with lipgloss styling
-- ❌ collectGoalEntry() method is placeholder - core implementation needed
+- ❌ collectHabitEntry() method is placeholder - core implementation needed
 - ❌ No field type-specific input handling
 - ❌ No habit type-specific UI patterns
 - ❌ No scoring engine integration during collection
 
 **Implementation Strategy:**
 1. **Extend Entry Collection System** with habit type and field type awareness
-2. **Create Field Input Components** following goalconfig patterns from T009
+2. **Create Field Input Components** following habitconfig patterns from T009
 3. **Integrate Scoring Engine** for immediate feedback on automatic habits
 4. **Add Interactive UI Components** using bubbletea + huh patterns
 5. **Implement Comprehensive Testing** with headless testing infrastructure
@@ -209,7 +209,7 @@ Building on T009's successful habit configuration patterns and existing entry.go
   - [X] Create comprehensive architecture documentation with C4 diagrams
 
 - [X] **1.2: Design Field Input Component System** ✅ **COMPLETED**
-  - [X] Create field input interface following goalconfig patterns
+  - [X] Create field input interface following habitconfig patterns
   - [X] Design Boolean, Text, Numeric, Time, Duration input components
   - [X] Plan checklist input integration with existing checklist system
   - [X] Define validation and error messaging patterns
@@ -283,7 +283,7 @@ Building on T009's successful habit configuration patterns and existing entry.go
     - [ ] Error handling and edge case coverage
   - [ ] **4.3.3: End-to-End Integration Testing**
     - [ ] Happy path test with complex_configuration.yml (all habit types)
-    - [ ] Basic workflow test with valid_simple_goal.yml (simple scenario)
+    - [ ] Basic workflow test with valid_simple_habit.yml (simple scenario)
     - [ ] Entry persistence validation with real habit schemas
   - [ ] **4.3.4: Manual Testing Documentation**
     - [ ] Edge case testing checklist (invalid schemas, corrupted entries, etc.)
@@ -300,9 +300,9 @@ Building on T009's successful habit configuration patterns and existing entry.go
 
 **Technical Implementation Notes:**
 - **Pattern Consistency**: Follow bubbletea + huh patterns established in T009 habit configuration
-- **Component Reuse**: Leverage field configuration and validation logic from goalconfig system  
+- **Component Reuse**: Leverage field configuration and validation logic from habitconfig system  
 - **Scoring Integration**: Seamless integration with existing scoring.Engine for immediate feedback
-- **Data Model Alignment**: Ensure compatibility with models.DayEntry and models.GoalEntry structures
+- **Data Model Alignment**: Ensure compatibility with models.DayEntry and models.HabitEntry structures
 - **Error Handling**: Comprehensive validation with clear, actionable error messages
 - **Testing Strategy**: Headless testing approach similar to T009's testing patterns
 
@@ -323,19 +323,19 @@ Building on T009's successful habit configuration patterns and existing entry.go
 - Current entry.go provides basic structure but needs significant enhancement for field type and habit type awareness
 - Key integration point: Scoring engine exists but not integrated with entry collection for immediate feedback
 - Testing approach: Follow T009 patterns with headless testing infrastructure for comprehensive coverage
-- UI patterns: Leverage bubbletea + huh patterns successfully established in goalconfig system
+- UI patterns: Leverage bubbletea + huh patterns successfully established in habitconfig system
 
 **T010/1.1 Analysis Complete (2025-07-13):**
-- **Existing Foundation Confirmed**: FieldValueInputFactory in `internal/ui/goalconfig/field_value_input.go` provides complete field input component system ready for reuse
+- **Existing Foundation Confirmed**: FieldValueInputFactory in `internal/ui/habitconfig/field_value_input.go` provides complete field input component system ready for reuse
 - **Input Widget Mapping**: All field types (Boolean, Text, Numeric, Time, Duration) have working huh-based implementations with validation
 - **Habit Handler Pattern**: Established pattern in `internal/ui/handlers.go` with concrete implementations showing bubbletea integration
-- **Scoring Integration Ready**: `internal/scoring/engine.go` provides `ScoreElasticGoal()` method for immediate achievement feedback
+- **Scoring Integration Ready**: `internal/scoring/engine.go` provides `ScoreElasticHabit()` method for immediate achievement feedback
 - **Architecture Designed**: Comprehensive C4 diagrams document component relationships, data flow, and integration points
 - **Missing Component**: ChecklistInput widget needs implementation for checklist field type support
 - **Next Step**: Direct reuse of FieldValueInputFactory with enhanced habit handlers for immediate scoring feedback
 
 **T010/1.2 Field Input Component System Complete (2025-07-13):**
-- **Interface Design**: Created `EntryFieldInput` and `ScoringAwareInput` interfaces extending goalconfig patterns for entry-specific needs
+- **Interface Design**: Created `EntryFieldInput` and `ScoringAwareInput` interfaces extending habitconfig patterns for entry-specific needs
 - **Component Implementation**: Complete field input components for all types (Boolean, Text, Numeric, Time, Duration, Checklist)
 - **Scoring Integration**: All components support immediate scoring feedback with `UpdateScoringDisplay()` method
 - **Validation Framework**: Common validation patterns with user-friendly error messaging in `validation_patterns.go`
@@ -344,12 +344,12 @@ Building on T009's successful habit configuration patterns and existing entry.go
 - **Design Principles**: Consistent bubbletea + huh patterns, field-type awareness, immediate feedback, comprehensive error handling
 
 **T010/1.3 Habit Type Collection Flows Complete (2025-07-13):**
-- **Flow Interface**: Created `GoalCollectionFlow` interface defining habit type-specific collection behavior
+- **Flow Interface**: Created `HabitCollectionFlow` interface defining habit type-specific collection behavior
 - **Simple Habit Flow**: Pass/fail collection with automatic/manual scoring support for all field types except checklist
 - **Elastic Habit Flow**: Data input with immediate mini/midi/maxi achievement calculation and criteria display
 - **Informational Habit Flow**: Data-only collection without scoring, supporting all field types with direction feedback
 - **Checklist Habit Flow**: Interactive checklist completion with progress tracking and completion-based scoring
-- **Factory System**: `GoalCollectionFlowFactory` creates appropriate flows with validation and coordinator support
+- **Factory System**: `HabitCollectionFlowFactory` creates appropriate flows with validation and coordinator support
 - **Flow Integration**: Complete integration with T010/1.2 field input components and existing scoring engine
 - **Session Management**: `CollectionFlowCoordinator` for session-level flow management and habit validation
 
@@ -389,8 +389,8 @@ Building on T009's successful habit configuration patterns and existing entry.go
 - **Field Type Support**: Full support for all simple habit field types (Boolean, Text, Numeric, Time, Duration) excluding checklist per design
 - **Automatic Scoring**: Integration with scoring engine for criteria-based simple habits using elastic scoring conversion
 - **Manual Scoring**: Intelligent manual scoring based on field type with pass/fail determination logic
-- **Testing Infrastructure**: Added `NewSimpleGoalCollectionFlowForTesting()` and `CollectEntryDirectly()` methods for headless testing
-- **Comprehensive Tests**: Created `simple_goal_test.go` with 8 test functions covering manual/automatic scoring, field type support, and integration scenarios
+- **Testing Infrastructure**: Added `NewSimpleHabitCollectionFlowForTesting()` and `CollectEntryDirectly()` methods for headless testing
+- **Comprehensive Tests**: Created `simple_habit_test.go` with 8 test functions covering manual/automatic scoring, field type support, and integration scenarios
 - **Notes Collection**: Optional notes collection with editing support for existing entries
 - **Achievement Calculation**: Proper achievement level calculation with Mini/None levels for simple habits
 - **Field Type Validation**: Ensures simple habits support all field types except checklist field type
@@ -402,8 +402,8 @@ Building on T009's successful habit configuration patterns and existing entry.go
 - **Manual Achievement Selection**: Interactive achievement level selection with huh.NewSelect interface and contextual guidance
 - **Achievement Level Display**: Visual feedback system with styled achievement result display and immediate scoring feedback
 - **Criteria Information Display**: Pre-input criteria display showing Mini/Midi/Maxi thresholds for user guidance
-- **Testing Infrastructure**: Added `NewElasticGoalCollectionFlowForTesting()` and `CollectEntryDirectly()` methods for headless testing
-- **Comprehensive Test Suite**: Created `elastic_goal_test.go` with 10 test functions covering all achievement levels, field types, and scoring scenarios
+- **Testing Infrastructure**: Added `NewElasticHabitCollectionFlowForTesting()` and `CollectEntryDirectly()` methods for headless testing
+- **Comprehensive Test Suite**: Created `elastic_habit_test.go` with 10 test functions covering all achievement levels, field types, and scoring scenarios
 - **Three-Tier Logic**: Intelligent achievement determination for testing with numeric thresholds (≥100=Maxi, ≥50=Midi, >0=Mini, 0=None)
 - **Real Scoring Engine Tests**: Integration tests with actual scoring engine using complex three-tier criteria validation
 
@@ -412,12 +412,12 @@ Building on T009's successful habit configuration patterns and existing entry.go
 - **Visual Direction Indicators**: Green 📈 for higher_better, blue 📉 for lower_better, gray 📊 for neutral with contextual hints
 - **Direction Field Integration**: Proper integration with `habit.Direction` field from models.Habit structure 
 - **Fallback Handling**: Graceful fallback to neutral styling for empty or unknown direction values
-- **Comprehensive Testing**: Added `TestInformationalGoalCollectionFlow_DirectionAwareness` with 5 test scenarios covering all direction types
+- **Comprehensive Testing**: Added `TestInformationalHabitCollectionFlow_DirectionAwareness` with 5 test scenarios covering all direction types
 - **Data-Only Collection**: Maintains informational habit principle of data collection without scoring or achievement levels
 - **Field Type Support**: Full support for all field types with appropriate input validation and display
 
 **T010/4.1 Scoring Engine Integration Complete (2025-07-13):**
-- **Flow Factory Integration**: Replaced deprecated handler pattern with `GoalCollectionFlowFactory` in main entry collector
+- **Flow Factory Integration**: Replaced deprecated handler pattern with `HabitCollectionFlowFactory` in main entry collector
 - **Complete Scoring Integration**: Real-time automatic scoring during data collection for all habit types with achievement level calculation
 - **Immediate Feedback Display**: All habit flows provide immediate achievement confirmation with styled visual feedback
 - **Error Handling**: Comprehensive error handling for scoring failures with graceful degradation and proper error propagation
@@ -441,7 +441,7 @@ Building on T009's successful habit configuration patterns and existing entry.go
 - **T009 Habit Configuration**: Provides complete habit type and field type support (prerequisite)
 - **Existing Entry System**: Basic structure exists in internal/ui/entry.go (needs enhancement)
 - **Scoring Engine**: Available in internal/scoring/ (needs integration)
-- **Field Configuration**: Reusable components in internal/ui/goalconfig/ (leverage patterns)
+- **Field Configuration**: Reusable components in internal/ui/habitconfig/ (leverage patterns)
 - **Checklist System**: Existing checklist UI from T007 (integrate for checklist habits)
 
 **Design Considerations:**

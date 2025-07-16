@@ -26,15 +26,15 @@ Two bugs identified in the entry menu interface (T018) that affect user experien
 - `internal/ui/entrymenu/model.go:469-514` - updateEntriesFromCollector() syncs collector state to menu  
 - `internal/ui/entrymenu/model.go:304-342` - Entry selection and collection logic (lines 308-340)
 - `internal/ui/entrymenu/view.go:158-180` - calculateProgressStats() determines completion status
-- `internal/ui/entry.go:314-330` - CollectSingleGoalEntry() and GetGoalEntry() methods
+- `internal/ui/entry.go:314-330` - CollectSingleHabitEntry() and GetHabitEntry() methods
 
 **Entry Collection Flow Files**:
-- `internal/ui/entry/goal_collection_flows.go:78-177` - CollectEntry() method for all habit types
+- `internal/ui/entry/habit_collection_flows.go:78-177` - CollectEntry() method for all habit types
 - `internal/ui/entry/flow_implementations.go:98-99` - form.Run() call that handles user interaction
 - `internal/ui/entry/flow_implementations.go:430-484` - collectStandardOptionalNotes() method
 
 **Entry Status Files**:
-- `internal/ui/entrymenu/model.go:55-70` - getGoalStatusEmoji() determines status emojis
+- `internal/ui/entrymenu/model.go:55-70` - getHabitStatusEmoji() determines status emojis
 - `internal/ui/entrymenu/model.go:72-88` - getStatusColor() determines status colors
 
 **Modal System Files (Phase 2 Complete)**:
@@ -50,7 +50,7 @@ also refer to API docs: https://pkg.go.dev/github.com/charmbracelet/bubbletea (.
 ### Relevant Documentation
 - `kanban/done/T018_entry_menu_interface.md` - Original entry menu implementation
 - `doc/specifications/entries_storage.md` - Entry storage format specification
-- `doc/specifications/goal_schema.md` - Habit schema and field type definitions
+- `doc/specifications/habit_schema.md` - Habit schema and field type definitions
 - `doc/bubbletea_guide.md` - BubbleTea ecosystem guidance and patterns
 
 ### Related Tasks / History
@@ -86,13 +86,13 @@ also refer to API docs: https://pkg.go.dev/github.com/charmbracelet/bubbletea (.
 Based on code analysis, the bug appears to be in the status synchronization between:
 1. `entries.yml` file data (source of truth)
 2. `EntryCollector` internal state (interface{} values)
-3. `EntryMenuModel` display state (GoalEntry structs)
+3. `EntryMenuModel` display state (HabitEntry structs)
 
 **Root Cause**: The `updateEntriesFromCollector()` method (lines 469-514) may have type conversion issues or timing problems when syncing collector state to menu display.
 
 **Bug 2 - Edit Looping Issue**:
 The looping occurs in the habit collection flow where:
-1. User presses Enter → `CollectSingleGoalEntry()` called
+1. User presses Enter → `CollectSingleHabitEntry()` called
 2. `flow.CollectEntry()` launches input form via `form.Run()`
 3. Instead of returning to menu, the flow continues or loops
 
@@ -130,7 +130,7 @@ The looping occurs in the habit collection flow where:
 **Current synchronization requirements**:
 - File storage (entries.yml)
 - EntryCollector state (interface{} values)  
-- EntryMenuModel display (GoalEntry structs)
+- EntryMenuModel display (HabitEntry structs)
 
 ## Future Improvements & Refactoring Advisable
 
@@ -194,7 +194,7 @@ The looping occurs in the habit collection flow where:
     - *AI Notes:* Menu stays active, modal appears as overlay, proper event routing
   - [x] **3.2 Refactor habit collection flows:** Update flows to use modal instead of takeover
     - *Design:* Remove form.Run() calls, use modal form component instead
-    - *Code/Artifacts:* Modified `internal/ui/entry/goal_collection_flows.go`
+    - *Code/Artifacts:* Modified `internal/ui/entry/habit_collection_flows.go`
     - *Testing Strategy:* Flow tests with modal form component
     - *AI Notes:* This should eliminate the handoff complexity causing Bug 2
 
@@ -382,7 +382,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 
 **LOW EFFORT (Import application code)**:
 3. **Field Input Factory** (15 mins) - Import FieldInputFactory abstraction  
-4. **Entry Collection Context** (20 mins) - Import GoalEntry with collector state
+4. **Entry Collection Context** (20 mins) - Import HabitEntry with collector state
 
 **MODERATE EFFORT (Significant refactoring)**:
 5. **State Management** (30 mins) - Add menu state persistence, auto-save
@@ -441,11 +441,11 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 
 ### Phase 3 Results - Entry Collection Context Layer
 
-**Implementation**: Added complex `EntryCollector` with existing entry state, `GoalEntry` with achievement levels, notes, timestamps, and status management.
+**Implementation**: Added complex `EntryCollector` with existing entry state, `HabitEntry` with achievement levels, notes, timestamps, and status management.
 
 **Changes**:
 - Added `EntryCollector` instantiation with `InitializeForMenu()` call
-- Added existing `GoalEntry` with complex state: `value=true`, `AchievementLevel=midi`, `notes="Previous completion with notes"`, `status=completed`
+- Added existing `HabitEntry` with complex state: `value=true`, `AchievementLevel=midi`, `notes="Previous completion with notes"`, `status=completed`
 - Updated `NewEntryFormModal()` to accept `EntryCollector` and use existing entry context
 - Added `ExistingEntry` configuration with achievement level and notes
 - Enabled `ShowScoring=true` for scoring feedback with complex state
@@ -454,7 +454,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 **User Testing Results**: ✅ **ENTRY COLLECTION CONTEXT IS NOT THE BUG SOURCE**
 - Prototype still works correctly with complex Entry Collection Context
 - Modal stays open, waits for user input, closes normally on form completion
-- Debug logs show existing entry loaded: "Using existing entry for habit test_goal: value=true, notes=Previous completion with notes, status=completed"
+- Debug logs show existing entry loaded: "Using existing entry for habit test_habit: value=true, notes=Previous completion with notes, status=completed"
 - Form completion sequence: `huh.nextFieldMsg` → `huh.nextGroupMsg` → state 0→1 → completion (normal user interaction)
 - Complex state management (collector, existing entries, achievement levels) does not trigger auto-closing
 
@@ -602,7 +602,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 #### **MEDIUM PRIORITY (Moderate Effort)**
 
 **Experiment 4: Disable Navigation Logic**
-- **Hypothesis**: Smart navigation (`SelectNextIncompleteGoal()`) is interfering with modal
+- **Hypothesis**: Smart navigation (`SelectNextIncompleteHabit()`) is interfering with modal
 - **Method**: Comment out return behavior and navigation logic
 - **Effort**: 5 minutes (disable navigation after modal close)
 - **Impact**: Medium - navigation timing could affect modal lifecycle
@@ -676,7 +676,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
   - `StoreEntryResult()` - Entry collector storage
   - `updateEntriesFromCollector()` - Menu state updates
   - `SaveEntriesToFile()` - Auto-save file I/O operations
-  - `SelectNextIncompleteGoal()` - Smart navigation logic
+  - `SelectNextIncompleteHabit()` - Smart navigation logic
 
 **User Testing Result**: ✅ **ROOT CAUSE CONFIRMED**
 - **Modal now stays open correctly** when state synchronization is disabled
@@ -694,7 +694,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 1. **Entry Collector Storage** (`StoreEntryResult()`) - Complex collector state management
 2. **Menu State Updates** (`updateEntriesFromCollector()`) - UI state synchronization
 3. **Auto-Save File I/O** (`SaveEntriesToFile()`) - File operations with potential timing issues
-4. **Smart Navigation** (`SelectNextIncompleteGoal()`) - Habit selection and menu manipulation
+4. **Smart Navigation** (`SelectNextIncompleteHabit()`) - Habit selection and menu manipulation
 
 **Why This Makes Sense**:
 - Prototype has **simple modal lifecycle**: Open → User Input → Close → Quit
@@ -729,7 +729,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 #### **Phase 1: Individual Operation Testing** (High Priority)
 
 **Test 1A: Re-enable Smart Navigation Only**
-- **Method**: Uncomment only `SelectNextIncompleteGoal()` logic
+- **Method**: Uncomment only `SelectNextIncompleteHabit()` logic
 - **Hypothesis**: Navigation menu manipulation triggers modal closure
 - **Expected**: If navigation causes bug, modal will auto-close; if not, modal stays open
 - **Effort**: 2 minutes
@@ -808,7 +808,7 @@ Built working huh+bubbletea modal from scratch by incrementally adding complexit
 1. `StoreEntryResult()` - Modifies collector state
 2. `updateEntriesFromCollector()` - Syncs collector → menu state 
 3. `SaveEntriesToFile()` - File I/O operations
-4. `SelectNextIncompleteGoal()` - Menu navigation changes
+4. `SelectNextIncompleteHabit()` - Menu navigation changes
 
 **Hypothesis**: State changes during sync sequence trigger unintended modal closure detection or BubbleTea message events that interfere with modal lifecycle.
 

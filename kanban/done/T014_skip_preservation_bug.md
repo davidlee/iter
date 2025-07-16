@@ -9,12 +9,12 @@ context_windows: ["cmd/entry/**/*.go", "internal/entry/**/*.go", "internal/habit
 # Skip Preservation Bug - Entry Validation Error
 
 **Context (Background)**:
-The validation error occurs in `GoalEntry.Validate()` which enforces that skipped entries cannot have achievement levels (line 186 in `internal/models/entry.go`). However, the entry collection system preserves existing achievement levels when loading entries, creating a conflict when users change status from completed to skipped.
+The validation error occurs in `HabitEntry.Validate()` which enforces that skipped entries cannot have achievement levels (line 186 in `internal/models/entry.go`). However, the entry collection system preserves existing achievement levels when loading entries, creating a conflict when users change status from completed to skipped.
 
 **Context (Significant Code Files)**:
 - `internal/models/entry.go:186` - Validation logic that throws the error
 - `internal/ui/entry.go:91-113` - Entry loading preserves achievement levels
-- `internal/ui/entry/goal_collection_flows.go` - Skip-aware processing flows
+- `internal/ui/entry/habit_collection_flows.go` - Skip-aware processing flows
 - `internal/storage/entries.go:62` - Storage operations trigger validation
 
 ## Git Commit History

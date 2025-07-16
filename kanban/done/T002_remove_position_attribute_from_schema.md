@@ -76,7 +76,7 @@ As a developer maintaining the habit schema specification, I want to remove the 
 
 ### Changes Made:
 
-1. **Habit Object Specification** (`doc/specifications/goal_schema.md`):
+1. **Habit Object Specification** (`doc/specifications/habit_schema.md`):
    - Removed `position: 1 # Unique integer for display order` from Habit object structure
    - Added new "Habit Ordering" section explaining position inference from YAML array sequence
 

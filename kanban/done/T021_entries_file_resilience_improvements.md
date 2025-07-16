@@ -115,4 +115,4 @@ type BackupConfig struct {
 - Builds on T020 human-readable YAML time storage improvements
 - Custom YAML marshaling provides backward compatibility
 - Storage layer anchor comments follow established patterns
-- Specification document follows doc/specifications/goal_schema.md format
+- Specification document follows doc/specifications/habit_schema.md format

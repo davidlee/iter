@@ -12,34 +12,34 @@ context_windows: ["./*.go", Claude.md, workflow.md] # List of glob patterns usef
 
 **All commits related to this task (newest first):**
 
-- `c0930b0` - feat(goalconfig)[T009/2.3]: integrate ElasticGoalCreator with configurator routing
-- `493a51c` - test(goalconfig)[T009/2.2]: implement comprehensive ElasticGoalCreator test suite
-- `2df1abe` - feat(goalconfig)[T009/2.1]: design ElasticGoalCreator architecture
-- `d3960f2` - test(goalconfig)[T009/1.4]: add comprehensive testing for enhanced SimpleGoalCreator
-- `a6d76f8` - feat(goalconfig)[T009/1.3]: add automatic criteria support to SimpleGoalCreator
-- `7ca86f3` - feat(goalconfig)[T009/1.2]: extend SimpleGoalCreator with field type support
+- `c0930b0` - feat(habitconfig)[T009/2.3]: integrate ElasticHabitCreator with configurator routing
+- `493a51c` - test(habitconfig)[T009/2.2]: implement comprehensive ElasticHabitCreator test suite
+- `2df1abe` - feat(habitconfig)[T009/2.1]: design ElasticHabitCreator architecture
+- `d3960f2` - test(habitconfig)[T009/1.4]: add comprehensive testing for enhanced SimpleHabitCreator
+- `a6d76f8` - feat(habitconfig)[T009/1.3]: add automatic criteria support to SimpleHabitCreator
+- `7ca86f3` - feat(habitconfig)[T009/1.2]: extend SimpleHabitCreator with field type support
 - `5128c42` - docs(T009)[T009/1.1]: analyze Simple habit requirements and create task card
 
 **Context (Background)**:
 - CLAUDE.md
 - doc/workflow.md
 - doc/flow_analysis_T005.md
-- doc/specifications/goal_schema.md
+- doc/specifications/habit_schema.md
 - tasks T005, T006
 - API docs for huh, bubbletea
 
 **Context (Significant Code Files)**:
-- internal/ui/goalconfig/ - Habit configuration UI system from T005
-- internal/ui/goalconfig/configurator.go - Main habit configurator with routing logic
-- internal/ui/goalconfig/simple_goal_creator.go - Simple habit creation UI (enhanced with field types + criteria)
-- internal/ui/goalconfig/simple_goal_creator_test.go - Comprehensive test suite for SimpleGoalCreator
-- internal/ui/goalconfig/simple_goal_creator_integration_test.go - Integration tests for all combinations
-- internal/ui/goalconfig/elastic_goal_creator.go - Elastic habit creation UI (three-tier criteria, 530+ lines)
-- internal/ui/goalconfig/checklist_goal_creator.go - Checklist habit creation UI (T007/4.1)
-- internal/ui/goalconfig/informational_goal_creator.go - Informational habit creation UI (working)
-- internal/ui/goalconfig/field_value_input.go - Field type configuration system
+- internal/ui/habitconfig/ - Habit configuration UI system from T005
+- internal/ui/habitconfig/configurator.go - Main habit configurator with routing logic
+- internal/ui/habitconfig/simple_habit_creator.go - Simple habit creation UI (enhanced with field types + criteria)
+- internal/ui/habitconfig/simple_habit_creator_test.go - Comprehensive test suite for SimpleHabitCreator
+- internal/ui/habitconfig/simple_habit_creator_integration_test.go - Integration tests for all combinations
+- internal/ui/habitconfig/elastic_habit_creator.go - Elastic habit creation UI (three-tier criteria, 530+ lines)
+- internal/ui/habitconfig/checklist_habit_creator.go - Checklist habit creation UI (T007/4.1)
+- internal/ui/habitconfig/informational_habit_creator.go - Informational habit creation UI (working)
+- internal/ui/habitconfig/field_value_input.go - Field type configuration system
 - internal/models/habit.go - Habit data models and validation (includes elastic habit validation)
-- internal/parser/goal_parser.go - Habit persistence and loading
+- internal/parser/habit_parser.go - Habit persistence and loading
 - T009_IMPLEMENTATION_STATUS.md - Pre-compact analysis and implementation status
 
 ## Notes (temp)
@@ -75,7 +75,7 @@ elastic > manual
     - title: test
       id: test
       position: 7
-      goal_type: elastic
+      habit_type: elastic
       field_type:
         type: boolean
       scoring_type: manual
@@ -106,7 +106,7 @@ As a user, I want to create and configure all habit types with appropriate field
 **Current State (from T005):**
 - ✅ Simple + Manual + Boolean habits work correctly
 - ✅ Informational habits with all field types (Boolean, Text, Numeric, Time, Duration) work correctly
-- ✅ ChecklistGoal support added to habit configuration UI (T007/4.1)
+- ✅ ChecklistHabit support added to habit configuration UI (T007/4.1)
 - ❌ Simple + Automatic habits fail validation ("criteria is required")
 - ❌ Elastic habits incomplete/broken (missing criteria, inappropriate field types)
 - ❌ Simple + Manual habits limited to Boolean fields only
@@ -134,7 +134,7 @@ I want to create habits that match my tracking needs:
 - [ ] Elastic + Automatic habits support mini/midi/maxi criteria definition
 - [ ] Elastic criteria validation enforces mini ≤ midi ≤ maxi constraints
 - [ ] Elastic habits generate proper YAML with mini_criteria, midi_criteria, maxi_criteria
-- [ ] ElasticGoalCreator bubbletea component following established patterns
+- [ ] ElasticHabitCreator bubbletea component following established patterns
 
 ### Habit Type and Field Type Matrix
 - [ ] Simple + Manual + Text: Completion tracking with text notes
@@ -154,9 +154,9 @@ I want to create habits that match my tracking needs:
 - [ ] Generated YAML validates correctly for all supported combinations
 
 ### Technical Requirements
-- [ ] Reuse existing field type configuration system from InformationalGoalCreator
-- [ ] Extend SimpleGoalCreator to support field type selection and criteria definition
-- [ ] Create ElasticGoalCreator following SimpleGoalCreator patterns
+- [ ] Reuse existing field type configuration system from InformationalHabitCreator
+- [ ] Extend SimpleHabitCreator to support field type selection and criteria definition
+- [ ] Create ElasticHabitCreator following SimpleHabitCreator patterns
 - [ ] Update configurator routing to handle enhanced Simple and new Elastic flows
 - [ ] Comprehensive test coverage for all habit type + field type + scoring type combinations
 
@@ -166,41 +166,41 @@ I want to create habits that match my tracking needs:
 
 **Overall Status:** `Phase 2 Complete` 
 *Phase 1 (Simple Habit Enhancement) ✅ Complete: 15 field type + scoring combinations tested and validated.*
-*Phase 2 (Elastic Habit Implementation) ✅ Complete: ElasticGoalCreator implemented, tested (46 tests), and integrated with configurator.*
+*Phase 2 (Elastic Habit Implementation) ✅ Complete: ElasticHabitCreator implemented, tested (46 tests), and integrated with configurator.*
 
 **Architecture Analysis:**
 Building on T005's successful implementation patterns:
 
 **Existing Foundation:**
-- ✅ SimpleGoalCreator: Idiomatic bubbletea + huh implementation (2-step flow)
-- ✅ InformationalGoalCreator: Complete field type configuration system (4-step flow)
-- ✅ ChecklistGoalCreator: Checklist habit support (T007/4.1, 3-step flow)
+- ✅ SimpleHabitCreator: Idiomatic bubbletea + huh implementation (2-step flow)
+- ✅ InformationalHabitCreator: Complete field type configuration system (4-step flow)
+- ✅ ChecklistHabitCreator: Checklist habit support (T007/4.1, 3-step flow)
 - ✅ Field type system: Boolean, Text, Numeric, Time, Duration, Checklist
 - ✅ FieldValueInput: Reusable field configuration components
 - ✅ Habit validation and YAML persistence infrastructure
 
 **Implementation Strategy:**
-1. **Extend SimpleGoalCreator** to support field types and automatic scoring
-2. **Create ElasticGoalCreator** following established bubbletea patterns
-3. **Reuse field configuration logic** from InformationalGoalCreator
+1. **Extend SimpleHabitCreator** to support field types and automatic scoring
+2. **Create ElasticHabitCreator** following established bubbletea patterns
+3. **Reuse field configuration logic** from InformationalHabitCreator
 4. **Update configurator routing** to handle enhanced habit creators
 
 **Sub-tasks:**
 
 ### Phase 1: Simple Habit Enhancement
 - [x] **1.1: Analyze Simple Habit Requirements** ✅ **COMPLETED**
-  - [x] Investigate current SimpleGoalCreator limitations (Boolean-only fields)
+  - [x] Investigate current SimpleHabitCreator limitations (Boolean-only fields)
   - [x] Define field type matrix for Simple habits (which field types make sense)
   - [x] Design automatic criteria definition UI patterns
   - [x] Plan integration with existing FieldValueInput system
 
-- [x] **1.2: Extend SimpleGoalCreator for Field Types** ✅ **COMPLETED**
-  - [x] Add field type selection step to SimpleGoalCreator flow
-  - [x] Integrate FieldTypeSelector from InformationalGoalCreator
+- [x] **1.2: Extend SimpleHabitCreator for Field Types** ✅ **COMPLETED**
+  - [x] Add field type selection step to SimpleHabitCreator flow
+  - [x] Integrate FieldTypeSelector from InformationalHabitCreator
   - [x] Update habit building logic to support non-Boolean fields
   - [x] Maintain backwards compatibility for existing Simple + Manual + Boolean flow
 
-- [x] **1.3: Add Automatic Criteria Support to SimpleGoalCreator** ✅ **COMPLETED**
+- [x] **1.3: Add Automatic Criteria Support to SimpleHabitCreator** ✅ **COMPLETED**
   - [x] Design criteria definition UI for different field types
   - [x] Boolean criteria: equals condition (true for completion)
   - [x] Numeric criteria: threshold conditions (greater_than, etc.)
@@ -208,23 +208,23 @@ Building on T005's successful implementation patterns:
   - [x] Add criteria validation and user-friendly error messages
 
 - [x] **1.4: Test and Validate Simple Habit Enhancements** ✅ **COMPLETED**
-  - [x] Add headless testing support with `NewSimpleGoalCreatorForTesting()` constructor
-  - [x] Create `TestGoalData` helper struct for pre-populating configuration fields
-  - [x] Add `CreateGoalDirectly()` bypass method for testing business logic without UI
-  - [x] Unit tests for enhanced SimpleGoalCreator (existing 17 tests + new headless tests)
+  - [x] Add headless testing support with `NewSimpleHabitCreatorForTesting()` constructor
+  - [x] Create `TestHabitData` helper struct for pre-populating configuration fields
+  - [x] Add `CreateHabitDirectly()` bypass method for testing business logic without UI
+  - [x] Unit tests for enhanced SimpleHabitCreator (existing 17 tests + new headless tests)
   - [x] Integration tests for all Simple + field type + scoring type combinations
   - [x] YAML validation for generated Simple habits across all combinations
   - [x] Manual testing with dry-run mode for UI verification (see test_dry_run_manual.md)
 
 ### Phase 2: Elastic Habit Implementation
-- [x] **2.1: Design ElasticGoalCreator Architecture** ✅ **COMPLETED**
-  - [x] Follow SimpleGoalCreator patterns for consistency
+- [x] **2.1: Design ElasticHabitCreator Architecture** ✅ **COMPLETED**
+  - [x] Follow SimpleHabitCreator patterns for consistency
   - [x] Plan multi-step flow: Field Type → Field Config → Scoring → Criteria (mini/midi/maxi) → Prompt
   - [x] Design criteria definition UI for three-tier habits
   - [x] Plan validation logic for mini ≤ midi ≤ maxi constraints
 
-- [x] **2.2: Implement ElasticGoalCreator Component** ✅ **COMPLETED**
-  - [x] Create comprehensive test suite for ElasticGoalCreator (46 tests total)
+- [x] **2.2: Implement ElasticHabitCreator Component** ✅ **COMPLETED**
+  - [x] Create comprehensive test suite for ElasticHabitCreator (46 tests total)
   - [x] Unit tests covering all functionality (20 tests)
   - [x] Integration tests for all Elastic + field type + scoring type combinations (13 combinations)
   - [x] Three-tier criteria validation testing (mini ≤ midi ≤ maxi constraint enforcement)
@@ -232,16 +232,16 @@ Building on T005's successful implementation patterns:
   - [x] Error handling tests for invalid inputs and edge cases
   - [x] Code quality compliance (linting, formatting)
 
-- [x] **2.3: Integrate ElasticGoalCreator with Configurator** ✅ **COMPLETED**
-  - [x] Add ElasticGoal case to configurator switch statement (lines 88-93 and 365-370)
-  - [x] Create runElasticGoalCreator method following existing patterns (lines 296-331)
-  - [x] Update routing logic in both AddGoal and AddGoalWithYAMLOutput methods
+- [x] **2.3: Integrate ElasticHabitCreator with Configurator** ✅ **COMPLETED**
+  - [x] Add ElasticHabit case to configurator switch statement (lines 88-93 and 365-370)
+  - [x] Create runElasticHabitCreator method following existing patterns (lines 296-331)
+  - [x] Update routing logic in both AddHabit and AddHabitWithYAMLOutput methods
   - [x] Add comprehensive integration tests (4 tests covering routing, creation, headless integration)
   - [x] Verify proper habit building and YAML generation through integration tests
   - [x] Elastic habit description already properly configured in habit type selection
 
 - [ ] **2.4: Test and Validate Elastic Habit Implementation**
-  - [ ] Unit tests for ElasticGoalCreator
+  - [ ] Unit tests for ElasticHabitCreator
   - [ ] Integration tests for Elastic + field type + scoring type combinations
   - [ ] Criteria validation testing (constraint enforcement)
   - [ ] Manual testing with complex Elastic habit scenarios
@@ -250,7 +250,7 @@ Building on T005's successful implementation patterns:
 - [ ] **3.1: Comprehensive Habit Type Testing**
   - [ ] Test all Simple + field type + scoring type combinations
   - [ ] Test all Elastic + field type + scoring type combinations
-  - [ ] Verify ChecklistGoal integration works correctly
+  - [ ] Verify ChecklistHabit integration works correctly
   - [ ] Validate Informational habits continue working as expected
 
 - [ ] **3.2: User Experience Refinements**
@@ -266,7 +266,7 @@ Building on T005's successful implementation patterns:
   - [ ] Final testing and quality assurance
 
 **Technical Implementation Notes:**
-- **Pattern Consistency**: All new creators follow SimpleGoalCreator + InformationalGoalCreator patterns
+- **Pattern Consistency**: All new creators follow SimpleHabitCreator + InformationalHabitCreator patterns
 - **Code Reuse**: Leverage FieldTypeSelector, FieldConfig, and FieldValueInput from existing system
 - **Validation Strategy**: Use huh's built-in validation plus custom habit validation
 - **Flow Design**: Multi-step forms with conditional groups based on scoring type selection
@@ -280,17 +280,17 @@ Building on T005's successful implementation patterns:
 ## 5. Notes / Discussion Log
 
 **2025-07-12 - AI Initial Analysis:**
-- T005 provides excellent foundation with working SimpleGoalCreator and InformationalGoalCreator
+- T005 provides excellent foundation with working SimpleHabitCreator and InformationalHabitCreator
 - Key issue: Current Simple habits hardcoded to Boolean fields, missing field type selection
-- ElasticGoal completely missing but models/validation support exists
+- ElasticHabit completely missing but models/validation support exists
 - Automatic scoring criteria definition missing for Simple habits
-- ChecklistGoal support added in T007/4.1 provides additional reference implementation
+- ChecklistHabit support added in T007/4.1 provides additional reference implementation
 - Strategy: Extend existing creators rather than rewrite, maintain idiomatic bubbletea patterns
 
 **2025-07-12 - Design Decisions (T009/1.1):**
 1. **Field Type Support**: Simple habits support all field types except checklist (Boolean, Text, Numeric, Time, Duration)
 2. **Text Field Restriction**: Text fields restricted to manual scoring only (no automatic text-based criteria)
-3. **UI Flow Pattern**: Use multi-step forms (like InformationalGoalCreator) with step omission when not required
+3. **UI Flow Pattern**: Use multi-step forms (like InformationalHabitCreator) with step omission when not required
 4. **Quick Path**: Boolean+Manual remains the streamlined path with minimal steps
 5. **Comment Pattern**: Optional comment field accompanies all field types, extend to checklist fields also
 
@@ -302,9 +302,9 @@ Building on T005's successful implementation patterns:
 | Numeric | ✅ Yes | ✅ Yes | `>`, `>=`, `<`, `<=`, `range` | Exercise minutes, reps, etc. |
 | Time | ✅ Yes | ✅ Yes | `before`, `after` | Wake-up time, bedtime |
 | Duration | ✅ Yes | ✅ Yes | `>`, `>=`, `<`, `<=`, `range` | Exercise duration, meditation |
-| Checklist | ❌ N/A | ❌ N/A | N/A | Use ChecklistGoal type instead |
+| Checklist | ❌ N/A | ❌ N/A | N/A | Use ChecklistHabit type instead |
 
-**Enhanced SimpleGoalCreator Flow Design:**
+**Enhanced SimpleHabitCreator Flow Design:**
 1. **Boolean + Manual (Quick Path)**: Basic Info → Scoring Type (auto-select manual) → Prompt → Save (2 steps)
 2. **Boolean + Automatic**: Basic Info → Scoring Type → Criteria (equals: true) → Save (3 steps)
 3. **Other Field Types + Manual**: Basic Info → Field Type → Field Config → Scoring Type → Comment/Prompt → Save (4-5 steps)
@@ -322,11 +322,11 @@ Building on T005's successful implementation patterns:
   - Manual: User decides achievement level, field data is informational
   - Automatic: System determines achievement based on field data meeting criteria
 - **Text Field Limitation**: Text fields restricted to manual scoring (no automatic text evaluation)
-- **Comment Pattern**: Optional comment field for all field types including checklist habits (ChecklistGoalCreator needs enhancement)
+- **Comment Pattern**: Optional comment field for all field types including checklist habits (ChecklistHabitCreator needs enhancement)
 - **Backward Compatibility**: Existing Boolean+Manual flow preserved as quick path
 
 **T009/1.2 Implementation Details (2025-07-12):**
-- **Multi-step Conversion**: Converted SimpleGoalCreator from sequential groups to multi-step forms
+- **Multi-step Conversion**: Converted SimpleHabitCreator from sequential groups to multi-step forms
 - **Field Type Support**: Added support for Boolean, Text, Numeric (3 subtypes), Time, Duration fields
 - **Dynamic Flow**: Flow adjusts based on field type - 3-4 steps depending on configuration needs
 - **Field Configuration**: Numeric fields support subtype, unit, min/max constraints; Text supports multiline
@@ -350,29 +350,29 @@ Building on T005's successful implementation patterns:
 - **AIDEV Anchor Comments**: Added key anchor comments for criteria dispatch, builder, and flow logic
 
 **T009/1.4 Implementation Details (2025-07-12):**
-- **Headless Testing Infrastructure**: Added `NewSimpleGoalCreatorForTesting()` constructor bypassing UI
-- **Test Data Helper**: `TestGoalData` struct for clean specification of all configuration options
-- **Direct Habit Creation**: `CreateGoalDirectly()` method enables testing business logic without UI flow
+- **Headless Testing Infrastructure**: Added `NewSimpleHabitCreatorForTesting()` constructor bypassing UI
+- **Test Data Helper**: `TestHabitData` struct for clean specification of all configuration options
+- **Direct Habit Creation**: `CreateHabitDirectly()` method enables testing business logic without UI flow
 - **Comprehensive Integration Tests**: 15 field type + scoring type combinations fully tested
 - **YAML Validation**: All habit combinations generate valid YAML that passes schema validation
 - **Criteria Validation**: Complete testing of Boolean, Numeric (>, >=, <, <=, range), Time, Duration criteria
 - **Manual Testing Guide**: Created test_dry_run_manual.md for interactive CLI verification
-- **Test Coverage**: 42 total tests covering all aspects of enhanced SimpleGoalCreator
+- **Test Coverage**: 42 total tests covering all aspects of enhanced SimpleHabitCreator
 
 **T009/2.3 Implementation Details (2025-07-12):**
-- **AIDEV-NOTE: configurator-elastic-integration-complete; ElasticGoalCreator now properly integrated with configurator routing**
-- **Integration Points**: Updated 2 routing locations in configurator.go (AddGoal: lines 88-93, AddGoalWithYAMLOutput: lines 365-370)
-- **New Method**: Added `runElasticGoalCreator()` method (lines 296-331) following exact pattern of existing habit creators
-- **Pattern Consistency**: Follows `runInformationalGoalCreator` and `runChecklistGoalCreator` patterns exactly
+- **AIDEV-NOTE: configurator-elastic-integration-complete; ElasticHabitCreator now properly integrated with configurator routing**
+- **Integration Points**: Updated 2 routing locations in configurator.go (AddHabit: lines 88-93, AddHabitWithYAMLOutput: lines 365-370)
+- **New Method**: Added `runElasticHabitCreator()` method (lines 296-331) following exact pattern of existing habit creators
+- **Pattern Consistency**: Follows `runInformationalHabitCreator` and `runChecklistHabitCreator` patterns exactly
 - **Integration Tests**: 4 comprehensive tests covering routing, creation, headless integration, and criteria validation
 - **Error Handling**: Proper error messages for elastic habit creation failures with clear error propagation
-- **UI Consistency**: ElasticGoal option already properly configured in habit type selection with clear description
-- **YAML Support**: Both regular and dry-run YAML generation now properly route to ElasticGoalCreator
+- **UI Consistency**: ElasticHabit option already properly configured in habit type selection with clear description
+- **YAML Support**: Both regular and dry-run YAML generation now properly route to ElasticHabitCreator
 
 
 **T009/2.2 Implementation Details (2025-07-12):**
-- **Comprehensive Test Suite**: 46 tests covering all aspects of ElasticGoalCreator functionality
-- **Headless Testing Infrastructure**: `NewElasticGoalCreatorForTesting()` constructor and `CreateGoalDirectly()` method
+- **Comprehensive Test Suite**: 46 tests covering all aspects of ElasticHabitCreator functionality
+- **Headless Testing Infrastructure**: `NewElasticHabitCreatorForTesting()` constructor and `CreateHabitDirectly()` method
 - **Test Coverage**: 20 unit tests + 26 integration tests covering all field type + scoring type combinations
 - **Three-Tier Criteria Testing**: Complete validation of mini/midi/maxi criteria for Numeric, Time, Duration field types
 - **Constraint Validation**: Tests verify mini ≤ midi ≤ maxi ordering enforcement by model validation
@@ -380,24 +380,24 @@ Building on T005's successful implementation patterns:
 - **YAML Validation**: All 13 field type + scoring combinations generate valid YAML passing schema validation
 - **Error Handling**: Comprehensive edge case testing for invalid values, unsupported field types, unknown tiers
 - **Code Quality**: Fixed deprecated `strings.Title` usage, passed all linting and formatting checks
-- **Pattern Consistency**: Follows SimpleGoalCreator patterns exactly for maintainability and consistency
+- **Pattern Consistency**: Follows SimpleHabitCreator patterns exactly for maintainability and consistency
 
 **T009/2.1 Architecture Design (2025-07-12):**
-- **ElasticGoalCreator Structure**: Complete bubbletea model following SimpleGoalCreator patterns
+- **ElasticHabitCreator Structure**: Complete bubbletea model following SimpleHabitCreator patterns
 - **Multi-Step Flow**: Field Type → Field Config → Scoring → Three-Tier Criteria → Prompt (4-5 steps)
 - **Three-Tier Criteria**: Mini/Midi/Maxi achievement levels with validation (mini ≤ midi ≤ maxi)
 - **Field Type Support**: Text, Numeric (3 subtypes), Time, Duration (Boolean excluded - not meaningful for elastic)
-- **Headless Testing Ready**: `TestElasticGoalData` struct and `NewElasticGoalCreatorForTesting()` constructor
+- **Headless Testing Ready**: `TestElasticHabitData` struct and `NewElasticHabitCreatorForTesting()` constructor
 - **Validation Strategy**: Real-time validation for criteria ordering and proper threshold definitions
-- **Reuse Patterns**: Field configuration, scoring selection, and form patterns from SimpleGoalCreator
+- **Reuse Patterns**: Field configuration, scoring selection, and form patterns from SimpleHabitCreator
 - **Habit Building**: Complete three-tier criteria construction with models.MiniCriteria/MidiCriteria/MaxiCriteria
 
 **Technical Integration Points (T009/1.1 Findings):**
 - **Existing FieldValueInput System**: Ready for reuse in criteria definition (field_value_input.go)
-- **InformationalGoalCreator Patterns**: Multi-step approach with `currentStep` and `initializeStep()` method
-- **ChecklistGoalCreator Patterns**: Sequential form groups in single huh.Form (simpler but less flexible)
+- **InformationalHabitCreator Patterns**: Multi-step approach with `currentStep` and `initializeStep()` method
+- **ChecklistHabitCreator Patterns**: Sequential form groups in single huh.Form (simpler but less flexible)
 - **Models Support**: Complete criteria condition support for all field types in models.Condition struct
-- **Current SimpleGoalCreator**: 2-step flow, hardcoded Boolean, missing automatic criteria (lines 172, 182)
+- **Current SimpleHabitCreator**: 2-step flow, hardcoded Boolean, missing automatic criteria (lines 172, 182)
 - **TTY Limitation**: UI framework requires interactive terminal, no piped input testing possible
 
 ## 6. Code Snippets & Artifacts 

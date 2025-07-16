@@ -43,7 +43,7 @@ The project otherwise uses standard Go tooling. See `Justfile` for typical comma
 
 The UI expects a TTY and cannot accept piped output, but we can partly get around this in headless tests:
 
-- **Automated Testing**: Use `NewSimpleGoalCreatorForTesting()` and `CreateGoalDirectly()` methods to test business logic without UI interaction
+- **Automated Testing**: Use `NewSimpleHabitCreatorForTesting()` and `CreateHabitDirectly()` methods to test business logic without UI interaction
 - **Integration Tests**: All habit type + field type + scoring type combinations are covered by headless integration tests
 - **Dry-run Mode**: Available for manual CLI verification when `--dry-run` flags are supported
 

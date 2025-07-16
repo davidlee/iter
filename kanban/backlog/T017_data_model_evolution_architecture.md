@@ -91,7 +91,7 @@ As a developer extending the vice data model, I should be able to add new habit 
 **Validation System Issues**:
 ```go
 // Current: Hard-coded type restrictions
-if g.GoalType == ChecklistGoal {
+if g.HabitType == ChecklistHabit {
     if g.FieldType.Type != ChecklistFieldType {
         return fmt.Errorf("checklist habits must use checklist field type")
     }
@@ -105,9 +105,9 @@ if g.GoalType == ChecklistGoal {
 **Type System Rigidity**:
 ```go
 // Current: Type-specific validation paths
-if g.GoalType == SimpleGoal {
+if g.HabitType == SimpleHabit {
     // Simple habit validation...
-} else if g.GoalType == ElasticGoal {
+} else if g.HabitType == ElasticHabit {
     // Elastic habit validation...
 }
 

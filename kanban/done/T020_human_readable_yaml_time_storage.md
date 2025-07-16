@@ -38,7 +38,7 @@ created_at: "2025-07-15 09:11:27"
 ```
 
 ### Sub-tasks
-- [x] 1.1: Implement custom YAML marshaling for time.Time fields in GoalEntry
+- [x] 1.1: Implement custom YAML marshaling for time.Time fields in HabitEntry
 - [x] 1.2: Implement permissive time parsing for unmarshaling
 - [x] 1.3: Update time field value serialization 
 - [x] 1.4: Test backward compatibility with existing data
@@ -57,7 +57,7 @@ None identified.
 
 ### Implementation Notes
 
-- **Custom Marshaling Chain**: Required custom MarshalYAML for GoalEntry, DayEntry, and EntryLog to ensure proper nested marshaling
+- **Custom Marshaling Chain**: Required custom MarshalYAML for HabitEntry, DayEntry, and EntryLog to ensure proper nested marshaling
 - **YAML Package Consistency**: Updated storage layer from github.com/goccy/go-yaml to gopkg.in/yaml.v3 for consistency with models layer
 - **Time Field Detection**: Uses `isTimeFieldValue()` to distinguish time-of-day fields (year 0000) from full timestamps
 - **Comprehensive Testing**: Added entry_yaml_test.go with complete coverage of marshaling, unmarshaling, and round-trip scenarios
@@ -72,7 +72,7 @@ entries:
   - date: "2025-07-15"
     habits:
       - created_at: "2025-07-15 09:11:27"
-        goal_id: wake_up
+        habit_id: wake_up
         notes: slept well
         status: completed
         value: "08:30"
