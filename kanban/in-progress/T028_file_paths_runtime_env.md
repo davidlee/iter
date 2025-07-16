@@ -57,7 +57,121 @@ This enables professional users to maintain clear boundaries between different a
 
 ## Architecture
 
-*To be completed during planning phase*
+### Current vs Target Architecture
+
+```
+CURRENT ARCHITECTURE:
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              CLI Layer                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
+│  │   cmd/      │  │   cmd/      │  │   cmd/      │  │   cmd/      │    │
+│  │  root.go    │  │  entry.go   │  │  habit.go   │  │  todo.go    │    │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
+│         │                 │                 │                 │         │
+│         └─────────────────┼─────────────────┼─────────────────┘         │
+│                           │                 │                           │
+│                           ▼                 ▼                           │
+│                    ┌─────────────────────────────────────────────────┐  │
+│                    │           GetPaths()                            │  │
+│                    │      returns *config.Paths                     │  │
+│                    └─────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          Config Layer                                   │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                     config.Paths                                    ││
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ ││
+│  │  │ ConfigDir   │  │ HabitsFile  │  │ EntriesFile │  │ChecklistsFile││
+│  │  │   (XDG)     │  │   (YAML)    │  │   (YAML)    │  │   (YAML)    │ ││
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘ ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+│                                │                                         │
+│                                ▼                                         │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                XDG Path Resolution                                   ││
+│  │          ~/.config/vice (ConfigDir only)                            ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        UI/Storage Layer                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
+│  │  UI/Todo    │  │  UI/Entry   │  │  Storage    │  │  Debug      │    │
+│  │   (paths)   │  │   (paths)   │  │   (paths)   │  │   (paths)   │    │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+TARGET ARCHITECTURE:
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              CLI Layer                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
+│  │   cmd/      │  │   cmd/      │  │   cmd/      │  │   cmd/      │    │
+│  │  root.go    │  │  entry.go   │  │  habit.go   │  │  todo.go    │    │
+│  │ + --context │  │             │  │             │  │             │    │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
+│         │                 │                 │                 │         │
+│         └─────────────────┼─────────────────┼─────────────────┘         │
+│                           │                 │                           │
+│                           ▼                 ▼                           │
+│                    ┌─────────────────────────────────────────────────┐  │
+│                    │           GetEnv()                              │  │
+│                    │      returns *config.ViceEnv                   │  │
+│                    └─────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          Config Layer                                   │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                     config.ViceEnv                                  ││
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ ││
+│  │  │   Config    │  │    Data     │  │    State    │  │    Cache    │ ││
+│  │  │(XDG_CONFIG) │  │(XDG_DATA)   │  │(XDG_STATE)  │  │(XDG_CACHE)  │ ││
+│  │  │config.toml  │  │/context/    │  │vice.yml     │  │             │ ││
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘ ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+│                                │                                         │
+│                                ▼                                         │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │                Context Management                                    ││
+│  │  ┌─────────────────────────────────────────────────────────────────┐││
+│  │  │  config.toml: [core] contexts = ["personal", "work"]            │││
+│  │  │  vice.yml: active_context = "personal"                         │││
+│  │  │  ENV: VICE_CONTEXT override                                    │││
+│  │  │  CLI: --context transient override                             │││
+│  │  └─────────────────────────────────────────────────────────────────┘││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        UI/Storage Layer                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
+│  │  UI/Todo    │  │  UI/Entry   │  │  Storage    │  │  Debug      │    │
+│  │   (env)     │  │   (env)     │  │   (env)     │  │   (env)     │    │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
+│         │                 │                 │                 │         │
+│         └─────────────────┼─────────────────┼─────────────────┘         │
+│                           │                 │                           │
+│                           ▼                 ▼                           │
+│                    ┌─────────────────────────────────────────────────┐  │
+│                    │        Context-aware Data Loading              │  │
+│                    │   $VICE_DATA/{context}/habits.yml              │  │
+│                    │   $VICE_DATA/{context}/entries.yml             │  │
+│                    └─────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Key Architectural Changes
+
+1. **config.Paths → ViceEnv**: Replace single-purpose config paths with comprehensive environment management
+2. **XDG Full Compliance**: Extend from CONFIG-only to CONFIG/DATA/STATE/CACHE
+3. **Context-aware Data**: User data segregated by context in $VICE_DATA/{context}/
+4. **TOML Configuration**: App settings moved from code defaults to config.toml
+5. **Layered Overrides**: ENV vars → CLI flags → config.toml → XDG defaults
 
 ## Implementation Plan & Progress
 
@@ -70,11 +184,40 @@ This enables professional users to maintain clear boundaries between different a
     - *Code/Artifacts:* `internal/config/env.go` (new), replace `config.Paths` usage
     - *Testing Strategy:* Unit tests for env variable resolution, XDG path construction
     - *AI Notes:* Priority override: ENV vars → CLI flags → XDG defaults
+    - create paths if missing
+    - represent default settings in code
+    - stub: load default settings into ViceEnv (no config.toml yet)
   - [ ] **1.2: Add pelletier/go-toml dependency and TOML parsing**
     - *Design:* Add go-toml to go.mod, parse config.toml from $VICE_CONFIG for app settings
     - *Code/Artifacts:* `internal/config/toml.go` (new), update go.mod
     - *Testing Strategy:* Unit tests for TOML parsing, invalid config handling, defaults
     - *AI Notes:* config.toml = app settings (keybindings, themes, contexts array), not user data
+  - [ ] **1.3: Create config.toml with default settings if missing**
+    - *Design:* Initialize config.toml with default [core] contexts = ["personal", "work"] if missing
+    - *Code/Artifacts:* Update `internal/config/env.go`, file initialization logic
+    - *Testing Strategy:* Unit tests for config.toml creation, default value handling
+    - *AI Notes:* Undo stub loading of defaults into ViceEnv, load from config.toml instead
+
+### Phase 1 Implementation Analysis
+
+**Current State**: `config.Paths` struct provides basic XDG CONFIG directory support with hardcoded YAML file paths
+
+**Target State**: `ViceEnv` struct with full XDG compliance and TOML-based configuration
+
+**Key Changes Required**:
+
+1. **Replace config.Paths entirely** - 11 cmd files + UI components use `GetPaths()`
+2. **Add 4 XDG directories** - extend from CONFIG-only to CONFIG/DATA/STATE/CACHE
+3. **Context-aware path resolution** - data paths become $VICE_DATA/{context}/file.yml
+4. **TOML configuration parsing** - add pelletier/go-toml dependency, parse config.toml
+5. **Maintain CLI compatibility** - preserve `--config-dir` flag behavior
+
+**Implementation Strategy**:
+- Build ViceEnv alongside config.Paths initially
+- Update `cmd/root.go` to use ViceEnv first  
+- Phase out config.Paths usage across cmd files
+- Update UI constructors to accept ViceEnv instead of paths
+- Ensure backward compatibility during transition
 
 - [ ] **Phase 2: Context Management System**
   - [ ] **2.1: Implement context switching with immediate data unload**
@@ -132,6 +275,11 @@ This enables professional users to maintain clear boundaries between different a
   4. --context CLI flag should be transient (no state persistence) for non-interactive ops
 - `2025-07-16 - AI:` Updated implementation plan to reflect correct separation of concerns
 - `2025-07-16 - User:` Noted migration concern: contexts will change user data paths but user will handle manual migration
+- `2025-07-16 - AI:` Completed pre-flight analysis for Phase 1:
+  - Added comprehensive ASCII architecture diagram (current vs target)  
+  - Analyzed current config.Paths usage across 11 cmd files + UI components
+  - Identified key changes: full XDG compliance, context-aware paths, TOML config
+  - Implementation strategy: build ViceEnv alongside config.Paths, then phase out
 
 ## Git Commit History
 
