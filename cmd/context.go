@@ -105,14 +105,14 @@ func runContextShow(_ *cobra.Command, _ []string) error {
 
 	fmt.Printf("Current context: %s\n", env.Context)
 	fmt.Printf("Data directory: %s\n", env.ContextData)
-	
+
 	return nil
 }
 
 func runContextSwitch(_ *cobra.Command, args []string) error {
 	// AIDEV-NOTE: T028/4.1-context-switch; persistent context switching with validation and state persistence
 	newContext := args[0]
-	
+
 	// Get the resolved environment
 	env := GetViceEnv()
 
@@ -126,7 +126,7 @@ func runContextSwitch(_ *cobra.Command, args []string) error {
 	}
 
 	if !contextExists {
-		return fmt.Errorf("context '%s' not found in available contexts: %s", 
+		return fmt.Errorf("context '%s' not found in available contexts: %s",
 			newContext, strings.Join(env.Contexts, ", "))
 	}
 

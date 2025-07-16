@@ -94,7 +94,7 @@ contexts = ["home", "office", "travel"]
 func TestContextCommandValidation(t *testing.T) {
 	// Test that context switch requires exactly one argument
 	cmd := contextSwitchCmd
-	
+
 	// Test no args
 	cmd.SetArgs([]string{})
 	err := cmd.Execute()

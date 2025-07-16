@@ -253,4 +253,3 @@ func TestError(t *testing.T) {
 		t.Errorf("Unwrap() = %v, want %v", baseErr.Unwrap(), os.ErrNotExist)
 	}
 }
-

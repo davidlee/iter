@@ -40,7 +40,9 @@
       "Bash(just test:*)",
       "Bash(just format)",
       "Bash(perl:*)",
-      "Bash(just lint-single:*)"
+      "Bash(just lint-single:*)",
+      "Bash(VICE_CONTEXT=work ./vice context show)",
+      "Bash(VICE_CONTEXT=work ./vice todo --markdown)"
     ],
     "deny": []
   }
