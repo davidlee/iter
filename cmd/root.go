@@ -55,7 +55,8 @@ func Execute() {
 
 	err := fang.Execute(context.Background(), rootCmd)
 	if err != nil {
-		os.Exit(1)
+		// Exit with error code after defer functions complete
+		defer os.Exit(1)
 	}
 }
 

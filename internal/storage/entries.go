@@ -96,7 +96,7 @@ func (es *EntryStorage) SaveToFile(entryLog *models.EntryLog, filePath string) e
 	if err := encoder.Encode(entryLog); err != nil {
 		return fmt.Errorf("failed to marshal entry log to YAML: %w", err)
 	}
-	encoder.Close()
+	_ = encoder.Close()
 	data := []byte(buf.String())
 
 	// Validate marshalled data by attempting to parse it back

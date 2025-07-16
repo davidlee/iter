@@ -21,6 +21,7 @@ const (
 )
 
 // DebugLogger provides centralized debug logging with file output
+//revive:disable-next-line:exported -- DebugLogger name follows singleton pattern
 type DebugLogger struct {
 	enabled   bool
 	logFile   *os.File
@@ -57,6 +58,7 @@ func (dl *DebugLogger) Initialize(configDir string) error {
 
 	// Create debug log file
 	logPath := filepath.Join(configDir, "vice-debug.log")
+	// #nosec G304 -- logPath is constructed from trusted configDir + literal filename
 	file, err := os.Create(logPath)
 	if err != nil {
 		return fmt.Errorf("failed to create debug log file %s: %w", logPath, err)
@@ -147,19 +149,22 @@ func (dl *DebugLogger) SetOutput(w io.Writer) {
 	}
 }
 
-// Convenience functions for different categories
+// Modal logs messages related to modal operations
 func Modal(format string, args ...interface{}) {
 	GetInstance().Printf(CategoryModal, format, args...)
 }
 
+// Field logs messages related to form field operations
 func Field(format string, args ...interface{}) {
 	GetInstance().Printf(CategoryField, format, args...)
 }
 
+// EntryMenu logs messages related to entry menu operations
 func EntryMenu(format string, args ...interface{}) {
 	GetInstance().Printf(CategoryEntryMenu, format, args...)
 }
 
+// General logs general debug messages
 func General(format string, args ...interface{}) {
 	GetInstance().Printf(CategoryGeneral, format, args...)
 }

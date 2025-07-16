@@ -32,6 +32,7 @@ func init() {
 	rootCmd.AddCommand(prototypeCmd)
 }
 
+//revive:disable-next-line:unused-parameter -- cmd required by cobra.Command interface
 func runPrototype(cmd *cobra.Command, args []string) error {
 	// Initialize debug logging if requested
 	if debugMode {
@@ -39,7 +40,9 @@ func runPrototype(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to initialize debug logging: %w", err)
 		}
-		defer debug.GetInstance().Close()
+		defer func() {
+		_ = debug.GetInstance().Close()
+	}()
 	}
 
 	// Get the root directory of the project
@@ -65,6 +68,7 @@ func runPrototype(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 
 	// Run the prototype using go run
+	// #nosec G204 -- prototypePath is constructed from trusted cwd + literal path
 	execCmd := exec.Command("go", "run", prototypePath)
 	execCmd.Stdout = os.Stdout
 	execCmd.Stderr = os.Stderr

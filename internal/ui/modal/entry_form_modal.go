@@ -91,19 +91,24 @@ func (efm *EntryFormModal) Init() tea.Cmd {
 	return cmd
 }
 
-// Modal interface compliance - replaced BaseModal methods with simple boolean operations
+// IsOpen returns true if the modal is currently open
 func (efm *EntryFormModal) IsOpen() bool   { return efm.isOpen }
+// IsClosed returns true if the modal is closed
 func (efm *EntryFormModal) IsClosed() bool { return !efm.isOpen }
+// Open sets the modal to open state
 func (efm *EntryFormModal) Open() {
 	debug.Modal("Goal %s: Opening modal (simple boolean)", efm.goal.ID)
 	efm.isOpen = true
 }
 
+// Close sets the modal to closed state
 func (efm *EntryFormModal) Close() {
 	debug.Modal("Goal %s: Closing modal (simple boolean)", efm.goal.ID)
 	efm.isOpen = false
 }
+// SetResult stores the modal result
 func (efm *EntryFormModal) SetResult(result interface{}) { efm.result = result }
+// GetResult returns the stored modal result
 func (efm *EntryFormModal) GetResult() interface{}       { return efm.result }
 
 // Update handles messages for the entry form modal.
@@ -270,37 +275,6 @@ func (efm *EntryFormModal) renderError() string {
 	)
 }
 
-// renderDisabledForm renders a static message when form is disabled for testing
-//revive:disable-next-line:unused
-func (efm *EntryFormModal) renderDisabledForm() string {
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("12")).
-		Align(lipgloss.Center).
-		Margin(0, 0, 1, 0)
-
-	messageStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("11")).
-		Align(lipgloss.Center).
-		Margin(1, 0, 1, 0)
-
-	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		Italic(true).
-		Align(lipgloss.Center).
-		Margin(1, 0, 0, 0)
-
-	title := titleStyle.Render(efm.goal.Title)
-	message := messageStyle.Render("🔬 T024 DEBUG: Form processing disabled")
-	help := helpStyle.Render("Press Esc to close • Modal should stay open indefinitely")
-
-	return lipgloss.JoinVertical(
-		lipgloss.Left,
-		title,
-		message,
-		help,
-	)
-}
 
 // GetEntryResult returns the entry result if available.
 func (efm *EntryFormModal) GetEntryResult() *entry.EntryResult {

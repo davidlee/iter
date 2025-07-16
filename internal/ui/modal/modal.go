@@ -24,6 +24,7 @@ type Modal interface {
 }
 
 // ModalState represents the current state of a modal.
+//revive:disable-next-line:exported -- ModalState name follows Go naming convention
 type ModalState int
 
 const (
@@ -38,17 +39,20 @@ const (
 )
 
 // ModalOpenedMsg is sent when a modal is opened.
+//revive:disable-next-line:exported -- ModalOpenedMsg name follows Go naming convention
 type ModalOpenedMsg struct {
 	Modal Modal
 }
 
 // ModalClosedMsg is sent when a modal is closed.
+//revive:disable-next-line:exported -- ModalClosedMsg name follows Go naming convention
 type ModalClosedMsg struct {
 	Result interface{}
 }
 
 // ModalManager manages the display and interaction of modals.
 // AIDEV-NOTE: modal-manager; core component orchestrating modal lifecycle and overlay rendering
+//revive:disable-next-line:exported -- ModalManager name follows Go naming convention
 type ModalManager struct {
 	activeModal  Modal
 	overlayStyle lipgloss.Style
