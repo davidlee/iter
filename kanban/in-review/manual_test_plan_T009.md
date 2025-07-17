@@ -60,7 +60,7 @@ All interactive sessions should:
 3. Complete without errors  
 4. Display "✅ Habit created successfully" message
 5. Show valid YAML output
-6. Pass habit validation
+. Pass habit validation
 
 ## Notes
 
