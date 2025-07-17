@@ -5,7 +5,7 @@ package models
 import (
 	"fmt"
 	"time"
-	
+
 	"davidlee/vice/internal/flotsam"
 )
 
@@ -14,16 +14,16 @@ import (
 // AIDEV-NOTE: ZK-compatible frontmatter with flotsam SRS extensions
 type FlotsamFrontmatter struct {
 	// ZK standard fields (required for ZK compatibility)
-	ID       string    `yaml:"id"`                    // ZK 4-char alphanum ID
-	Title    string    `yaml:"title"`                 // Note title
-	Created  time.Time `yaml:"created-at"`            // ZK timestamp format
-	Tags     []string  `yaml:"tags,omitempty"`        // ZK tag array
-	
+	ID      string    `yaml:"id"`             // ZK 4-char alphanum ID
+	Title   string    `yaml:"title"`          // Note title
+	Created time.Time `yaml:"created-at"`     // ZK timestamp format
+	Tags    []string  `yaml:"tags,omitempty"` // ZK tag array
+
 	// Flotsam extensions
-	Type     FlotsamType `yaml:"type,omitempty"`      // idea|flashcard|script|log
-	
+	Type FlotsamType `yaml:"type,omitempty"` // idea|flashcard|script|log
+
 	// SRS data (flotsam extension, ignored by ZK)
-	SRS *flotsam.SRSData `yaml:"srs,omitempty"`       // Spaced repetition data
+	SRS *flotsam.SRSData `yaml:"srs,omitempty"` // Spaced repetition data
 }
 
 // FlotsamType represents the type of flotsam note.
@@ -44,21 +44,21 @@ const (
 type FlotsamNote struct {
 	// Embed the core flotsam note structure
 	flotsam.FlotsamNote
-	
+
 	// Additional Vice-specific fields can be added here if needed
 }
 
 // FlotsamCollection represents a collection of flotsam notes with metadata.
 // This follows the pattern of other Vice collections (Schema, ChecklistSchema).
 type FlotsamCollection struct {
-	Version     string         `yaml:"version"`           // Schema version for future migrations
-	CreatedDate string         `yaml:"created_date"`      // Collection creation date
-	Context     string         `yaml:"context,omitempty"` // Vice context for isolation
-	Notes       []FlotsamNote  `yaml:"notes"`             // Collection of notes
-	
+	Version     string        `yaml:"version"`           // Schema version for future migrations
+	CreatedDate string        `yaml:"created_date"`      // Collection creation date
+	Context     string        `yaml:"context,omitempty"` // Vice context for isolation
+	Notes       []FlotsamNote `yaml:"notes"`             // Collection of notes
+
 	// Collection-level metadata
-	TotalNotes  int            `yaml:"-"`                 // Computed: total note count
-	SRSEnabled  bool           `yaml:"-"`                 // Computed: any notes have SRS data
+	TotalNotes int  `yaml:"-"` // Computed: total note count
+	SRSEnabled bool `yaml:"-"` // Computed: any notes have SRS data
 }
 
 // Validate validates a FlotsamType value.
@@ -113,7 +113,7 @@ func NewFlotsamNote(frontmatter *FlotsamFrontmatter, body, filepath string) *Flo
 			SRS:      frontmatter.SRS,
 		},
 	}
-	
+
 	return note
 }
 
@@ -169,7 +169,7 @@ func (fn *FlotsamNote) ValidateType() error {
 		fn.Type = string(DefaultType())
 		return nil
 	}
-	
+
 	return FlotsamType(fn.Type).Validate()
 }
 
@@ -227,7 +227,7 @@ func (fc *FlotsamCollection) GetSRSNotes() []FlotsamNote {
 // AIDEV-NOTE: maintains collection statistics for UI and performance
 func (fc *FlotsamCollection) computeMetadata() {
 	fc.TotalNotes = len(fc.Notes)
-	
+
 	// Check if any notes have SRS enabled
 	fc.SRSEnabled = false
 	for _, note := range fc.Notes {

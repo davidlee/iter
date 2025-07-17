@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"davidlee/vice/internal/flotsam"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"davidlee/vice/internal/flotsam"
 )
 
 func TestFlotsamType_Validate(t *testing.T) {
@@ -54,7 +54,7 @@ func TestDefaultType(t *testing.T) {
 
 func TestNewFlotsamFrontmatter(t *testing.T) {
 	fm := NewFlotsamFrontmatter("abc1", "Test Note")
-	
+
 	assert.Equal(t, "abc1", fm.ID)
 	assert.Equal(t, "Test Note", fm.Title)
 	assert.Equal(t, IdeaType, fm.Type)
@@ -72,9 +72,9 @@ func TestNewFlotsamNote(t *testing.T) {
 		Type:    FlashcardType,
 		Tags:    []string{"test", "example"},
 	}
-	
+
 	note := NewFlotsamNote(fm, "This is the body content", "/path/to/note.md")
-	
+
 	assert.Equal(t, "xyz9", note.ID)
 	assert.Equal(t, "Test Note", note.Title)
 	assert.Equal(t, "flashcard", note.Type)
@@ -86,7 +86,7 @@ func TestNewFlotsamNote(t *testing.T) {
 
 func TestNewFlotsamCollection(t *testing.T) {
 	collection := NewFlotsamCollection("personal")
-	
+
 	assert.Equal(t, "1.0", collection.Version)
 	assert.Equal(t, "personal", collection.Context)
 	assert.Equal(t, time.Now().Format("2006-01-02"), collection.CreatedDate)
@@ -103,7 +103,7 @@ func TestFlotsamNote_GetFrontmatter(t *testing.T) {
 		Due:                time.Now().Unix(),
 		TotalReviews:       0,
 	}
-	
+
 	note := &FlotsamNote{
 		FlotsamNote: flotsam.FlotsamNote{
 			ID:      "test123",
@@ -114,9 +114,9 @@ func TestFlotsamNote_GetFrontmatter(t *testing.T) {
 			SRS:     srsData,
 		},
 	}
-	
+
 	fm := note.GetFrontmatter()
-	
+
 	assert.Equal(t, "test123", fm.ID)
 	assert.Equal(t, "Test Note", fm.Title)
 	assert.Equal(t, FlashcardType, fm.Type)
@@ -132,7 +132,7 @@ func TestFlotsamNote_UpdateFromFrontmatter(t *testing.T) {
 			Type:  "idea",
 		},
 	}
-	
+
 	newFM := &FlotsamFrontmatter{
 		ID:      "new456",
 		Title:   "New Title",
@@ -140,9 +140,9 @@ func TestFlotsamNote_UpdateFromFrontmatter(t *testing.T) {
 		Tags:    []string{"updated"},
 		Created: time.Now().Add(-time.Hour),
 	}
-	
+
 	note.UpdateFromFrontmatter(newFM)
-	
+
 	assert.Equal(t, "new456", note.ID)
 	assert.Equal(t, "New Title", note.Title)
 	assert.Equal(t, "flashcard", note.Type)
@@ -157,7 +157,7 @@ func TestFlotsamNote_HasSRS(t *testing.T) {
 		}
 		assert.False(t, note.HasSRS())
 	})
-	
+
 	t.Run("note with SRS", func(t *testing.T) {
 		note := &FlotsamNote{
 			FlotsamNote: flotsam.FlotsamNote{
@@ -180,7 +180,7 @@ func TestFlotsamNote_IsFlashcard(t *testing.T) {
 		{"log type", "log", false},
 		{"empty type", "", false},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			note := &FlotsamNote{
@@ -200,7 +200,7 @@ func TestFlotsamNote_ValidateType(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "flashcard", note.Type)
 	})
-	
+
 	t.Run("empty type gets default", func(t *testing.T) {
 		note := &FlotsamNote{
 			FlotsamNote: flotsam.FlotsamNote{Type: ""},
@@ -209,7 +209,7 @@ func TestFlotsamNote_ValidateType(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "idea", note.Type)
 	})
-	
+
 	t.Run("invalid type", func(t *testing.T) {
 		note := &FlotsamNote{
 			FlotsamNote: flotsam.FlotsamNote{Type: "invalid"},
@@ -221,7 +221,7 @@ func TestFlotsamNote_ValidateType(t *testing.T) {
 
 func TestFlotsamCollection_AddNote(t *testing.T) {
 	collection := NewFlotsamCollection("test")
-	
+
 	note := FlotsamNote{
 		FlotsamNote: flotsam.FlotsamNote{
 			ID:    "note1",
@@ -229,9 +229,9 @@ func TestFlotsamCollection_AddNote(t *testing.T) {
 			Type:  "idea",
 		},
 	}
-	
+
 	collection.AddNote(note)
-	
+
 	assert.Equal(t, 1, len(collection.Notes))
 	assert.Equal(t, 1, collection.TotalNotes)
 	assert.Equal(t, "note1", collection.Notes[0].ID)
@@ -240,7 +240,7 @@ func TestFlotsamCollection_AddNote(t *testing.T) {
 
 func TestFlotsamCollection_AddNote_WithSRS(t *testing.T) {
 	collection := NewFlotsamCollection("test")
-	
+
 	note := FlotsamNote{
 		FlotsamNote: flotsam.FlotsamNote{
 			ID:    "note1",
@@ -249,33 +249,33 @@ func TestFlotsamCollection_AddNote_WithSRS(t *testing.T) {
 			SRS:   &flotsam.SRSData{Easiness: 2.5},
 		},
 	}
-	
+
 	collection.AddNote(note)
-	
+
 	assert.Equal(t, 1, collection.TotalNotes)
 	assert.True(t, collection.SRSEnabled)
 }
 
 func TestFlotsamCollection_RemoveNote(t *testing.T) {
 	collection := NewFlotsamCollection("test")
-	
+
 	note1 := FlotsamNote{
 		FlotsamNote: flotsam.FlotsamNote{ID: "note1", Title: "Note 1"},
 	}
 	note2 := FlotsamNote{
 		FlotsamNote: flotsam.FlotsamNote{ID: "note2", Title: "Note 2"},
 	}
-	
+
 	collection.AddNote(note1)
 	collection.AddNote(note2)
 	require.Equal(t, 2, collection.TotalNotes)
-	
+
 	// Remove existing note
 	removed := collection.RemoveNote("note1")
 	assert.True(t, removed)
 	assert.Equal(t, 1, collection.TotalNotes)
 	assert.Equal(t, "note2", collection.Notes[0].ID)
-	
+
 	// Try to remove non-existent note
 	removed = collection.RemoveNote("nonexistent")
 	assert.False(t, removed)
@@ -284,18 +284,18 @@ func TestFlotsamCollection_RemoveNote(t *testing.T) {
 
 func TestFlotsamCollection_GetNote(t *testing.T) {
 	collection := NewFlotsamCollection("test")
-	
+
 	note := FlotsamNote{
 		FlotsamNote: flotsam.FlotsamNote{ID: "findme", Title: "Find Me"},
 	}
 	collection.AddNote(note)
-	
+
 	// Find existing note
 	found, exists := collection.GetNote("findme")
 	assert.True(t, exists)
 	assert.NotNil(t, found)
 	assert.Equal(t, "Find Me", found.Title)
-	
+
 	// Try to find non-existent note
 	found, exists = collection.GetNote("missing")
 	assert.False(t, exists)
@@ -304,46 +304,46 @@ func TestFlotsamCollection_GetNote(t *testing.T) {
 
 func TestFlotsamCollection_GetNotesByType(t *testing.T) {
 	collection := NewFlotsamCollection("test")
-	
+
 	notes := []FlotsamNote{
 		{FlotsamNote: flotsam.FlotsamNote{ID: "1", Type: "idea"}},
 		{FlotsamNote: flotsam.FlotsamNote{ID: "2", Type: "flashcard"}},
 		{FlotsamNote: flotsam.FlotsamNote{ID: "3", Type: "idea"}},
 		{FlotsamNote: flotsam.FlotsamNote{ID: "4", Type: "script"}},
 	}
-	
+
 	for _, note := range notes {
 		collection.AddNote(note)
 	}
-	
+
 	ideaNotes := collection.GetNotesByType(IdeaType)
 	assert.Equal(t, 2, len(ideaNotes))
-	
+
 	flashcardNotes := collection.GetNotesByType(FlashcardType)
 	assert.Equal(t, 1, len(flashcardNotes))
 	assert.Equal(t, "2", flashcardNotes[0].ID)
-	
+
 	logNotes := collection.GetNotesByType(LogType)
 	assert.Equal(t, 0, len(logNotes))
 }
 
 func TestFlotsamCollection_GetSRSNotes(t *testing.T) {
 	collection := NewFlotsamCollection("test")
-	
+
 	notes := []FlotsamNote{
 		{FlotsamNote: flotsam.FlotsamNote{ID: "1", SRS: nil}},
 		{FlotsamNote: flotsam.FlotsamNote{ID: "2", SRS: &flotsam.SRSData{Easiness: 2.5}}},
 		{FlotsamNote: flotsam.FlotsamNote{ID: "3", SRS: nil}},
 		{FlotsamNote: flotsam.FlotsamNote{ID: "4", SRS: &flotsam.SRSData{Easiness: 2.8}}},
 	}
-	
+
 	for _, note := range notes {
 		collection.AddNote(note)
 	}
-	
+
 	srsNotes := collection.GetSRSNotes()
 	assert.Equal(t, 2, len(srsNotes))
-	
+
 	// Verify the right notes were returned
 	srsIDs := make([]string, len(srsNotes))
 	for i, note := range srsNotes {
@@ -355,11 +355,11 @@ func TestFlotsamCollection_GetSRSNotes(t *testing.T) {
 
 func TestFlotsamCollection_computeMetadata(t *testing.T) {
 	collection := NewFlotsamCollection("test")
-	
+
 	// Initially empty
 	assert.Equal(t, 0, collection.TotalNotes)
 	assert.False(t, collection.SRSEnabled)
-	
+
 	// Add note without SRS
 	noteNoSRS := FlotsamNote{
 		FlotsamNote: flotsam.FlotsamNote{ID: "1", SRS: nil},
@@ -367,7 +367,7 @@ func TestFlotsamCollection_computeMetadata(t *testing.T) {
 	collection.AddNote(noteNoSRS)
 	assert.Equal(t, 1, collection.TotalNotes)
 	assert.False(t, collection.SRSEnabled)
-	
+
 	// Add note with SRS
 	noteWithSRS := FlotsamNote{
 		FlotsamNote: flotsam.FlotsamNote{
@@ -378,7 +378,7 @@ func TestFlotsamCollection_computeMetadata(t *testing.T) {
 	collection.AddNote(noteWithSRS)
 	assert.Equal(t, 2, collection.TotalNotes)
 	assert.True(t, collection.SRSEnabled)
-	
+
 	// Remove SRS note
 	collection.RemoveNote("2")
 	assert.Equal(t, 1, collection.TotalNotes)
@@ -400,10 +400,10 @@ func TestFlotsamFrontmatter_YAMLSerialization(t *testing.T) {
 			TotalReviews:       3,
 		},
 	}
-	
+
 	// This test validates the struct tags are correct for YAML serialization
 	// The actual YAML marshaling would be tested in integration tests
-	
+
 	assert.Equal(t, "test123", fm.ID)
 	assert.Equal(t, FlashcardType, fm.Type)
 	assert.NotNil(t, fm.SRS)
