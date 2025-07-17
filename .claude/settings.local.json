@@ -44,7 +44,8 @@
       "Bash(VICE_CONTEXT=work ./vice context show)",
       "Bash(VICE_CONTEXT=work ./vice todo --markdown)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:zk-org.github.io)"
     ],
     "deny": []
   }

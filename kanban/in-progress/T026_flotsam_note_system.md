@@ -93,13 +93,11 @@ flotsam:
 
 ### Storage Strategy
 - **Context-aware persistence**: Leverage T028 Repository Pattern for context isolation
-- **Primary storage options**:
-  - **YAML collection**: `$VICE_DATA/{context}/flotsam.yml` (structured metadata + body)
-  - **Markdown files**: `$VICE_DATA/{context}/flotsam/*.md` (individual note files with frontmatter)
+- **Primary storage**: `$VICE_DATA/{context}/flotsam/*.md` (individual markdown files with YAML frontmatter)
 - **Repository integration**: Extend DataRepository interface for flotsam operations
 - **Wiki link processing**: Extract [[links]] and compute backlinks within context boundaries
-- **Search indexing**: Context-scoped search to maintain data isolation (file content or YAML body)
-- **Optional enhancement**: Badger/skate for read performance with chosen storage as source of truth
+- **Search indexing**: Context-scoped search to maintain data isolation (file content + frontmatter)
+- **Cache/index store**: Badger/skate for computed metadata (backlinks, tags, SRS) with .md files as source of truth
 
 ## Scope Questions & Design Decisions
 
@@ -120,22 +118,26 @@ flotsam:
   - **Decision needed**: Direct badger, skate wrapper, or pure file-based storage?
 
 #### Zettelkasten Compatibility
-- **zk** (github.com/zk-org/zk):
-  - Go-based markdown note tool with LSP, fzf, multiple link styles
-  - Uses standard markdown + YAML frontmatter
-  - **Question**: Support zk conventions & interop (file locations, compatible IDs)?
-  - **Decision needed**: Full compatibility, partial compatibility, or independent approach?
-  - **Implications**: If we use zk's storage conventions, what happens when ENV vars change and referenced files move?
+- **zk** (github.com/zk-org/zk) - Detailed Analysis:
+  - **Storage**: Flexible .md files with optional YAML frontmatter, no strict structure
+  - **IDs**: Optional, configurable (alphanum/hex, configurable length), used in filenames not content
+  - **Links**: `[[title]]` or `[[filename]]` resolution, dynamic backlink computation
+  - **Config**: TOML-based, uses `ZK_NOTEBOOK_DIR` env var for vault location
+  - **CLI**: fzf-powered search, LSP integration, template system with Handlebars
+
+**ZK Compatibility Decision Points:**
+1. **Frontmatter schema**: Support zk's YAML fields (`title`, `date`, `tags`, `aliases`)
+2. **Link syntax**: Use `[[wikilinks]]` with title/filename resolution
+3. **File naming**: Support zk's template patterns (e.g., `{{id}}-{{slug title}}.md`)
+4. **Directory structure**: Allow zk notebook directories as flotsam storage locations
+5. **Environment integration**: Respect `ZK_NOTEBOOK_DIR` for interop vs vice context isolation
 
 ### Storage Strategy Decisions
 
 #### Primary Storage Format
-- **Leaning towards**: Markdown files + supplemental data store/cache for indexing
-- **Options**:
-  - Individual .md files with frontmatter (zk compatible)
-  - YAML collection with embedded markdown bodies
-  - Hybrid: .md files + separate index/metadata cache
-- **Decision needed**: Choose primary storage format
+- **Decided**: Individual .md files with YAML frontmatter + supplemental data store/cache for indexing
+- **Storage structure**: `$VICE_DATA/{context}/flotsam/*.md` with frontmatter metadata
+- **Cache/index**: Separate data store for computed data (backlinks, tags, SRS metadata)
 
 #### ID Generation Scheme
 - **Options**:
@@ -183,6 +185,120 @@ flotsam:
 - **Risk**: Referenced flotsam from habits becomes inaccessible when ENV changes
 - **Options**: Copy files, symlinks, or abstraction layer
 
+### ZK Compatibility Evaluation Steps
+
+**Immediate Investigation Tasks:**
+1. **Test ZK setup**: Install zk, create sample notebook, understand actual file structure
+2. **Analyze zk Go modules**: Examine zk's source for reusable components (parsing, linking, templates)
+3. **Frontmatter compatibility**: Map zk's YAML schema to flotsam requirements
+4. **Link resolution**: Test zk's `[[wikilink]]` behavior with different filename patterns
+5. **Template system**: Evaluate if zk's Handlebars templates could work for flotsam creation
+
+**Compatibility Level Options:**
+- **Full compatibility**: Flotsam works as zk notebook, zk commands work on flotsam files
+- **Read compatibility**: Flotsam can import/read existing zk notebooks  
+- **Write compatibility**: Flotsam creates zk-compatible files but may have additional metadata
+- **Independent**: Learn from zk patterns but maintain vice-specific approach
+
+
+**AIDEV-NOTE**: `zk/` is a symlink to the ZK source; it's also installed locally. User has a notebook at `~/workbench/zk`.
+
+ZK Schema Architecture (SQLite):
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        NOTES                                │
+├─────────────────────────────────────────────────────────────┤
+│ id                PK  INTEGER  AUTOINCREMENT               │
+│ path              U   TEXT     /path/to/note.md            │ 
+│ sortable_path         TEXT     normalized sorting key      │
+│ title                 TEXT     extracted/frontmatter       │
+│ lead                  TEXT     first paragraph excerpt     │
+│ body                  TEXT     main content                │
+│ raw_content           TEXT     original markdown           │
+│ word_count            INTEGER  content length metric       │
+│ checksum              TEXT     content change detection    │
+│ metadata              TEXT     JSON blob (v3+)             │
+│ created               DATETIME timestamp                   │
+│ modified              DATETIME timestamp                   │
+└─────────────────────────────────────────────────────────────┘
+             │
+             │ 1:N
+             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                        LINKS                                │
+├─────────────────────────────────────────────────────────────┤
+│ id                PK  INTEGER  AUTOINCREMENT               │
+│ source_id         FK  INTEGER  → notes(id) CASCADE         │
+│ target_id         FK  INTEGER  → notes(id) SET NULL        │
+│ title                 TEXT     link display text           │
+│ href                  TEXT     original link target        │
+│ external              INTEGER  boolean flag                │
+│ rels                  TEXT     relationship types          │
+│ snippet               TEXT     surrounding context         │
+│ snippet_start         INTEGER  context start offset (v3+)  │
+│ snippet_end           INTEGER  context end offset (v3+)    │
+│ type                  TEXT     link classification (v5+)   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                    COLLECTIONS                              │
+├─────────────────────────────────────────────────────────────┤
+│ id                PK  INTEGER  AUTOINCREMENT               │
+│ kind              U   TEXT     'tag','group','type'        │
+│ name              U   TEXT     collection identifier       │
+└─────────────────────────────────────────────────────────────┘
+             │
+             │ N:M
+             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                NOTES_COLLECTIONS                            │
+├─────────────────────────────────────────────────────────────┤
+│ id                PK  INTEGER  AUTOINCREMENT               │
+│ note_id           FK  INTEGER  → notes(id) CASCADE         │
+│ collection_id     FK  INTEGER  → collections(id) CASCADE   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                     METADATA                                │
+├─────────────────────────────────────────────────────────────┤
+│ key               PK  TEXT     config/setting key          │
+│ value                 TEXT     JSON/string value           │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                   NOTES_FTS (Virtual)                       │
+├─────────────────────────────────────────────────────────────┤
+│ rowid             →   notes.id content linkage             │
+│ path                  TEXT     indexed for search          │
+│ title                 TEXT     indexed for search          │
+│ body                  TEXT     indexed for search          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**VIEWS:**
+- `notes_with_metadata`: Notes + aggregated tags (GROUP_CONCAT)
+- `resolved_links`: Links + source/target note paths & titles
+
+**INDEXES:**
+- `index_notes_checksum`: Fast content change detection
+- `index_notes_path`: Unique path constraint + lookup optimization  
+- `index_links_source_id_target_id`: Link relationship queries
+- `index_collections`: Collection lookup by kind+name
+- `index_notes_collections`: N:M association queries
+
+**TRIGGERS (FTS Sync):**
+- `trigger_notes_ai`: INSERT → update FTS index
+- `trigger_notes_ad`: DELETE → remove from FTS index  
+- `trigger_notes_au`: UPDATE → delete old + insert new FTS entry
+
+**FEATURES:**
+- **FTS5 Search**: Porter stemming, Unicode normalization, custom tokenizers
+- **Referential Integrity**: CASCADE deletes, SET NULL for broken links
+- **Versioned Schema**: 6 migration levels with reindexing support
+- **JSON Metadata**: Extensible note properties in metadata column
+- **Link Context**: Snippet extraction with precise offset tracking
+
 ## Implementation Plan & Progress
 
 **Sub-tasks:**
@@ -210,6 +326,51 @@ flotsam:
   - Identified key decision points around storage format, ID schemes, search implementation
   - Highlighted tension between vice's context isolation and zk interoperability
   - Added questions about performance, templating, and editor integration
+- `2025-07-17 - AI:` Simplified storage strategy (removed YAML option) and deep-dived ZK compatibility:
+  - Decided on .md files with frontmatter + cache/index approach
+  - Detailed ZK technical analysis: storage conventions, ID schemes, link handling, CLI patterns
+  - Identified 5 concrete ZK compatibility decision points and evaluation steps
+  - Added compatibility level options from full interop to independent approach
+
+### Evaluation Phase - ZK Compatibility Analysis
+
+- `2025-07-17 - AI:` **ZK Investigation Complete**:
+  - **File Structure**: ZK uses 4-char alphanumeric IDs with flat directory structure (`6ub6.md`, `jgtt.md`)
+  - **Frontmatter**: Minimal schema (`id`, `title`, `created-at`, `tags`) with extensible metadata map
+  - **Wikilinks**: Standard `[[target]]` and `[[target | label]]` with relationship detection (`#[[uplink]]`, `[[downlink]]#`)
+  - **ID Generation**: Configurable charset/length/case with cryptographically random generation
+  - **Templates**: Handlebars-based with rich helper system for note creation
+  - **Go Components**: High reusability potential - parser, link resolution, ID generation, template engine all importable
+
+- `2025-07-17 - AI:` **Key Compatibility Insights**:
+  - **High Compatibility**: Frontmatter schema extensible, wikilink syntax standard, ID generation adaptable
+  - **Reusable Components**: Markdown parser, link resolution algorithms, template system, frontmatter handling
+  - **Design Tension**: ZK's flat structure vs flotsam's potential hierarchical needs; SQLite indexing vs simpler approaches
+  - **Integration Strategy**: Import core parsing/linking components while adapting storage layer for vice ecosystem
+
+- `2025-07-17 - AI:` **Go-SRS Analysis Complete**:
+  - **Architecture**: Clean interfaces (`db.Handler`, `algo.Algo`, `uid.UID`) with loose coupling
+  - **Storage**: Simple schema (easiness, consecutive_correct, due_timestamp) stored as JSON in BadgerDB
+  - **SM-2 Algorithm**: Mature, well-tested implementation with proper SuperMemo research backing
+  - **Integration Complexity**: LOW-MEDIUM - only 3 methods in `db.Handler` interface to implement
+  - **Data Model**: `{deck_id, card_id, easiness: 2.5, consecutive_correct: 0, due: timestamp}`
+  - **Quality Scale**: Research-based 0-6 scale (0=no review, 1-3=incorrect, 4-6=correct)
+  - **Recommended Approach**: Adapt go-srs with SQLite `db.Handler` implementation
+  - **Integration Benefits**: Proven algorithm, clean abstractions, time savings vs reimplementation
+
+### Code Reuse Strategy
+
+- `2025-07-17 - AI:` **ZK Code Reuse Constraints**:
+  - **Cannot import directly**: ZK's useful code is in `internal/` packages (Go prohibits external imports)
+  - **Application module**: Would pull entire CLI application with all dependencies
+  - **Recommended approach**: Copy specific code (parsing, linking) with attribution
+  - **Target files**: `internal/core/note_parse.go`, `internal/core/link.go`, ID generation, templates
+
+- `2025-07-17 - AI:` **Go-SRS Code Reuse Options**:
+  - **Can import directly**: Public API design (`algo/`, `db/`, `uid/` packages)
+  - **Library module**: Intended for external consumption, clean interfaces
+  - **Dependency concern**: Would pull BadgerDB when only SM-2 algorithm needed
+  - **Recommended approach**: Copy SM-2 algorithm (`algo/sm2/`) to avoid heavyweight dependencies
 
 ## Git Commit History
 
