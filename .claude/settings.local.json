@@ -46,7 +46,11 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:zk-org.github.io)",
-      "Bash(timeout 5s go test ./...)"
+      "Bash(timeout 5s go test ./...)",
+      "Bash(zk index:*)",
+      "Bash(zk list:*)",
+      "Bash(sqlite3:*)",
+      "Bash(ZK_NOTEBOOK_DIR=/home/david/dev/vice/temp/zk zk list --tag compatibility --format \"{{id}} - {{title}} - {{tags}}\")"
     ],
     "deny": []
   }
