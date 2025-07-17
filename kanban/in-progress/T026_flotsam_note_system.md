@@ -101,10 +101,94 @@ flotsam:
 - **Search indexing**: Context-scoped search to maintain data isolation (file content or YAML body)
 - **Optional enhancement**: Badger/skate for read performance with chosen storage as source of truth
 
+## Scope Questions & Design Decisions
+
+### External Dependencies & Integration Options
+
+#### Spaced Repetition System (SRS)
+- **go-srs** (github.com/revelaction/go-srs):
+  - Uses SuperMemo 2 algorithm with pluggable interfaces (Algorithm, Database, UID)
+  - Uses badger + ulid for storage/IDs
+  - **Question**: Adapt go-srs to work with skate/vice storage? Benefits vs complexity?
+  - **Decision needed**: Use go-srs directly, adapt interfaces, or implement our own SRS?
+
+#### Key-Value Store / Caching
+- **skate** (github.com/charmbracelet/skate):
+  - Simple personal key-value store with badger backend
+  - CLI-based with multiple database support
+  - **Question**: Use skate for tag/link indexing and SRS metadata cache?
+  - **Decision needed**: Direct badger, skate wrapper, or pure file-based storage?
+
+#### Zettelkasten Compatibility
+- **zk** (github.com/zk-org/zk):
+  - Go-based markdown note tool with LSP, fzf, multiple link styles
+  - Uses standard markdown + YAML frontmatter
+  - **Question**: Support zk conventions & interop (file locations, compatible IDs)?
+  - **Decision needed**: Full compatibility, partial compatibility, or independent approach?
+  - **Implications**: If we use zk's storage conventions, what happens when ENV vars change and referenced files move?
+
+### Storage Strategy Decisions
+
+#### Primary Storage Format
+- **Leaning towards**: Markdown files + supplemental data store/cache for indexing
+- **Options**:
+  - Individual .md files with frontmatter (zk compatible)
+  - YAML collection with embedded markdown bodies
+  - Hybrid: .md files + separate index/metadata cache
+- **Decision needed**: Choose primary storage format
+
+#### ID Generation Scheme
+- **Options**:
+  - ZK-compatible IDs (if pursuing interop)
+  - ULID (what go-srs uses)
+  - sqids (original plan)
+- **Questions**: 
+  - If ZK compatibility: what's zk's ID scheme and generation process?
+  - Do we need to generate IDs or can we reuse existing zk database/index?
+
+### Search & UI Implementation
+
+#### Fuzzy Search Implementation
+- **Options**:
+  - Shell out to fzf (like zk does)
+  - Use Go fuzzy search library
+  - Hybrid: fzf for title search, custom for tag/link search
+- **Question**: What about tag-based or link-based search? Does zk provide utility libraries we can import?
+
+#### Editor Integration
+- **Question**: How to handle opening .md files in $EDITOR from CLI/TUI?
+- **Options**: Shell out to $EDITOR, embedded editor, or delegate to external tools
+
+#### ZK Go Dependencies
+- **Question**: zk is written in Go - what components can we import/reuse?
+- **Candidates**: Markdown parsing, tag/link extraction, CLI patterns, config management
+
+### Content & Templating
+
+#### Markdown Templating
+- **Question**: What templating do we need for .md files, if any?
+- **Options**: None, simple templates, zk-compatible templates
+
+### Performance & Memory Management
+
+#### Large Note Collections
+- **Questions**:
+  - Memory concerns loading large .md folders into RAM?
+  - Do we need to for certain features?
+  - Naive approach vs lazy/JIT loading?
+- **Implications**: Affects search indexing, link resolution, and SRS scheduling
+
+#### Context Isolation vs ZK Interop
+- **Question**: How to handle zk env var for vault path vs vice's context system?
+- **Risk**: Referenced flotsam from habits becomes inaccessible when ENV changes
+- **Options**: Copy files, symlinks, or abstraction layer
+
 ## Implementation Plan & Progress
 
 **Sub-tasks:**
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
+
+*Implementation plan pending scope decisions above*
 
 ## Roadblocks
 
@@ -121,6 +205,11 @@ flotsam:
   - Repository interface will be extended to support flotsam operations
   - Wiki links and search will respect context boundaries for proper data isolation
   - T027 will evaluate both storage approaches for implementation
+- `2025-07-17 - AI:` Added comprehensive scope questions and design decisions section:
+  - Researched external dependencies: go-srs (SRS), skate (KV store), zk (zettelkasten)
+  - Identified key decision points around storage format, ID schemes, search implementation
+  - Highlighted tension between vice's context isolation and zk interoperability
+  - Added questions about performance, templating, and editor integration
 
 ## Git Commit History
 
