@@ -34,10 +34,14 @@ software, via amnesiac idiot-savant LLMs. If so, take a look at:
 
 ## Planned Features & Design Goals
 
-**vice** steals liberally. 
-
-It is not minimalist software; **vice** aims to be a heady cocktail of complementary
+**vice** is not minimalist software; it aims to be a heady cocktail of complementary
 but surprising capabilities.
+
+**vice** steals liberally. It lifted code straight from
+[ZK](https://zk-org.github.io/zk/) for tight interop, and
+[go-srs](https://github.com/revelaction/go-srs) 
+for spaced repetition / incremental writing, and got the GPLv3
+[license](./LICENSE.md) all over it in the process.
 
 **vice** wants to be:
 - **Addictive**: if it's not habit forming, how's it going to help you form habits?
