@@ -106,11 +106,13 @@ func TestCreationDateFrom(t *testing.T) {
 	
 	// Use a temporary file to get a real Timespec
 	tmpFile := "/tmp/test_times"
+	// AIDEV-NOTE: use 0600 permissions for temp files (security best practice)
 	err := os.WriteFile(tmpFile, []byte("test"), 0600)
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
 	defer func() {
+		// AIDEV-NOTE: always check error return from os.Remove to avoid linter warnings
 		if err := os.Remove(tmpFile); err != nil {
 			t.Logf("Warning: failed to remove temp file %s: %v", tmpFile, err)
 		}

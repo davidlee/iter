@@ -475,8 +475,11 @@ ZK Schema Architecture (SQLite):
   - **Issue**: TestExtractLinksComplex was failing due to incorrect test expectation (expected 6 wiki links but only 5 exist)
   - **Fix**: Corrected test expectation from 6 to 5 wiki links to match actual implementation
   - **Linter Issues**: Fixed all golangci-lint issues including deprecated goldmark Text() method usage
+  - **Key Learning**: goldmark's Text() method is deprecated - replaced with manual AST traversal for text extraction
+  - **Security**: Improved test file permissions from 0644 to 0600 and added proper error handling for temp file cleanup
   - **Test Status**: All 13 flotsam tests now pass
   - **Code Quality**: All linter checks pass (0 issues)
+  - **Files Updated**: Added AIDEV-NOTE anchors for goldmark AST patterns, test expectations, and security practices
 
 - `2025-07-17 - AI:` **T027 Subtask 1.1.1 & 1.1.2 COMPLETED**:
   - **ZK Parser**: Successfully copied and adapted ZK's frontmatter parsing with proper GPLv3 attribution
@@ -489,4 +492,4 @@ ZK Schema Architecture (SQLite):
 
 ## Git Commit History
 
-*No commits yet - task is in backlog*
+- `098794a` - fix(flotsam)[T027]: fix failing tests and linter issues

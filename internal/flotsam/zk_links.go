@@ -199,6 +199,7 @@ func (w *wikiLinkExt) Extend(m goldmark.Markdown) {
 
 // LinkExtractor extracts links from markdown content using goldmark AST parsing.
 // This is adapted from zk's parseLinks function.
+// AIDEV-NOTE: supports ZK link types: wikilinks [[target]], uplinks #[[target]], downlinks [[target]]#, legacy [[[target]]]
 type LinkExtractor struct {
 	md goldmark.Markdown
 }
@@ -295,6 +296,7 @@ func (le *LinkExtractor) parseLinks(root ast.Node, source []byte) ([]Link, error
 
 // extractLinkText extracts text content from a goldmark AST node by walking its children.
 // This replaces the deprecated Text() method.
+// AIDEV-NOTE: goldmark Text() deprecated - use manual AST traversal for text extraction
 func extractLinkText(node ast.Node, source []byte) string {
 	var textBuffer strings.Builder
 	

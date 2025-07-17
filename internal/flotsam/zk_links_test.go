@@ -216,6 +216,7 @@ Some more complex examples:
 	}
 	
 	expectedWikiLinks := 5 // [[test note]], #[[parent note]], [[child note]]#, [[[legacy note]]], [[target|Custom Label]]
+	// AIDEV-NOTE: originally expected 6 but test content only has 5 wiki links - fixed in T027
 	expectedMarkdownLinks := 2 // [Example](https://example.com), [Local](./local.md)
 	expectedImplicitLinks := 1 // https://test.com (if auto-linked)
 	
