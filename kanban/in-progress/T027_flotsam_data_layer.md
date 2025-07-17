@@ -310,12 +310,19 @@ vice:
       - **ZK Integration**: Co-existence with ZK indexing without conflicts
       - **Error Recovery**: Graceful degradation with cache rebuild capabilities
       - **Performance**: Incremental processing, only changed files processed
-  - [ ] **1.1.4 Copy ZK ID generation**: Copy ID generation utilities
+  - [x] **1.1.4 Copy ZK ID generation**: Copy ID generation utilities
     - *Source:* `/home/david/.local/src/zk/internal/core/id.go`
     - *Target:* `internal/flotsam/zk_id.go`
     - *Dependencies:* Random generation utilities from `internal/util/rand/`
     - *Modifications:* Configure for flotsam defaults (4-char alphanum, lowercase)
     - *Testing:* Test ID generation uniqueness and format compliance
+    - *Status:* COMPLETED - Created ZK-compatible ID generation with proper attribution
+    - *Notes:*
+      - **Components Copied**: IDOptions, Case enum, Charset definitions, NewIDGenerator function
+      - **ZK Compatibility**: Matches ZK's default configuration (4-char alphanum lowercase)
+      - **Security Note**: Uses math/rand for ZK compatibility (documented with security warning)
+      - **Test Coverage**: Comprehensive tests for uniqueness, format compliance, case handling, charset validation
+      - **Lint Compliance**: All linter issues resolved with proper suppressions and rationale
   - [ ] **1.1.5 Copy ZK template system**: Copy handlebars template engine
     - *Source:* `/home/david/.local/src/zk/internal/adapter/handlebars/`
     - *Target:* `internal/flotsam/zk_templates.go`
@@ -651,6 +658,15 @@ ZK Schema Architecture (SQLite):
   - **Key Decision**: Used ZK's goldmark AST approach instead of regex for robustness and accuracy
   - **Files Created**: `internal/flotsam/zk_parser.go`, `internal/flotsam/zk_links.go`, plus comprehensive test suites
   - **Next Steps**: Continue with 1.1.3 (ID generation) and 1.2 (go-srs components)
+
+- `2025-07-17 - AI:` **T027 Subtask 1.1.4 COMPLETED**:
+  - **ZK ID Generation**: Successfully copied and adapted ZK's ID generation system with proper GPLv3 attribution
+  - **Components**: IDOptions, Case enum, Charset definitions, NewIDGenerator function from ZK core and rand packages
+  - **ZK Compatibility**: Generates 4-character alphanumeric lowercase IDs identical to ZK's default format
+  - **Security**: Uses math/rand for ZK compatibility (properly documented with security warnings and lint suppressions)
+  - **Test Coverage**: Comprehensive tests covering uniqueness, format compliance, case handling, charset validation, and ZK compatibility
+  - **Files Created**: `internal/flotsam/zk_id.go`, `internal/flotsam/zk_id_test.go`
+  - **Next Steps**: Continue with 1.1.5 (ZK template system) and 1.2 (go-srs components)
 
 ## Git Commit History
 
