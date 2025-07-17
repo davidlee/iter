@@ -124,22 +124,33 @@ func TestNewIDGeneratorCharset(t *testing.T) {
 
 func TestNewIDGeneratorUniqueness(t *testing.T) {
 	// AIDEV-NOTE: test uniqueness over many generations - critical for avoiding ID collisions
+	// Note: With 4-char alphanumeric (36^4 = 1,679,616 possibilities), some collisions are expected
 	opts := DefaultIDOptions()
 	generator := NewIDGenerator(opts)
 	
 	seen := make(map[string]bool)
 	iterations := 1000
+	duplicates := 0
 	
 	for i := 0; i < iterations; i++ {
 		id := generator()
 		if seen[id] {
-			t.Errorf("Duplicate ID generated: %s", id)
+			duplicates++
+			// Don't fail immediately - some collisions are statistically expected
 		}
 		seen[id] = true
 	}
 	
-	if len(seen) != iterations {
-		t.Errorf("Expected %d unique IDs, got %d", iterations, len(seen))
+	// With 1000 iterations and 1.6M possibilities, expect very few duplicates (< 1%)
+	maxExpectedDuplicates := 10 // Allow up to 1% collision rate
+	if duplicates > maxExpectedDuplicates {
+		t.Errorf("Too many duplicate IDs: %d (expected ≤ %d)", duplicates, maxExpectedDuplicates)
+	}
+	
+	// Ensure we generated a reasonable number of unique IDs
+	minExpectedUnique := iterations - maxExpectedDuplicates
+	if len(seen) < minExpectedUnique {
+		t.Errorf("Too few unique IDs: %d (expected ≥ %d)", len(seen), minExpectedUnique)
 	}
 }
 

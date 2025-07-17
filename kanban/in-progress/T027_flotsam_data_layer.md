@@ -323,31 +323,70 @@ vice:
       - **Security Note**: Uses math/rand for ZK compatibility (documented with security warning)
       - **Test Coverage**: Comprehensive tests for uniqueness, format compliance, case handling, charset validation
       - **Lint Compliance**: All linter issues resolved with proper suppressions and rationale
-  - [ ] **1.1.5 Copy ZK template system**: Copy handlebars template engine
+  - [DEFERRED] **1.1.5 Copy ZK template system**: Copy handlebars template engine
     - *Source:* `/home/david/.local/src/zk/internal/adapter/handlebars/`
     - *Target:* `internal/flotsam/zk_templates.go`
     - *Dependencies:* Handlebars library and helper functions
     - *Modifications:* Adapt for flotsam note creation templates
     - *Testing:* Test template rendering with flotsam data
+    - *Status:* DEFERRED - Full template system premature for current flotsam needs
+    - *Analysis:* **Full ZK Template System Requirements**:
+      - **Core Dependencies**: `github.com/aymerick/raymond` handlebars library
+      - **Major Components**: Template interfaces, handlebars engine, 12+ helper functions (date, json, style, slug, link, shell, etc.)
+      - **Use Cases**: Note creation templates, filename generation (`{{id}}.md`, `{{date}}-{{slug title}}.md`), link formatting, content generation
+      - **Complexity**: File template loading, lookup paths, caching, rich template contexts, comprehensive error handling
+    - *Current Flotsam Needs*: Only frontmatter generation required - full handlebars system is massive overkill
+    - *Deferral Rationale*: Core data layer (parsing, links, IDs, SRS) more critical; implement templating when concrete use cases emerge
+    - *Future Implementation*: Create minimal template interfaces as placeholders when needed, full implementation in dedicated task
 - [ ] **1.2 Copy Go-SRS Components**: Extract SM-2 algorithm for SRS functionality
-  - [ ] **1.2.1 Copy SM-2 algorithm core**: Copy SuperMemo 2 implementation
+  - [x] **1.2.1 Copy SM-2 algorithm core**: Copy SuperMemo 2 implementation
     - *Source:* `/home/david/.local/src/go-srs/algo/sm2/sm2.go`
     - *Target:* `internal/flotsam/srs_sm2.go`
     - *Dependencies:* Review data structures from `review/review.go`
     - *Modifications:* Remove badgerdb dependencies, adapt for frontmatter storage
     - *Testing:* Test SM-2 calculations with known input/output pairs
-  - [ ] **1.2.2 Copy SRS interfaces**: Copy algorithm and database interfaces
+    - *Status:* COMPLETED - Implemented complete SM-2 algorithm with proper Apache-2.0 attribution
+    - *Notes:*
+      - **Algorithm**: Full SM-2 implementation with BlueRaja modifications (exponential interval growth)
+      - **Quality Scale**: 0-6 rating system (0=no review, 1-3=incorrect, 4-6=correct)
+      - **Data Structures**: SRSData for frontmatter storage, ReviewRecord for history tracking
+      - **Features**: Easiness calculation, interval scheduling, due date management, review history
+      - **Serialization**: JSON support for frontmatter storage with proper error handling
+      - **Test Coverage**: Comprehensive tests covering new cards, updates, interval growth, due checking, serialization
+      - **Lint Compliance**: All linter issues resolved (switch statements, error handling, package comments)
+  - [x] **1.2.2 Copy SRS interfaces**: Copy algorithm and database interfaces
     - *Source:* `/home/david/.local/src/go-srs/algo/algo.go`, `/home/david/.local/src/go-srs/db/db.go`
     - *Target:* `internal/flotsam/srs_interfaces.go`
     - *Dependencies:* Core SRS types and review structures
     - *Modifications:* Adapt interfaces for flotsam markdown file storage
     - *Testing:* Test interface compliance with flotsam implementations
-  - [ ] **1.2.3 Copy review data structures**: Copy review and item structures
+    - *Status:* COMPLETED - Comprehensive SRS interfaces adapted for flotsam architecture
+    - *Notes:*
+      - **Core Interfaces**: Algorithm, SRSStorage, SRSManager for complete SRS functionality
+      - **Flotsam-Specific**: FlotsamNote structure combining content and SRS metadata
+      - **Data Management**: SRSStats, SRSConfig, ReviewSession for complete workflow support
+      - **Error Handling**: Comprehensive error types for robust error management
+      - **Session Management**: ReviewSessionManager for structured review workflows
+      - **Storage Abstraction**: Adapted db.Handler interface for markdown-file-based storage
+      - **Test Coverage**: Interface compliance tests, mock implementations, structure validation
+      - **Design Decisions**: Files-first approach, context isolation, session-based reviews
+  - [x] **1.2.3 Copy review data structures**: Copy review and item structures
     - *Source:* `/home/david/.local/src/go-srs/review/review.go`
     - *Target:* `internal/flotsam/srs_review.go`
     - *Dependencies:* Core algorithm types
     - *Modifications:* Adapt for flotsam note review workflow
     - *Testing:* Test review data serialization and validation
+    - *Status:* COMPLETED - Comprehensive review data structures adapted for flotsam workflows
+    - *Notes:*
+      - **Core Structures**: FlotsamReview, FlotsamReviewItem, FlotsamDue, FlotsamDueItem adapted from go-srs
+      - **Note-Based Architecture**: Uses note IDs instead of card/deck IDs for flotsam's file-based approach
+      - **Rich Metadata**: Includes timing, context, overdue tracking, new card detection
+      - **Statistical Functions**: Success rates, averages, counts, sorting, filtering
+      - **Validation Logic**: Comprehensive validation adapted from go-srs patterns
+      - **Session Management**: Complete review session lifecycle with progress tracking
+      - **Builder Functions**: Helper functions for creating and managing review/due structures
+      - **Test Coverage**: Comprehensive tests for validation, statistics, sorting, filtering
+      - **Design Adaptation**: Files-first approach with context isolation and session-based workflows
 - [ ] **1.3 Integration and Attribution**: Prepare copied code for vice integration
   - [ ] **1.3.1 Add proper attribution**: Add copyright headers and attribution comments
     - *Task:* Add attribution headers to all copied files
@@ -670,6 +709,7 @@ ZK Schema Architecture (SQLite):
 
 ## Git Commit History
 
+- `0ce4f18` - feat(flotsam)[T027/1.1.4]: add ZK-compatible ID generation
 - `fc4446b` - docs(flotsam)[T027]: enhance task documentation with architecture diagram and unified file handler design
 - `206fa46` - feat(flotsam)[T027]: add ZK interoperability research, design & successful compatibility testing
 - `7691f08` - docs(flotsam)[T027]: add AIDEV anchor tags for goldmark AST patterns and test fixes
