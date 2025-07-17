@@ -126,7 +126,7 @@ Contexts compartmentalise your stuff, so don't shit where you sleep:
 contexts = ["personal", "work"]  # Define available contexts
 ```
 
-Each context maintains completely separate data files, so you can avoin mixing
+Each context maintains completely separate data files, so you can avoid mixing
 business and pleasure unless that's your kink.
 
 ## Commands
