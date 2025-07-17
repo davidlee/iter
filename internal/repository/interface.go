@@ -37,6 +37,8 @@ type DataRepository interface {
 
 	// Flotsam operations (T027 integration)
 	// AIDEV-NOTE: T027/3.1-flotsam-repository; context-aware flotsam note operations with ZK compatibility
+	// AIDEV-NOTE: interface-extension-complete; 13 methods added for comprehensive flotsam CRUD and query operations
+	// AIDEV-NOTE: t028-integration-pattern; follows same context-aware patterns established in T028
 
 	// Collection operations
 	LoadFlotsam() (*models.FlotsamCollection, error)

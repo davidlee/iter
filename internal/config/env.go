@@ -191,12 +191,14 @@ func (env *ViceEnv) GetChecklistEntriesFile() string {
 
 // GetFlotsamDir returns the context-aware path to the flotsam directory.
 // AIDEV-NOTE: T027/3.2-flotsam-paths; context-aware flotsam directory for markdown note storage
+// AIDEV-NOTE: path-pattern-flotsam; follows same pattern as GetHabitsFile/GetEntriesFile for context isolation
 func (env *ViceEnv) GetFlotsamDir() string {
 	return filepath.Join(env.ContextData, "flotsam")
 }
 
 // GetFlotsamCacheDB returns the context-aware path to the flotsam SQLite cache database.
 // AIDEV-NOTE: T027/3.2-flotsam-cache; ADR-004 SQLite cache strategy for performance
+// AIDEV-NOTE: cache-db-future; will be used for SRS performance cache when Phase 4 (Core Operations) is implemented
 func (env *ViceEnv) GetFlotsamCacheDB() string {
 	return filepath.Join(env.ContextData, "flotsam.db")
 }

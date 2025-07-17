@@ -189,6 +189,8 @@ type Frontmatter struct {
 // ParseFrontmatter parses YAML frontmatter from markdown content.
 // Returns frontmatter struct, body content, and any parsing error.
 // AIDEV-NOTE: T027/3.2-frontmatter-parsing; production version of test helper
+// AIDEV-NOTE: yaml-parsing-core; this is the primary entry point for all flotsam frontmatter parsing
+// AIDEV-NOTE: error-handling-yaml; returns detailed errors for malformed YAML to aid debugging
 func ParseFrontmatter(content []byte) (*Frontmatter, string, error) {
 	contentStr := string(content)
 	lines := strings.Split(contentStr, "\n")

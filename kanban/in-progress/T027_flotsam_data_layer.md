@@ -20,19 +20,50 @@ Implement the core data layer for the flotsam note system using individual markd
 This task is part of the `T026_flotsam_note_system` epic.
 
 ### Significant Code (Files / Functions)
+**Core Implementation (Phase 3 Complete):**
+- `internal/repository/interface.go` - DataRepository interface with 13 flotsam methods (3.1.1)
+- `internal/repository/file_repository.go` - Complete FileRepository implementation (3.2.1-3.2.3)
+  - `LoadFlotsam()` - Directory scanning and collection loading
+  - `SaveFlotsam()` - Atomic collection saving with temp files
+  - `CreateFlotsamNote()`, `GetFlotsamNote()`, `UpdateFlotsamNote()`, `DeleteFlotsamNote()` - Full CRUD
+  - `parseFlotsamFile()` - Private helper for parsing individual notes
+  - `saveFlotsamNote()` - Private helper for atomic note saving
+  - `serializeFlotsamNote()` - Markdown serialization with YAML frontmatter
+- `internal/config/env.go` - ViceEnv flotsam path support (3.3.1-3.3.2)
+  - `GetFlotsamDir()` - Context-aware flotsam directory path
+  - `GetFlotsamCacheDB()` - SQLite cache database path
+- `internal/flotsam/zk_parser.go` - Production frontmatter parser
+  - `ParseFrontmatter()` - YAML frontmatter parsing with error handling
+  - `Frontmatter` struct - ZK-compatible frontmatter representation
+- `internal/models/flotsam.go` - Complete data model (Phase 2 Complete)
+  - `FlotsamNote` - Bridge struct embedding flotsam.FlotsamNote
+  - `FlotsamCollection` - Collection management with metadata
+  - `FlotsamFrontmatter` - ZK-compatible YAML schema
+
+**Foundation Code (External Integration Complete):**
+- `internal/flotsam/zk_*.go` - ZK component integration (parsing, links, IDs)
+- `internal/flotsam/srs_*.go` - go-srs SRS algorithm integration (SM-2, interfaces, review)
 - `internal/models/habit.go` - Existing YAML model patterns
-- `internal/models/entry.go` - Entry data structures
-- `internal/storage/habits.go` - YAML persistence patterns
-- `internal/storage/entries.go` - Storage layer operations
-- `internal/storage/backup.go` - Backup and atomic operations
-- `internal/repository/file_repository.go` - Repository Pattern implementation (T028)
-- `internal/config/env.go` - ViceEnv and context-aware paths (T028)
+- `internal/storage/habits.go` - YAML persistence patterns (reference for patterns)
+- `internal/storage/backup.go` - Backup and atomic operations (reference for patterns)
 
 ### Relevant Documentation
-- `doc/specifications/habit_schema.md` - YAML schema patterns
-- `doc/specifications/entries_storage.md` - Storage specifications
+**Flotsam-Specific Documentation (Created):**
+- `doc/specifications/flotsam.md` - Complete API reference and usage examples (1.3.4)
+- `doc/decisions/ADR-002-flotsam-files-first-architecture.md` - Storage strategy decision (1.3.5)
+- `doc/decisions/ADR-003-zk-gosrs-integration-strategy.md` - Component integration approach (1.3.6)
+- `doc/decisions/ADR-004-flotsam-sqlite-cache-strategy.md` - Performance cache design (1.3.7)
+- `doc/decisions/ADR-005-srs-quality-scale-adaptation.md` - Quality scale choice (1.3.8)
+- `doc/decisions/ADR-006-flotsam-context-isolation.md` - Context scoping design (1.3.9)
+- `doc/decisions/ADR-007-flotsam-license-compatibility.md` - Legal framework (1.3.10)
+- `doc/zk_interoperability_design.md` - ZK integration design and testing results (1.1.3)
+
+**Foundation Documentation:**
+- `doc/specifications/habit_schema.md` - YAML schema patterns (reference)
+- `doc/specifications/entries_storage.md` - Storage specifications (reference)
 - `doc/specifications/file_paths_runtime_env.md` - Repository Pattern and context-aware storage (T028)
 - `doc/architecture.md` - Data architecture section (4.1-4.4)
+- `doc/c4_d2_diagrams.md` - C4 diagram methodology for planned architecture diagrams
 
 ### Related Tasks / History
 - **Parent Task**: T026 - Flotsam Note System (epic)
@@ -769,9 +800,42 @@ vice:
     - *Code/Artifacts:* Utility functions in flotsam package
     - *Testing:* Test utility functions and edge cases
 
-### 5. Code Quality and Maintenance
-- [ ] **5.1 Module Path Migration**: Update module path for GitHub compatibility
-  - [ ] **5.1.1 Change module path to github.com/davidlee/vice**: Update go.mod and all imports
+### 5. Architecture Documentation
+- [ ] **5.1 Create C4 Architecture Diagrams**: Visual documentation of flotsam subsystem architecture
+  - [ ] **5.1.1 Flotsam System Context Diagram**: Show flotsam in relation to Vice ecosystem
+    - *Level:* C4 Context Level (Level 1)
+    - *Scope:* Position flotsam within Vice application and external systems (ZK, filesystem)
+    - *Elements:* Vice User, Vice Application, Flotsam Subsystem, ZK Notebooks, File System
+    - *File:* `doc/diagrams/flotsam_system_context.d2`
+    - *Purpose:* High-level overview showing system boundaries and external dependencies
+  - [ ] **5.1.2 Flotsam Container Diagram**: Internal flotsam architecture components
+    - *Level:* C4 Container Level (Level 2)
+    - *Scope:* Internal flotsam components and their relationships
+    - *Elements:* Repository Layer, Models, Parsers, SRS Engine, Cache DB, Markdown Files
+    - *File:* `doc/diagrams/flotsam_container_architecture.d2`
+    - *Purpose:* Show how flotsam components work together (Repository Pattern, Files-First, Cache)
+  - [ ] **5.1.3 Repository Component Diagram**: Detailed repository layer architecture
+    - *Level:* C4 Component Level (Level 3)
+    - *Scope:* FileRepository internal structure and method organization
+    - *Elements:* DataRepository Interface, CRUD Methods, Parsing Helpers, Atomic Operations
+    - *File:* `doc/diagrams/flotsam_repository_components.d2`
+    - *Purpose:* Detailed view of repository implementation patterns and method relationships
+  - [ ] **5.1.4 Data Flow Diagram**: Files-first architecture data flow
+    - *Level:* C4 Flow Diagram
+    - *Scope:* Data flow from markdown files through parsing to models and back
+    - *Elements:* File → Parser → Models → Repository → Cache → Application
+    - *File:* `doc/diagrams/flotsam_data_flow.d2`
+    - *Purpose:* Visualize ADR-002 files-first architecture and atomic operations
+  - [ ] **5.1.5 ZK Integration Diagram**: ZK interoperability architecture
+    - *Level:* C4 Context + Component hybrid
+    - *Scope:* How flotsam integrates with existing ZK notebooks without conflicts
+    - *Elements:* ZK Notebooks, Vice Extensions, Shared Database, Context Isolation
+    - *File:* `doc/diagrams/flotsam_zk_integration.d2`
+    - *Purpose:* Document ADR-003 integration strategy and ADR-006 context isolation
+
+### 6. Code Quality and Maintenance
+- [ ] **6.1 Module Path Migration**: Update module path for GitHub compatibility
+  - [ ] **6.1.1 Change module path to github.com/davidlee/vice**: Update go.mod and all imports
     - *Current:* `davidlee/vice` (local module path)
     - *Target:* `github.com/davidlee/vice` (GitHub-compatible path)
     - *Impact:* 106 Go files with import statements need updating
@@ -791,6 +855,72 @@ vice:
 ## Roadblocks
 
 *(No roadblocks identified yet)*
+
+## Future Improvements & Refactoring Opportunities
+
+### **Immediate Next Steps (Phase 4)**
+1. **Search Operations** - Implement SearchFlotsam, GetFlotsamByType, GetFlotsamByTag
+   - Consider using existing Vice pattern from storage layer
+   - Leverage parseFlotsamFile for efficient note loading during search
+   - Add fuzzy search capabilities for title/content matching
+
+2. **SRS Integration** - Implement GetDueFlotsamNotes, GetFlotsamWithSRS
+   - Requires GetFlotsamCacheDB implementation (SQLite integration)
+   - Follow ADR-004 cache strategy for performance
+   - Consider batch operations for due date calculations
+
+3. **Integration Testing** - Add comprehensive end-to-end tests
+   - Test complete load/save cycles with real markdown files
+   - Test atomic operations under concurrent access
+   - Test ZK interoperability with actual ZK notebooks
+
+### **Performance Optimizations**
+1. **Bulk Operations** - Consider batch parsing for large collections
+   - Current implementation parses files individually (19µs per note is excellent)
+   - Could optimize with goroutine pools for very large collections (>1000 notes)
+   - Monitor performance under real-world usage patterns
+
+2. **Cache Implementation** - SQLite performance cache per ADR-004
+   - Implement change detection (timestamp + SHA256 checksum)
+   - Add cache invalidation and synchronization mechanisms
+   - Consider read-through cache pattern for frequently accessed notes
+
+3. **Link Resolution** - Enhance wikilink processing
+   - Current implementation extracts links but doesn't resolve them
+   - Consider context-scoped link resolution per ADR-006
+   - Add backlink computation and indexing
+
+### **Architecture Enhancements**
+1. **Error Recovery** - Add more robust error handling
+   - Current implementation has good error propagation
+   - Consider adding recovery mechanisms for corrupted files
+   - Add structured logging for debugging complex parsing issues
+
+2. **Concurrency Safety** - Review concurrent access patterns
+   - Current atomic operations are crash-safe but not concurrency-tested
+   - Consider file locking for concurrent write scenarios
+   - Test behavior under high concurrent load
+
+3. **Extensibility** - Prepare for future note types
+   - Current FlotsamType enum is well-designed for extension
+   - Consider plugin architecture for custom note processors
+   - Design for future multimedia content (images, attachments)
+
+### **Code Quality & Maintenance**
+1. **Test Coverage** - Add integration and property-based tests
+   - Current unit tests cover individual components well
+   - Add property-based tests for parsing edge cases
+   - Add benchmarks for performance regression testing
+
+2. **Documentation** - Create C4 diagrams per Section 5 plan
+   - Visual architecture documentation will help onboarding
+   - Document deployment and operational considerations
+   - Create developer setup guide for flotsam development
+
+3. **Monitoring** - Add observability for production use
+   - Consider metrics for file operation performance
+   - Add health checks for flotsam directory integrity
+   - Monitor cache hit rates when cache is implemented
 
 ## ZK Schema Architecture Reference
 
@@ -917,6 +1047,38 @@ ZK Schema Architecture (SQLite):
 - **Integration Benefits**: Proven algorithm, clean abstractions, time savings vs reimplementation
 
 ## Notes / Discussion Log
+
+### **Phase 3 Implementation Notes (2025-07-17 - AI)**
+
+**What was completed in this session:**
+- **Repository Integration Phase** - Complete implementation of flotsam data layer with atomic file operations
+- **Interface Extension** - Added 13 flotsam methods to DataRepository with comprehensive CRUD operations
+- **Production Parser** - Created flotsam.ParseFrontmatter() for robust YAML frontmatter parsing
+- **Atomic Operations** - Implemented temp file + rename pattern for crash safety throughout
+- **Security Compliance** - Added path validation and secure file permissions (0o600)
+
+**Key Implementation Insights:**
+1. **Files-First Architecture Works** - ADR-002 implementation is solid and performant (19µs per note)
+2. **ZK Compatibility Maintained** - All operations preserve ZK interoperability without conflicts
+3. **Error Handling Pattern** - Repository Error struct provides excellent operation context
+4. **Code Reuse Success** - parseFlotsamFile and saveFlotsamNote helpers enable clean CRUD implementations
+5. **Testing Coverage** - All existing tests pass, new functionality ready for comprehensive testing
+
+**Critical Implementation Details:**
+- **Frontmatter Parsing**: Uses yaml.v3 with proper error handling for malformed YAML
+- **Link Extraction**: Converts []Link to []string (link.Href) for simplified storage
+- **Atomic Safety**: All write operations use tempPath + os.Rename() for crash safety  
+- **Path Security**: filepath.Join + prefix validation prevents directory traversal
+- **Type Validation**: Automatic FlotsamType defaults and validation throughout
+
+**Next Developer Notes:**
+- Phase 4 (Core Operations) is the logical next step - search, filtering, SRS operations
+- All repository stubs are in place with proper TODOs and error messages
+- Architecture is solid - focus on higher-level operations rather than data layer changes
+- Cache implementation (GetFlotsamCacheDB) will need SQLite integration when implementing SRS
+- Consider adding integration tests for full load/save cycles with real markdown files
+
+### **Earlier Discussion Log**
 
 - `2025-07-16 - AI:` Created child task for data layer implementation as part of T026 epic.
 - `2025-07-17 - AI:` Updated task architecture and dependencies based on T028 completion:
@@ -1081,6 +1243,7 @@ ZK Schema Architecture (SQLite):
 - CRUD operations for markdown files with atomic safety
 
 **Commits:**
+- `46931c6` - feat(flotsam)[T027/3.2]: implement complete repository layer with CRUD operations
 - `88ecf6a` - feat(flotsam)[T027/2.1]: implement data model definition with ZK compatibility
 - `460eff4` - style(flotsam): format flotsam data model files
 

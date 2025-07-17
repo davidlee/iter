@@ -292,6 +292,8 @@ func (r *FileRepository) IsDataLoaded() bool {
 
 // LoadFlotsam loads all flotsam notes from the context flotsam directory.
 // AIDEV-NOTE: T027/3.2.1-load-flotsam; scans .md files and parses ZK-compatible frontmatter
+// AIDEV-NOTE: collection-loading-pattern; returns empty collection if directory doesn't exist (not an error)
+// AIDEV-NOTE: performance-scanning; uses filepath.WalkDir for efficient recursive scanning
 func (r *FileRepository) LoadFlotsam() (*models.FlotsamCollection, error) {
 	// Get flotsam directory path
 	flotsamDir := r.viceEnv.GetFlotsamDir()
@@ -349,6 +351,8 @@ func (r *FileRepository) LoadFlotsam() (*models.FlotsamCollection, error) {
 
 // parseFlotsamFile parses a markdown file and returns a FlotsamNote.
 // AIDEV-NOTE: T027/3.2-file-parsing; uses ZK parser for frontmatter + goldmark for links
+// AIDEV-NOTE: parsing-pipeline; frontmatter → links → models bridge → validation (core parsing flow)
+// AIDEV-NOTE: security-path-validation; validates file path is within flotsam directory to prevent traversal
 func (r *FileRepository) parseFlotsamFile(filePath string) (*models.FlotsamNote, error) {
 	// Validate file path is within flotsam directory for security
 	flotsamDir := r.viceEnv.GetFlotsamDir()
@@ -445,6 +449,8 @@ func (r *FileRepository) SaveFlotsam(collection *models.FlotsamCollection) error
 
 // saveFlotsamNote saves a single flotsam note to a markdown file using atomic operations.
 // AIDEV-NOTE: T027/3.2.2-atomic-save; uses temp file + rename for atomic operations
+// AIDEV-NOTE: atomic-pattern-core; this is the crash-safe pattern used throughout flotsam for all writes
+// AIDEV-NOTE: filename-pattern-zk; uses note.ID + ".md" for ZK compatibility (e.g. "6ub6.md")
 func (r *FileRepository) saveFlotsamNote(note *models.FlotsamNote, flotsamDir string) error {
 	// Generate filename from note ID
 	filename := note.ID + ".md"
