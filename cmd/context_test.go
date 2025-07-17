@@ -92,20 +92,25 @@ contexts = ["home", "office", "travel"]
 }
 
 func TestContextCommandValidation(t *testing.T) {
-	// Test that context switch requires exactly one argument
+	// AIDEV-NOTE: Use cmd.Args() not cmd.Execute() to prevent tests hanging from interactive TUI launch
+	// Test that context switch requires exactly one argument using cobra's Args validation
 	cmd := contextSwitchCmd
 
-	// Test no args
-	cmd.SetArgs([]string{})
-	err := cmd.Execute()
+	// Test no args - should fail validation
+	err := cmd.Args(cmd, []string{})
 	if err == nil {
 		t.Error("contextSwitchCmd should require exactly one argument")
 	}
 
-	// Test multiple args
-	cmd.SetArgs([]string{"context1", "context2"})
-	err = cmd.Execute()
+	// Test multiple args - should fail validation
+	err = cmd.Args(cmd, []string{"context1", "context2"})
 	if err == nil {
 		t.Error("contextSwitchCmd should require exactly one argument")
+	}
+
+	// Test single arg - should pass validation
+	err = cmd.Args(cmd, []string{"context1"})
+	if err != nil {
+		t.Errorf("contextSwitchCmd should accept exactly one argument, got error: %v", err)
 	}
 }

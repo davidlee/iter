@@ -12,7 +12,7 @@ import (
 func TestRootCommand(t *testing.T) {
 	t.Run("executes without error", func(t *testing.T) {
 		cmd := rootCmd
-		cmd.SetArgs([]string{"--help"})
+		cmd.SetArgs([]string{"--help"}) // AIDEV-NOTE: --help exits cleanly; avoid cmd.Execute() in other tests to prevent hanging
 		err := cmd.Execute()
 		require.NoError(t, err)
 	})

@@ -64,7 +64,7 @@ Examples:
   # Context management (persistent):
   vice context list                       # Show all available contexts
   vice context switch work                # Switch to work context (persists)`,
-	PersistentPreRunE: initializeViceEnv,
+	PersistentPreRunE: initializeViceEnv, // AIDEV-NOTE: Initializes interactive env - test cmd.Args() not cmd.Execute() to prevent hanging
 	RunE:              runDefaultCommand,
 }
 
