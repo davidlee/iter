@@ -106,11 +106,15 @@ func TestCreationDateFrom(t *testing.T) {
 	
 	// Use a temporary file to get a real Timespec
 	tmpFile := "/tmp/test_times"
-	err := os.WriteFile(tmpFile, []byte("test"), 0644)
+	err := os.WriteFile(tmpFile, []byte("test"), 0600)
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile)
+	defer func() {
+		if err := os.Remove(tmpFile); err != nil {
+			t.Logf("Warning: failed to remove temp file %s: %v", tmpFile, err)
+		}
+	}()
 	
 	fileStats, err := times.Stat(tmpFile)
 	if err != nil {

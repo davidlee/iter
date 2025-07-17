@@ -72,7 +72,7 @@ func (p *wikiLinkParser) Trigger() []byte {
 	return []byte{'[', '#'}
 }
 
-func (p *wikiLinkParser) Parse(_ ast.Node, block text.Reader, pc parser.Context) ast.Node {
+func (p *wikiLinkParser) Parse(_ ast.Node, block text.Reader, _ parser.Context) ast.Node {
 	line, _ := block.PeekLine()
 
 	var (
