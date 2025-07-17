@@ -25,3 +25,6 @@ plan:
 
 logs:
   uvx claude-code-log --open-browser
+
+clean-test-cache:
+  go clean -testcache

@@ -45,7 +45,8 @@
       "Bash(VICE_CONTEXT=work ./vice todo --markdown)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:zk-org.github.io)"
+      "WebFetch(domain:zk-org.github.io)",
+      "Bash(timeout 5s go test ./...)"
     ],
     "deny": []
   }

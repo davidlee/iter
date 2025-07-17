@@ -201,184 +201,20 @@ flotsam:
 - **Independent**: Learn from zk patterns but maintain vice-specific approach
 
 
-**AIDEV-NOTE**: `zk/` is a symlink to the ZK source; it's also installed locally. User has a notebook at `~/workbench/zk`.
-
-ZK Schema Architecture (SQLite):
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        NOTES                                │
-├─────────────────────────────────────────────────────────────┤
-│ id                PK  INTEGER  AUTOINCREMENT               │
-│ path              U   TEXT     /path/to/note.md            │ 
-│ sortable_path         TEXT     normalized sorting key      │
-│ title                 TEXT     extracted/frontmatter       │
-│ lead                  TEXT     first paragraph excerpt     │
-│ body                  TEXT     main content                │
-│ raw_content           TEXT     original markdown           │
-│ word_count            INTEGER  content length metric       │
-│ checksum              TEXT     content change detection    │
-│ metadata              TEXT     JSON blob (v3+)             │
-│ created               DATETIME timestamp                   │
-│ modified              DATETIME timestamp                   │
-└─────────────────────────────────────────────────────────────┘
-             │
-             │ 1:N
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                        LINKS                                │
-├─────────────────────────────────────────────────────────────┤
-│ id                PK  INTEGER  AUTOINCREMENT               │
-│ source_id         FK  INTEGER  → notes(id) CASCADE         │
-│ target_id         FK  INTEGER  → notes(id) SET NULL        │
-│ title                 TEXT     link display text           │
-│ href                  TEXT     original link target        │
-│ external              INTEGER  boolean flag                │
-│ rels                  TEXT     relationship types          │
-│ snippet               TEXT     surrounding context         │
-│ snippet_start         INTEGER  context start offset (v3+)  │
-│ snippet_end           INTEGER  context end offset (v3+)    │
-│ type                  TEXT     link classification (v5+)   │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│                    COLLECTIONS                              │
-├─────────────────────────────────────────────────────────────┤
-│ id                PK  INTEGER  AUTOINCREMENT               │
-│ kind              U   TEXT     'tag','group','type'        │
-│ name              U   TEXT     collection identifier       │
-└─────────────────────────────────────────────────────────────┘
-             │
-             │ N:M
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                NOTES_COLLECTIONS                            │
-├─────────────────────────────────────────────────────────────┤
-│ id                PK  INTEGER  AUTOINCREMENT               │
-│ note_id           FK  INTEGER  → notes(id) CASCADE         │
-│ collection_id     FK  INTEGER  → collections(id) CASCADE   │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│                     METADATA                                │
-├─────────────────────────────────────────────────────────────┤
-│ key               PK  TEXT     config/setting key          │
-│ value                 TEXT     JSON/string value           │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│                   NOTES_FTS (Virtual)                       │
-├─────────────────────────────────────────────────────────────┤
-│ rowid             →   notes.id content linkage             │
-│ path                  TEXT     indexed for search          │
-│ title                 TEXT     indexed for search          │
-│ body                  TEXT     indexed for search          │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**VIEWS:**
-- `notes_with_metadata`: Notes + aggregated tags (GROUP_CONCAT)
-- `resolved_links`: Links + source/target note paths & titles
-
-**INDEXES:**
-- `index_notes_checksum`: Fast content change detection
-- `index_notes_path`: Unique path constraint + lookup optimization  
-- `index_links_source_id_target_id`: Link relationship queries
-- `index_collections`: Collection lookup by kind+name
-- `index_notes_collections`: N:M association queries
-
-**TRIGGERS (FTS Sync):**
-- `trigger_notes_ai`: INSERT → update FTS index
-- `trigger_notes_ad`: DELETE → remove from FTS index  
-- `trigger_notes_au`: UPDATE → delete old + insert new FTS entry
-
-**FEATURES:**
-- **FTS5 Search**: Porter stemming, Unicode normalization, custom tokenizers
-- **Referential Integrity**: CASCADE deletes, SET NULL for broken links
-- **Versioned Schema**: 6 migration levels with reindexing support
-- **JSON Metadata**: Extensible note properties in metadata column
-- **Link Context**: Snippet extraction with precise offset tracking
 
 ## Implementation Plan & Progress
 
 **Sub-tasks:**
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
 
-### 1. External Code Integration
-- [ ] **1.1 Copy ZK Components**: Extract and prepare ZK parsing components
-  - [ ] **1.1.1 Copy ZK frontmatter parsing**: Copy `internal/core/note_parse.go` and dependencies
-    - *Source:* `/home/david/.local/src/zk/internal/core/note_parse.go`
-    - *Target:* `internal/flotsam/zk_parser.go`
-    - *Dependencies:* Also copy required utility functions from `internal/util/`
-    - *Modifications:* Add package header, attribution comment, remove unused functions
-    - *Testing:* Create basic test to verify frontmatter parsing works
-  - [ ] **1.1.2 Copy ZK wikilink extraction**: Copy `internal/core/link.go` and link processing
-    - *Source:* `/home/david/.local/src/zk/internal/core/link.go`
-    - *Target:* `internal/flotsam/zk_links.go`
-    - *Dependencies:* May need markdown parsing utilities from `internal/adapter/markdown/`
-    - *Modifications:* Adapt for context-scoped link resolution, add flotsam-specific logic
-    - *Testing:* Test link extraction from markdown content
-  - [ ] **1.1.3 Copy ZK ID generation**: Copy `internal/core/id.go` and ID utilities
-    - *Source:* `/home/david/.local/src/zk/internal/core/id.go`
-    - *Target:* `internal/flotsam/zk_id.go`
-    - *Dependencies:* Random generation utilities from `internal/util/rand/`
-    - *Modifications:* Configure for flotsam defaults (4-char alphanum, lowercase)
-    - *Testing:* Test ID generation uniqueness and format compliance
-  - [ ] **1.1.4 Copy ZK template system**: Copy handlebars template engine
-    - *Source:* `/home/david/.local/src/zk/internal/adapter/handlebars/`
-    - *Target:* `internal/flotsam/zk_templates.go`
-    - *Dependencies:* Handlebars library and helper functions
-    - *Modifications:* Adapt for flotsam note creation templates
-    - *Testing:* Test template rendering with flotsam data
-- [ ] **1.2 Copy Go-SRS Components**: Extract and prepare SM-2 algorithm
-  - [ ] **1.2.1 Copy SM-2 algorithm core**: Copy SuperMemo 2 implementation
-    - *Source:* `/home/david/.local/src/go-srs/algo/sm2/sm2.go`
-    - *Target:* `internal/flotsam/srs_sm2.go`
-    - *Dependencies:* Review data structures from `review/review.go`
-    - *Modifications:* Remove badgerdb dependencies, adapt for frontmatter storage
-    - *Testing:* Test SM-2 calculations with known input/output pairs
-  - [ ] **1.2.2 Copy SRS interfaces**: Copy algorithm and database interfaces
-    - *Source:* `/home/david/.local/src/go-srs/algo/algo.go`, `/home/david/.local/src/go-srs/db/db.go`
-    - *Target:* `internal/flotsam/srs_interfaces.go`
-    - *Dependencies:* Core SRS types and review structures
-    - *Modifications:* Adapt interfaces for flotsam markdown file storage
-    - *Testing:* Test interface compliance with flotsam implementations
-  - [ ] **1.2.3 Copy review data structures**: Copy review and item structures
-    - *Source:* `/home/david/.local/src/go-srs/review/review.go`
-    - *Target:* `internal/flotsam/srs_review.go`
-    - *Dependencies:* Core algorithm types
-    - *Modifications:* Adapt for flotsam note review workflow
-    - *Testing:* Test review data serialization and validation
-- [ ] **1.3 Integration and Attribution**: Prepare copied code for vice integration
-  - [ ] **1.3.1 Add proper attribution**: Add copyright headers and attribution comments
-    - *Task:* Add attribution headers to all copied files
-    - *Format:* Standard Go copyright header with original project attribution
-    - *Requirements:* Comply with original project licenses (ZK: GPLv3, go-srs: Apache-2.0)
-  - [ ] **1.3.2 Resolve package dependencies**: Update imports and package declarations
-    - *Task:* Change package names from `core`/`sm2` to `flotsam`
-    - *Imports:* Update all import paths to vice project structure
-    - *Conflicts:* Resolve any naming conflicts between ZK and go-srs components
-  - [ ] **1.3.3 Create integration tests**: Test copied components work together
-    - *Task:* Create integration tests for ZK + SRS components
-    - *Tests:* Parse frontmatter → extract links → schedule review → update SRS data
-    - *Coverage:* Test complete flotsam note lifecycle with copied components
+### 1. Data Layer Foundation (T027)
+- [ ] **1.1 Data Layer Implementation**: Complete data layer foundation in T027
+  - [ ] **1.1.1 Complete external code integration**: ZK parsing and go-srs components
+  - [ ] **1.1.2 Implement data models**: ZK-compatible structures with SRS support
+  - [ ] **1.1.3 Extend repository interface**: Add flotsam methods to DataRepository
+  - [ ] **1.1.4 Implement core operations**: Parsing, linking, SRS scheduling
 
-### 2. Data Layer Foundation (T027)
-- [ ] **2.1 Data Model Definition**: Create ZK-compatible flotsam structures
-  - [ ] **2.1.1 Define FlotsamFrontmatter struct**: ZK-compatible YAML schema
-  - [ ] **2.1.2 Define in-memory Flotsam struct**: Parsed content representation
-  - [ ] **2.1.3 Add SRS data structures**: go-srs compatible SRS metadata
-- [ ] **2.2 Repository Integration**: Extend T028 Repository Pattern
-  - [ ] **2.2.1 Extend DataRepository interface**: Add flotsam methods
-  - [ ] **2.2.2 Implement markdown file operations**: Individual .md file CRUD
-  - [ ] **2.2.3 Add ViceEnv path methods**: Context-aware directory paths
-- [ ] **2.3 Core Operations**: Build on copied components
-  - [ ] **2.3.1 Implement flotsam parsing**: Use copied ZK parser for frontmatter
-  - [ ] **2.3.2 Implement link processing**: Use copied ZK links for wikilink extraction
-  - [ ] **2.3.3 Implement SRS operations**: Use copied go-srs for review scheduling
-  - [ ] **2.3.4 Add validation helpers**: Struct validation and sanitization
-
-### 3. Core CLI Commands
+### 2. Core CLI Commands
 - [ ] **3.1 Flotsam Command Structure**: Base command and subcommands
   - [ ] **3.1.1 Create vice flotsam command**: Main command entry point
   - [ ] **3.1.2 Add subcommand routing**: list, new, edit, search, review
@@ -389,7 +225,7 @@ ZK Schema Architecture (SQLite):
   - [ ] **3.2.3 Implement flotsam list**: List notes with filtering
   - [ ] **3.2.4 Implement flotsam remove**: Delete notes safely
 
-### 4. Search and Navigation
+### 3. Search and Navigation
 - [ ] **4.1 Fuzzy Search Interface**: Interactive note discovery
   - [ ] **4.1.1 Implement title/content search**: Fuzzy matching on title and body
   - [ ] **4.1.2 Add tag-based filtering**: Search by tags and metadata
@@ -399,7 +235,7 @@ ZK Schema Architecture (SQLite):
   - [ ] **4.2.2 Build backlink index**: Compute reverse link relationships
   - [ ] **4.2.3 Add link navigation**: Jump between linked notes
 
-### 5. Spaced Repetition System
+### 4. Spaced Repetition System
 - [ ] **5.1 Review Interface**: SRS-based note review
   - [ ] **5.1.1 Implement flotsam review**: Show due notes for review
   - [ ] **5.1.2 Add quality rating**: 0-6 scale quality feedback
@@ -409,7 +245,7 @@ ZK Schema Architecture (SQLite):
   - [ ] **5.2.2 Implement flashcard review**: Specialized review interface
   - [ ] **5.2.3 Add performance tracking**: Review statistics and trends
 
-### 6. UI and User Experience
+### 5. UI and User Experience
 - [ ] **6.1 Interactive Interface**: Bubbletea-based TUI
   - [ ] **6.1.1 Create main flotsam view**: Three-pane interface (search, list, preview)
   - [ ] **6.1.2 Implement note editing**: In-app editing with live preview
@@ -419,7 +255,7 @@ ZK Schema Architecture (SQLite):
   - [ ] **6.2.2 Add flotsam references**: Reference notes from other vice commands
   - [ ] **6.2.3 Implement cross-context**: Optional cross-context note access
 
-### 7. Advanced Features
+### 6. Advanced Features
 - [ ] **7.1 Templates and Automation**: Note creation templates
   - [ ] **7.1.1 Implement template system**: ZK-compatible templates
   - [ ] **7.1.2 Add automation hooks**: Trigger creation from other commands
@@ -455,51 +291,14 @@ ZK Schema Architecture (SQLite):
   - Identified 5 concrete ZK compatibility decision points and evaluation steps
   - Added compatibility level options from full interop to independent approach
 
-### Evaluation Phase - ZK Compatibility Analysis
+### Implementation Progress - Data Layer
 
-- `2025-07-17 - AI:` **ZK Investigation Complete**:
-  - **File Structure**: ZK uses 4-char alphanumeric IDs with flat directory structure (`6ub6.md`, `jgtt.md`)
-  - **Frontmatter**: Minimal schema (`id`, `title`, `created-at`, `tags`) with extensible metadata map
-  - **Wikilinks**: Standard `[[target]]` and `[[target | label]]` with relationship detection (`#[[uplink]]`, `[[downlink]]#`)
-  - **ID Generation**: Configurable charset/length/case with cryptographically random generation
-  - **Templates**: Handlebars-based with rich helper system for note creation
-  - **Go Components**: High reusability potential - parser, link resolution, ID generation, template engine all importable
-
-- `2025-07-17 - AI:` **Key Compatibility Insights**:
-  - **High Compatibility**: Frontmatter schema extensible, wikilink syntax standard, ID generation adaptable
-  - **Reusable Components**: Markdown parser, link resolution algorithms, template system, frontmatter handling
-  - **Design Tension**: ZK's flat structure vs flotsam's potential hierarchical needs; SQLite indexing vs simpler approaches
-  - **Integration Strategy**: Import core parsing/linking components while adapting storage layer for vice ecosystem
-
-- `2025-07-17 - AI:` **Go-SRS Analysis Complete**:
-  - **Architecture**: Clean interfaces (`db.Handler`, `algo.Algo`, `uid.UID`) with loose coupling
-  - **Storage**: Simple schema (easiness, consecutive_correct, due_timestamp) stored as JSON in BadgerDB
-  - **SM-2 Algorithm**: Mature, well-tested implementation with proper SuperMemo research backing
-  - **Integration Complexity**: LOW-MEDIUM - only 3 methods in `db.Handler` interface to implement
-  - **Data Model**: `{deck_id, card_id, easiness: 2.5, consecutive_correct: 0, due: timestamp}`
-  - **Quality Scale**: Research-based 0-6 scale (0=no review, 1-3=incorrect, 4-6=correct)
-  - **Recommended Approach**: Adapt go-srs with SQLite `db.Handler` implementation
-  - **Integration Benefits**: Proven algorithm, clean abstractions, time savings vs reimplementation
-
-### Code Reuse Strategy
-
-- `2025-07-17 - AI:` **ZK Code Reuse Constraints**:
-  - **Cannot import directly**: ZK's useful code is in `internal/` packages (Go prohibits external imports)
-  - **Application module**: Would pull entire CLI application with all dependencies
-  - **Recommended approach**: Copy specific code (parsing, linking) with attribution
-  - **Target files**: `internal/core/note_parse.go`, `internal/core/link.go`, ID generation, templates
-
-- `2025-07-17 - AI:` **Go-SRS Code Reuse Options**:
-  - **Can import directly**: Public API design (`algo/`, `db/`, `uid/` packages)
-  - **Library module**: Intended for external consumption, clean interfaces
-  - **Dependency concern**: Would pull BadgerDB when only SM-2 algorithm needed
-  - **Recommended approach**: Copy SM-2 algorithm (`algo/sm2/`) to avoid heavyweight dependencies
-
-- `2025-07-17 - AI:` **Implementation Plan Structure**:
-  - **Hierarchical numbering**: 7 major phases with 2-3 subsections each
-  - **External integration first**: Section 1 focuses on copying and preparing external code
-  - **Systematic progression**: Data layer → CLI → Search → SRS → UI → Advanced features
-  - **Detailed specifications**: Each subtask includes source paths, targets, modifications, testing
+- `2025-07-17 - AI:` **T027 Data Layer Progress**:
+  - **External Code Integration**: ZK parsing and go-srs components copied and adapted
+  - **Data Model Definition**: ZK-compatible structures with SRS support in progress
+  - **Repository Integration**: Extending T028 DataRepository interface for flotsam operations
+  - **Core Operations**: Building on copied components for parsing, linking, SRS scheduling
+  - **Status**: See T027 task card for detailed implementation progress
 
 ## Git Commit History
 
