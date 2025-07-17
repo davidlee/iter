@@ -19,8 +19,11 @@ context_windows: ["./*.go", Claude.md, "doc/workflow.md", "doc/**/*.md"] # List 
 ### Significant Code (Files / Functions)
 *AI to complete*
 
-### Relevant Documentation
-*AI to complete*
+### Relevant Specifications
+*AI to complete with reference to [docs](/doc/specifications/) - both existing & created during this task.*
+
+### ADRs (Architecture Decision Records)
+*AI to complete with reference to [docs](/doc/desisions/) - both existing & created during this task.*
 
 ### Related Tasks / History
 *AI to complete*

@@ -4,7 +4,16 @@
 
 **Date**: YYYY-MM-DD
 
-**Related Tasks**: [TXXX/X.X] - Brief task description
+## Related Reading
+
+**Related ADRs**: 
+ - [title](/doc/decisions/path.md) - Title, brief description of relationship
+
+**Related Specifications**: 
+ - [title](/doc/specifications/path.md) - Title, brief description of relationship
+
+**Related Tasks**: 
+ - [TXXX/X.X] - Brief task description
 
 ## Context
 
