@@ -446,11 +446,22 @@ vice:
       - **Testing Documentation**: Test coverage and integration test explanations
       - **License Attribution**: Proper attribution for ZK (GPLv3) and go-srs (Apache-2.0) components
       - **Future Enhancements**: Roadmap for planned features and optimizations
-  - [ ] **1.3.5 ADR: Files-First Architecture**: Document storage strategy decision
+  - [x] **1.3.5 ADR: Files-First Architecture**: Document storage strategy decision
     - *File:* `doc/decisions/ADR-002-flotsam-files-first-architecture.md`
     - *Decision:* Store all SRS data in markdown frontmatter vs separate database
     - *Context:* Data portability vs performance trade-offs for flotsam notes
     - *Cross-references:* ADR-004 (SQLite Cache Strategy)
+    - *Status:* COMPLETED - Created comprehensive ADR documenting storage strategy
+    - *Decision Summary:* Files-first architecture with markdown frontmatter as source of truth
+    - *Key Features:*
+      - **Data Portability**: All data travels with markdown files
+      - **ZK Compatibility**: Add Vice tables to existing ZK databases without conflicts
+      - **Performance Cache**: Optional SQLite cache for fast SRS queries (rebuildable)
+      - **Recovery Strategy**: Drop cache tables to completely remove Vice functionality
+      - **Change Detection**: Timestamp + SHA256 checksum for efficient cache invalidation
+      - **Atomic Operations**: File writes followed by cache updates in transactions
+    - *Trade-offs Documented**: Complete analysis of portability vs performance considerations
+    - *Implementation Details**: Cache schema, error recovery process, and ZK integration patterns
   - [ ] **1.3.6 ADR: ZK-go-srs Integration Strategy**: Document component integration approach
     - *File:* `doc/decisions/ADR-003-zk-gosrs-integration-strategy.md`
     - *Decision:* How to combine ZK parsing/linking with go-srs SRS algorithms
@@ -740,6 +751,16 @@ ZK Schema Architecture (SQLite):
   - **Attribution**: Proper license attribution for ZK (GPLv3) and go-srs (Apache-2.0) components
   - **Key Insight**: Documentation provides complete reference for flotsam package usage and integration
   - **Next Steps**: Continue with 1.3.5 (ADR documentation) and remaining subtasks
+- `2025-07-17 - AI:` **T027/1.3.5 Files-First Architecture ADR COMPLETED**:
+  - Created ADR-002-flotsam-files-first-architecture.md documenting storage strategy decision
+  - **Decision**: Files-first architecture with markdown frontmatter as source of truth
+  - **Key Benefits**: Data portability, ZK compatibility, disaster recovery, incremental adoption
+  - **Performance Strategy**: Optional SQLite cache for fast SRS queries (rebuildable from source files)
+  - **ZK Integration**: Add Vice tables to existing ZK databases without conflicts
+  - **Implementation Details**: Change detection (timestamp + SHA256), atomic operations, error recovery
+  - **Trade-offs Analysis**: Complete documentation of portability vs performance considerations
+  - **Key Insight**: Files-first approach provides optimal balance of portability and performance for flotsam use case
+  - **Next Steps**: Continue with 1.3.6 (ZK-go-srs integration ADR) and remaining subtasks
 
 ### Evaluation Phase - ZK Compatibility Analysis
 
@@ -808,6 +829,7 @@ ZK Schema Architecture (SQLite):
 
 ## Git Commit History
 
+- `5df29b9` - docs(flotsam)[T027/1.3.5]: add ADR for files-first architecture decision
 - `e25411c` - docs(flotsam)[T027/1.3.4]: create comprehensive package documentation and API reference
 - `134dc2f` - feat(flotsam)[T027/1.3.3]: implement cross-component integration testing
 - `50badab` - feat(flotsam)[T027/1.2]: complete go-srs SRS system implementation
