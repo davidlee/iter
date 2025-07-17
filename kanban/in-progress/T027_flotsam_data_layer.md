@@ -1243,6 +1243,7 @@ ZK Schema Architecture (SQLite):
 - CRUD operations for markdown files with atomic safety
 
 **Commits:**
+- `05a5983` - docs(flotsam)[T027]: add comprehensive implementation notes and anchor comments  
 - `46931c6` - feat(flotsam)[T027/3.2]: implement complete repository layer with CRUD operations
 - `88ecf6a` - feat(flotsam)[T027/2.1]: implement data model definition with ZK compatibility
 - `460eff4` - style(flotsam): format flotsam data model files
