@@ -520,45 +520,110 @@ vice:
       - **Future Compatibility**: Mapper interface for other scale support
       - **Analytics**: Usage tracking for continuous UX improvement
       - **Migration Strategy**: Support for transitioning between scale modes
-  - [ ] **1.3.9 ADR: Context Isolation Model**: Document context scoping design  
+  - [x] **1.3.9 ADR: Context Isolation Model**: Document context scoping design  
     - *File:* `doc/decisions/ADR-006-flotsam-context-isolation.md`
     - *Decision:* How contexts scope flotsam operations and data isolation
     - *Context:* Integration with vice's context system and ZK notebook compatibility
     - *Cross-references:* ADR-004 (SQLite Cache), T028 integration
-  - [ ] **1.3.10 ADR: License Compatibility**: Document legal framework
+    - *Status:* COMPLETED - Created comprehensive ADR documenting context isolation strategy
+    - *Strategy:* Hybrid context bridging with intelligent boundary detection
+    - *Key Features:*
+      - **Context Detection**: Automatic detection of Vice contexts vs ZK notebooks vs hybrid scenarios
+      - **Scoped Operations**: Note discovery, link resolution, and cache isolation within context boundaries
+      - **Bridge Support**: Configurable cross-context linking for related workflows
+      - **Cache Isolation**: Context-specific cache tables preventing cross-contamination
+      - **ZK Integration**: Seamless operation within existing ZK notebook structures
+  - [x] **1.3.10 ADR: License Compatibility**: Document legal framework
     - *File:* `doc/decisions/ADR-007-flotsam-license-compatibility.md`
     - *Decision:* Legal framework for combining GPLv3 (ZK) + Apache-2.0 (go-srs) components
     - *Context:* Open source license compatibility and attribution requirements
     - *Cross-references:* Package attribution headers, third-party dependencies
-  - [ ] **1.3.11 License compatibility audit**: Final license compliance review
+    - *Status:* COMPLETED - Created comprehensive ADR documenting license compatibility
+    - *Legal Framework:* GPLv3 license for entire flotsam package with proper upstream attribution
+    - *Key Compliance:*
+      - **License Direction**: Apache-2.0 → GPLv3 integration is legally compatible
+      - **Attribution Standards**: Proper copyright headers for ZK (GPLv3) and go-srs (Apache-2.0) components
+      - **Distribution Requirements**: Source code availability and license preservation
+      - **Derivative Work**: Clear documentation of modifications and license inheritance
+  - [x] **1.3.11 License compatibility audit**: Final license compliance review
     - *License Matrix:* Document GPLv3 + Apache-2.0 compatibility for this use case
     - *Attribution Audit:* Verify all required attributions are present and correct
     - *Compliance Documentation:* Create license compliance summary for legal review
     - *Cross-references:* ADR-007 (License Compatibility)
+    - *Status:* COMPLETED - License compliance audit successful
+    - *Audit Results:*
+      - **External Code Attribution**: ✅ All 6 files with external code have proper headers
+      - **ZK Components**: ✅ Correct GPLv3 attribution to zk-org and David Holsgrove
+      - **go-srs Components**: ✅ Correct Apache-2.0 attribution to revelaction
+      - **License Framework**: ✅ GPLv3 + Apache-2.0 integration legally compliant
+      - **Vice Original Code**: ✅ Test files identified as Vice-original (minor headers needed)
 
 ### 2. Data Model Definition
 - [ ] **2.1 Define ZK-Compatible Structures**: Create flotsam data structures
-  - [ ] **2.1.1 Define FlotsamFrontmatter struct**: ZK-compatible YAML schema
+  - [x] **2.1.1 Define FlotsamFrontmatter struct**: ZK-compatible YAML schema
     - *Design:* ZK standard fields (id, title, created-at, tags) + flotsam extensions (srs, type)
     - *Code/Artifacts:* `internal/models/flotsam.go`
     - *Testing:* Unit tests for struct validation and YAML marshaling
-  - [ ] **2.1.2 Define in-memory Flotsam struct**: Parsed content representation
+    - *Status:* COMPLETED - Created comprehensive FlotsamFrontmatter struct with ZK compatibility
+    - *Key Features:*
+      - **ZK Standard Fields**: ID, title, created-at, tags for full ZK compatibility
+      - **Flotsam Extensions**: Type enum (idea/flashcard/script/log) and SRS data
+      - **YAML Integration**: Proper YAML tags for frontmatter serialization
+      - **Validation**: Type validation with defaults and error handling
+      - **Constructor**: NewFlotsamFrontmatter with sensible defaults
+  - [x] **2.1.2 Define in-memory Flotsam struct**: Parsed content representation
     - *Design:* Embed frontmatter + parsed content (body, links, backlinks, filepath)
     - *Code/Artifacts:* Extend `internal/models/flotsam.go`
     - *Testing:* Test struct embedding and content parsing
-  - [ ] **2.1.3 Add SRS data structures**: go-srs compatible SRS metadata
+    - *Status:* COMPLETED - Created FlotsamNote struct embedding flotsam.FlotsamNote
+    - *Architecture:* Bridge pattern between models and flotsam packages
+    - *Features:*
+      - **Embedding**: Embeds flotsam.FlotsamNote for compatibility
+      - **Bridge Methods**: GetFrontmatter, UpdateFromFrontmatter for conversion
+      - **Validation**: HasSRS, IsFlashcard, ValidateType helper methods
+      - **Integration**: Seamless integration with existing flotsam components
+  - [x] **2.1.3 Add SRS data structures**: go-srs compatible SRS metadata
     - *Design:* Match go-srs schema (easiness, consecutive_correct, due, total_reviews)
     - *Code/Artifacts:* SRS structs in `internal/models/flotsam.go`
     - *Testing:* Test SRS metadata serialization and optional fields
-- [ ] **2.2 Add FlotsamType Support**: Support for different note types
-  - [ ] **2.2.1 Add FlotsamType enum**: Support for idea/flashcard/script/log types
+    - *Status:* COMPLETED - Integrated existing flotsam.SRSData structures
+    - *Implementation:* Reused proven SRS structures from flotsam package
+    - *Benefits:*
+      - **Proven Implementation**: Leverages existing tested SRS structures
+      - **Compatibility**: Direct integration with go-srs SM-2 algorithm
+      - **Consistency**: Maintains compatibility with flotsam package design
+- [x] **2.2 Add FlotsamType Support**: Support for different note types
+  - [x] **2.2.1 Add FlotsamType enum**: Support for idea/flashcard/script/log types
     - *Design:* String-based enum with validation and defaults
     - *Code/Artifacts:* Type definitions in `internal/models/flotsam.go`
     - *Testing:* Test type validation and defaults
-  - [ ] **2.2.2 Add type-specific validation**: Validate content based on type
+    - *Status:* COMPLETED - Implemented comprehensive FlotsamType enum
+    - *Features:*
+      - **Type Constants**: IdeaType, FlashcardType, ScriptType, LogType
+      - **Validation**: Validate() method with proper error messages
+      - **Utilities**: String(), IsEmpty(), DefaultType() helper methods
+      - **Integration**: Used in FlotsamFrontmatter and FlotsamNote structures
+  - [x] **2.2.2 Add type-specific validation**: Validate content based on type
     - *Design:* Type-specific validation rules and content requirements
     - *Code/Artifacts:* Validation functions in `internal/models/flotsam.go`
     - *Testing:* Test type-specific validation rules
+    - *Status:* COMPLETED - Implemented type validation and helper methods
+    - *Implementation:*
+      - **ValidateType**: Note-level type validation with defaults
+      - **IsFlashcard**: Type checking for SRS-specific logic
+      - **Type Defaults**: Automatic assignment of default types
+      - **Error Handling**: Consistent error messages following models patterns
+- [ ] **2.3 Documentation and Code Quality**: Ensure comprehensive documentation and code quality
+  - [ ] **2.3.1 Add anchor notes to flotsam code files**: Link code to specifications and ADRs
+    - *Scope:* Add AIDEV-NOTE anchors to all flotsam code files where relevant
+    - *References:* Link to specifications (flotsam.md), ADRs (002-007), and task documentation
+    - *Files:* All files in `internal/flotsam/` and `internal/models/flotsam.go`
+    - *Pattern:* Reference ADR decisions, architecture choices, external code attribution
+    - *Examples:*
+      - `// AIDEV-NOTE: implements ADR-002 files-first architecture`
+      - `// AIDEV-NOTE: see ADR-006 context isolation for scoping rules`
+      - `// AIDEV-NOTE: ZK compatibility per ADR-003 integration strategy`
+    - *Benefits:* Improves code maintainability and connects implementation to architectural decisions
 
 ### 3. Repository Integration
 - [ ] **3.1 Extend DataRepository Interface**: Add flotsam methods to T028 Repository Pattern
@@ -630,6 +695,25 @@ vice:
     - *Design:* ID generation, timestamp formatting, sanitization
     - *Code/Artifacts:* Utility functions in flotsam package
     - *Testing:* Test utility functions and edge cases
+
+### 5. Code Quality and Maintenance
+- [ ] **5.1 Module Path Migration**: Update module path for GitHub compatibility
+  - [ ] **5.1.1 Change module path to github.com/davidlee/vice**: Update go.mod and all imports
+    - *Current:* `davidlee/vice` (local module path)
+    - *Target:* `github.com/davidlee/vice` (GitHub-compatible path)
+    - *Impact:* 106 Go files with import statements need updating
+    - *Approach:* Automated find/replace across codebase
+    - *Benefits:* GitHub compatibility, standard Go module conventions, easier sharing/distribution
+    - *Risk:* Medium effort task touching many files, best done when not actively developing features
+    - *Timing:* Defer until after flotsam implementation stabilizes
+    - *Commands:*
+      ```bash
+      # Update go.mod
+      sed -i 's/module davidlee\/vice/module github.com\/davidlee\/vice/' go.mod
+      # Update all import statements
+      find . -name "*.go" -exec sed -i 's/davidlee\/vice/github.com\/davidlee\/vice/g' {} \;
+      go mod tidy
+      ```
 
 ## Roadblocks
 
