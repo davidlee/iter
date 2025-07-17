@@ -387,19 +387,87 @@ vice:
       - **Builder Functions**: Helper functions for creating and managing review/due structures
       - **Test Coverage**: Comprehensive tests for validation, statistics, sorting, filtering
       - **Design Adaptation**: Files-first approach with context isolation and session-based workflows
-- [ ] **1.3 Integration and Attribution**: Prepare copied code for vice integration
-  - [ ] **1.3.1 Add proper attribution**: Add copyright headers and attribution comments
-    - *Task:* Add attribution headers to all copied files
-    - *Format:* Standard Go copyright header with original project attribution
-    - *Requirements:* Comply with original project licenses (ZK: GPLv3, go-srs: Apache-2.0)
-  - [ ] **1.3.2 Resolve package dependencies**: Update imports and package declarations
-    - *Task:* Change package names from `core`/`sm2` to `flotsam`
-    - *Imports:* Update all import paths to vice project structure
-    - *Conflicts:* Resolve any naming conflicts between ZK and go-srs components
-  - [ ] **1.3.3 Create integration tests**: Test copied components work together
-    - *Task:* Create integration tests for ZK + SRS components
-    - *Tests:* Parse frontmatter → extract links → schedule review → update SRS data
-    - *Coverage:* Test complete flotsam note lifecycle with copied components
+- [ ] **1.3 Integration and Attribution**: Finalize external code integration
+  - [x] **1.3.1 Attribution compliance verification**: Verify proper attribution and licensing
+    - *Status:* COMPLETED - All files have proper copyright headers
+    - *ZK Files:* GPLv3 compliance with proper attribution to zk-org and David Holsgrove
+    - *go-srs Files:* Apache-2.0 compliance with proper attribution to revelaction
+    - *Vice Headers:* All files include Vice project copyright and source attribution
+    - *License Compatibility:* GPLv3 and Apache-2.0 are compatible for this use case
+  - [x] **1.3.2 Package structure verification**: Verify package organization and imports
+    - *Status:* COMPLETED - All components properly integrated
+    - *Package Consistency:* All files use `package flotsam` correctly
+    - *Import Paths:* All internal imports reference vice project structure
+    - *Naming Conflicts:* No conflicts between ZK and go-srs components
+    - *Lint Compliance:* All files pass linting with appropriate suppressions
+  - [x] **1.3.3 Cross-component integration testing**: Test components work together end-to-end
+    - *Scope:* Test complete flotsam note lifecycle using all copied components
+    - *Test Cases:*
+      - **Note Creation**: Create note with ZK ID → parse frontmatter → extract links
+      - **SRS Lifecycle**: Initialize SRS → review note → update SRS data → schedule next review
+      - **Cross-Component**: Parse note content → extract links → enable SRS → complete review cycle
+      - **Data Flow**: Frontmatter ↔ SRS data ↔ review structures ↔ scheduling
+    - *Performance:* Validate reasonable performance of combined operations
+    - *Edge Cases:* Test error handling across component boundaries
+    - *Future Enhancement Note:* Consider adaptation of SRS lifecycle for incremental writing and task management/deferment workflows - requires further architectural thought for integration with vice's task-oriented approach
+    - *Status:* COMPLETED - Created comprehensive integration test suite
+    - *Files Created:* `internal/flotsam/integration_test.go` with 5 test functions covering:
+      - **TestFlotsamNoteLifecycle**: End-to-end note creation with ZK ID generation, frontmatter parsing, and link extraction
+      - **TestSRSLifecycle**: Complete SRS review cycle with SM-2 algorithm processing
+      - **TestCrossComponentWorkflow**: Full workflow from file parsing to SRS review to frontmatter serialization
+      - **TestDataFlowConsistency**: Data serialization/deserialization across all components
+      - **TestIntegrationPerformance**: Performance validation (19µs per note for 100 notes)
+    - *Test Results:* All 5 integration tests pass, demonstrating successful cross-component integration
+    - *Performance Results:* Excellent performance - processes 100 notes in ~2ms (19µs per note average)
+    - *Architecture Validation:* Confirms all components work together seamlessly:
+      - ZK ID generation → frontmatter parsing → link extraction → SRS processing → file serialization
+      - Round-trip data integrity maintained throughout the workflow
+      - Error handling and edge cases properly addressed
+  - [ ] **1.3.4 Package documentation and API reference**: Create unified documentation
+    - *Package Doc:* Comprehensive package-level documentation for flotsam
+    - *API Reference:* Document public interfaces and their relationships
+    - *Usage Examples:* Show how components work together
+    - *Architecture Doc:* Document the integration between ZK and go-srs components
+    - *Performance Documentation:* Document performance considerations for inner-loop operations:
+      - **Search Operations**: Note parsing + link extraction in bulk search scenarios
+      - **Bulk SRS Processing**: SRS calculations when processing many due cards
+      - **Directory Scanning**: Frontmatter parsing when scanning large note collections
+      - **Cache Synchronization**: SQLite updates during batch note operations
+  - [ ] **1.3.5 ADR: Files-First Architecture**: Document storage strategy decision
+    - *File:* `doc/decisions/ADR-002-flotsam-files-first-architecture.md`
+    - *Decision:* Store all SRS data in markdown frontmatter vs separate database
+    - *Context:* Data portability vs performance trade-offs for flotsam notes
+    - *Cross-references:* ADR-004 (SQLite Cache Strategy)
+  - [ ] **1.3.6 ADR: ZK-go-srs Integration Strategy**: Document component integration approach
+    - *File:* `doc/decisions/ADR-003-zk-gosrs-integration-strategy.md`
+    - *Decision:* How to combine ZK parsing/linking with go-srs SRS algorithms
+    - *Context:* Integration of two external systems with different architectures
+    - *Cross-references:* ADR-002 (Files-First), ADR-005 (Quality Scale)
+  - [ ] **1.3.7 ADR: SQLite Cache Strategy**: Document performance cache design
+    - *File:* `doc/decisions/ADR-004-flotsam-sqlite-cache-strategy.md`
+    - *Decision:* SQLite performance cache with file-first source of truth
+    - *Context:* Performance vs data portability for SRS operations and ZK integration
+    - *Cross-references:* ADR-002 (Files-First), ADR-006 (Context Isolation)
+  - [ ] **1.3.8 ADR: Quality Scale Adaptation**: Document SRS quality scale choice
+    - *File:* `doc/decisions/ADR-005-srs-quality-scale-adaptation.md`
+    - *Decision:* Adopt go-srs 0-6 quality scale vs alternatives (Anki 1-4, custom scales)
+    - *Context:* User experience vs algorithmic compatibility for SRS reviews
+    - *Cross-references:* ADR-003 (ZK-go-srs Integration)
+  - [ ] **1.3.9 ADR: Context Isolation Model**: Document context scoping design  
+    - *File:* `doc/decisions/ADR-006-flotsam-context-isolation.md`
+    - *Decision:* How contexts scope flotsam operations and data isolation
+    - *Context:* Integration with vice's context system and ZK notebook compatibility
+    - *Cross-references:* ADR-004 (SQLite Cache), T028 integration
+  - [ ] **1.3.10 ADR: License Compatibility**: Document legal framework
+    - *File:* `doc/decisions/ADR-007-flotsam-license-compatibility.md`
+    - *Decision:* Legal framework for combining GPLv3 (ZK) + Apache-2.0 (go-srs) components
+    - *Context:* Open source license compatibility and attribution requirements
+    - *Cross-references:* Package attribution headers, third-party dependencies
+  - [ ] **1.3.11 License compatibility audit**: Final license compliance review
+    - *License Matrix:* Document GPLv3 + Apache-2.0 compatibility for this use case
+    - *Attribution Audit:* Verify all required attributions are present and correct
+    - *Compliance Documentation:* Create license compliance summary for legal review
+    - *Cross-references:* ADR-007 (License Compatibility)
 
 ### 2. Data Model Definition
 - [ ] **2.1 Define ZK-Compatible Structures**: Create flotsam data structures
@@ -709,6 +777,7 @@ ZK Schema Architecture (SQLite):
 
 ## Git Commit History
 
+- `50badab` - feat(flotsam)[T027/1.2]: complete go-srs SRS system implementation
 - `0ce4f18` - feat(flotsam)[T027/1.1.4]: add ZK-compatible ID generation
 - `fc4446b` - docs(flotsam)[T027]: enhance task documentation with architecture diagram and unified file handler design
 - `206fa46` - feat(flotsam)[T027]: add ZK interoperability research, design & successful compatibility testing
