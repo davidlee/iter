@@ -179,14 +179,14 @@ type SRSData struct {
 Extend DataRepository interface for flotsam operations:
 ```go
 type DataRepository interface {
-    // Existing methods from T028
+    // Existing methods from T028 - IMPLEMENTED ✅
     LoadHabits(ctx string) (*models.Schema, error)
     LoadEntries(ctx string, date time.Time) (*models.EntryLog, error)
     SaveEntries(ctx string, entries *models.EntryLog) error
     LoadChecklists(ctx string) (*models.ChecklistSchema, error)
     SwitchContext(newContext string) error
     
-    // New flotsam methods
+    // New flotsam methods - TO BE IMPLEMENTED
     LoadFlotsam(ctx string) (*FlotsamCollection, error)
     SaveFlotsam(ctx string, flotsam *FlotsamCollection) error
     CreateFlotsamNote(ctx string, flotsam *Flotsam) error
@@ -194,6 +194,10 @@ type DataRepository interface {
     UpdateFlotsamNote(ctx string, flotsam *Flotsam) error
     DeleteFlotsamNote(ctx string, id string) error
     SearchFlotsam(ctx string, query string) ([]*Flotsam, error)
+    
+    // T028 integration methods
+    GetFlotsamCacheDB(ctx string) (*sql.DB, error)  // Context-aware cache DB
+    EnsureFlotsamDir(ctx string) error              // Use T028 ViceEnv paths
 }
 ```
 
@@ -222,11 +226,13 @@ vice:
 ```
 
 #### SQLite Performance Cache (Decision Made)
-**Cache Strategy**: Add tables to existing ZK database
-- **ZK Compatibility**: ZK ignores additional tables (tested and confirmed)
+**Cache Strategy**: Context-aware SQLite database placement
+- **ZK Notebooks**: Add Vice tables to existing `.zk/notebook.db` (ZK ignores them)
+- **Vice Contexts**: Create `flotsam.db` in `$VICE_DATA/{context}/` directory
+- **T028 Integration**: Leverage ViceEnv for context-aware cache database paths
 - **Performance**: Fast queries for SRS operations
 - **Consistency**: Cache rebuilt from files when checksums change
-- **Recovery**: Drop cache tables to completely remove Vice
+- **Recovery**: Drop cache tables/database to completely remove Vice
 
 #### Unified File Handler (Design Innovation)
 **Multi-Format Support**: Handle .md, .yml, .json files
@@ -648,6 +654,7 @@ ZK Schema Architecture (SQLite):
 
 ## Git Commit History
 
+- `fc4446b` - docs(flotsam)[T027]: enhance task documentation with architecture diagram and unified file handler design
 - `206fa46` - feat(flotsam)[T027]: add ZK interoperability research, design & successful compatibility testing
 - `7691f08` - docs(flotsam)[T027]: add AIDEV anchor tags for goldmark AST patterns and test fixes
 - `098794a` - fix(flotsam)[T027]: fix failing tests and linter issues
