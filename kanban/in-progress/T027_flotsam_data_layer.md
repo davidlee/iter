@@ -462,11 +462,24 @@ vice:
       - **Atomic Operations**: File writes followed by cache updates in transactions
     - *Trade-offs Documented**: Complete analysis of portability vs performance considerations
     - *Implementation Details**: Cache schema, error recovery process, and ZK integration patterns
-  - [ ] **1.3.6 ADR: ZK-go-srs Integration Strategy**: Document component integration approach
+  - [x] **1.3.6 ADR: ZK-go-srs Integration Strategy**: Document component integration approach
     - *File:* `doc/decisions/ADR-003-zk-gosrs-integration-strategy.md`
     - *Decision:* How to combine ZK parsing/linking with go-srs SRS algorithms
     - *Context:* Integration of two external systems with different architectures
     - *Cross-references:* ADR-002 (Files-First), ADR-005 (Quality Scale)
+    - *Status:* COMPLETED - Created comprehensive ADR documenting integration strategy
+    - *Strategy:* Component extraction and adaptation (copy, don't import entire libraries)
+    - *Integration Architecture:*
+      - **ZK Components**: Frontmatter parsing, goldmark AST link extraction, ID generation
+      - **go-srs Components**: SM-2 algorithm, quality scale, review scheduling
+      - **Flotsam Bridge**: Unified data models and API surface for seamless integration
+    - *Key Decisions:*
+      - **Data Model Unification**: FlotsamNote structure bridging ZK notes with go-srs SRS data
+      - **Algorithm Adaptation**: go-srs SM-2 with file-based storage (not database)
+      - **Parsing Integration**: ZK's robust goldmark AST with SRS extensions
+      - **License Compliance**: Proper GPLv3 and Apache-2.0 attribution strategy
+    - *Implementation Patterns**: Unified data flow, SRS workflow integration, attribution strategy
+    - *Testing Strategy**: Cross-component validation and integration boundary testing
   - [ ] **1.3.7 ADR: SQLite Cache Strategy**: Document performance cache design
     - *File:* `doc/decisions/ADR-004-flotsam-sqlite-cache-strategy.md`
     - *Decision:* SQLite performance cache with file-first source of truth
@@ -761,6 +774,17 @@ ZK Schema Architecture (SQLite):
   - **Trade-offs Analysis**: Complete documentation of portability vs performance considerations
   - **Key Insight**: Files-first approach provides optimal balance of portability and performance for flotsam use case
   - **Next Steps**: Continue with 1.3.6 (ZK-go-srs integration ADR) and remaining subtasks
+- `2025-07-17 - AI:` **T027/1.3.6 ZK-go-srs Integration Strategy ADR COMPLETED**:
+  - Created ADR-003-zk-gosrs-integration-strategy.md documenting component integration approach
+  - **Strategy**: Component extraction and adaptation (copy specific components, don't import libraries)
+  - **Integration Architecture**: Unified API surface bridging ZK file-based and go-srs algorithm-focused systems
+  - **Data Model Unification**: FlotsamNote structure combining ZK notes with go-srs SRS data
+  - **Algorithm Adaptation**: go-srs SM-2 algorithm adapted for file-based storage instead of database
+  - **Parsing Integration**: ZK's goldmark AST link extraction with SRS frontmatter extensions
+  - **License Compliance**: Comprehensive attribution strategy for GPLv3 (ZK) and Apache-2.0 (go-srs)
+  - **Implementation Patterns**: Unified data flow, SRS workflow integration, attribution headers
+  - **Key Insight**: Component extraction provides best balance of proven algorithms with architectural flexibility
+  - **Next Steps**: Continue with 1.3.7 (SQLite cache strategy ADR) and remaining subtasks
 
 ### Evaluation Phase - ZK Compatibility Analysis
 
@@ -829,6 +853,7 @@ ZK Schema Architecture (SQLite):
 
 ## Git Commit History
 
+- `927e326` - docs(flotsam)[T027/1.3.6]: add ADR for ZK-go-srs integration strategy
 - `5df29b9` - docs(flotsam)[T027/1.3.5]: add ADR for files-first architecture decision
 - `e25411c` - docs(flotsam)[T027/1.3.4]: create comprehensive package documentation and API reference
 - `134dc2f` - feat(flotsam)[T027/1.3.3]: implement cross-component integration testing
