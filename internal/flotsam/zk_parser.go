@@ -19,6 +19,7 @@ import (
 
 	"github.com/relvacode/iso8601"
 	"gopkg.in/djherbis/times.v1"
+	"gopkg.in/yaml.v3"
 )
 
 // NoteContent holds the data parsed from the note content.
@@ -45,7 +46,7 @@ type NoteContent struct {
 func ParseNoteContent(content string) (*NoteContent, error) {
 	// For now, this is a simplified implementation
 	// TODO: Implement proper frontmatter parsing and link extraction
-	
+
 	result := &NoteContent{
 		Title:    extractTitle(content),
 		Lead:     extractLead(content),
@@ -54,7 +55,7 @@ func ParseNoteContent(content string) (*NoteContent, error) {
 		Links:    []Link{},
 		Metadata: make(map[string]interface{}),
 	}
-	
+
 	return result, nil
 }
 
@@ -78,40 +79,40 @@ func extractLead(content string) string {
 	foundTitle := false
 	var leadLines []string
 	inLead := false
-	
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		
+
 		// Skip title line
 		if strings.HasPrefix(line, "# ") {
 			foundTitle = true
 			continue
 		}
-		
+
 		// Skip empty lines after title until we find content
 		if foundTitle && line == "" && !inLead {
 			continue
 		}
-		
+
 		// Start collecting lead when we find non-empty content after title
 		if foundTitle && line != "" && !inLead {
 			inLead = true
 			leadLines = append(leadLines, line)
 			continue
 		}
-		
+
 		// Continue collecting lead if we're in the lead paragraph
 		if inLead && line != "" && !strings.HasPrefix(line, "#") {
 			leadLines = append(leadLines, line)
 			continue
 		}
-		
+
 		// Stop at empty line or next heading
 		if inLead && (line == "" || strings.HasPrefix(line, "#")) {
 			break
 		}
 	}
-	
+
 	return strings.Join(leadLines, " ")
 }
 
@@ -169,4 +170,60 @@ func CalculateChecksum(content []byte) string {
 // Simplified version of zk's RelPath functionality.
 func ExtractRelativePath(absPath, basePath string) (string, error) {
 	return filepath.Rel(basePath, absPath)
+}
+
+// Frontmatter represents the YAML frontmatter structure for flotsam notes.
+// This is a duplicate of the models.FlotsamFrontmatter to avoid import cycles.
+// AIDEV-NOTE: T027/3.2-frontmatter-parsing; ZK-compatible frontmatter with flotsam extensions
+//
+//revive:disable-next-line:exported FlotsamFrontmatter would stutter with package name
+type Frontmatter struct {
+	ID      string    `yaml:"id"`
+	Title   string    `yaml:"title"`
+	Created time.Time `yaml:"created-at"`
+	Tags    []string  `yaml:"tags,omitempty"`
+	Type    string    `yaml:"type,omitempty"`
+	SRS     *SRSData  `yaml:"srs,omitempty"`
+}
+
+// ParseFrontmatter parses YAML frontmatter from markdown content.
+// Returns frontmatter struct, body content, and any parsing error.
+// AIDEV-NOTE: T027/3.2-frontmatter-parsing; production version of test helper
+func ParseFrontmatter(content []byte) (*Frontmatter, string, error) {
+	contentStr := string(content)
+	lines := strings.Split(contentStr, "\n")
+
+	if len(lines) < 2 || lines[0] != "---" {
+		// No frontmatter, return empty frontmatter and full content as body
+		return &Frontmatter{}, contentStr, nil
+	}
+
+	// Find the closing ---
+	endIndex := -1
+	for i := 1; i < len(lines); i++ {
+		if lines[i] == "---" {
+			endIndex = i
+			break
+		}
+	}
+
+	if endIndex == -1 {
+		// No closing ---, treat as no frontmatter
+		return &Frontmatter{}, contentStr, nil
+	}
+
+	// Parse YAML frontmatter
+	frontmatterLines := lines[1:endIndex]
+	frontmatterText := strings.Join(frontmatterLines, "\n")
+
+	var frontmatter Frontmatter
+	if err := yaml.Unmarshal([]byte(frontmatterText), &frontmatter); err != nil {
+		return nil, "", fmt.Errorf("failed to parse YAML frontmatter: %w", err)
+	}
+
+	// Get body content
+	bodyLines := lines[endIndex+1:]
+	body := strings.Join(bodyLines, "\n")
+
+	return &frontmatter, body, nil
 }

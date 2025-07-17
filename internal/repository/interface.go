@@ -2,6 +2,7 @@
 package repository
 
 import (
+	"database/sql"
 	"time"
 
 	"davidlee/vice/internal/models"
@@ -33,6 +34,33 @@ type DataRepository interface {
 	// Data lifecycle management
 	UnloadAllData() error
 	IsDataLoaded() bool
+
+	// Flotsam operations (T027 integration)
+	// AIDEV-NOTE: T027/3.1-flotsam-repository; context-aware flotsam note operations with ZK compatibility
+
+	// Collection operations
+	LoadFlotsam() (*models.FlotsamCollection, error)
+	SaveFlotsam(collection *models.FlotsamCollection) error
+
+	// Individual note CRUD operations
+	CreateFlotsamNote(note *models.FlotsamNote) error
+	GetFlotsamNote(id string) (*models.FlotsamNote, error)
+	UpdateFlotsamNote(note *models.FlotsamNote) error
+	DeleteFlotsamNote(id string) error
+
+	// Search and query operations
+	SearchFlotsam(query string) ([]*models.FlotsamNote, error)
+	GetFlotsamByType(noteType models.FlotsamType) ([]*models.FlotsamNote, error)
+	GetFlotsamByTag(tag string) ([]*models.FlotsamNote, error)
+
+	// SRS operations
+	GetDueFlotsamNotes() ([]*models.FlotsamNote, error)
+	GetFlotsamWithSRS() ([]*models.FlotsamNote, error)
+
+	// Context and path support (T028 integration)
+	GetFlotsamDir() (string, error)
+	EnsureFlotsamDir() error
+	GetFlotsamCacheDB() (*sql.DB, error)
 }
 
 // Error represents errors from repository operations.

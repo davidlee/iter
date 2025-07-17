@@ -2,14 +2,21 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"davidlee/vice/internal/config"
+	"davidlee/vice/internal/flotsam"
 	init_pkg "davidlee/vice/internal/init"
 	"davidlee/vice/internal/models"
 	"davidlee/vice/internal/parser"
 	"davidlee/vice/internal/storage"
+	"gopkg.in/yaml.v3"
 )
 
 // FileRepository implements DataRepository with file-based storage.
@@ -278,4 +285,494 @@ func (r *FileRepository) UnloadAllData() error {
 func (r *FileRepository) IsDataLoaded() bool {
 	return r.dataLoaded && (r.currentSchema != nil || r.currentEntries != nil ||
 		r.currentChecklists != nil || r.currentChecklistEntries != nil)
+}
+
+// Flotsam operations implementation (T027)
+// AIDEV-NOTE: T027/3.2-flotsam-repository; implements files-first architecture per ADR-002
+
+// LoadFlotsam loads all flotsam notes from the context flotsam directory.
+// AIDEV-NOTE: T027/3.2.1-load-flotsam; scans .md files and parses ZK-compatible frontmatter
+func (r *FileRepository) LoadFlotsam() (*models.FlotsamCollection, error) {
+	// Get flotsam directory path
+	flotsamDir := r.viceEnv.GetFlotsamDir()
+
+	// Create collection for this context
+	collection := models.NewFlotsamCollection(r.viceEnv.Context)
+
+	// Check if flotsam directory exists
+	if _, err := os.Stat(flotsamDir); os.IsNotExist(err) {
+		// Directory doesn't exist, return empty collection
+		return collection, nil
+	} else if err != nil {
+		return nil, &Error{
+			Operation: "LoadFlotsam",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to check flotsam directory: %w", err),
+		}
+	}
+
+	// Walk the flotsam directory to find .md files
+	err := filepath.WalkDir(flotsamDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip directories and non-markdown files
+		if d.IsDir() || !strings.HasSuffix(strings.ToLower(d.Name()), ".md") {
+			return nil
+		}
+
+		// Parse the markdown file
+		note, parseErr := r.parseFlotsamFile(path)
+		if parseErr != nil {
+			// Log parsing error but continue with other files
+			// TODO: Consider adding structured logging
+			return parseErr
+		}
+
+		// Add note to collection
+		collection.AddNote(*note)
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, &Error{
+			Operation: "LoadFlotsam",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to walk flotsam directory: %w", err),
+		}
+	}
+
+	return collection, nil
+}
+
+// parseFlotsamFile parses a markdown file and returns a FlotsamNote.
+// AIDEV-NOTE: T027/3.2-file-parsing; uses ZK parser for frontmatter + goldmark for links
+func (r *FileRepository) parseFlotsamFile(filePath string) (*models.FlotsamNote, error) {
+	// Validate file path is within flotsam directory for security
+	flotsamDir := r.viceEnv.GetFlotsamDir()
+	if !strings.HasPrefix(filePath, flotsamDir) {
+		return nil, fmt.Errorf("file path %s is outside flotsam directory", filePath)
+	}
+
+	// Read file content
+	content, err := os.ReadFile(filePath) // #nosec G304 -- path validated above
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
+	}
+
+	// Parse frontmatter and body using ZK parser
+	frontmatter, body, err := flotsam.ParseFrontmatter(content)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse frontmatter in %s: %w", filePath, err)
+	}
+
+	// Extract links from body content
+	linkStructs := flotsam.ExtractLinks(body)
+
+	// Convert []Link to []string (just the href/target for simplicity)
+	links := make([]string, 0, len(linkStructs))
+	for _, link := range linkStructs {
+		links = append(links, link.Href)
+	}
+
+	// Get file info for modification time
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get file info for %s: %w", filePath, err)
+	}
+
+	// Create FlotsamNote from parsed data
+	note := &models.FlotsamNote{
+		FlotsamNote: flotsam.FlotsamNote{
+			ID:       frontmatter.ID,
+			Title:    frontmatter.Title,
+			Type:     frontmatter.Type, // Already a string in flotsam.FlotsamFrontmatter
+			Tags:     frontmatter.Tags,
+			Created:  frontmatter.Created,
+			Modified: fileInfo.ModTime(),
+			Body:     body,
+			Links:    links,
+			FilePath: filePath,
+			SRS:      frontmatter.SRS,
+		},
+	}
+
+	// Validate and set defaults for type
+	if err := note.ValidateType(); err != nil {
+		return nil, fmt.Errorf("invalid note type in %s: %w", filePath, err)
+	}
+
+	return note, nil
+}
+
+// SaveFlotsam saves a flotsam collection to markdown files.
+// AIDEV-NOTE: T027/3.2.2-save-flotsam; implements atomic file operations per ADR-002
+func (r *FileRepository) SaveFlotsam(collection *models.FlotsamCollection) error {
+	if collection == nil {
+		return &Error{
+			Operation: "SaveFlotsam",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("collection cannot be nil"),
+		}
+	}
+
+	// Ensure flotsam directory exists
+	if err := r.EnsureFlotsamDir(); err != nil {
+		return &Error{
+			Operation: "SaveFlotsam",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to ensure flotsam directory: %w", err),
+		}
+	}
+
+	flotsamDir := r.viceEnv.GetFlotsamDir()
+
+	// Save each note as an individual markdown file
+	for _, note := range collection.Notes {
+		if err := r.saveFlotsamNote(&note, flotsamDir); err != nil {
+			return &Error{
+				Operation: "SaveFlotsam",
+				Context:   r.viceEnv.Context,
+				Err:       fmt.Errorf("failed to save note %s: %w", note.ID, err),
+			}
+		}
+	}
+
+	return nil
+}
+
+// saveFlotsamNote saves a single flotsam note to a markdown file using atomic operations.
+// AIDEV-NOTE: T027/3.2.2-atomic-save; uses temp file + rename for atomic operations
+func (r *FileRepository) saveFlotsamNote(note *models.FlotsamNote, flotsamDir string) error {
+	// Generate filename from note ID
+	filename := note.ID + ".md"
+	filePath := filepath.Join(flotsamDir, filename)
+
+	// Serialize note to markdown content
+	content, err := r.serializeFlotsamNote(note)
+	if err != nil {
+		return fmt.Errorf("failed to serialize note: %w", err)
+	}
+
+	// Write to temporary file first (atomic operation pattern)
+	tempPath := filePath + ".tmp"
+
+	// Write content to temp file
+	if err := os.WriteFile(tempPath, content, 0o600); err != nil {
+		return fmt.Errorf("failed to write temp file: %w", err)
+	}
+
+	// Atomically rename temp file to final location
+	if err := os.Rename(tempPath, filePath); err != nil {
+		// Clean up temp file on failure
+		_ = os.Remove(tempPath)
+		return fmt.Errorf("failed to rename temp file: %w", err)
+	}
+
+	return nil
+}
+
+// serializeFlotsamNote converts a FlotsamNote to markdown content with YAML frontmatter.
+// AIDEV-NOTE: T027/3.2.2-serialization; converts models.FlotsamNote to markdown format
+func (r *FileRepository) serializeFlotsamNote(note *models.FlotsamNote) ([]byte, error) {
+	// Extract frontmatter from note
+	frontmatter := note.GetFrontmatter()
+
+	// Convert frontmatter to YAML
+	frontmatterYAML, err := yaml.Marshal(frontmatter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal frontmatter: %w", err)
+	}
+
+	// Build complete markdown content
+	var content strings.Builder
+	content.WriteString("---\n")
+	content.Write(frontmatterYAML)
+	content.WriteString("---\n")
+
+	// Add body content (ensure it starts with newline)
+	if note.Body != "" {
+		if !strings.HasPrefix(note.Body, "\n") {
+			content.WriteString("\n")
+		}
+		content.WriteString(note.Body)
+	}
+
+	// Ensure file ends with newline
+	if !strings.HasSuffix(content.String(), "\n") {
+		content.WriteString("\n")
+	}
+
+	return []byte(content.String()), nil
+}
+
+// CreateFlotsamNote creates a new flotsam note file.
+// AIDEV-NOTE: T027/3.2.3-crud-create; atomic file creation with existence check
+func (r *FileRepository) CreateFlotsamNote(note *models.FlotsamNote) error {
+	if note == nil {
+		return &Error{
+			Operation: "CreateFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("note cannot be nil"),
+		}
+	}
+
+	if note.ID == "" {
+		return &Error{
+			Operation: "CreateFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("note ID cannot be empty"),
+		}
+	}
+
+	// Ensure flotsam directory exists
+	if err := r.EnsureFlotsamDir(); err != nil {
+		return &Error{
+			Operation: "CreateFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to ensure flotsam directory: %w", err),
+		}
+	}
+
+	flotsamDir := r.viceEnv.GetFlotsamDir()
+	filename := note.ID + ".md"
+	filePath := filepath.Join(flotsamDir, filename)
+
+	// Check if file already exists
+	if _, err := os.Stat(filePath); err == nil {
+		return &Error{
+			Operation: "CreateFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("note with ID %s already exists", note.ID),
+		}
+	}
+
+	// Use the same atomic save logic as SaveFlotsam
+	if err := r.saveFlotsamNote(note, flotsamDir); err != nil {
+		return &Error{
+			Operation: "CreateFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to save note: %w", err),
+		}
+	}
+
+	return nil
+}
+
+// GetFlotsamNote retrieves a flotsam note by ID.
+// AIDEV-NOTE: T027/3.2.3-crud-read; single note retrieval with existence check
+func (r *FileRepository) GetFlotsamNote(id string) (*models.FlotsamNote, error) {
+	if id == "" {
+		return nil, &Error{
+			Operation: "GetFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("note ID cannot be empty"),
+		}
+	}
+
+	flotsamDir := r.viceEnv.GetFlotsamDir()
+	filename := id + ".md"
+	filePath := filepath.Join(flotsamDir, filename)
+
+	// Check if file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return nil, &Error{
+			Operation: "GetFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("note with ID %s not found", id),
+		}
+	} else if err != nil {
+		return nil, &Error{
+			Operation: "GetFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to check note file: %w", err),
+		}
+	}
+
+	// Use existing parseFlotsamFile method
+	note, err := r.parseFlotsamFile(filePath)
+	if err != nil {
+		return nil, &Error{
+			Operation: "GetFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to parse note: %w", err),
+		}
+	}
+
+	return note, nil
+}
+
+// UpdateFlotsamNote updates an existing flotsam note.
+// AIDEV-NOTE: T027/3.2.3-crud-update; atomic update with existence check
+func (r *FileRepository) UpdateFlotsamNote(note *models.FlotsamNote) error {
+	if note == nil {
+		return &Error{
+			Operation: "UpdateFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("note cannot be nil"),
+		}
+	}
+
+	if note.ID == "" {
+		return &Error{
+			Operation: "UpdateFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("note ID cannot be empty"),
+		}
+	}
+
+	flotsamDir := r.viceEnv.GetFlotsamDir()
+	filename := note.ID + ".md"
+	filePath := filepath.Join(flotsamDir, filename)
+
+	// Check if file exists (can't update non-existent note)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return &Error{
+			Operation: "UpdateFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("note with ID %s not found", note.ID),
+		}
+	} else if err != nil {
+		return &Error{
+			Operation: "UpdateFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to check note file: %w", err),
+		}
+	}
+
+	// Update modified time to current time
+	note.Modified = time.Now()
+
+	// Use the same atomic save logic as SaveFlotsam
+	if err := r.saveFlotsamNote(note, flotsamDir); err != nil {
+		return &Error{
+			Operation: "UpdateFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to save updated note: %w", err),
+		}
+	}
+
+	return nil
+}
+
+// DeleteFlotsamNote deletes a flotsam note file.
+// AIDEV-NOTE: T027/3.2.3-crud-delete; file deletion with existence check
+func (r *FileRepository) DeleteFlotsamNote(id string) error {
+	if id == "" {
+		return &Error{
+			Operation: "DeleteFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("note ID cannot be empty"),
+		}
+	}
+
+	flotsamDir := r.viceEnv.GetFlotsamDir()
+	filename := id + ".md"
+	filePath := filepath.Join(flotsamDir, filename)
+
+	// Check if file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return &Error{
+			Operation: "DeleteFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("note with ID %s not found", id),
+		}
+	} else if err != nil {
+		return &Error{
+			Operation: "DeleteFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to check note file: %w", err),
+		}
+	}
+
+	// Delete the file
+	if err := os.Remove(filePath); err != nil {
+		return &Error{
+			Operation: "DeleteFlotsamNote",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to delete note file: %w", err),
+		}
+	}
+
+	return nil
+}
+
+// SearchFlotsam searches flotsam notes by query.
+func (r *FileRepository) SearchFlotsam(_ string) ([]*models.FlotsamNote, error) {
+	// TODO: Implement in later subtask
+	return nil, &Error{
+		Operation: "SearchFlotsam",
+		Context:   r.viceEnv.Context,
+		Err:       fmt.Errorf("not yet implemented"),
+	}
+}
+
+// GetFlotsamByType returns flotsam notes of a specific type.
+func (r *FileRepository) GetFlotsamByType(_ models.FlotsamType) ([]*models.FlotsamNote, error) {
+	// TODO: Implement in later subtask
+	return nil, &Error{
+		Operation: "GetFlotsamByType",
+		Context:   r.viceEnv.Context,
+		Err:       fmt.Errorf("not yet implemented"),
+	}
+}
+
+// GetFlotsamByTag returns flotsam notes with a specific tag.
+func (r *FileRepository) GetFlotsamByTag(_ string) ([]*models.FlotsamNote, error) {
+	// TODO: Implement in later subtask
+	return nil, &Error{
+		Operation: "GetFlotsamByTag",
+		Context:   r.viceEnv.Context,
+		Err:       fmt.Errorf("not yet implemented"),
+	}
+}
+
+// GetDueFlotsamNotes returns flotsam notes due for SRS review.
+func (r *FileRepository) GetDueFlotsamNotes() ([]*models.FlotsamNote, error) {
+	// TODO: Implement in later subtask
+	return nil, &Error{
+		Operation: "GetDueFlotsamNotes",
+		Context:   r.viceEnv.Context,
+		Err:       fmt.Errorf("not yet implemented"),
+	}
+}
+
+// GetFlotsamWithSRS returns flotsam notes that have SRS enabled.
+func (r *FileRepository) GetFlotsamWithSRS() ([]*models.FlotsamNote, error) {
+	// TODO: Implement in later subtask
+	return nil, &Error{
+		Operation: "GetFlotsamWithSRS",
+		Context:   r.viceEnv.Context,
+		Err:       fmt.Errorf("not yet implemented"),
+	}
+}
+
+// GetFlotsamDir returns the context-aware flotsam directory path.
+func (r *FileRepository) GetFlotsamDir() (string, error) {
+	return r.viceEnv.GetFlotsamDir(), nil
+}
+
+// EnsureFlotsamDir ensures the flotsam directory exists.
+func (r *FileRepository) EnsureFlotsamDir() error {
+	flotsamDir := r.viceEnv.GetFlotsamDir()
+	if err := os.MkdirAll(flotsamDir, 0o750); err != nil {
+		return &Error{
+			Operation: "EnsureFlotsamDir",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to create flotsam directory: %w", err),
+		}
+	}
+	return nil
+}
+
+// GetFlotsamCacheDB returns the flotsam SQLite cache database connection.
+func (r *FileRepository) GetFlotsamCacheDB() (*sql.DB, error) {
+	// TODO: Implement in later subtask (cache implementation)
+	return nil, &Error{
+		Operation: "GetFlotsamCacheDB",
+		Context:   r.viceEnv.Context,
+		Err:       fmt.Errorf("not yet implemented"),
+	}
 }

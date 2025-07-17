@@ -189,6 +189,18 @@ func (env *ViceEnv) GetChecklistEntriesFile() string {
 	return filepath.Join(env.ContextData, "checklist_entries.yml")
 }
 
+// GetFlotsamDir returns the context-aware path to the flotsam directory.
+// AIDEV-NOTE: T027/3.2-flotsam-paths; context-aware flotsam directory for markdown note storage
+func (env *ViceEnv) GetFlotsamDir() string {
+	return filepath.Join(env.ContextData, "flotsam")
+}
+
+// GetFlotsamCacheDB returns the context-aware path to the flotsam SQLite cache database.
+// AIDEV-NOTE: T027/3.2-flotsam-cache; ADR-004 SQLite cache strategy for performance
+func (env *ViceEnv) GetFlotsamCacheDB() string {
+	return filepath.Join(env.ContextData, "flotsam.db")
+}
+
 // resolveXDGDir resolves an XDG directory with the given priority:
 // 1. VICE_* environment variable (if set)
 // 2. XDG_* environment variable + app name (if set)
