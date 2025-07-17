@@ -423,7 +423,7 @@ vice:
       - ZK ID generation → frontmatter parsing → link extraction → SRS processing → file serialization
       - Round-trip data integrity maintained throughout the workflow
       - Error handling and edge cases properly addressed
-  - [ ] **1.3.4 Package documentation and API reference**: Create unified documentation
+  - [x] **1.3.4 Package documentation and API reference**: Create unified documentation
     - *Package Doc:* Comprehensive package-level documentation for flotsam
     - *API Reference:* Document public interfaces and their relationships
     - *Usage Examples:* Show how components work together
@@ -433,6 +433,19 @@ vice:
       - **Bulk SRS Processing**: SRS calculations when processing many due cards
       - **Directory Scanning**: Frontmatter parsing when scanning large note collections
       - **Cache Synchronization**: SQLite updates during batch note operations
+    - *Status:* COMPLETED - Created comprehensive package documentation
+    - *File Created:* `doc/specifications/flotsam.md` with complete API reference and usage examples
+    - *Documentation Includes:*
+      - **Architecture Overview**: Files-first design with component integration diagram
+      - **Core Data Structures**: FlotsamNote, SRSData, Link with detailed explanations
+      - **Complete API Reference**: All public interfaces with usage examples
+      - **Performance Guidelines**: Benchmarks and optimization strategies for inner-loop operations
+      - **Integration Patterns**: Repository Pattern integration and context isolation
+      - **ZK Compatibility**: Hybrid architecture and interoperability documentation
+      - **Error Handling**: Comprehensive error handling patterns and examples
+      - **Testing Documentation**: Test coverage and integration test explanations
+      - **License Attribution**: Proper attribution for ZK (GPLv3) and go-srs (Apache-2.0) components
+      - **Future Enhancements**: Roadmap for planned features and optimizations
   - [ ] **1.3.5 ADR: Files-First Architecture**: Document storage strategy decision
     - *File:* `doc/decisions/ADR-002-flotsam-files-first-architecture.md`
     - *Decision:* Store all SRS data in markdown frontmatter vs separate database
@@ -717,6 +730,16 @@ ZK Schema Architecture (SQLite):
   - **Data Integrity**: Round-trip data persistence validated across all components
   - **Key Insight**: Integration testing confirmed the architecture design is sound and performant
   - **Next Steps**: Continue with 1.3.4 (package documentation) and remaining subtasks
+- `2025-07-17 - AI:` **T027/1.3.4 Package Documentation COMPLETED**:
+  - Created comprehensive package documentation in `doc/specifications/flotsam.md`
+  - **Complete API Reference**: All public interfaces documented with usage examples
+  - **Architecture Documentation**: Files-first design with component integration diagrams
+  - **Performance Guidelines**: Benchmarks and optimization strategies for inner-loop operations
+  - **Integration Patterns**: Repository Pattern integration and context isolation documentation
+  - **ZK Compatibility**: Hybrid architecture and interoperability documentation
+  - **Attribution**: Proper license attribution for ZK (GPLv3) and go-srs (Apache-2.0) components
+  - **Key Insight**: Documentation provides complete reference for flotsam package usage and integration
+  - **Next Steps**: Continue with 1.3.5 (ADR documentation) and remaining subtasks
 
 ### Evaluation Phase - ZK Compatibility Analysis
 
@@ -785,6 +808,7 @@ ZK Schema Architecture (SQLite):
 
 ## Git Commit History
 
+- `e25411c` - docs(flotsam)[T027/1.3.4]: create comprehensive package documentation and API reference
 - `134dc2f` - feat(flotsam)[T027/1.3.3]: implement cross-component integration testing
 - `50badab` - feat(flotsam)[T027/1.2]: complete go-srs SRS system implementation
 - `0ce4f18` - feat(flotsam)[T027/1.1.4]: add ZK-compatible ID generation

@@ -17,7 +17,7 @@
 
 ## Context
 
-Brief description of the problem or situation that requires a decision.
+**Brief** description of the problem or situation that requires a decision.
 
 ## Decision
 
