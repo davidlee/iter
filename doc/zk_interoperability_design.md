@@ -45,15 +45,17 @@ This document outlines the design for seamless interoperability between ZK noteb
 - **Vice**: File modification + SRS metadata updates
 - **Conflict**: Changes by one system might not be properly handled by the other
 
-## Design Solution: Hybrid Interoperability Layer
+## Design Solution: Files-First Hybrid Interoperability Layer
 
 ### Core Design Principles
 
-1. **Non-Destructive**: Never break existing ZK functionality
-2. **Bidirectional**: Both systems can read/write same files
-3. **Upgradeable**: On-demand upgrade path with rollback capability
-4. **Transparent**: ZK remains unaware of Vice extensions
-5. **Efficient**: Minimal performance impact on either system
+1. **Files as Source of Truth**: Markdown files contain all persistent data including SRS history
+2. **SQLite as Performance Cache**: Database rebuilt from files for fast queries
+3. **Non-Destructive**: Never break existing ZK functionality
+4. **Bidirectional**: Both systems can read/write same files
+5. **Upgradeable**: On-demand upgrade path with rollback capability
+6. **Transparent**: ZK remains unaware of Vice extensions
+7. **Rebuildable**: SQLite can always be reconstructed from markdown files
 
 ### Architecture Overview
 
@@ -63,10 +65,12 @@ This document outlines the design for seamless interoperability between ZK noteb
 │                    (e.g., ~/workbench/zk)                      │
 ├─────────────────────────────────────────────────────────────────┤
 │  *.md files with ZK-compatible frontmatter                     │
-│  + optional Vice SRS extensions                                │
+│  + Vice SRS extensions (SOURCE OF TRUTH)                       │
+│                                                                 │
+│  Data Flow: Write to .md → Rebuild SQLite cache                │
 ├─────────────────────────────────────────────────────────────────┤
-│  .zk/notebook.db     │  .vice/flotsam.db                       │
-│  (ZK SQLite index)   │  (Vice SRS & context metadata)         │
+│  .zk/notebook.db     │  .zk/notebook.db + Vice tables          │
+│  (ZK SQLite index)   │  (Vice SRS cache - rebuilt from files)  │
 ├─────────────────────────────────────────────────────────────────┤
 │  .zk/config.toml     │  .vice/config.yaml                     │
 │  (ZK configuration)  │  (Vice flotsam configuration)          │
@@ -75,9 +79,9 @@ This document outlines the design for seamless interoperability between ZK noteb
 
 ### Implementation Strategy
 
-#### Phase 1: Safe Frontmatter Extensions
+#### Phase 1: Files-First SRS Data Storage
 
-**Goal**: Extend ZK frontmatter with Vice-specific fields that ZK ignores
+**Goal**: Store all SRS data in markdown frontmatter as source of truth
 
 **Approach**:
 ```yaml
@@ -88,13 +92,20 @@ title: git
 created-at: "2025-06-23 14:06:42"
 tags: [draft, to/review, tech, versioning]
 
-# Vice extensions (ignored by ZK)
+# Vice extensions (ignored by ZK, source of truth)
 vice:
   srs:
     easiness: 2.5
     consecutive_correct: 0
     due: 1640995200
-    total_reviews: 0
+    total_reviews: 3
+    review_history:
+      - timestamp: 1640995100
+        quality: 4
+      - timestamp: 1640995000
+        quality: 3
+      - timestamp: 1640994900
+        quality: 5
   context: "default"
   flotsam_type: "idea"
 ---
@@ -102,7 +113,9 @@ vice:
 
 **Benefits**:
 - ZK ignores unknown frontmatter fields
-- Vice can read/write SRS data safely
+- All persistent data travels with markdown files
+- Complete SRS history preserved in text format
+- SQLite can always be rebuilt from files
 - Fully backward compatible
 
 #### Phase 2: Directory Bridge System
@@ -132,32 +145,54 @@ type ZKNotebookConfig struct {
 - No file movement required
 - Configurable read-only mode for safety
 
-#### Phase 3: Metadata Synchronization
+#### Phase 3: SQLite Performance Cache
 
-**Goal**: Maintain separate metadata stores without conflicts
+**Goal**: Maintain SQLite cache for fast queries while keeping files as source of truth
 
 **Approach**:
 - **ZK Database**: Remains authoritative for ZK features (FTS, links, etc.)
-- **Vice Database**: Stores SRS data and context associations
-- **Synchronization**: File checksum-based change detection
+- **Vice Cache Tables**: Added to ZK database for performance (ZK ignores them)
+- **Synchronization**: Rebuild cache from markdown files on changes
 
 ```sql
--- Vice flotsam database schema
-CREATE TABLE flotsam_notes (
-    id TEXT PRIMARY KEY,
-    file_path TEXT NOT NULL,
-    file_checksum TEXT NOT NULL,
-    context TEXT NOT NULL,
-    srs_data TEXT, -- JSON blob of SRS metadata
-    last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(file_path, context)
+-- Vice cache tables (added to existing ZK database)
+CREATE TABLE vice_srs_cache (
+    note_id INTEGER PRIMARY KEY REFERENCES notes(id) ON DELETE CASCADE,
+    context TEXT NOT NULL DEFAULT 'default',
+    easiness REAL DEFAULT 2.5,
+    consecutive_correct INTEGER DEFAULT 0,
+    due_timestamp INTEGER,
+    total_reviews INTEGER DEFAULT 0,
+    last_review_timestamp INTEGER,
+    card_type TEXT DEFAULT 'idea',
+    file_checksum TEXT NOT NULL -- For cache invalidation
 );
+
+CREATE TABLE vice_review_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    note_id INTEGER REFERENCES notes(id) ON DELETE CASCADE,
+    timestamp INTEGER NOT NULL,
+    quality INTEGER NOT NULL,
+    FOREIGN KEY (note_id) REFERENCES notes(id)
+);
+
+-- Performance indexes
+CREATE INDEX idx_vice_srs_due ON vice_srs_cache(due_timestamp);
+CREATE INDEX idx_vice_srs_context ON vice_srs_cache(context);
+CREATE INDEX idx_vice_history_note ON vice_review_history(note_id);
 ```
 
+**Data Flow**:
+1. **Write**: Update markdown file frontmatter
+2. **Cache**: Rebuild SQLite cache from file
+3. **Query**: Use SQLite for fast SRS queries
+
 **Benefits**:
-- No conflicts between ZK and Vice metadata
-- Change detection prevents stale data
-- Context isolation maintained
+- Files remain authoritative source of truth
+- Fast queries for "cards due today" etc.
+- Cache can always be rebuilt from files
+- ZK completely ignores Vice tables
+- No conflicts between ZK and Vice operations
 
 #### Phase 4: Link Resolution Compatibility
 
@@ -222,47 +257,52 @@ vice flotsam rollback --zk-notebook ~/workbench/zk
 
 ### Database Schema Design
 
-#### Vice Flotsam Database (`.vice/flotsam.db`)
+#### Vice Cache Tables (Added to ZK's notebook.db)
 
 ```sql
--- Core note metadata
-CREATE TABLE notes (
-    id TEXT PRIMARY KEY,
-    file_path TEXT NOT NULL,
-    file_checksum TEXT NOT NULL,
-    context TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    modified_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(file_path, context)
-);
-
--- SRS scheduling data
-CREATE TABLE srs_data (
-    note_id TEXT PRIMARY KEY REFERENCES notes(id),
+-- SRS cache (rebuilt from markdown frontmatter)
+CREATE TABLE vice_srs_cache (
+    note_id INTEGER PRIMARY KEY REFERENCES notes(id) ON DELETE CASCADE,
+    context TEXT NOT NULL DEFAULT 'default',
     easiness REAL DEFAULT 2.5,
     consecutive_correct INTEGER DEFAULT 0,
-    due INTEGER, -- Unix timestamp
+    due_timestamp INTEGER,
     total_reviews INTEGER DEFAULT 0,
-    last_review DATETIME
+    last_review_timestamp INTEGER,
+    card_type TEXT DEFAULT 'idea',
+    file_checksum TEXT NOT NULL, -- For cache invalidation
+    updated_at INTEGER DEFAULT (strftime('%s', 'now'))
 );
 
--- Context associations
-CREATE TABLE contexts (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Link resolution cache (context-scoped)
-CREATE TABLE links (
+-- Review history cache (rebuilt from markdown frontmatter)
+CREATE TABLE vice_review_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    source_id TEXT NOT NULL REFERENCES notes(id),
-    target_id TEXT REFERENCES notes(id),
-    target_title TEXT NOT NULL,
-    context TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    note_id INTEGER REFERENCES notes(id) ON DELETE CASCADE,
+    timestamp INTEGER NOT NULL,
+    quality INTEGER NOT NULL,
+    created_at INTEGER DEFAULT (strftime('%s', 'now'))
 );
+
+-- Context definitions
+CREATE TABLE vice_contexts (
+    name TEXT PRIMARY KEY,
+    description TEXT,
+    created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+-- Performance indexes
+CREATE INDEX idx_vice_srs_due ON vice_srs_cache(due_timestamp);
+CREATE INDEX idx_vice_srs_context ON vice_srs_cache(context);
+CREATE INDEX idx_vice_history_note ON vice_review_history(note_id);
+CREATE INDEX idx_vice_srs_checksum ON vice_srs_cache(file_checksum);
 ```
+
+**Key Design Decisions**:
+1. **Additive Only**: No modifications to existing ZK tables
+2. **Source of Truth**: All persistent data in markdown frontmatter
+3. **Cache Invalidation**: Use file checksums to detect changes
+4. **Performance**: Indexes for common SRS queries
+5. **Referential Integrity**: Foreign keys ensure data consistency
 
 #### Configuration Schema (`.vice/config.yaml`)
 
@@ -374,9 +414,10 @@ vice flotsam edit zk-created-note --context default
 The hybrid interoperability design provides a safe, non-destructive way to integrate ZK notebooks with Vice flotsam while maintaining full compatibility. The phased approach allows for gradual adoption with multiple safety measures and rollback capabilities.
 
 Key success factors:
-- ZK-compatible frontmatter extensions
-- Separate metadata stores to avoid conflicts
+- Files-first architecture with text files as source of truth
+- ZK-compatible frontmatter extensions for SRS data
+- SQLite performance cache that ZK ignores
 - Comprehensive testing and validation
 - Clear migration and rollback procedures
 
-This design ensures that users can leverage both ZK's powerful notebook features and Vice's SRS capabilities on the same content without compromising either system's functionality.
+This design ensures that users can leverage both ZK's powerful notebook features and Vice's SRS capabilities on the same content without compromising either system's functionality, while maintaining data portability and the ability to completely rebuild the system from text files.

@@ -47,13 +47,21 @@ TODO: think about how to adapt / support / reinforce "Atomic Habits" framework, 
     - automate somehow: user scripts
     - socials
 
+## TUI
+
 ### (add / edit)
 - [ ] edit title
 - [ ] ? add optional default for boolean fields. This will set the default state for form fields during entry.
 
+# CLI
+
+
+
 ## data model
 
-- a habit can have n fields
+- [ ] a habit can have n fields
+
+which begs for ...
 - more complex (DSL?) criteria
   - combine per-field criteria
   - and / or, or ... any / all
@@ -74,6 +82,8 @@ TODO: think about how to adapt / support / reinforce "Atomic Habits" framework, 
 
 - [ ] time of day : before conditions spanning midnight - how can this be adressed?
   (optional)
+  - you could set a "reference time" or "witching hour" and do some datetime maths. 
+    maybe default it to 4:00 as the "time most likely to be asleep"
 
 ## reporting / analytics (necessary, soonish)
 
@@ -89,11 +99,6 @@ TODO: think about how to adapt / support / reinforce "Atomic Habits" framework, 
 - calendar stuff
 - lots of opportunity to build stuff that looks cool
   - cli animations!
-
-## cli bling
-
-- better / updated help
-- https://github.com/charmbracelet/fang
 
 ## configuration
 
@@ -119,6 +124,7 @@ TODO: think about how to adapt / support / reinforce "Atomic Habits" framework, 
 ## persistent process
 
 - sway / menu bar app
+  - what would it do?
 - server process
 
 ## oddities

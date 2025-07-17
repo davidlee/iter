@@ -7,7 +7,9 @@ context_windows: ["internal/models/*.go", "internal/storage/*.go", "doc/specific
 # Flotsam Data Layer Implementation
 
 **Context (Background)**:
-Implement the core data layer for the flotsam note system using individual markdown files with YAML frontmatter, ZK-compatible parsing, and go-srs SRS integration. This is the foundational component for T026 flotsam system.
+Implement the core data layer for the flotsam note system using individual markdown files with YAML frontmatter as source of truth, SQLite performance cache, ZK-compatible parsing, and go-srs SRS integration. This is the foundational component for T026 flotsam system.
+
+**Key Innovation**: Files-first architecture where all persistent data (including SRS history) lives in markdown frontmatter, with SQLite cache for performance. This ensures data portability while enabling fast queries.
 
 **Type**: `feature`
 
@@ -40,29 +42,104 @@ This task is part of the `T026_flotsam_note_system` epic.
 ## Habit / User Story
 
 As a developer implementing the flotsam system, I need a robust data layer that:
-- Defines Go structs compatible with ZK frontmatter schema
-- Integrates with T028 Repository Pattern for context-aware persistence
-- Persists to `$VICE_DATA/{context}/flotsam/*.md` with YAML frontmatter
-- Provides CRUD operations through DataRepository interface extension
-- Supports ZK-compatible wiki link extraction and backlink computation
-- Handles SRS scheduling using adapted go-srs SM-2 algorithm
-- Maintains context isolation while supporting ZK interoperability
+- **Files-first**: All data in portable markdown files with YAML frontmatter as source of truth
+- **Performance cache**: SQLite cache for fast SRS queries while preserving data in files
+- **ZK compatible**: Works seamlessly with existing ZK notebooks without conflicts
+- **Atomic operations**: Unified file handler ensures consistency between files and cache
+- **Multi-format**: Handles .md, .yml, .json files with extensible parser system
+- **Context isolation**: Supports Vice contexts while enabling ZK interoperability
+- **SRS integration**: Complete SRS history in frontmatter, cached for performance
+- **Error recovery**: Cache can always be rebuilt from source files
 
 ## Acceptance Criteria (ACs)
 
+### Core Data Layer
 - [ ] `internal/models/flotsam.go` with ZK-compatible data structures
-- [ ] Extend DataRepository interface for flotsam operations (T028 integration)
-- [ ] `internal/repository/flotsam_repository.go` with markdown file operations
 - [ ] ZK frontmatter parsing and validation (copied from ZK codebase)
 - [ ] Context-scoped wiki link extraction using ZK parsing logic
 - [ ] ZK-compatible ID generation (4-char alphanum, configurable)
-- [ ] Integration with ViceEnv for markdown directory paths
 - [ ] SM-2 SRS implementation using copied go-srs algorithm
-- [ ] Individual markdown file operations with atomic safety
+
+### Unified File Handler
+- [ ] Multi-format file handler (.md, .yml, .json)
+- [ ] Atomic file operations (write to file → update cache)
+- [ ] Change detection using timestamp + SHA256 checksum
+- [ ] SQLite cache synchronization with file change detection
+- [ ] Error recovery with cache rebuild from source files
+
+### ZK Interoperability
+- [x] ZK compatibility testing with Vice frontmatter extensions
+- [ ] SQLite cache tables added to ZK database without conflicts
+- [ ] Co-existence with ZK indexing pipeline
+- [ ] Frontmatter schema that ZK preserves in metadata
+
+### Repository Integration
+- [ ] Extend DataRepository interface for flotsam operations (T028 integration)
+- [ ] Context-aware file operations with ViceEnv integration
+- [ ] Cache invalidation and synchronization mechanisms
+
+### Testing & Validation
 - [ ] Comprehensive unit tests for all operations
-- [ ] Integration tests with context switching scenarios
+- [ ] Integration tests with ZK notebook scenarios
+- [ ] Performance tests for cache vs file operations
+- [ ] Error recovery and consistency validation tests
 
 ## Architecture
+
+### Data Flow Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           VICE FLOTSAM DATA LAYER                              │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐              │
+│  │   .md Files     │    │   .yml Files    │    │   .json Files   │              │
+│  │ (ZK Compatible) │    │   (Config)      │    │   (Data)        │              │
+│  │ SOURCE OF TRUTH │    │ SOURCE OF TRUTH │    │ SOURCE OF TRUTH │              │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘              │
+│           │                       │                       │                     │
+│           │                       │                       │                     │
+│           ▼                       ▼                       ▼                     │
+│  ┌─────────────────────────────────────────────────────────────────┐            │
+│  │              UNIFIED FILE HANDLER                               │            │
+│  │                                                                 │            │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │            │
+│  │  │ Change Detection│  │ Content Parsing │  │ Atomic Updates  │  │            │
+│  │  │ (Time+Checksum)│  │ (Multi-format)  │  │ (File+Cache)    │  │            │
+│  │  └─────────────────┘  └─────────────────┘  └─────────────────┘  │            │
+│  └─────────────────────────────────────────────────────────────────┘            │
+│                                  │                                              │
+│                                  ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────┐            │
+│  │                    SQLITE PERFORMANCE CACHE                     │            │
+│  │                                                                 │            │
+│  │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐       │            │
+│  │  │ vice_srs_cache│  │vice_file_cache│  │vice_contexts  │       │            │
+│  │  │ (Fast SRS     │  │ (Change track)│  │ (Context def) │       │            │
+│  │  │  queries)     │  │               │  │               │       │            │
+│  │  └───────────────┘  └───────────────┘  └───────────────┘       │            │
+│  │                                                                 │            │
+│  │  Added to existing ZK notebook.db (ZK ignores Vice tables)     │            │
+│  └─────────────────────────────────────────────────────────────────┘            │
+│                                  │                                              │
+│                                  ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────┐            │
+│  │                      APPLICATION LAYER                          │            │
+│  │                                                                 │            │
+│  │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐       │            │
+│  │  │ SRS Operations│  │ Link Resolution│  │ Context Mgmt  │       │            │
+│  │  │ (Due cards,   │  │ (Wiki links,  │  │ (Isolation,   │       │            │
+│  │  │  reviews)     │  │  backlinks)   │  │  switching)   │       │            │
+│  │  └───────────────┘  └───────────────┘  └───────────────┘       │            │
+│  └─────────────────────────────────────────────────────────────────┘            │
+│                                                                                 │
+│  Write Flow: User Action → File Update → Cache Sync → Query Cache              │
+│  Read Flow:  User Query → Cache Query → Fast Results                           │
+│  Recovery:   Corrupt Cache → Rebuild from Files → Consistency Restored        │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Data Structures (ZK-Compatible)
 ```go
@@ -120,25 +197,50 @@ type DataRepository interface {
 }
 ```
 
-### Storage Strategy (Decision Made)
+### Key Architectural Decisions
 
-**Chosen Approach: Individual Markdown Files**
-- **Directory**: `$VICE_DATA/{context}/flotsam/`
-- **Structure**: One `.md` file per note with YAML frontmatter
+#### Files-First Strategy (Decision Made)
+**Source of Truth**: Individual markdown files with YAML frontmatter
+- **Directory**: `$VICE_DATA/{context}/flotsam/` OR ZK notebooks
+- **Structure**: One `.md` file per note with YAML frontmatter  
 - **Filename**: `{id}.md` (e.g., `6ub6.md`) following ZK convention
 - **Format**: YAML frontmatter + markdown body
 
-**Decision Rationale** (from T026 evaluation):
-- **ZK Compatibility**: Supports external ZK tools and editors
-- **Git-friendly**: Individual files enable proper version control
-- **Editor Support**: Can be opened in any markdown editor
-- **Extensibility**: Easy to add metadata without breaking existing files
+**Complete SRS Data in Frontmatter**:
+```yaml
+vice:
+  srs:
+    easiness: 2.5
+    consecutive_correct: 0
+    due: 1640995200
+    total_reviews: 3
+    review_history:
+      - timestamp: 1640995100
+        quality: 4
+      - timestamp: 1640995000
+        quality: 3
+```
 
-**Implementation Details**:
-- **Context isolation**: Each context has separate `/flotsam/` directory
-- **Repository Pattern**: Leverage T028 FileRepository for atomic operations
-- **Indexing**: Maintain in-memory index for links/backlinks per context
-- **Caching**: Use lazy loading with file mtime-based cache invalidation
+#### SQLite Performance Cache (Decision Made)
+**Cache Strategy**: Add tables to existing ZK database
+- **ZK Compatibility**: ZK ignores additional tables (tested and confirmed)
+- **Performance**: Fast queries for SRS operations
+- **Consistency**: Cache rebuilt from files when checksums change
+- **Recovery**: Drop cache tables to completely remove Vice
+
+#### Unified File Handler (Design Innovation)
+**Multi-Format Support**: Handle .md, .yml, .json files
+- **Change Detection**: Timestamp + SHA256 checksum (ZK-inspired)
+- **Atomic Operations**: File write → cache update in transactions
+- **Error Recovery**: Cache rebuild from source files on corruption
+- **ZK Integration**: Co-existence without conflicts
+
+**Decision Rationale**:
+- **Data Portability**: All data travels with markdown files
+- **Performance**: SQLite cache for fast SRS queries
+- **ZK Compatibility**: Works with existing ZK notebooks
+- **Reliability**: Source files always recoverable
+- **Extensibility**: Multi-format support for future needs
 
 ## Implementation Plan & Progress
 
@@ -188,6 +290,20 @@ type DataRepository interface {
       - **Tag Filtering**: ZK tag-based search worked normally with Vice-extended notes
       - **Content Search**: ZK full-text search worked normally with Vice-extended notes
       - **No Errors**: No parsing errors or indexing failures with Vice extensions
+    - *Architecture Revision:* **Files-First Approach**
+      - **Source of Truth**: All SRS data stored in markdown frontmatter, not separate database
+      - **Performance Cache**: SQLite cache tables added to ZK database for fast queries
+      - **Data Flow**: Write to .md file → Rebuild SQLite cache → Query cache for performance
+      - **ZK Compatibility**: ZK ignores additional cache tables, confirmed by user testing
+      - **Rollback**: Drop Vice tables to completely remove Vice functionality
+      - **Portability**: All data travels with markdown files, cache is rebuildable
+    - *Unified File Handler Design:* **ZK-Inspired Architecture**
+      - **Change Detection**: Timestamp + SHA256 checksum (following ZK's proven approach)
+      - **Atomic Operations**: File writes followed by SQLite updates in transactions
+      - **Multi-Format Support**: Handle .md, .yml, .json files with extensible parser system
+      - **ZK Integration**: Co-existence with ZK indexing without conflicts
+      - **Error Recovery**: Graceful degradation with cache rebuild capabilities
+      - **Performance**: Incremental processing, only changed files processed
   - [ ] **1.1.4 Copy ZK ID generation**: Copy ID generation utilities
     - *Source:* `/home/david/.local/src/zk/internal/core/id.go`
     - *Target:* `internal/flotsam/zk_id.go`
@@ -492,6 +608,16 @@ ZK Schema Architecture (SQLite):
 
 ### Implementation Progress - External Code Integration
 
+- `2025-07-17 - AI:` **Unified File Handler Design COMPLETED**:
+  - **ZK Pipeline Analysis**: Analyzed ZK's file watching and SQLite synchronization approach
+  - **Key Insights**: ZK uses demand-driven indexing with timestamp + checksum change detection
+  - **Architecture Design**: Created unified file handler supporting .md, .yml, .json files
+  - **Atomic Operations**: Designed file write + SQLite cache update in transactions
+  - **ZK Integration**: Strategy for co-existence with ZK indexing without conflicts
+  - **Error Recovery**: Graceful degradation with cache rebuild from source files
+  - **Performance**: Incremental processing, only changed files processed
+  - **Files Created**: `doc/unified_file_handler_design.md` with comprehensive design
+
 - `2025-07-17 - AI:` **ZK Interoperability Test COMPLETED**:
   - **Test Setup**: Created test note with Vice frontmatter extensions in temp ZK notebook
   - **ZK Parsing**: Verified ZK correctly parsed standard fields while preserving Vice extensions
@@ -522,5 +648,6 @@ ZK Schema Architecture (SQLite):
 
 ## Git Commit History
 
+- `206fa46` - feat(flotsam)[T027]: add ZK interoperability research, design & successful compatibility testing
 - `7691f08` - docs(flotsam)[T027]: add AIDEV anchor tags for goldmark AST patterns and test fixes
 - `098794a` - fix(flotsam)[T027]: fix failing tests and linter issues
