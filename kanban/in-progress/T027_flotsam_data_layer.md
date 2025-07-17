@@ -480,11 +480,27 @@ vice:
       - **License Compliance**: Proper GPLv3 and Apache-2.0 attribution strategy
     - *Implementation Patterns**: Unified data flow, SRS workflow integration, attribution strategy
     - *Testing Strategy**: Cross-component validation and integration boundary testing
-  - [ ] **1.3.7 ADR: SQLite Cache Strategy**: Document performance cache design
+  - [x] **1.3.7 ADR: SQLite Cache Strategy**: Document performance cache design
     - *File:* `doc/decisions/ADR-004-flotsam-sqlite-cache-strategy.md`
     - *Decision:* SQLite performance cache with file-first source of truth
     - *Context:* Performance vs data portability for SRS operations and ZK integration
     - *Cross-references:* ADR-002 (Files-First), ADR-006 (Context Isolation)
+    - *Status:* COMPLETED - Created comprehensive ADR documenting performance cache strategy
+    - *Strategy:* Hybrid integration with context-aware cache placement
+    - *Cache Architecture:*
+      - **ZK Integration**: Add Vice tables to existing `.zk/notebook.db` (ZK ignores them)
+      - **Vice Contexts**: Create `flotsam.db` in context directory when ZK not present
+      - **Non-Destructive**: All tables prefixed with `vice_` for clean separation
+      - **Complete Reversibility**: Drop Vice tables to remove all functionality
+    - *Performance Benefits:* Sub-millisecond SRS queries vs full file scans
+    - *Cache Tables:*
+      - **vice_srs_cache**: SRS scheduling data with performance indexes
+      - **vice_file_cache**: File metadata and change detection
+      - **vice_contexts**: Context management and sync tracking
+    - *Implementation Details:*
+      - **Change Detection**: Timestamp + SHA256 checksum protocol
+      - **Atomic Updates**: File writes followed by cache updates in transactions
+      - **Error Recovery**: Cache corruption recovery and consistency validation
   - [ ] **1.3.8 ADR: Quality Scale Adaptation**: Document SRS quality scale choice
     - *File:* `doc/decisions/ADR-005-srs-quality-scale-adaptation.md`
     - *Decision:* Adopt go-srs 0-6 quality scale vs alternatives (Anki 1-4, custom scales)
@@ -785,6 +801,17 @@ ZK Schema Architecture (SQLite):
   - **Implementation Patterns**: Unified data flow, SRS workflow integration, attribution headers
   - **Key Insight**: Component extraction provides best balance of proven algorithms with architectural flexibility
   - **Next Steps**: Continue with 1.3.7 (SQLite cache strategy ADR) and remaining subtasks
+- `2025-07-17 - AI:` **T027/1.3.7 SQLite Cache Strategy ADR COMPLETED**:
+  - Created ADR-004-flotsam-sqlite-cache-strategy.md documenting performance cache design
+  - **Strategy**: Hybrid integration with context-aware cache placement
+  - **ZK Integration**: Add Vice tables to existing `.zk/notebook.db` (proven ZK ignores them)
+  - **Vice Contexts**: Create `flotsam.db` in context directory when ZK not present
+  - **Non-Destructive**: All tables prefixed with `vice_` for clean separation and complete reversibility
+  - **Performance Benefits**: Sub-millisecond SRS queries vs full file scans for due card identification
+  - **Cache Schema**: Comprehensive table design (vice_srs_cache, vice_file_cache, vice_contexts)
+  - **Implementation Details**: Change detection protocol, atomic updates, error recovery procedures
+  - **Key Insight**: Context-aware cache placement provides optimal performance while maintaining ZK compatibility
+  - **Next Steps**: Continue with 1.3.8 (quality scale adaptation ADR) and remaining subtasks
 
 ### Evaluation Phase - ZK Compatibility Analysis
 
@@ -853,6 +880,7 @@ ZK Schema Architecture (SQLite):
 
 ## Git Commit History
 
+- `39d1bd6` - docs(flotsam)[T027/1.3.7]: add ADR for SQLite cache strategy
 - `927e326` - docs(flotsam)[T027/1.3.6]: add ADR for ZK-go-srs integration strategy
 - `5df29b9` - docs(flotsam)[T027/1.3.5]: add ADR for files-first architecture decision
 - `e25411c` - docs(flotsam)[T027/1.3.4]: create comprehensive package documentation and API reference
