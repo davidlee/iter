@@ -346,6 +346,9 @@ func (r *FileRepository) LoadFlotsam() (*models.FlotsamCollection, error) {
 		}
 	}
 
+	// Compute backlinks across the entire collection (context-scoped)
+	r.computeBacklinks(collection)
+
 	return collection, nil
 }
 
@@ -409,6 +412,30 @@ func (r *FileRepository) parseFlotsamFile(filePath string) (*models.FlotsamNote,
 	}
 
 	return note, nil
+}
+
+// computeBacklinks computes backlinks for all notes in a collection.
+// AIDEV-NOTE: T027/4.2.2-backlink-computation; context-scoped backlink index using ZK algorithm
+// AIDEV-NOTE: backlink-algorithm; builds reverse link map from all note content in collection
+func (r *FileRepository) computeBacklinks(collection *models.FlotsamCollection) {
+	// Build a map of note ID -> content for backlink computation
+	noteContents := make(map[string]string)
+	for _, note := range collection.Notes {
+		noteContents[note.ID] = note.Body
+	}
+
+	// Use ZK's BuildBacklinkIndex to compute reverse links
+	backlinkIndex := flotsam.BuildBacklinkIndex(noteContents)
+
+	// Update each note with its computed backlinks
+	for i := range collection.Notes {
+		note := &collection.Notes[i]
+		if backlinks, exists := backlinkIndex[note.ID]; exists {
+			note.Backlinks = backlinks
+		} else {
+			note.Backlinks = []string{} // Ensure empty slice rather than nil
+		}
+	}
 }
 
 // SaveFlotsam saves a flotsam collection to markdown files.
