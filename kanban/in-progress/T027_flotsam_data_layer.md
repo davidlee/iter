@@ -1,7 +1,7 @@
 ---
 title: "Flotsam Data Layer Implementation"
 tags: ["data", "markdown", "models", "storage", "zk-integration"]
-related_tasks: ["part-of:T026", "depends-on:T028"]
+related_tasks: ["part-of:T026", "depends-on:T028", "spawned:T035"]
 context_windows: ["internal/models/*.go", "internal/storage/*.go", "doc/specifications/*.md", "CLAUDE.md"]
 ---
 # Flotsam Data Layer Implementation
@@ -730,23 +730,10 @@ As a developer implementing the flotsam system, I need a robust data layer that:
     - *Status:* COMPLETED - Shows hybrid/standalone modes with compatibility features
 
 ### 6. Code Quality and Maintenance
-- [ ] **6.1 Module Path Migration**: Update module path for GitHub compatibility
-  - [ ] **6.1.1 Change module path to github.com/davidlee/vice**: Update go.mod and all imports
-    - *Current:* `davidlee/vice` (local module path)
-    - *Target:* `github.com/davidlee/vice` (GitHub-compatible path)
-    - *Impact:* 106 Go files with import statements need updating
-    - *Approach:* Automated find/replace across codebase
-    - *Benefits:* GitHub compatibility, standard Go module conventions, easier sharing/distribution
-    - *Risk:* Medium effort task touching many files, best done when not actively developing features
-    - *Timing:* Defer until after flotsam implementation stabilizes
-    - *Commands:*
-      ```bash
-      # Update go.mod
-      sed -i 's/module davidlee\/vice/module github.com\/davidlee\/vice/' go.mod
-      # Update all import statements
-      find . -name "*.go" -exec sed -i 's/davidlee\/vice/github.com\/davidlee\/vice/g' {} \;
-      go mod tidy
-      ```
+- [x] **6.1 Module Path Migration**: Update module path for GitHub compatibility
+  - *Status:* EXTRACTED to separate task T035 (general codebase maintenance, not flotsam-specific)
+  - *Rationale:* This is a general codebase maintenance task affecting all Go packages, not specific to flotsam implementation
+  - *Next Steps:* Work on T035 when ready for codebase-wide maintenance activities
 
 ## Roadblocks
 
@@ -1119,15 +1106,16 @@ As a developer implementing the flotsam system, I need a robust data layer that:
 
 **Implementation Status:**
 - **Phase 1**: External Code Integration ✅ COMPLETE
-- **Phase 2**: Data Model Definition ✅ COMPLETE  
+- **Phase 2**: Data Model Definition ✅ COMPLETE (2.3.1, 2.3.2 pending)
 - **Phase 3**: Repository Integration ✅ COMPLETE
 - **Phase 4**: Core Operations Implementation ✅ COMPLETE
+- **Phase 5**: Architecture Documentation ✅ COMPLETE
+- **Phase 6**: Code Quality & Maintenance → EXTRACTED to T035
 
 **Remaining Work:**
-- **Phase 4.4.2**: Utility functions (ID generation, timestamp formatting, sanitization)
-- **Search Operations**: SearchFlotsam, GetFlotsamByType, GetFlotsamByTag (repository TODO stubs)
-- **Phase 5**: Architecture Documentation (C4 diagrams, visual documentation)
-- **Phase 6**: Code Quality & Maintenance (anchor comments, module path migration)
+- **Phase 2.3.1**: Add anchor comments linking code to ADRs/specifications (pending)
+- **Phase 2.3.2**: Evaluate non-ZK filename support design impact (pending)
+- **Search Operations**: SearchFlotsam, GetFlotsamByType, GetFlotsamByTag (repository TODO stubs - optional enhancements)
 
 **Production-Ready Components:**
 - Complete flotsam note parsing (frontmatter + body + links)
@@ -1141,6 +1129,7 @@ As a developer implementing the flotsam system, I need a robust data layer that:
 - Comprehensive test coverage (150+ tests passing across all components)
 
 **Commits:**
+- `0a9c44b` - docs(flotsam)[T027/5.1]: create comprehensive C4 architecture diagrams
 - `f06e1c1` - feat(flotsam)[T027/4.4.2]: implement comprehensive utility functions
 - `45a0756` - feat(flotsam)[T027/4.4.1]: implement comprehensive struct validation
 - `3546f69` - feat(flotsam)[T027/4.3]: complete SRS operations implementation
