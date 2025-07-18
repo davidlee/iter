@@ -28,11 +28,13 @@ Implement Unix interop approach for flotsam functionality and migrate away from 
 ### Integration Points
 - `cmd/` - CLI commands that will shell out to zk
 - `internal/config/` - Configuration management
+- `internal/zk/` - ZK interop
+- `internal/srs/` - SM-2 algo & sqlite3 storage for SRS
 - `zk/` - Reference zk installation for patterns
 
 ## Habit / User Story
 
-As a developer implementing flotsam functionality, I want to:
+As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionality, I want to:
 - Replace T027's coupled approach with Unix interop patterns
 - Establish foundation for zk integration and SRS database
 - Create a clean migration path that preserves existing functionality
@@ -41,9 +43,9 @@ As a developer implementing flotsam functionality, I want to:
 ## Acceptance Criteria (ACs)
 
 ### T027 Migration & Cleanup
-- [ ] Remove T027 repository abstraction layer
+- [ ] Remove T027 repository abstraction layer (note: do not naively the file repository; simplify the abstractions added during T027)
 - [ ] Migrate flotsam data models to simpler structures (if needed)
-- [ ] Remove coupled backlink computation logic
+- [ ] Remove backlink computation (zk will handle this)
 - [ ] Preserve any essential flotsam functionality during migration
 - [ ] Update existing tests to work with new approach
 
@@ -74,11 +76,45 @@ As a developer implementing flotsam functionality, I want to:
 - [ ] **1.1 T027 code audit**: Identify all components to migrate or remove
   - *Scope:* Full dependency analysis of T027 implementation
   - *Deliverable:* Migration plan with component-by-component breakdown
-  - *Planning:* Detailed analysis of what to preserve vs remove
+  - *Planning:* Detailed analysis of what to preserve vs remove recorded in Implementation Plan
+  - *Context:* T027 added significant complexity (~2000+ lines) with repository patterns, in-memory backlink computation, and tightly coupled flotsam models
+  - *Key Files:* `internal/repository/interface.go` (DataRepository interface), `internal/repository/file_repository.go` (CRUD operations), `internal/models/flotsam.go` (rich structs with validation)
+  - *Dependencies:* Repository is used by potential CLI commands, flotsam operations, and SRS scheduling
+  - *Mark For Removal (Anchor Comments):* Complex repository abstraction, in-memory note loading, automatic backlink computation
+  - *Preserve:* Essential flotsam data structures, basic file operations, SRS scheduling data
+  - *T027 External Code Integration:* T027 imported ZK parsing components and go-srs SRS algorithms - these may be partially preserved for SRS database functionality
+  - *Repository Pattern Context:* T027 extended T028's DataRepository interface for context-aware flotsam operations - this abstraction layer is primary removal target
+  - *Backlink Computation:* T027 implemented context-scoped backlink computation (~400 lines) that loads all notes into memory - delegate this entirely to zk
+  - *SRS Integration:* T027 integrated SM-2 algorithm from go-srs - preserve core SRS scheduling logic but simplify data structures
+  - *Test Coverage:* T027 has ~20 test files covering repository operations, flotsam models, and SRS scheduling - many will need updates for Unix interop patterns
 - [ ] **1.2 Unix interop architecture design**: Define shell-out patterns and abstractions
   - *Scope:* Tool integration interface, error handling, configuration
   - *Deliverable:* Architecture document with Go interfaces and examples
-  - *Planning:* Design tool abstraction layer for future extensibility
+  - *Planning:* Design tool abstraction layer for future extensibility. See `zk/docs` for zk repo's documentation 
+  - *Context:* Need clean abstraction for shelling out to zk, with future extensibility for remind/taskwarrior
+  - *Pattern:* Simple Tool interface with Execute method, error handling, and configuration
+  - *Key Decisions:* How to handle tool discovery, command construction, output parsing, error propagation
+  - *Configuration:* User-configurable flags, environment variables, tool paths via vice config
+  - *Error Handling:* Distinguish between missing tools, command failures, and parsing errors
+  - *ZK Command Patterns:* From analysis, key zk commands for delegation: `list --tag vice:srs --format json`, `edit <paths>`, `list --linked-by <note>`
+  - *Output Parsing:* zk supports structured output (JSON, template formats) - design parsing for these formats
+  - *Tool Discovery:* Standard `exec.LookPath("zk")` approach with helpful error messages referencing installation methods
+  - *Environment Variables:* zk respects `ZK_EDITOR`, `VISUAL`, `EDITOR` - vice config can set these for consistent behavior
+  - *Future Extensibility:* Design Tool interface to support remind (calendar/recurring tasks) and taskwarrior (GTD task management)
+- [ ] **1.3 Redesign data models & update specifications**: Simplify flotsam models for Unix interop
+  - *Context:* T027 created complex flotsam models with validation, serialization, and rich metadata
+  - *Simplify:* Remove heavy structs, reduce to minimal data needed for SRS and file operations
+  - *SRS Focus:* Primary need is SRS database schema and basic note metadata (title, path, tags)
+  - *ZK Delegation:* Content, links, backlinks, search handled by zk - no need for complex models
+  - *File Format:* Individual .md files with YAML frontmatter (compatible with zk)
+  - *Database Schema:* Simple SRS table with note_path, due_date, quality, interval
+  - *Update Specs:* Revise `doc/specifications/` to reflect Unix interop approach
+  - *T027 Model Complexity:* Current flotsam models include rich metadata, validation, context-scoped operations, and complex serialization - most of this becomes unnecessary
+  - *SRS Database Schema:* Based on go-srs integration, need fields for SM-2 algorithm: `note_path, last_reviewed, next_due, quality, interval_days, ease_factor, reviews_count`
+  - *Tag-based Behaviors:* With `vice:srs` tag approach, no need for complex type systems - tags in frontmatter handle note behaviors
+  - *Frontmatter Simplification:* Only need essential fields: `title, tags, created, srs` (for local SRS cache) - let zk handle the rest
+  - *Context Isolation:* Unix interop maintains T028's context isolation through separate databases per context and zk notebook boundaries
+  - *Specification Updates:* Need to update `doc/specifications/flotsam.md` to reflect Unix interop patterns and reduced model complexity
 
 ### 2. T027 Cleanup (Topic Branch)
 - [ ] **2.1 Remove repository layer**: Eliminate T027 repository abstraction
