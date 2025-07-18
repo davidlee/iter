@@ -347,6 +347,7 @@ func (r *FileRepository) LoadFlotsam() (*models.FlotsamCollection, error) {
 	}
 
 	// Compute backlinks across the entire collection (context-scoped)
+	// AIDEV-NOTE: T027/4.2.2-backlink-integration; backlinks computed after note loading for complete collection
 	r.computeBacklinks(collection)
 
 	return collection, nil
@@ -425,6 +426,7 @@ func (r *FileRepository) computeBacklinks(collection *models.FlotsamCollection) 
 	}
 
 	// Use ZK's BuildBacklinkIndex to compute reverse links
+	// AIDEV-NOTE: zk-algorithm-reuse; leverages proven ZK backlink computation for context-scoped links
 	backlinkIndex := flotsam.BuildBacklinkIndex(noteContents)
 
 	// Update each note with its computed backlinks
@@ -434,6 +436,7 @@ func (r *FileRepository) computeBacklinks(collection *models.FlotsamCollection) 
 			note.Backlinks = backlinks
 		} else {
 			note.Backlinks = []string{} // Ensure empty slice rather than nil
+			// AIDEV-NOTE: empty-slice-pattern; consistent with Vice patterns to use empty slice vs nil
 		}
 	}
 }

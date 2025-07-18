@@ -10,13 +10,18 @@ import (
 )
 
 // TestFlotsamBacklinks tests backlink computation in LoadFlotsam
+// AIDEV-NOTE: T027/4.2.2-backlink-testing; comprehensive test validating bidirectional link relationships
 func TestFlotsamBacklinks(t *testing.T) {
 	// Create a temporary directory for test
 	tmpDir, err := os.MkdirTemp("", "test_flotsam_backlinks")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			t.Logf("Failed to clean up temp directory: %v", err)
+		}
+	}()
 
 	// Set up test environment using helper function
 	viceEnv := &config.ViceEnv{
@@ -38,7 +43,7 @@ func TestFlotsamBacklinks(t *testing.T) {
 
 	// Create flotsam directory
 	flotsamDir := viceEnv.GetFlotsamDir()
-	if err := os.MkdirAll(flotsamDir, 0o755); err != nil {
+	if err := os.MkdirAll(flotsamDir, 0o750); err != nil {
 		t.Fatalf("Failed to create flotsam directory: %v", err)
 	}
 
@@ -91,6 +96,7 @@ This note has no outbound links.
 	}
 
 	// Load flotsam collection (this should compute backlinks)
+	// AIDEV-NOTE: test-integration-point; LoadFlotsam() automatically computes backlinks via computeBacklinks()
 	collection, err := repo.LoadFlotsam()
 	if err != nil {
 		t.Fatalf("Failed to load flotsam: %v", err)
@@ -168,7 +174,11 @@ func TestFlotsamBacklinksEmptyCollection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			t.Logf("Failed to clean up temp directory: %v", err)
+		}
+	}()
 
 	// Set up test environment using helper function
 	viceEnv := &config.ViceEnv{

@@ -61,7 +61,7 @@ for spaced repetition / incremental writing, and got the GPLv3
 
 ## Ethics
 
-You can take what you want without asking, **vice** will put it on your tab —
+You can take some without asking, **vice** will put it on your tab —
 but it isn't carbon neutral, and it's probably not vegan either. 
 
 ## Installation
