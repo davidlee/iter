@@ -58,7 +58,7 @@ Tasks MUST adhere closely to the format of `../kanban/backlog/T000_example.md`.
 
 Tasks often have relationships with each other that should be explicitly documented to ensure proper sequencing and coordination. These relationships include:
 
-- **Dependency Types**: `blocks`, `depends-on`, `related`, `part-of`, `overlaps`
+- **Dependency Types**: `blocks`, `depends-on`, `related`, `part-of`, `overlaps`, `spawned`
 
 - Managing Dependencies:
   - Dependencies should be included in the task's Markdown frontmatter in the related_tasks field

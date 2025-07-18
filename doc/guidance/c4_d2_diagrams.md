@@ -18,14 +18,18 @@ See https://c4model.com/diagrams for reference.
 - Use markdown labels with C4 structure: `|md **Name** [Type] Description |`
 - Include title with level indicator: "System Name - Context Level"
 
+Invoking D2:
+- dark-mode responsive diagrams: `d2 --theme=0 --dark-theme=200 input.d2`
+- design docs and kanban cards should use `--sketch`; specifications should not.
+
 **C4 Styling:**
-- **Person**: `shape: person`, fill: `#08427b`, font-color: white
-- **Software System**: Default shape, fill: `#1168bd`, font-color: white  
-- **External System**: Default shape, fill: `#999999`, font-color: white
-- **Container**: Default shape, fill: `#1168bd`, font-color: white
-- **Database**: `shape: cylinder`, fill: `#999999`, font-color: white
-- **Component**: Default shape, fill: `#85bbf0`, font-color: white
-- **Needs Implementation**: Add `style.stroke-dash: 5`, fill: `#ffaaaa`
+- **Person**: `shape: person`
+- **Software System**: Default shape
+- **External System**: Default shape
+- **Container**: Default shape
+- **Database**: `shape: cylinder`
+- **Component**: Default shape, fill: `#85bbf0`
+- **Needs Implementation**: Add `style.stroke-dash: 5`
 
 **Relationship Labels:**
 - Use markdown format: `|md Description [Technology] |`
