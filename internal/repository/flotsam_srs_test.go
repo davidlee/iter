@@ -39,12 +39,12 @@ func TestGetDueFlotsamNotes(t *testing.T) {
 
 	// Test data: notes with different SRS states
 	now := time.Now()
-	pastDue := now.Add(-24 * time.Hour).Unix()   // Due yesterday
-	futureDue := now.Add(24 * time.Hour).Unix()  // Due tomorrow
-	
+	pastDue := now.Add(-24 * time.Hour).Unix()  // Due yesterday
+	futureDue := now.Add(24 * time.Hour).Unix() // Due tomorrow
+
 	testNotes := []struct {
-		filename string
-		content  string
+		filename  string
+		content   string
 		expectDue bool
 	}{
 		{
@@ -64,7 +64,7 @@ This note is due for review.`,
 			expectDue: true,
 		},
 		{
-			filename: "abc2.md", 
+			filename: "abc2.md",
 			content: `---
 id: abc2
 title: "Future Note"
@@ -136,7 +136,7 @@ This note has no SRS data (new card).`,
 }
 
 func TestGetDueFlotsamNotesEmptyCollection(t *testing.T) {
-	// Create temp directory for test  
+	// Create temp directory for test
 	tmpDir, err := os.MkdirTemp("", "TestGetDueFlotsamNotesEmptyCollection")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
@@ -293,7 +293,7 @@ This note also has SRS data.`,
 	srsIDs := make(map[string]bool)
 	for _, note := range srsNotes {
 		srsIDs[note.ID] = true
-		
+
 		// Verify note actually has SRS data
 		if !note.HasSRS() {
 			t.Errorf("Note %s was returned but HasSRS() is false", note.ID)

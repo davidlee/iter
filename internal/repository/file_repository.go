@@ -391,20 +391,22 @@ func (r *FileRepository) parseFlotsamFile(filePath string) (*models.FlotsamNote,
 		return nil, fmt.Errorf("failed to get file info for %s: %w", filePath, err)
 	}
 
-	// Create FlotsamNote from parsed data
+	// AIDEV-NOTE: T041-model-simplification; models.FlotsamNote no longer embeds flotsam.FlotsamNote
+	// Create FlotsamNote from parsed data using new flat structure
 	note := &models.FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{
-			ID:       frontmatter.ID,
-			Title:    frontmatter.Title,
-			Type:     frontmatter.Type, // Already a string in flotsam.FlotsamFrontmatter
-			Tags:     frontmatter.Tags,
-			Created:  frontmatter.Created,
-			Modified: fileInfo.ModTime(),
-			Body:     body,
-			Links:    links,
-			FilePath: filePath,
-			SRS:      frontmatter.SRS,
-		},
+		ID:       frontmatter.ID,
+		Title:    frontmatter.Title,
+		Tags:     frontmatter.Tags,
+		Created:  frontmatter.Created,
+		Modified: fileInfo.ModTime(),
+		Body:     body,
+		FilePath: filePath,
+		
+		// DEPRECATED: Backward compatibility fields
+		Type:      frontmatter.Type, // Will be replaced by vice:type:* tags
+		Links:     links,
+		SRS:       frontmatter.SRS,
+		Backlinks: make([]string, 0), // Will be computed later
 	}
 
 	// Validate and set defaults for type

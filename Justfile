@@ -28,3 +28,10 @@ logs:
 
 clean-test-cache:
   go clean -testcache
+
+devinstall:
+  # Error: Wails applications will not build without the correct build tags.
+  # go get github.com/go-architect/go-architect@latest
+  go get github.com/fdaines/spm-go@latest
+  go get github.com/Skarlso/effrit@latest
+

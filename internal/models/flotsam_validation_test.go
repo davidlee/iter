@@ -20,10 +20,10 @@ func TestFlotsamNoteValidate(t *testing.T) {
 			name: "valid note",
 			note: FlotsamNote{
 				FlotsamNote: flotsam.FlotsamNote{
-					ID:      "abc1",
-					Title:   "Test Note",
-					Type:    "idea",
-					Created: time.Now(),
+					ID:       "abc1",
+					Title:    "Test Note",
+					Type:     "idea",
+					Created:  time.Now(),
 					Modified: time.Now(),
 				},
 			},
@@ -541,4 +541,3 @@ func TestValidateSRSData(t *testing.T) {
 		})
 	}
 }
-
