@@ -43,7 +43,7 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
 ## Acceptance Criteria (ACs)
 
 ### T027 Migration & Cleanup
-- [ ] Remove T027 repository abstraction layer (note: do not naively the file repository; simplify the abstractions added during T027)
+- [ ] Remove (either entirely or from execution path) T027 repository abstraction layer (note: do not naively the file repository; simplify the abstractions added during T027)
 - [ ] Migrate flotsam data models to simpler structures (if needed)
 - [ ] Remove backlink computation (zk will handle this)
 - [ ] Preserve any essential flotsam functionality during migration
@@ -75,7 +75,7 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
 ### 1. Analysis & Planning
 - [ ] **1.1 T027 code audit**: Identify all components to migrate or remove
   - *Scope:* Full dependency analysis of T027 implementation
-  - *Deliverable:* Migration plan with component-by-component breakdown
+  - *Deliverable:* Migration plan with component-by-component breakdown - DO NOT actually remove code
   - *Planning:* Detailed analysis of what to preserve vs remove recorded in Implementation Plan
   - *Context:* T027 added significant complexity (~2000+ lines) with repository patterns, in-memory backlink computation, and tightly coupled flotsam models
   - *Key Files:* `internal/repository/interface.go` (DataRepository interface), `internal/repository/file_repository.go` (CRUD operations), `internal/models/flotsam.go` (rich structs with validation)
@@ -101,7 +101,7 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   - *Tool Discovery:* Standard `exec.LookPath("zk")` approach with helpful error messages referencing installation methods
   - *Environment Variables:* zk respects `ZK_EDITOR`, `VISUAL`, `EDITOR` - vice config can set these for consistent behavior
   - *Future Extensibility:* Design Tool interface to support remind (calendar/recurring tasks) and taskwarrior (GTD task management)
-- [ ] **1.3 Redesign data models & update specifications**: Simplify flotsam models for Unix interop
+- [x] **1.3 Redesign data models & update specifications**: Simplify flotsam models for Unix interop
   - *Context:* T027 created complex flotsam models with validation, serialization, and rich metadata
   - *Simplify:* Remove heavy structs, reduce to minimal data needed for SRS and file operations
   - *SRS Focus:* Primary need is SRS database schema and basic note metadata (title, path, tags)
@@ -109,26 +109,189 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   - *File Format:* Individual .md files with YAML frontmatter (compatible with zk)
   - *Database Schema:* Simple SRS table with note_path, due_date, quality, interval
   - *Update Specs:* Revise `doc/specifications/` to reflect Unix interop approach
-  - *T027 Model Complexity:* Current flotsam models include rich metadata, validation, context-scoped operations, and complex serialization - most of this becomes unnecessary
-  - *SRS Database Schema:* Based on go-srs integration, need fields for SM-2 algorithm: `note_path, last_reviewed, next_due, quality, interval_days, ease_factor, reviews_count`
-  - *Tag-based Behaviors:* With `vice:srs` tag approach, no need for complex type systems - tags in frontmatter handle note behaviors
-  - *Frontmatter Simplification:* Only need essential fields: `title, tags, created, srs` (for local SRS cache) - let zk handle the rest
-  - *Context Isolation:* Unix interop maintains T028's context isolation through separate databases per context and zk notebook boundaries
-  - *Specification Updates:* Need to update `doc/specifications/flotsam.md` to reflect Unix interop patterns and reduced model complexity
+  - **COMPLETED**: Updated `doc/specifications/flotsam.md` with Unix interop architecture
+  - **Tag-based Behaviors**: Implemented `vice:srs` and `vice:type:flashcard` tag system
+  - **Simplified Models**: Removed FlotsamType field, using zk tags for behavior
+  - **SRS Database**: Designed `.vice/flotsam.db` schema with minimal caching
+  - **Composable Operations**: Documented Unix pipe patterns for zk + vice composition
+  - **Directory Structure**: Defined `.zk/` (zk domain) and `.vice/` (vice domain) separation
+  - **Source of Truth**: SRS data in SQLite, note behaviors in markdown tags via zk
+
 
 ### 2. T027 Cleanup (Topic Branch)
-- [ ] **2.1 Remove repository layer**: Eliminate T027 repository abstraction
-  - *Scope:* `internal/repository/` package removal
-  - *Impact:* Update all dependent code to use new patterns
-  - *Planning:* Identify all consumers of repository interface
+- [ ] **2.1 Refactor repository layer**: Extract useful components, remove abstraction
+  - *Scope:* Selective preservation of performance-critical code
+  - *Keep for Performance:* `LoadFlotsam()`, `parseFlotsamFile()`, in-memory search/filter operations
+  - *Keep for Utility:* `saveFlotsamNote()`, `serializeFlotsamNote()`, atomic file operations
+  - *Remove Abstraction:* `DataRepository` interface, CRUD method abstractions, context switching complexity
+  - *Refactor Location:* Move preserved code to `internal/flotsam/collection.go` and `internal/flotsam/files.go`
+  - *Performance Fallback:* Preserve in-memory collection loading for search-as-you-type when zk proves too slow
+  - *Rationale:* Unix interop for most operations, in-memory fallback for performance-critical UX
+  
+  **Code Migration Plan**:
+  
+  | Source File | Source Function/Method | Target File | Target Function | Purpose |
+  |-------------|------------------------|-------------|-----------------|---------|
+  | `file_repository.go` | `LoadFlotsam()` | `collection.go` | `LoadAllNotes()` | In-memory collection loading |
+  | `file_repository.go` | `parseFlotsamFile()` | `files.go` | `ParseFlotsamFile()` | Single note parsing |
+  | `file_repository.go` | `saveFlotsamNote()` | `files.go` | `SaveFlotsamNote()` | Atomic file operations |
+  | `file_repository.go` | `serializeFlotsamNote()` | `files.go` | `SerializeFlotsamNote()` | Frontmatter serialization |
+  | `file_repository.go` | `computeBacklinks()` | `collection.go` | `ComputeBacklinks()` | In-memory backlink computation |
+  | `file_repository.go` | File path validation | `files.go` | `ValidateFlotsamPath()` | Security validation |
+  | `interface.go` | `Error` type | `errors.go` | `FlotsamError` | Error handling |
+  
+  **New Collection Operations** (to be added in `collection.go`):
+  
+  | Function | Purpose | Performance Benefit |
+  |----------|---------|-------------------|
+  | `SearchByTitle(query string)` | Fast title search | Sub-millisecond response |
+  | `FilterByTags(tags []string)` | Tag-based filtering | No process spawning |
+  | `FilterByType(noteType string)` | Type-based filtering | In-memory operations |
+  | `GetNotesByDue(before time.Time)` | Due date filtering | Combined with SRS data |
+  
+  **Files to Delete**:
+  - `internal/repository/interface.go` - Repository abstraction
+  - `internal/repository/file_repository.go` - After migration
+  - `internal/repository/flotsam_*.go` - Test files (mark as legacy first)
+  
+  **Implementation Steps**:
+  1. **Create target files** in `internal/flotsam/`: `collection.go`, `files.go`, `errors.go`, `search.go`
+  2. **Copy and adapt functions** according to migration table above
+  3. **Remove repository dependencies**: Strip out DataRepository interface dependencies
+  4. **Simplify function signatures**: Remove context switching, error wrapping complexity
+  5. **Update imports**: Change from `internal/repository` to `internal/flotsam` in any consumers
+  6. **Add missing FlotsamCollection type** to `collection.go` with search indices
+  7. **Create hybrid search interface** in `search.go` with zk fallback logic
+  8. **Update tests**: Move repository tests to flotsam package tests
+  9. **Mark repository as deprecated**: Add deprecation comments before deletion
+  10. **Verify no production usage**: Confirm repository only used in tests before deletion
+  
+  **Key Adaptations Needed**:
+  - **Remove receiver types**: Convert `(r *FileRepository)` methods to standalone functions
+  - **Remove ViceEnv dependency**: Pass contextDir string instead of full environment
+  - **Remove error wrapping**: Use simple error returns instead of repository.Error
+  - **Add context parameter**: Pass context string explicitly where needed
+  - **Update FlotsamCollection**: Add search indices (noteMap, titleIdx) for performance
+  - **Simplify validation**: Keep security validation, remove complex business logic validation
+  
+  **Expected File Sizes**:
+  - `collection.go`: ~200 lines (LoadAllNotes, search operations, backlinks)
+  - `files.go`: ~150 lines (parse, save, serialize, validate)
+  - `errors.go`: ~30 lines (simple error types)
+  - `search.go`: ~100 lines (hybrid search with zk fallback)
+  
+  **Dependencies to Import**:
+  - `internal/models` (for FlotsamNote, simplified)
+  - `internal/flotsam` (existing SRS, parsing code)
+  - Standard library only (no repository dependencies)
 - [ ] **2.2 Simplify flotsam models**: Reduce complexity of flotsam data structures
   - *Scope:* `internal/models/flotsam.go` simplification
   - *Preserve:* Essential validation and serialization logic
   - *Planning:* Determine minimum viable flotsam model
+  
+  **Model Simplification Plan**:
+  
+  | Current Component | Action | Rationale |
+  |------------------|--------|-----------|
+  | `FlotsamFrontmatter` | **Keep with modifications** | Still needed for YAML serialization |
+  | `FlotsamType` enum | **Remove** | Replaced by `vice:type:*` tags |
+  | `FlotsamNote` struct | **Simplify** | Remove embedding, reduce fields |
+  | `FlotsamCollection` | **Move to flotsam package** | Performance fallback only |
+  | Collection methods | **Remove** | Replaced by Unix interop |
+  | Complex validation | **Simplify** | Keep security, remove business logic |
+  
+  **New Simplified FlotsamNote**:
+  ```go
+  // Simplified note structure - no embedding, no type field
+  type FlotsamNote struct {
+      ID       string    `yaml:"id"`
+      Title    string    `yaml:"title"`
+      Created  time.Time `yaml:"created-at"`
+      Tags     []string  `yaml:"tags"`
+      
+      // Runtime fields (not in frontmatter)
+      Body     string    `yaml:"-"`
+      FilePath string    `yaml:"-"`
+      Modified time.Time `yaml:"-"`
+  }
+  ```
+  
+  **Implementation Steps**:
+  1. **Remove FlotsamType**: Delete enum and all related methods
+  2. **Remove embedding**: Change `FlotsamNote` to not embed `flotsam.FlotsamNote`
+  3. **Remove collection methods**: Delete `AddNote`, `RemoveNote`, `GetNotesByType`, etc.
+  4. **Simplify validation**: Keep `ValidateID`, remove `ValidateType`, simplify `Validate()`
+  5. **Update constructors**: Simplify `NewFlotsamNote`, remove type parameter
+  6. **Update serialization**: Remove type field from frontmatter output
+  7. **Move FlotsamCollection**: Move to `internal/flotsam/collection.go`
+  8. **Update tests**: Remove type-based tests, simplify validation tests
+  
+  **Functions to Remove**:
+  - `(ft FlotsamType).Validate()`, `(ft FlotsamType).String()`, `(ft FlotsamType).IsEmpty()`
+  - `DefaultType()`, `ValidateType()`, `IsFlashcard()`
+  - `(fc *FlotsamCollection).AddNote()`, `RemoveNote()`, `GetNotesByType()`
+  - `(fc *FlotsamCollection).GetSRSNotes()`, `computeMetadata()`
+  
+  **Functions to Keep**:
+  - `(fn *FlotsamNote).HasTag()`, `HasSRS()` (but implement via tags)
+  - `(fn *FlotsamNote).Validate()` (simplified)
+  - `(ff *FlotsamFrontmatter).Validate()` (simplified)
+  - `NewFlotsamNote()` (simplified signature)
+  
+  **Expected Reduction**: ~388 lines → ~150 lines (~60% reduction)
+
 - [ ] **2.3 Remove coupled backlink logic**: Eliminate in-memory backlink computation
   - *Scope:* Context-scoped backlink computation removal
   - *Replace:* Delegate to zk's link analysis capabilities
   - *Planning:* Map T027 backlink features to zk equivalents
+  
+  **Backlink Delegation Plan**:
+  
+  | T027 Operation | ZK Equivalent | Implementation |
+  |----------------|---------------|----------------|
+  | `computeBacklinks(collection)` | `zk list --linked-by <note>` | Shell out to zk |
+  | In-memory link index | `zk list --link-to <note>` | Real-time queries |
+  | Context-scoped links | `zk list --linked-by <note>` | Automatic in zk notebook |
+  | Backlink cache | zk's internal database | No manual caching needed |
+  
+  **Implementation Steps**:
+  1. **Remove computeBacklinks**: Delete from `file_repository.go` before migration
+  2. **Remove Backlinks field**: Delete from `FlotsamNote` struct
+  3. **Create zk link helpers**: Add to `internal/flotsam/links.go`
+  4. **Update link operations**: Replace in-memory with zk queries
+  5. **Remove link tests**: Delete backlink computation tests
+  6. **Add zk integration tests**: Test zk link delegation
+  
+  **New Link Operations**:
+  ```go
+  // internal/flotsam/links.go
+  func GetBacklinks(notePath string) ([]string, error) {
+      // zk list --linked-by <note> --format path
+      return zkShellOut("list", "--linked-by", notePath, "--format", "path")
+  }
+  
+  func GetOutboundLinks(notePath string) ([]string, error) {
+      // zk list --link-to <note> --format path  
+      return zkShellOut("list", "--link-to", notePath, "--format", "path")
+  }
+  ```
+  
+  **Functions to Remove**:
+  - `computeBacklinks(collection *models.FlotsamCollection)`
+  - `BuildBacklinkIndex(notes map[string]string)` (from flotsam package)
+  - All backlink-related tests
+  
+  **Functions to Add**:
+  - `GetBacklinks(notePath string) ([]string, error)`
+  - `GetOutboundLinks(notePath string) ([]string, error)`
+  - `zkShellOut(cmd string, args ...string) ([]string, error)` (basic zk execution)
+  
+  **Performance Consideration**: 
+  - **Trade-off**: Real-time zk queries vs pre-computed cache
+  - **Mitigation**: Cache results in performance-critical scenarios
+  - **Fallback**: Keep `BuildBacklinkIndex` in collection.go for offline operation
+  
+  **Expected Reduction**: ~400 lines of backlink logic removed from repository layer
 
 ### 3. SRS Database Foundation
 - [ ] **3.1 SRS database schema**: Design minimal SRS database structure

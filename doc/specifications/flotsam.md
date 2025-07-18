@@ -2,91 +2,302 @@
 
 ## Overview
 
-The `flotsam` package provides a comprehensive data layer for the flotsam note system, implementing a files-first architecture with ZK-compatible parsing and spaced repetition system (SRS) functionality. This package combines components from the [ZK note-taking system](https://github.com/zk-org/zk) and [go-srs](https://github.com/revelaction/go-srs) to create a unified system for managing notes with spaced repetition learning.
+The `flotsam` package provides Unix interop functionality for the flotsam note system, implementing a **tool orchestration architecture** that delegates complex operations to zk while maintaining vice-specific SRS functionality. This package combines selective components from the [ZK note-taking system](https://github.com/zk-org/zk) and [go-srs](https://github.com/revelaction/go-srs) to create a **productivity orchestration platform**.
 
 ## Architecture
 
-### Files-First Design
+### Unix Interop Design
 
-The flotsam system uses individual markdown files with YAML frontmatter as the source of truth, with optional SQLite performance caching. This design ensures:
+The flotsam system uses **tool delegation** where zk handles note management and vice handles SRS scheduling. This design ensures:
 
-- **Data Portability**: All data travels with markdown files
-- **ZK Compatibility**: Works seamlessly with existing ZK notebooks
-- **Performance**: SQLite cache for fast SRS queries
-- **Reliability**: Source files are always recoverable
+- **Tool Specialization**: zk handles search/linking/editing, vice handles SRS/habit integration
+- **Clean Separation**: `.vice/` folder for vice data, `.zk/` folder for zk data
+- **Performance**: SQLite SRS database for fast scheduling queries
+- **Composability**: Standard Unix tool composition patterns
 
 ### Component Integration
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           FLOTSAM PACKAGE COMPONENTS                           │
+│                        UNIX INTEROP ARCHITECTURE                               │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                 │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐              │
-│  │   ZK Components │    │ go-srs Components│    │ Integration     │              │
-│  │                 │    │                 │    │ Components      │              │
-│  │ • ID Generation │    │ • SM-2 Algorithm│    │ • Data Models   │              │
-│  │ • Frontmatter   │    │ • SRS Interfaces│    │ • Serialization │              │
-│  │ • Link Parsing  │    │ • Review System │    │ • Validation    │              │
-│  │ • AST Processing│    │ • Quality Scale │    │ • Integration   │              │
+│  │   ZK TOOL       │    │ VICE SRS        │    │ ORCHESTRATION   │              │
+│  │   (External)    │    │ (Internal)      │    │ LAYER           │              │
+│  │                 │    │                 │    │                 │              │
+│  │ • Note Search   │    │ • SM-2 Algorithm│    │ • Tool Abstraction│            │
+│  │ • Editor Integ  │    │ • SRS Database  │    │ • Command Routing│             │
+│  │ • Link Analysis │    │ • Review System │    │ • Error Handling│              │
+│  │ • Fuzzy Finding │    │ • Quality Scale │    │ • Cache Management│            │
 │  └─────────────────┘    └─────────────────┘    └─────────────────┘              │
 │           │                       │                       │                     │
 │           ▼                       ▼                       ▼                     │
 │  ┌─────────────────────────────────────────────────────────────────┐            │
-│  │                    UNIFIED API LAYER                            │            │
+│  │                    FLOTSAM COMMANDS                             │            │
 │  │                                                                 │            │
 │  │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐       │            │
-│  │  │ Note Creation │  │ Link Extraction│  │ SRS Processing│       │            │
-│  │  │ & Parsing     │  │ & Resolution   │  │ & Scheduling  │       │            │
+│  │  │ vice flotsam  │  │ vice flotsam  │  │ vice flotsam  │       │            │
+│  │  │ list          │  │ due           │  │ edit          │       │            │
+│  │  │ (zk + SRS)    │  │ (SRS query)   │  │ (zk delegate) │       │            │
 │  │  └───────────────┘  └───────────────┘  └───────────────┘       │            │
 │  └─────────────────────────────────────────────────────────────────┘            │
 │                                                                                 │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Directory Structure
+
+```
+notebook/
+├── .zk/
+│   ├── config.toml          # zk configuration (managed by vice)
+│   ├── notebook.db          # zk's database (search, links, metadata)
+│   └── templates/
+│       └── flotsam.md       # vice-specific note template
+├── .vice/
+│   ├── flotsam.db          # SRS database (scheduling, reviews)
+│   └── config.toml         # vice notebook-local config
+└── flotsam/
+    ├── concept-1.md        # Clean notes with vice:srs tag
+    └── concept-2.md        # zk handles content, vice handles SRS
+```
+
 ## Core Data Structures
 
-### FlotsamNote
+### Simplified Note Model
 
-The primary data structure representing a complete flotsam note:
+**Unix Interop Design**: Notes are **clean markdown files** with minimal frontmatter. Complex operations are delegated to zk.
+
+#### Note Frontmatter (ZK-Compatible)
+
+```yaml
+---
+id: abc1
+title: My Concept Note
+created-at: 2025-07-18T10:30:00Z
+tags: [vice:srs, vice:type:flashcard, concept, important]
+---
+
+# My Concept Note
+
+Content goes here with [[wikilinks]] to other notes.
+```
+
+#### Single Note Operations
 
 ```go
+// Simplified note structure for single-note operations
 type FlotsamNote struct {
-    // Core note data
-    ID       string    `yaml:"id" json:"id"`
-    Title    string    `yaml:"title" json:"title"`
-    Type     string    `yaml:"type" json:"type"`         // idea, flashcard, script, log
-    Tags     []string  `yaml:"tags" json:"tags"`
-    Created  time.Time `yaml:"created-at" json:"created-at"`
-    Modified time.Time `yaml:"-" json:"-"`               // File modification time
+    ID       string    `yaml:"id"`
+    Title    string    `yaml:"title"`
+    Created  time.Time `yaml:"created-at"`
+    Tags     []string  `yaml:"tags"`
     
-    // Content
-    Body      string   `yaml:"-" json:"-"`               // Markdown body content
-    Links     []string `yaml:"-" json:"-"`               // Extracted [[wikilinks]]
-    Backlinks []string `yaml:"-" json:"-"`               // Computed reverse links
-    FilePath  string   `yaml:"-" json:"-"`               // Absolute file path
-    
-    // SRS data (optional)
-    SRS *SRSData `yaml:"srs,omitempty" json:"srs,omitempty"`
+    // Runtime fields (not in frontmatter)
+    Body     string    `yaml:"-"`
+    FilePath string    `yaml:"-"`
+    Modified time.Time `yaml:"-"`
+}
+
+// Helper methods for tag-based behavior
+func (n *FlotsamNote) HasTag(tag string) bool {
+    for _, t := range n.Tags {
+        if t == tag {
+            return true
+        }
+    }
+    return false
+}
+
+func (n *FlotsamNote) HasType(noteType string) bool {
+    return n.HasTag("vice:type:" + noteType)
+}
+
+func (n *FlotsamNote) IsFlashcard() bool {
+    return n.HasType("flashcard")
+}
+
+func (n *FlotsamNote) HasSRS() bool {
+    return n.HasTag("vice:srs")
 }
 ```
 
-### SRSData
+### Tag-based Behavior System
 
-Spaced repetition data stored in frontmatter:
+**Design Principle**: Use zk's tag system for note behaviors instead of separate fields. This keeps the source of truth in markdown while leveraging zk's powerful tag query capabilities.
+
+#### Vice-specific Tag Patterns
+
+```bash
+# Core behavior tags
+vice:srs              # Note participates in SRS scheduling
+vice:type:flashcard   # Question/answer cards for SRS
+vice:type:idea        # Free-form idea capture  
+vice:type:script      # Executable scripts and commands
+vice:type:log         # Journal entries and logs
+
+# Hierarchical tags (future extensibility)
+vice:srs:active       # Currently being reviewed
+vice:srs:suspended    # Temporarily disabled
+vice:habit:daily      # Daily habit integration
+```
+
+#### Composable Operations
+
+```bash
+# Find all flashcards due for review
+zk list --tag "vice:srs AND vice:type:flashcard" --format path | 
+    vice flotsam due --stdin
+
+# Interactive review of overdue flashcards  
+zk list --tag "vice:srs AND vice:type:flashcard" --format path | 
+    vice flotsam due --stdin --overdue --interactive
+
+# Edit all script notes
+zk edit --tag "vice:type:script" --interactive
+
+# Batch review all notes of a specific type
+zk list --tag "vice:type:script" --format path | 
+    vice flotsam review --stdin
+```
+
+**Benefits**:
+- **Discoverable**: `zk list --tag "vice:type:flashcard"`
+- **Composable**: Complex queries via zk's tag system
+- **Source of truth**: Lives in markdown, managed by zk
+- **No sync issues**: No need to cache behavior data
+- **Extensible**: New behaviors via new tags
+
+### SRS Database Schema
+
+**SRS data lives in SQLite** (`.vice/flotsam.db`), **not in frontmatter**:
+
+```sql
+CREATE TABLE srs_reviews (
+    note_path TEXT PRIMARY KEY,
+    note_id TEXT NOT NULL,
+    context TEXT NOT NULL,
+    
+    -- SM-2 algorithm fields
+    easiness REAL NOT NULL DEFAULT 2.5,
+    consecutive_correct INTEGER NOT NULL DEFAULT 0,
+    due_date INTEGER NOT NULL,
+    total_reviews INTEGER NOT NULL DEFAULT 0,
+    
+    -- Metadata
+    created_at INTEGER NOT NULL,
+    last_reviewed INTEGER,
+    
+    -- Optional cache fields (for performance)
+    title TEXT,              -- Cached from zk for display
+    last_synced INTEGER,     -- Cache invalidation timestamp
+    
+    FOREIGN KEY (context) REFERENCES contexts(name)
+);
+```
+
+**Design Notes**:
+- **Minimal caching**: Only cache title for display purposes
+- **No type caching**: Use zk tag queries for type-based filtering
+- **Cache invalidation**: `last_synced` timestamp for cache management
+- **Composition over caching**: Better to compose zk queries than duplicate data
+
+## Performance Strategy
+
+### Hybrid Approach: Unix Interop + In-Memory Fallback
+
+**Design Principle**: Use Unix interop for most operations, with in-memory collection loading preserved for performance-critical UX scenarios.
+
+#### Unix Interop (Primary)
+```bash
+# Most operations use zk delegation
+zk list --tag "vice:srs" --format json | vice flotsam due --stdin
+zk edit --tag "vice:type:flashcard" --interactive
+```
+
+**Benefits**: Tool specialization, composability, reduced maintenance
+**Use Cases**: One-off searches, batch operations, scripting
+
+#### In-Memory Collection (Performance Fallback)
+```go
+// For search-as-you-type and high-frequency operations
+type FlotsamCollection struct {
+    Notes    []FlotsamNote
+    noteMap  map[string]*FlotsamNote      // Fast lookup by ID
+    titleIdx map[string][]*FlotsamNote    // Fast title search
+}
+
+func LoadAllNotes(contextDir string) (*FlotsamCollection, error)
+func (c *FlotsamCollection) SearchByTitle(query string) []*FlotsamNote
+func (c *FlotsamCollection) FilterByTags(tags []string) []*FlotsamNote
+```
+
+**Benefits**: Sub-millisecond search, no process spawning overhead
+**Use Cases**: Interactive search, real-time filtering, TUI applications
+
+#### Adaptive Performance Selection
+```go
+func SearchNotes(query string, interactive bool) ([]*FlotsamNote, error) {
+    if interactive && len(query) > 0 {
+        // Use in-memory collection for real-time search
+        collection, err := LoadAllNotes(contextDir)
+        if err != nil {
+            return nil, err
+        }
+        return collection.SearchByTitle(query), nil
+    } else {
+        // Use zk for one-off searches
+        return searchViaZK(query)
+    }
+}
+```
+
+### Preserved Components from T027
+
+**Performance-Critical (Keep)**:
+- `LoadFlotsam()` - Collection loading into memory
+- `parseFlotsamFile()` - Single note parsing
+- In-memory search/filter operations
+- `computeBacklinks()` - For zk-unavailable scenarios
+
+**Utility Functions (Keep)**:
+- `saveFlotsamNote()` - Atomic file operations
+- `serializeFlotsamNote()` - Frontmatter serialization
+- File path validation and security
+
+**Abstraction Layer (Remove)**:
+- `DataRepository` interface
+- CRUD method abstractions
+- Context switching complexity
+- Complex error wrapping
+
+**Refactored Location**: 
+- `internal/flotsam/collection.go` - In-memory collection operations
+- `internal/flotsam/files.go` - File I/O utilities
+- `internal/flotsam/search.go` - Search operations with fallback logic
+
+### SRS Data Structure
 
 ```go
+// SRS data structure for algorithm operations
 type SRSData struct {
-    // Easiness factor (default 2.5, minimum 1.3)
-    Easiness float64 `yaml:"easiness" json:"easiness"`
-    // Number of consecutive correct answers
-    ConsecutiveCorrect int `yaml:"consecutive_correct" json:"consecutive_correct"`
-    // Unix timestamp when the card is due for review
-    Due int64 `yaml:"due" json:"due"`
-    // Total number of reviews performed
-    TotalReviews int `yaml:"total_reviews" json:"total_reviews"`
-    // Review history for debugging/analysis
-    ReviewHistory []ReviewRecord `yaml:"review_history,omitempty" json:"review_history,omitempty"`
+    NotePath           string    `json:"note_path"`
+    Context            string    `json:"context"`
+    
+    // SM-2 algorithm fields
+    Easiness           float64   `json:"easiness"`
+    ConsecutiveCorrect int       `json:"consecutive_correct"`
+    Due                int64     `json:"due"`
+    TotalReviews       int       `json:"total_reviews"`
+    
+    // Metadata
+    CreatedAt          time.Time `json:"created_at"`
+    LastReviewed       *time.Time `json:"last_reviewed,omitempty"`
+    
+    // Cache fields
+    Title              string    `json:"title,omitempty"`
+    Tags               []string  `json:"tags,omitempty"`
 }
 ```
 

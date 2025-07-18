@@ -119,6 +119,7 @@ flotsam:
 #### Fuzzy Search Implementation
 - **Options**:
   - Shell out to fzf (like zk does)
+    - WARN: Performance concern for notational velocity use case
   - Use Go fuzzy search library
   - Hybrid: fzf for title search, custom for tag/link search
 - **Question**: What about tag-based or link-based search? Does zk provide utility libraries we can import?
