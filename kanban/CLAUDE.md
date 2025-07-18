@@ -3,26 +3,37 @@
 
 ## Roles & Collaboration Model
 
+Vice uses "specification-driven development". It uses Markdown files extensively and deliberately to guide technical design & development.
+  - `doc/specifications/`: living architecture documents which describe subsystem architecture, and specify behaviour and implementation.
+  - `doc/decisions/`: ADRs which describe significant decisions.
+  - `kanban/`: makes the flow of work visible, in the form of task cards.
+
+Auto-compaction is disabled; these files (and the code + comments) preserve agent state and context between sessions.
+
 This document outlines the collaboration model between the User (acting as Tech Lead) and the AI (Claude, acting as a senior developer/pair programmer). We will use a DIY Kanban system based on folders and Markdown files, managed with Git.
 
-- Tech Lead (User) Responsibilities:
-  - Define project architecture, habits and priorities.
+- User role:
+  - Define project architecture & priorities.
   - Select which task to work on, create or refine.
-  - Create initial task Markdown files or request AI to draft them.
-  - Review and approve or modify implementation plans proposed by the AI within task files.
+  - Create task Markdown files or request AI to draft them.
+  - Define project conventions, behavioural expectations, technical standards.
+  - Review and approve or modify implementation plans 
   - Review agent's work.
   - Answer agent's questions and resolve roadblocks.
+  - Manage agent context and lifecycle.
+  - Supervise agent and stop when it goes off track.
 
-- AI (Claude) Responsibilities:
-  - Draft new task file in `kanban/backlog` (as per `kanban/backlog/T000_example.md`) on request
+- Claude Responsibilities:
+  - Draft new task file in `kanban/backlog` (as per `kanban/backlog/T000_example.md`) on request.
   - Refine selected tasks by proposing detailed "Implementation Plan & Progress" sections within the task's Markdown file. This includes sub-tasks, design considerations (e.g., function signatures, data models), and testing strategies.
   - Work only on tasks selected by the User.
-  - Generate code, documentation, tests, or other artifacts as per the agreed sub-tasks.
-  - Update the status of sub-tasks (`[ ]`, `[WIP]`, `[X]` (done), `[blocked]`) within the task's Markdown file.
-  - Clearly indicate when a roadblock is encountered by marking the relevant sub-task `[blocked]` and adding a note in the "Roadblocks" section of the task file.
-  - Always stop and wait for user input after modifying a task's Markdown file content (especially the plan or sub-task status) or when a stopping condition is met.
-  - When submitting a task (or subtask) for user review, prepare a commit as explained below. 
-  - Update task files with commit ids.
+  - Identify unclear requirements and ask clarifying questions of the User.
+  - Ensures "Implementation Plan" is kept up to date with progress as it is done (BEFORE reporting it done to the user).
+    - Updates the status of sub-tasks (`[ ]`, `[WIP]`, `[X]` (done), `[blocked]`).
+    - Adds notes on progress, findings, issues encountered, decisions, open questions, roadblocks.
+    - Commit with a one line conventional message on completing a subtask, once the card is updated.
+    - Updates task files with commit ids.
+  - VERY IMPORTANT: don't output verbose summaries, or novel information to the User (other than questions or confirmation requests). Instead, update markdown files and reference them.
 
 ## Kanban System: Folders & Files
 
@@ -65,6 +76,7 @@ Tasks often have relationships with each other that should be explicitly documen
 - When working, AI will update sub-task statuses (`[ ]`, `[WIP]`, `[x]`, `[blocked]`).
 - AI will add entries to "Roadblocks" and "Notes / Discussion Log".
 - AI may edit task files in place, unless directed otherwise.
+- AI will make suggestions to cross-reference files and update related files to promote coherence & discoverability.
 
 ## Commit Checklist
 
@@ -83,7 +95,8 @@ When asked to "commit" or when work is complete on a task or subtask, follow the
 ### Commit Conventions
 
 - **Commit Conventions:**
-  - ALL commits have a one line message (in conventional format) 
+  - ALL commits have a (typically ONE LINE) message (in conventional format) 
+  - Commit messages should be very terse, and refer to code or markdown files for details.
   - **Commit message title** (first line)
     - Format: `type(scope): [TASK-ID/SUBTASK-ID] description`
       - Type: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
