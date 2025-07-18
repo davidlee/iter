@@ -1,0 +1,173 @@
+direction: right
+
+title: {
+  label: Flotsam Container Architecture - Level 2
+  near: top-center
+  style.font-size: 20
+  style.bold: true
+}
+
+# User
+user: {
+  label: |md
+    **Vice User**
+    
+    [Person]
+    
+    Creates and reviews notes
+  |
+  shape: person
+  style.fill: "#08427b"
+  style.font-color: white
+}
+
+# Main containers within flotsam subsystem
+cli_interface: {
+  label: |md
+    **CLI Interface**
+    
+    [Go Package]
+    
+    Command line interface for note operations
+  |
+  style.fill: "#1168bd"
+  style.font-color: white
+}
+
+repository_layer: {
+  label: |md
+    **Repository Layer**
+    
+    [Go Package - internal/repository]
+    
+    CRUD operations with atomic file handling
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+models_layer: {
+  label: |md
+    **Models Layer**
+    
+    [Go Package - internal/models]
+    
+    Data structures and validation
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+flotsam_engine: {
+  label: |md
+    **Flotsam Engine**
+    
+    [Go Package - internal/flotsam]
+    
+    ZK parsing, link extraction, SRS algorithms
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+# External data stores
+markdown_files: {
+  label: |md
+    **Markdown Files**
+    
+    [File Storage]
+    
+    YAML frontmatter + content as source of truth
+  |
+  shape: cylinder
+  style.fill: "#999999"
+  style.font-color: white
+}
+
+sqlite_cache: {
+  label: |md
+    **SQLite Cache**
+    
+    [Database]
+    
+    Performance cache for SRS queries
+  |
+  shape: cylinder
+  style.fill: "#999999"
+  style.font-color: white
+}
+
+zk_database: {
+  label: |md
+    **ZK Database**
+    
+    [External Database]
+    
+    Existing ZK notebook.db with Vice tables
+  |
+  shape: cylinder
+  style.fill: "#cccccc"
+  style.font-color: black
+}
+
+# Relationships
+user -> cli_interface: |md
+  Issues commands
+  
+  [Terminal]
+|
+
+cli_interface -> repository_layer: |md
+  Invokes operations
+  
+  [Function calls]
+|
+
+repository_layer -> models_layer: |md
+  Uses data structures
+  
+  [Go structs]
+|
+
+repository_layer -> flotsam_engine: |md
+  Parsing & SRS operations
+  
+  [Function calls]
+|
+
+repository_layer -> markdown_files: |md
+  Atomic file operations
+  
+  [File I/O]
+|
+
+repository_layer -> sqlite_cache: |md
+  Performance queries
+  
+  [SQLite]
+|
+
+repository_layer -> zk_database: |md
+  ZK compatibility mode
+  
+  [SQLite]
+|
+
+flotsam_engine -> markdown_files: |md
+  Parses frontmatter
+  
+  [File I/O]
+|
+
+# Container boundary
+flotsam_boundary: {
+  style.stroke-dash: 3
+  style.stroke: "#85bbf0"
+  style.fill: "#f0f8ff"
+  style.opacity: 0.2
+  
+  cli_interface
+  repository_layer
+  models_layer
+  flotsam_engine
+}

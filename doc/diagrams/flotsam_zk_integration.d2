@@ -1,0 +1,276 @@
+direction: right
+
+title: {
+  label: Flotsam-ZK Integration Architecture
+  near: top-center
+  style.font-size: 20
+  style.bold: true
+}
+
+# User scenarios
+zk_user: {
+  label: |md
+    **ZK User**
+    
+    [Person]
+    
+    Existing ZK notebook user
+  |
+  shape: person
+  style.fill: "#08427b"
+  style.font-color: white
+}
+
+vice_user: {
+  label: |md
+    **Vice User**
+    
+    [Person]
+    
+    New flotsam user
+  |
+  shape: person
+  style.fill: "#08427b"
+  style.font-color: white
+}
+
+# Existing ZK system
+zk_cli: {
+  label: |md
+    **ZK CLI**
+    
+    [External Tool]
+    
+    Original ZK note management
+  |
+  style.fill: "#666666"
+  style.font-color: white
+}
+
+zk_notebook: {
+  label: |md
+    **ZK Notebook**
+    
+    [File Structure]
+    
+    Existing note collection
+  |
+  style.fill: "#cccccc"
+  style.font-color: black
+}
+
+zk_database: {
+  label: |md
+    **notebook.db**
+    
+    [SQLite Database]
+    
+    ZK indexing and metadata
+  |
+  shape: cylinder
+  style.fill: "#999999"
+  style.font-color: white
+}
+
+# Vice flotsam system
+vice_cli: {
+  label: |md
+    **Vice CLI**
+    
+    [Go Application]
+    
+    Flotsam note management
+  |
+  style.fill: "#1168bd"
+  style.font-color: white
+}
+
+flotsam_subsystem: {
+  label: |md
+    **Flotsam Subsystem**
+    
+    [Go Module]
+    
+    ZK-compatible note processing
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+# Shared components
+markdown_notes: {
+  label: |md
+    **Markdown Notes**
+    
+    [Shared Files]
+    
+    Standard ZK format + Vice extensions
+  |
+  shape: page
+  style.fill: "#e8f4fd"
+  style.stroke: "#1168bd"
+}
+
+vice_cache_tables: {
+  label: |md
+    **Vice Cache Tables**
+    
+    [SQLite Tables]
+    
+    vice_srs_cache, vice_file_cache, vice_contexts
+  |
+  shape: cylinder
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+# Integration scenarios
+hybrid_mode: {
+  label: |md
+    **Hybrid Mode**
+    
+    [Integration Pattern]
+    
+    Both tools work on same notebook
+  |
+  style.fill: "#b0d4f0"
+  style.font-color: black
+}
+
+# Context isolation
+vice_context: {
+  label: |md
+    **Vice Context**
+    
+    [File Structure]
+    
+    Independent flotsam directory
+  |
+  style.fill: "#e8f4fd"
+  style.stroke: "#1168bd"
+}
+
+flotsam_db: {
+  label: |md
+    **flotsam.db**
+    
+    [SQLite Database]
+    
+    Standalone cache database
+  |
+  shape: cylinder
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+# User interactions
+zk_user -> zk_cli: |md
+  Uses ZK commands
+  
+  [Terminal]
+|
+
+vice_user -> vice_cli: |md
+  Uses Vice commands
+  
+  [Terminal]
+|
+
+# ZK system
+zk_cli -> zk_notebook: |md
+  Manages notes
+  
+  [File operations]
+|
+
+zk_cli -> zk_database: |md
+  Indexes and queries
+  
+  [SQLite operations]
+|
+
+zk_notebook -> markdown_notes: |md
+  Standard ZK notes
+  
+  [File system]
+|
+
+zk_database -> zk_notebook: |md
+  Metadata storage
+  
+  [Index operations]
+|
+
+# Vice system
+vice_cli -> flotsam_subsystem: |md
+  Note operations
+  
+  [Function calls]
+|
+
+flotsam_subsystem -> markdown_notes: |md
+  ZK-compatible operations
+  
+  [File I/O]
+|
+
+# Hybrid integration
+flotsam_subsystem -> zk_database: |md
+  Adds Vice tables
+  
+  [SQLite operations]
+|
+
+zk_database -> vice_cache_tables: |md
+  Contains Vice tables
+  
+  [Table relationships]
+|
+
+vice_cache_tables -> hybrid_mode: |md
+  Enables coexistence
+  
+  [Architecture pattern]
+|
+
+# Standalone mode
+flotsam_subsystem -> vice_context: |md
+  Independent operation
+  
+  [File operations]
+|
+
+vice_context -> flotsam_db: |md
+  Cache database
+  
+  [SQLite operations]
+|
+
+# Key features
+compatibility_note: {
+  label: |md
+    **ZK Compatibility**
+    
+    • ZK ignores Vice frontmatter extensions
+    • ZK preserves Vice metadata in JSON field
+    • Vice tables don't affect ZK operations
+    • Full rollback capability (drop Vice tables)
+  |
+  style.fill: "#ffffcc"
+  style.stroke: "#cccc00"
+  near: bottom-left
+}
+
+isolation_note: {
+  label: |md
+    **Context Isolation**
+    
+    • Vice contexts scope note operations
+    • Hybrid: shared notebook with separate cache
+    • Standalone: independent flotsam directory
+    • Bridge support for cross-context links
+  |
+  style.fill: "#ccffcc"
+  style.stroke: "#00cc00"
+  near: bottom-right
+}

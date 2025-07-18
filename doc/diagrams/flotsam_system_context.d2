@@ -1,0 +1,124 @@
+direction: right
+
+title: {
+  label: Flotsam Note System - Context Level
+  near: top-center
+  style.font-size: 20
+  style.bold: true
+}
+
+user: {
+  label: |md
+    **Vice User**
+    
+    [Person]
+    
+    Knowledge worker using flotsam for note-taking and spaced repetition learning
+  |
+  shape: person
+  style.fill: "#08427b"
+  style.font-color: white
+}
+
+vice_app: {
+  label: |md
+    **Vice Application**
+    
+    [Go CLI Application]
+    
+    Habit tracking and knowledge management platform
+  |
+  style.fill: "#1168bd"
+  style.font-color: white
+}
+
+flotsam: {
+  label: |md
+    **Flotsam Subsystem**
+    
+    [Go Module]
+    
+    Note management with ZK compatibility and SRS learning algorithms
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+zk_notebooks: {
+  label: |md
+    **ZK Notebooks**
+    
+    [External Knowledge Base]
+    
+    Existing Zettelkasten notebooks with markdown files and SQLite indexes
+  |
+  style.fill: "#999999"
+  style.font-color: white
+}
+
+filesystem: {
+  label: |md
+    **File System**
+    
+    [Storage]
+    
+    Markdown files with YAML frontmatter as source of truth
+  |
+  shape: cylinder
+  style.fill: "#999999"
+  style.font-color: white
+}
+
+git_repo: {
+  label: |md
+    **Git Repository**
+    
+    [Version Control]
+    
+    Version control for note history and collaborative workflows
+  |
+  style.fill: "#999999"
+  style.font-color: white
+}
+
+user -> vice_app: |md
+  Uses CLI commands
+  
+  [Terminal Interface]
+|
+
+vice_app -> flotsam: |md
+  Manages notes and SRS
+  
+  [Function Calls]
+|
+
+flotsam -> filesystem: |md
+  Reads/writes markdown files
+  
+  [File I/O]
+|
+
+flotsam -> zk_notebooks: |md
+  Interoperates with existing notebooks
+  
+  [File I/O + SQLite]
+|
+
+filesystem -> git_repo: |md
+  Files tracked in version control
+  
+  [Git Operations]
+|
+
+user -> zk_notebooks: |md
+  May use ZK tools directly
+  
+  [External Tools]
+|
+
+user -> git_repo: |md
+  Commits note changes
+  
+  [Git CLI]
+|

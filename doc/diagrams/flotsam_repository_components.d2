@@ -1,0 +1,260 @@
+direction: right
+
+title: {
+  label: Repository Layer Components - Level 3
+  near: top-center
+  style.font-size: 20
+  style.bold: true
+}
+
+# External interface
+cli: {
+  label: |md
+    **CLI Commands**
+    
+    [External]
+    
+    Note management commands
+  |
+  style.fill: "#cccccc"
+  style.font-color: black
+}
+
+# Repository interface
+data_repository: {
+  label: |md
+    **DataRepository Interface**
+    
+    [Go Interface]
+    
+    13 flotsam methods + T028 integration
+  |
+  style.fill: "#1168bd"
+  style.font-color: white
+}
+
+# Core repository implementation
+file_repository: {
+  label: |md
+    **FileRepository**
+    
+    [Go Struct]
+    
+    Main implementation with ViceEnv integration
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+# CRUD method groups
+collection_ops: {
+  label: |md
+    **Collection Operations**
+    
+    [Methods]
+    
+    LoadFlotsam, SaveFlotsam
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+crud_ops: {
+  label: |md
+    **CRUD Operations**
+    
+    [Methods]
+    
+    Create, Get, Update, Delete individual notes
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+query_ops: {
+  label: |md
+    **Query Operations**
+    
+    [Methods]
+    
+    Search, GetByType, GetByTag, GetDue, GetWithSRS
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+# Helper components
+parsing_helpers: {
+  label: |md
+    **Parsing Helpers**
+    
+    [Private Functions]
+    
+    parseFlotsamFile, serializeFlotsamNote
+  |
+  style.fill: "#b0d4f0"
+  style.font-color: black
+}
+
+atomic_ops: {
+  label: |md
+    **Atomic Operations**
+    
+    [Private Functions]
+    
+    saveFlotsamNote with temp file + rename
+  |
+  style.fill: "#b0d4f0"
+  style.font-color: black
+}
+
+backlink_compute: {
+  label: |md
+    **Backlink Computation**
+    
+    [Method]
+    
+    computeBacklinks using ZK algorithm
+  |
+  style.fill: "#b0d4f0"
+  style.font-color: black
+}
+
+# External dependencies
+flotsam_engine: {
+  label: |md
+    **Flotsam Engine**
+    
+    [External Package]
+    
+    ZK parsing, SRS algorithms
+  |
+  style.fill: "#999999"
+  style.font-color: white
+}
+
+models: {
+  label: |md
+    **Models Package**
+    
+    [External Package]
+    
+    Data structures, validation
+  |
+  style.fill: "#999999"
+  style.font-color: white
+}
+
+vice_env: {
+  label: |md
+    **ViceEnv**
+    
+    [External Package]
+    
+    Context-aware path resolution
+  |
+  style.fill: "#999999"
+  style.font-color: white
+}
+
+filesystem: {
+  label: |md
+    **File System**
+    
+    [Storage]
+    
+    Markdown files
+  |
+  shape: cylinder
+  style.fill: "#999999"
+  style.font-color: white
+}
+
+# Relationships
+cli -> data_repository: |md
+  Calls interface methods
+  
+  [Function calls]
+|
+
+data_repository -> file_repository: |md
+  Interface implementation
+  
+  [Go interface]
+|
+
+file_repository -> collection_ops: |md
+  Bulk operations
+  
+  [Method calls]
+|
+
+file_repository -> crud_ops: |md
+  Individual operations
+  
+  [Method calls]
+|
+
+file_repository -> query_ops: |md
+  Search operations
+  
+  [Method calls]
+|
+
+collection_ops -> parsing_helpers: |md
+  File parsing
+  
+  [Function calls]
+|
+
+crud_ops -> atomic_ops: |md
+  Safe file writes
+  
+  [Function calls]
+|
+
+collection_ops -> backlink_compute: |md
+  Link computation
+  
+  [Function calls]
+|
+
+parsing_helpers -> flotsam_engine: |md
+  Parse frontmatter & links
+  
+  [Function calls]
+|
+
+atomic_ops -> filesystem: |md
+  Atomic file operations
+  
+  [File I/O]
+|
+
+file_repository -> models: |md
+  Data structures
+  
+  [Go structs]
+|
+
+file_repository -> vice_env: |md
+  Path resolution
+  
+  [Function calls]
+|
+
+# Component boundary
+repository_boundary: {
+  style.stroke-dash: 3
+  style.stroke: "#85bbf0"
+  style.fill: "#f0f8ff"
+  style.opacity: 0.1
+  
+  file_repository
+  collection_ops
+  crud_ops
+  query_ops
+  parsing_helpers
+  atomic_ops
+  backlink_compute
+}

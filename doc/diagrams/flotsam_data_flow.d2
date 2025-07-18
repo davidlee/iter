@@ -1,0 +1,273 @@
+direction: down
+
+title: {
+  label: Flotsam Data Flow - Files-First Architecture
+  near: top-center
+  style.font-size: 20
+  style.bold: true
+}
+
+# Data sources
+markdown_file: {
+  label: |md
+    **Markdown File**
+    
+    [Source of Truth]
+    
+    YAML frontmatter + content
+  |
+  shape: page
+  style.fill: "#e8f4fd"
+  style.stroke: "#1168bd"
+}
+
+# Parsing pipeline
+frontmatter_parser: {
+  label: |md
+    **Frontmatter Parser**
+    
+    [ZK Component]
+    
+    YAML parsing with error handling
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+link_extractor: {
+  label: |md
+    **Link Extractor**
+    
+    [ZK Component]
+    
+    Goldmark AST wikilink parsing
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+# Data models
+flotsam_note: {
+  label: |md
+    **FlotsamNote**
+    
+    [In-Memory Model]
+    
+    Structured data + links + backlinks
+  |
+  style.fill: "#b0d4f0"
+  style.font-color: black
+}
+
+# Processing operations
+srs_calculator: {
+  label: |md
+    **SRS Calculator**
+    
+    [go-srs Component]
+    
+    SM-2 algorithm processing
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+validation: {
+  label: |md
+    **Validation**
+    
+    [Models Component]
+    
+    Structure & constraint checking
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+# Cache layer
+sqlite_cache: {
+  label: |md
+    **SQLite Cache**
+    
+    [Performance Layer]
+    
+    Fast SRS queries (optional)
+  |
+  shape: cylinder
+  style.fill: "#cccccc"
+  style.font-color: black
+}
+
+# Application layer
+repository_api: {
+  label: |md
+    **Repository API**
+    
+    [Application Interface]
+    
+    CRUD operations for CLI
+  |
+  style.fill: "#1168bd"
+  style.font-color: white
+}
+
+# Data flow - READ path
+markdown_file -> frontmatter_parser: |md
+  Read file
+  
+  [File I/O]
+|
+
+frontmatter_parser -> link_extractor: |md
+  Parse frontmatter + body
+  
+  [Data structures]
+|
+
+link_extractor -> flotsam_note: |md
+  Extract wikilinks
+  
+  [AST processing]
+|
+
+flotsam_note -> validation: |md
+  Validate structure
+  
+  [Function calls]
+|
+
+flotsam_note -> srs_calculator: |md
+  Process SRS data
+  
+  [SM-2 algorithm]
+|
+
+flotsam_note -> repository_api: |md
+  Return structured data
+  
+  [Go structs]
+|
+
+# Cache synchronization
+flotsam_note -> sqlite_cache: |md
+  Update cache (async)
+  
+  [SQLite writes]
+|
+
+sqlite_cache -> repository_api: |md
+  Fast SRS queries
+  
+  [SQLite reads]
+|
+
+# WRITE path
+write_request: {
+  label: |md
+    **Write Request**
+    
+    [User Action]
+    
+    Create/Update note
+  |
+  style.fill: "#e8f4fd"
+  style.stroke: "#1168bd"
+}
+
+atomic_writer: {
+  label: |md
+    **Atomic Writer**
+    
+    [Repository Component]
+    
+    Temp file + rename pattern
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+serializer: {
+  label: |md
+    **Serializer**
+    
+    [Repository Component]
+    
+    YAML frontmatter + markdown body
+  |
+  style.fill: "#85bbf0"
+  style.font-color: white
+}
+
+new_markdown_file: {
+  label: |md
+    **Updated File**
+    
+    [File System]
+    
+    Atomically written markdown
+  |
+  shape: page
+  style.fill: "#e8f4fd"
+  style.stroke: "#1168bd"
+}
+
+write_request -> repository_api: |md
+  API call
+  
+  [Function calls]
+|
+
+repository_api -> validation: |md
+  Validate input
+  
+  [Validation rules]
+|
+
+repository_api -> serializer: |md
+  Convert to markdown
+  
+  [YAML + text]
+|
+
+serializer -> atomic_writer: |md
+  Serialized content
+  
+  [String data]
+|
+
+atomic_writer -> new_markdown_file: |md
+  Atomic file write
+  
+  [File I/O]
+|
+
+new_markdown_file -> sqlite_cache: |md
+  Cache invalidation
+  
+  [Change detection]
+|
+
+# Error recovery
+cache_rebuild: {
+  label: |md
+    **Cache Rebuild**
+    
+    [Recovery Process]
+    
+    Rebuild from source files
+  |
+  style.fill: "#ffdddd"
+  style.stroke: "#cc0000"
+}
+
+new_markdown_file -> cache_rebuild: |md
+  On cache corruption
+  
+  [Error recovery]
+|
+
+cache_rebuild -> sqlite_cache: |md
+  Rebuild cache
+  
+  [Batch processing]
+|
