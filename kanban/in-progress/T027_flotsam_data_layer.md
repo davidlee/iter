@@ -659,10 +659,24 @@ As a developer implementing the flotsam system, I need a robust data layer that:
       - Proper error handling following repository Error struct patterns
     - *Key Finding:* SRS data persistence was already implemented - SRS data serializes to/from YAML frontmatter automatically via struct tags
 - [ ] **4.4 Add Validation and Utilities**: Comprehensive validation and helper functions
-  - [ ] **4.4.1 Add struct validation**: Validate flotsam data structures
-    - *Design:* Input validation for user data and frontmatter
-    - *Code/Artifacts:* Validation functions in `internal/models/flotsam.go`
-    - *Testing:* Test validation rules and error cases
+  - [x] **4.4.1 Add struct validation**: Validate flotsam data structures
+    - *Design:* Comprehensive struct validation following existing `habit.go` patterns
+    - *Code/Artifacts:* Validation functions in `internal/models/flotsam.go` and `internal/models/flotsam_validation_test.go`
+    - *Testing:* Comprehensive test validation rules and error cases (79 test cases)
+    - *Status:* COMPLETED - Full validation infrastructure implemented
+    - *Implementation Details:*
+      - **FlotsamNote.Validate()**: Complete validation with `validateInternal()` following habit.go patterns
+      - **FlotsamFrontmatter.Validate()**: ID format, required fields (id, title, created), type validation
+      - **FlotsamCollection.Validate()**: Context requirement, duplicate ID detection, note validation
+      - **SRS data validation**: Easiness bounds (1.3-4.0), non-negative counters, logical consistency
+      - **Validation helpers**: `isValidFlotsamID()` (ZK 4-char format), `validateSRSData()` (SM-2 constraints)
+    - *Validation Rules Implemented:*
+      - **ID Format**: ZK-compatible 4-character alphanumeric lowercase (`^[a-z0-9]{4}$`)
+      - **Required Fields**: Title, created timestamp validation
+      - **SRS Bounds**: Easiness 1.3-4.0, non-negative counters, total_reviews >= consecutive_correct
+      - **Time Logic**: Modified time cannot be before created time
+      - **Collection Integrity**: Context isolation, duplicate ID prevention, recursive note validation
+    - *Test Coverage:* 79 test cases covering valid/invalid scenarios, boundary conditions, error messages
   - [ ] **4.4.2 Add utility functions**: Helper functions for common operations
     - *Design:* ID generation, timestamp formatting, sanitization
     - *Code/Artifacts:* Utility functions in flotsam package
@@ -1078,6 +1092,7 @@ As a developer implementing the flotsam system, I need a robust data layer that:
 - Comprehensive test coverage (80+ tests passing)
 
 **Commits:**
+- `3546f69` - feat(flotsam)[T027/4.3]: complete SRS operations implementation
 - `05a5983` - docs(flotsam)[T027]: add comprehensive implementation notes and anchor comments  
 - `46931c6` - feat(flotsam)[T027/3.2]: implement complete repository layer with CRUD operations
 - `88ecf6a` - feat(flotsam)[T027/2.1]: implement data model definition with ZK compatibility

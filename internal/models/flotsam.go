@@ -4,6 +4,8 @@ package models
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"davidlee/vice/internal/flotsam"
@@ -171,6 +173,152 @@ func (fn *FlotsamNote) ValidateType() error {
 	}
 
 	return FlotsamType(fn.Type).Validate()
+}
+
+// Validate validates the entire FlotsamNote structure.
+// AIDEV-NOTE: comprehensive validation following habit.go patterns
+func (fn *FlotsamNote) Validate() error {
+	return fn.validateInternal()
+}
+
+// validateInternal performs the core validation logic for FlotsamNote.
+func (fn *FlotsamNote) validateInternal() error {
+	// Validate ID format (ZK-compatible: 4-char alphanum)
+	if !isValidFlotsamID(fn.ID) {
+		return fmt.Errorf("flotsam ID '%s' is invalid: must be 4-character alphanumeric (ZK-compatible)", fn.ID)
+	}
+
+	// Title is required
+	if strings.TrimSpace(fn.Title) == "" {
+		return fmt.Errorf("title is required")
+	}
+
+	// Validate type (uses existing ValidateType with defaults)
+	if err := fn.ValidateType(); err != nil {
+		return fmt.Errorf("invalid type: %w", err)
+	}
+
+	// Validate SRS data if present
+	if fn.SRS != nil {
+		if err := validateSRSData(fn.SRS); err != nil {
+			return fmt.Errorf("invalid SRS data: %w", err)
+		}
+	}
+
+	// Created time should not be zero
+	if fn.Created.IsZero() {
+		return fmt.Errorf("created timestamp is required")
+	}
+
+	// Modified time should not be before created time
+	if !fn.Modified.IsZero() && fn.Modified.Before(fn.Created) {
+		return fmt.Errorf("modified time cannot be before created time")
+	}
+
+	return nil
+}
+
+// Validate validates the FlotsamFrontmatter structure.
+func (ff *FlotsamFrontmatter) Validate() error {
+	// Validate ID format
+	if !isValidFlotsamID(ff.ID) {
+		return fmt.Errorf("flotsam ID '%s' is invalid: must be 4-character alphanumeric (ZK-compatible)", ff.ID)
+	}
+
+	// Title is required
+	if strings.TrimSpace(ff.Title) == "" {
+		return fmt.Errorf("title is required")
+	}
+
+	// Validate type
+	if err := ff.Type.Validate(); err != nil {
+		return fmt.Errorf("invalid type: %w", err)
+	}
+
+	// Created time is required
+	if ff.Created.IsZero() {
+		return fmt.Errorf("created timestamp is required")
+	}
+
+	// Validate SRS data if present
+	if ff.SRS != nil {
+		if err := validateSRSData(ff.SRS); err != nil {
+			return fmt.Errorf("invalid SRS data: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// Validate validates the FlotsamCollection structure.
+func (fc *FlotsamCollection) Validate() error {
+	// Context is required for isolation
+	if strings.TrimSpace(fc.Context) == "" {
+		return fmt.Errorf("context is required for collection isolation")
+	}
+
+	// Validate each note in the collection
+	idsSeen := make(map[string]bool)
+	for i, note := range fc.Notes {
+		// Validate individual note
+		if err := note.validateInternal(); err != nil {
+			return fmt.Errorf("note %d validation failed: %w", i, err)
+		}
+
+		// Check for duplicate IDs within collection
+		if idsSeen[note.ID] {
+			return fmt.Errorf("duplicate note ID '%s' found in collection", note.ID)
+		}
+		idsSeen[note.ID] = true
+	}
+
+	return nil
+}
+
+// isValidFlotsamID validates flotsam ID format (ZK-compatible: 4-char alphanum).
+// AIDEV-NOTE: follows ZK ID generation pattern from internal/flotsam/zk_id.go
+func isValidFlotsamID(id string) bool {
+	if id == "" {
+		return false
+	}
+	// ZK-compatible: exactly 4 characters, alphanumeric, lowercase
+	matched, _ := regexp.MatchString(`^[a-z0-9]{4}$`, id)
+	return matched
+}
+
+// validateSRSData validates SRS data structure and bounds.
+// AIDEV-NOTE: follows go-srs SM-2 algorithm constraints from internal/flotsam/srs_sm2.go
+func validateSRSData(srs *flotsam.SRSData) error {
+	if srs == nil {
+		return nil // SRS data is optional
+	}
+
+	// Easiness bounds from SM-2 algorithm (MinEasiness = 1.3, typical max = 4.0)
+	if srs.Easiness < 1.3 || srs.Easiness > 4.0 {
+		return fmt.Errorf("easiness %.2f out of bounds: must be between 1.3 and 4.0", srs.Easiness)
+	}
+
+	// ConsecutiveCorrect must be non-negative
+	if srs.ConsecutiveCorrect < 0 {
+		return fmt.Errorf("consecutive_correct %d must be non-negative", srs.ConsecutiveCorrect)
+	}
+
+	// TotalReviews must be non-negative
+	if srs.TotalReviews < 0 {
+		return fmt.Errorf("total_reviews %d must be non-negative", srs.TotalReviews)
+	}
+
+	// Due timestamp must be positive (Unix timestamp)
+	if srs.Due < 0 {
+		return fmt.Errorf("due timestamp %d must be positive", srs.Due)
+	}
+
+	// Logical consistency: TotalReviews should be >= ConsecutiveCorrect
+	if srs.TotalReviews < srs.ConsecutiveCorrect {
+		return fmt.Errorf("total_reviews %d cannot be less than consecutive_correct %d", srs.TotalReviews, srs.ConsecutiveCorrect)
+	}
+
+	return nil
 }
 
 // AddNote adds a note to the collection and updates metadata.
