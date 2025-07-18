@@ -805,13 +805,27 @@ func (r *FileRepository) GetDueFlotsamNotes() ([]*models.FlotsamNote, error) {
 }
 
 // GetFlotsamWithSRS returns flotsam notes that have SRS enabled.
+// AIDEV-NOTE: filters notes with SRS data per ADR-002 files-first architecture
 func (r *FileRepository) GetFlotsamWithSRS() ([]*models.FlotsamNote, error) {
-	// TODO: Implement in later subtask
-	return nil, &Error{
-		Operation: "GetFlotsamWithSRS",
-		Context:   r.viceEnv.Context,
-		Err:       fmt.Errorf("not yet implemented"),
+	// Load all flotsam notes
+	collection, err := r.LoadFlotsam()
+	if err != nil {
+		return nil, &Error{
+			Operation: "GetFlotsamWithSRS",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to load flotsam collection: %w", err),
+		}
 	}
+
+	// Filter notes that have SRS data
+	var srsNotes []*models.FlotsamNote
+	for _, note := range collection.Notes {
+		if note.HasSRS() {
+			srsNotes = append(srsNotes, &note)
+		}
+	}
+
+	return srsNotes, nil
 }
 
 // GetFlotsamDir returns the context-aware flotsam directory path.
