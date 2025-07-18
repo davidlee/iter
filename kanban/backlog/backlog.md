@@ -139,6 +139,9 @@ which begs for ...
 
 ## expanded features
 
+- remind : investigate integration to provide recurrence /
+  scheduling 
+
 - persistent processes: api; mcp server; 
 - stuff with time
   - timer; stopwatch
