@@ -1,7 +1,7 @@
 ---
 title: "Flotsam Note System"
 tags: ["feature", "notes", "zettelkasten", "search"]
-related_tasks: ["blocks:T027", "depends-on:T028"]
+related_tasks: ["blocked-by:T041", "relates-to:T042,T043,T044,T045", "supersedes:T027"]
 context_windows: ["internal/**/*.go", "CLAUDE.md", "doc/**/*.md", "kanban/**/*.md", "cmd/**/*.go"]
 ---
 # Flotsam Note System
@@ -11,9 +11,24 @@ Implement a "flotsam" note system inspired by Notational Velocity, digital zette
 
 **Type**: `feature`
 
-**Overall Status:** `In Progress`
+**Overall Status:** `Blocked` - Awaiting T041 Unix Interop Foundation
+
+## ARCHITECTURAL CHANGE NOTICE
+
+**Unix Interop Decision (2025-07-18)**: After comprehensive analysis, vice is pivoting from T027's coupled integration to Unix interop patterns. See `doc/design-artefacts/unix-interop-vs-coupled-integration-analysis.md` for full rationale.
+
+**Impact on T026**:
+- **Handled by ZK Integration**: External editor, fuzzy search, wiki links, templates, note management
+- **Remains Relevant**: SRS scheduling, flotsam-specific workflows, vice integration
+- **New Foundation**: T041 establishes Unix interop foundation and SRS database
+
+**Revised Scope**: T026 now focuses on SRS workflows and flotsam-specific UX built on top of zk integration, rather than implementing note management from scratch.
 
 ## Reference (Relevant Files / URLs)
+
+### Design Documentation
+- `doc/design-artefacts/unix-interop-vs-coupled-integration-analysis.md` - Unix interop decision analysis
+- `kanban/backlog/T041_unix_interop_foundation.md` - Foundation implementation task
 
 ### Significant Code (Files / Functions)
 - `internal/models/` - Data model definitions for YAML schema
@@ -50,7 +65,7 @@ This supports reflective practice, knowledge management, and incremental learnin
 
 ## Acceptance Criteria (ACs)
 
-- [ ] `vice flotsam` command launches fuzzy search interface
+- [ ] vice provides a fuzzy search interface for flotsam notes
 - [ ] Create new flotsam with title and markdown body
 - [ ] Edit existing flotsam with live preview
 - [ ] Fuzzy search by title and content
@@ -99,55 +114,6 @@ flotsam:
 - **Search indexing**: Context-scoped search to maintain data isolation (file content + frontmatter)
 - **Cache/index store**: Badger/skate for computed metadata (backlinks, tags, SRS) with .md files as source of truth
 
-## Scope Questions & Design Decisions
-
-### External Dependencies & Integration Options
-
-#### Spaced Repetition System (SRS)
-- **go-srs** (github.com/revelaction/go-srs):
-  - Uses SuperMemo 2 algorithm with pluggable interfaces (Algorithm, Database, UID)
-  - Uses badger + ulid for storage/IDs
-  - **Question**: Adapt go-srs to work with skate/vice storage? Benefits vs complexity?
-  - **Decision needed**: Use go-srs directly, adapt interfaces, or implement our own SRS?
-
-#### Key-Value Store / Caching
-- **skate** (github.com/charmbracelet/skate):
-  - Simple personal key-value store with badger backend
-  - CLI-based with multiple database support
-  - **Question**: Use skate for tag/link indexing and SRS metadata cache?
-  - **Decision needed**: Direct badger, skate wrapper, or pure file-based storage?
-
-#### Zettelkasten Compatibility
-- **zk** (github.com/zk-org/zk) - Detailed Analysis:
-  - **Storage**: Flexible .md files with optional YAML frontmatter, no strict structure
-  - **IDs**: Optional, configurable (alphanum/hex, configurable length), used in filenames not content
-  - **Links**: `[[title]]` or `[[filename]]` resolution, dynamic backlink computation
-  - **Config**: TOML-based, uses `ZK_NOTEBOOK_DIR` env var for vault location
-  - **CLI**: fzf-powered search, LSP integration, template system with Handlebars
-
-**ZK Compatibility Decision Points:**
-1. **Frontmatter schema**: Support zk's YAML fields (`title`, `date`, `tags`, `aliases`)
-2. **Link syntax**: Use `[[wikilinks]]` with title/filename resolution
-3. **File naming**: Support zk's template patterns (e.g., `{{id}}-{{slug title}}.md`)
-4. **Directory structure**: Allow zk notebook directories as flotsam storage locations
-5. **Environment integration**: Respect `ZK_NOTEBOOK_DIR` for interop vs vice context isolation
-
-### Storage Strategy Decisions
-
-#### Primary Storage Format
-- **Decided**: Individual .md files with YAML frontmatter + supplemental data store/cache for indexing
-- **Storage structure**: `$VICE_DATA/{context}/flotsam/*.md` with frontmatter metadata
-- **Cache/index**: Separate data store for computed data (backlinks, tags, SRS metadata)
-
-#### ID Generation Scheme
-- **Options**:
-  - ZK-compatible IDs (if pursuing interop)
-  - ULID (what go-srs uses)
-  - sqids (original plan)
-- **Questions**: 
-  - If ZK compatibility: what's zk's ID scheme and generation process?
-  - Do we need to generate IDs or can we reuse existing zk database/index?
-
 ### Search & UI Implementation
 
 #### Fuzzy Search Implementation
@@ -162,7 +128,7 @@ flotsam:
 - **Options**: Shell out to $EDITOR, embedded editor, or delegate to external tools
 
 #### ZK Go Dependencies
-- **Question**: zk is written in Go - what components can we import/reuse?
+- **Question**: zk is written in Go - what additional components can we import/reuse?
 - **Candidates**: Markdown parsing, tag/link extraction, CLI patterns, config management
 
 ### Content & Templating
@@ -180,27 +146,6 @@ flotsam:
   - Naive approach vs lazy/JIT loading?
 - **Implications**: Affects search indexing, link resolution, and SRS scheduling
 
-#### Context Isolation vs ZK Interop
-- **Question**: How to handle zk env var for vault path vs vice's context system?
-- **Risk**: Referenced flotsam from habits becomes inaccessible when ENV changes
-- **Options**: Copy files, symlinks, or abstraction layer
-
-### ZK Compatibility Evaluation Steps
-
-**Immediate Investigation Tasks:**
-1. **Test ZK setup**: Install zk, create sample notebook, understand actual file structure
-2. **Analyze zk Go modules**: Examine zk's source for reusable components (parsing, linking, templates)
-3. **Frontmatter compatibility**: Map zk's YAML schema to flotsam requirements
-4. **Link resolution**: Test zk's `[[wikilink]]` behavior with different filename patterns
-5. **Template system**: Evaluate if zk's Handlebars templates could work for flotsam creation
-
-**Compatibility Level Options:**
-- **Full compatibility**: Flotsam works as zk notebook, zk commands work on flotsam files
-- **Read compatibility**: Flotsam can import/read existing zk notebooks  
-- **Write compatibility**: Flotsam creates zk-compatible files but may have additional metadata
-- **Independent**: Learn from zk patterns but maintain vice-specific approach
-
-
 
 ## Implementation Plan & Progress
 
@@ -208,12 +153,23 @@ flotsam:
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
 
 ### 1. Data Layer Foundation (T027)
-- [ ] **1.1 Data Layer Implementation**: Complete data layer foundation in T027
-  - [ ] **1.1.1 Complete external code integration**: ZK parsing and go-srs components
-  - [ ] **1.1.2 Implement data models**: ZK-compatible structures with SRS support
-  - [ ] **1.1.3 Extend repository interface**: Add flotsam methods to DataRepository
-  - [ ] **1.1.4 Implement core operations**: Parsing, linking, SRS scheduling
+- [x] **1 Data Layer Implementation**: Complete data layer foundation in T027
 
+### 2. Core CLI Commands
+
+- Create vice flotsam command**: Main command entry point
+  - [ ]  Create vice flotsam command**: Main command entry point
+  - [ ]  Add subcommand routing: list, new, edit, search, review
+    - `new`: given a string, create a new flotsam file with that title.
+    - `list`: list flotsam id, title 
+    - `edit`: edit flotsam in $EDITOR
+    - `search`: 
+
+  - [ ]  Implement Context awareness**: Use current vice context
+
+
+
+```
 ### 2. Core CLI Commands
 - [ ] **3.1 Flotsam Command Structure**: Base command and subcommands
   - [ ] **3.1.1 Create vice flotsam command**: Main command entry point
@@ -264,6 +220,8 @@ flotsam:
   - [ ] **7.2.1 Implement export functions**: Various format export
   - [ ] **7.2.2 Add import capabilities**: Import from other note systems
   - [ ] **7.2.3 Support external editors**: Integration with external tools
+```
+
 
 ## Roadblocks
 
