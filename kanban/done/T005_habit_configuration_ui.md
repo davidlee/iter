@@ -146,7 +146,7 @@ Based on investigation of existing codebase:
     - [x] Dynamic field configuration based on field type selection
     - [x] Progressive disclosure patterns for complex options
     - [x] State persistence between steps for long flows
-  - [x] **Documentation**: Complete analysis documented in `doc/flow_analysis_T005.md`
+  - [x] **Documentation**: Complete analysis documented in `doc/design-artefacts/flow_analysis_T005.md`
 
 - [x] **2.1 Bubbletea Habit Creation Wizard (Enhanced UX)** ✅ **FOUNDATION COMPLETE**
   - [x] Create wizard infrastructure (interfaces, state management, navigation)
@@ -794,7 +794,7 @@ make test-habit-configuration
 - **Quick Forms Validation Error**: Shows "Basic information is required" despite basic info being pre-collected
 - **Pre-population Logic Failure**: Wizard state pre-population not properly recognized by step handlers
 - **Legacy Forms Integration**: HabitBuilder.BuildHabit() still collecting basic info instead of using pre-populated data
-- **Flow Analysis Mismatch**: Current implementation doesn't match the planned flow from flow_analysis_T005.md
+- **Flow Analysis Mismatch**: Current implementation doesn't match the planned flow from design-artefacts/flow_analysis_T005.md
 - **Root Cause**: Wizard and legacy forms still expect to collect basic info themselves, ignoring pre-populated state
 - **Required Solution**: 
   - Remove mode selection entirely - use determineOptimalInterface() automatically

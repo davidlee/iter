@@ -41,14 +41,14 @@
 This section provides context on the key documentation files that inform the architecture:
 
 - **[CLAUDE.md](./CLAUDE.md)** - Primary development guide with design principles, dependencies, and standards. Essential for understanding the clean architecture approach and charmbracelet UI framework usage.
-- **[initial_brief.md](./initial_brief.md)** - Original project vision and requirements. Defines core habits: low-friction entry, flexibility, resilience to schema changes, and text-based interoperability.
+- **[initial_brief.md](./design-artefacts/initial_brief.md)** - Original project vision and requirements. Defines core habits: low-friction entry, flexibility, resilience to schema changes, and text-based interoperability.
 - **[habit_schema.md](./doc/specifications/habit_schema.md)** - Complete specification of the YAML-based habit configuration format. Critical for understanding data structures and validation rules.
 - **[T001_minimal_end_to_end_release.md](./T001_minimal_end_to_end_release.md)** - Foundation implementation covering project setup, configuration management, habit parsing, entry collection, and CLI interface. Shows the core architectural decisions.
 - **[T003_implement_elastic_habits_end_to_end.md](./T003_implement_elastic_habits_end_to_end.md)** - Elastic habits with mini/midi/maxi achievement levels. Demonstrates the scoring engine architecture and strategy pattern for habit handlers.
 - **[T005_habit_configuration_ui.md](./T005_habit_configuration_ui.md)** - Interactive habit creation system with bubbletea wizards and huh forms. Shows the hybrid UI approach for simple vs complex interactions.
 - **[T007_dynamic_checklist_system.md](./T007_dynamic_checklist_system.md)** - Checklist habits with dynamic item management. Illustrates separation between templates (checklists.yml) and instances (checklist_entries.yml).
 - **[T010_iter_entry_ui_system.md](./T010_iter_entry_ui_system.md)** - Comprehensive entry collection system with field-type awareness and habit-type adaptation. Shows the strategy pattern for entry handlers and immediate scoring feedback. **Contains architectural diagrams referenced throughout this document.**
-- **[flow_analysis_T005.md](./flow_analysis_T005.md)** - Detailed UX flow analysis for habit configuration. Documents the evolution from simple huh forms to enhanced bubbletea wizards.
+- **[flow_analysis_T005.md](./design-artefacts/flow_analysis_T005.md)** - Detailed UX flow analysis for habit configuration. Documents the evolution from simple huh forms to enhanced bubbletea wizards.
 ## Architectural Diagrams
 
 The following diagrams are available in the [diagrams](./diagrams) directory and provide visual representation of the system architecture:
@@ -89,7 +89,7 @@ These diagrams complement the textual architecture descriptions and provide visu
 
 ### Dependencies
 
-**UI Libraries & frameworks**: charmbracelet/bubbletea, huh, lipgloss & bubbles. See `bubbletea_guide.md`.
+**UI Libraries & frameworks**: charmbracelet/bubbletea, huh, lipgloss & bubbles. See `guidance/bubbletea_guide.md`.
 
 **Other Dependencies**:
 - **YAML parsing**: goccy/go-yaml

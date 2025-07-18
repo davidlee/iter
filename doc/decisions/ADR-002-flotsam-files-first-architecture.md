@@ -12,7 +12,7 @@
 
 **Related Specifications**: 
  - [Flotsam Package Documentation](/doc/specifications/flotsam.md) - Complete API and architecture reference
- - [ZK Interoperability Design](/doc/zk_interoperability_design.md) - ZK notebook compatibility analysis
+ - [ZK Interoperability Design](/doc/design-artefacts/T027_zk_interoperability_design.md) - ZK notebook compatibility analysis
 
 **Related Tasks**: 
  - [T027/1.3.1] - ZK-Vice Interoperability Research & Design

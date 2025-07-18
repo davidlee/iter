@@ -7,7 +7,7 @@ This is "vice" - a CLI habit tracker application built in Go.
 ## Architecture
 
 See `doc/architecture.md` (header doc) and other more focused `doc/` files.
-See `doc/bubbletea_guide.md` for guidance on UI code or tests.
+See `doc/guidance/bubbletea_guide.md` for guidance on UI code or tests.
 
 IMPORTANT: find and read relevant docs before modifying, planning or debugging UI code or tests.
 
@@ -89,4 +89,4 @@ technical notes (they are often extremely useful).
 
 **C4 Model Diagrams**
 
-Use D2 (d2lang.com) for all C4 diagrams. Refer to detailed guidance in `doc/c4_d2_diagrams.md`
+Use D2 (d2lang.com) for all C4 diagrams. Refer to detailed guidance in `doc/guidance/c4_d2_diagrams.md`

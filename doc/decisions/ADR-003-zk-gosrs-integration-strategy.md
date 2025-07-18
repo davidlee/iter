@@ -13,7 +13,7 @@
 
 **Related Specifications**: 
  - [Flotsam Package Documentation](/doc/specifications/flotsam.md) - Complete integrated API reference
- - [ZK Interoperability Design](/doc/zk_interoperability_design.md) - ZK compatibility analysis
+ - [ZK Interoperability Design](/doc/design-artefacts/T027_zk_interoperability_design.md) - ZK compatibility analysis
 
 **Related Tasks**: 
  - [T027/1.1] - ZK component integration (parsing, links, ID generation)

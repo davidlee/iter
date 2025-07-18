@@ -13,7 +13,7 @@
 
 **Related Specifications**: 
  - [Flotsam Package Documentation](/doc/specifications/flotsam.md) - Performance considerations and cache architecture
- - [ZK Interoperability Design](/doc/zk_interoperability_design.md) - ZK database compatibility
+ - [ZK Interoperability Design](/doc/design-artefacts/T027_zk_interoperability_design.md) - ZK database compatibility
 
 **Related Tasks**: 
  - [T027/1.3.1] - ZK interoperability research validating cache coexistence

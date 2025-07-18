@@ -51,7 +51,7 @@ also refer to API docs: https://pkg.go.dev/github.com/charmbracelet/bubbletea (.
 - `kanban/done/T018_entry_menu_interface.md` - Original entry menu implementation
 - `doc/specifications/entries_storage.md` - Entry storage format specification
 - `doc/specifications/habit_schema.md` - Habit schema and field type definitions
-- `doc/bubbletea_guide.md` - BubbleTea ecosystem guidance and patterns
+- `doc/guidance/bubbletea_guide.md` - BubbleTea ecosystem guidance and patterns
 
 ### Related Tasks / History
 - **T018**: Entry menu interface implementation (recently completed)
@@ -1190,7 +1190,7 @@ if modal.IsClosed() {
 
 ### Recommendations for BubbleTea Guide
 
-These patterns should be documented in `doc/bubbletea_guide.md`:
+These patterns should be documented in `doc/guidance/bubbletea_guide.md`:
 
 1. **Modal Lifecycle Management**: Proper sequence for data extraction and closure
 2. **Deferred Command Pattern**: When and how to use commands for timing-sensitive operations  

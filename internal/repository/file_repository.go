@@ -766,13 +766,42 @@ func (r *FileRepository) GetFlotsamByTag(_ string) ([]*models.FlotsamNote, error
 }
 
 // GetDueFlotsamNotes returns flotsam notes due for SRS review.
+// AIDEV-NOTE: uses SM-2 algorithm to check due dates per ADR-005 quality scale
 func (r *FileRepository) GetDueFlotsamNotes() ([]*models.FlotsamNote, error) {
-	// TODO: Implement in later subtask
-	return nil, &Error{
-		Operation: "GetDueFlotsamNotes",
-		Context:   r.viceEnv.Context,
-		Err:       fmt.Errorf("not yet implemented"),
+	// Load all flotsam notes
+	collection, err := r.LoadFlotsam()
+	if err != nil {
+		return nil, &Error{
+			Operation: "GetDueFlotsamNotes",
+			Context:   r.viceEnv.Context,
+			Err:       fmt.Errorf("failed to load flotsam collection: %w", err),
+		}
 	}
+
+	// Create SM-2 calculator for due date checking
+	calc := flotsam.NewSM2Calculator()
+
+	// Filter notes that are due for review
+	var dueNotes []*models.FlotsamNote
+	for _, note := range collection.Notes {
+		// Convert models.FlotsamNote.SRS to flotsam.SRSData for algorithm
+		var srsData *flotsam.SRSData
+		if note.SRS != nil {
+			srsData = &flotsam.SRSData{
+				Easiness:           note.SRS.Easiness,
+				ConsecutiveCorrect: note.SRS.ConsecutiveCorrect,
+				Due:                note.SRS.Due,
+				TotalReviews:       note.SRS.TotalReviews,
+			}
+		}
+
+		// Check if note is due using SM-2 algorithm
+		if calc.IsDue(srsData) {
+			dueNotes = append(dueNotes, &note)
+		}
+	}
+
+	return dueNotes, nil
 }
 
 // GetFlotsamWithSRS returns flotsam notes that have SRS enabled.

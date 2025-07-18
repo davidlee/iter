@@ -56,7 +56,7 @@ This task is part of the `T026_flotsam_note_system` epic.
 - `doc/decisions/ADR-005-srs-quality-scale-adaptation.md` - Quality scale choice (1.3.8)
 - `doc/decisions/ADR-006-flotsam-context-isolation.md` - Context scoping design (1.3.9)
 - `doc/decisions/ADR-007-flotsam-license-compatibility.md` - Legal framework (1.3.10)
-- `doc/zk_interoperability_design.md` - ZK integration design and testing results (1.1.3)
+- `doc/design-artefacts/T027_zk_interoperability_design.md` - ZK integration design and testing results (1.1.3)
 - `doc/design-artefacts/T027-flotsam-zk-extension-eval.md` - evaluation of extension strategies for filenames
 - `doc/design-artefacts/T027-flotsam-zk-data-architecture.md` - overview of zk & flotsam data structures & components
 
@@ -65,7 +65,7 @@ This task is part of the `T026_flotsam_note_system` epic.
 - `doc/specifications/entries_storage.md` - Storage specifications (reference)
 - `doc/specifications/file_paths_runtime_env.md` - Repository Pattern and context-aware storage (T028)
 - `doc/architecture.md` - Data architecture section (4.1-4.4)
-- `doc/c4_d2_diagrams.md` - C4 diagram methodology for planned architecture diagrams
+- `doc/guidance/c4_d2_diagrams.md` - C4 diagram methodology for planned architecture diagrams
 
 ### Related Tasks / History
 - **Parent Task**: T026 - Flotsam Note System (epic)
@@ -150,7 +150,7 @@ As a developer implementing the flotsam system, I need a robust data layer that:
     - *Key Challenges:* Directory structure mismatch, metadata synchronization, link resolution scope
     - *Deliverables:* Interoperability design document, migration strategy, schema compatibility analysis
     - *Testing:* Test with real ZK notebook, verify ZK still works after vice modifications
-    - *Status:* COMPLETED - Comprehensive design document created at `doc/zk_interoperability_design.md`
+    - *Status:* COMPLETED - Comprehensive design document created at `doc/design-artefacts/T027_zk_interoperability_design.md`
     - *Key Findings:* 
       - ZK ignores unknown frontmatter fields (safe for Vice SRS extensions)
       - Hybrid architecture with separate metadata stores prevents conflicts
@@ -633,10 +633,18 @@ As a developer implementing the flotsam system, I need a robust data layer that:
       - Created test file `flotsam_backlinks_test.go` with comprehensive test coverage
       - All tests pass, verifying correct bidirectional link computation
 - [ ] **4.3 Implement SRS Operations**: Use copied go-srs for review scheduling
-  - [ ] **4.3.1 Implement SRS scheduling**: Quality-based review scheduling using SM-2
+  - [x] **4.3.1 Implement SRS scheduling**: Quality-based review scheduling using SM-2
     - *Design:* Use copied SM-2 algorithm for spaced repetition scheduling
-    - *Code/Artifacts:* SRS scheduling using `internal/flotsam/srs_sm2.go`
-    - *Testing:* Test review scheduling and interval calculations
+    - *Code/Artifacts:* `GetDueFlotsamNotes()` method implemented in `internal/repository/file_repository.go`
+    - *Testing:* Comprehensive tests in `internal/repository/flotsam_srs_test.go`
+    - *Status:* COMPLETED - SRS due date checking using SM-2 algorithm
+    - *Implementation Details:*
+      - Loads all flotsam notes using existing `LoadFlotsam()` method
+      - Uses `flotsam.NewSM2Calculator().IsDue()` to check due dates
+      - Converts between models.FlotsamNote.SRS and flotsam.SRSData structures
+      - Returns filtered list of notes due for review (includes new cards with no SRS data)
+      - Comprehensive test coverage with due/future/new note scenarios
+      - Proper error handling following repository Error struct patterns
   - [ ] **4.3.2 Add SRS data persistence**: Store SRS data in frontmatter
     - *Design:* Serialize SRS data to YAML frontmatter fields
     - *Code/Artifacts:* SRS persistence functions
@@ -1092,7 +1100,7 @@ As a developer implementing the flotsam system, I need a robust data layer that:
   - **ZK Integration**: Strategy for co-existence with ZK indexing without conflicts
   - **Error Recovery**: Graceful degradation with cache rebuild from source files
   - **Performance**: Incremental processing, only changed files processed
-  - **Files Created**: `doc/unified_file_handler_design.md` with comprehensive design
+  - **Files Created**: `doc/design-artefacts/T027_unified_file_handler_design.md` with comprehensive design
 
 - `2025-07-17 - AI:` **ZK Interoperability Test COMPLETED**:
   - **Test Setup**: Created test note with Vice frontmatter extensions in temp ZK notebook

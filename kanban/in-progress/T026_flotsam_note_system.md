@@ -27,7 +27,7 @@ Implement a "flotsam" note system inspired by Notational Velocity, digital zette
 - `doc/specifications/habit_schema.md` - YAML schema patterns for data modeling
 - `doc/specifications/entries_storage.md` - File storage patterns
 - `doc/specifications/file_paths_runtime_env.md` - Context-aware file system and Repository Pattern (T028)
-- `doc/bubbletea_guide.md` - UI development guidelines
+- `doc/guidance/bubbletea_guide.md` - UI development guidelines
 
 ### Related Tasks / History
 - **Child Task**: T027 - Flotsam Data Layer Implementation

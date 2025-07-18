@@ -23,7 +23,7 @@ context_windows: ["./*.go", Claude.md, workflow.md] # List of glob patterns usef
 **Context (Background)**:
 - CLAUDE.md
 - doc/workflow.md
-- doc/flow_analysis_T005.md
+- doc/design-artefacts/flow_analysis_T005.md
 - doc/specifications/habit_schema.md
 - tasks T005, T006
 - API docs for huh, bubbletea
