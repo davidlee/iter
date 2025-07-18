@@ -677,10 +677,19 @@ As a developer implementing the flotsam system, I need a robust data layer that:
       - **Time Logic**: Modified time cannot be before created time
       - **Collection Integrity**: Context isolation, duplicate ID prevention, recursive note validation
     - *Test Coverage:* 79 test cases covering valid/invalid scenarios, boundary conditions, error messages
-  - [ ] **4.4.2 Add utility functions**: Helper functions for common operations
+  - [x] **4.4.2 Add utility functions**: Helper functions for common operations
     - *Design:* ID generation, timestamp formatting, sanitization
     - *Code/Artifacts:* Utility functions in flotsam package
     - *Testing:* Test utility functions and edge cases
+    - *Status:* COMPLETED - Comprehensive utility functions implemented
+    - *Files Created:* `internal/flotsam/utils.go`, `internal/flotsam/utils_test.go`
+    - *Key Features:*
+      - **Timestamp Utilities**: ZK-compatible formatting, flexible parsing, current timestamp generation
+      - **Content Sanitization**: Title cleaning, HTML escaping, tag normalization, control character removal
+      - **File Operations**: Filename generation, ID extraction, flotsam file detection, ID validation
+      - **String Processing**: Truncation, slugification, whitespace handling, empty checking
+      - **ZK Compatibility**: All utilities maintain ZK interoperability and follow established patterns
+    - *Test Coverage:* 19 test functions with 170+ individual test cases covering edge cases and validation
 
 ### 5. Architecture Documentation
 - [ ] **5.1 Create C4 Architecture Diagrams**: Visual documentation of flotsam subsystem architecture
@@ -1097,6 +1106,7 @@ As a developer implementing the flotsam system, I need a robust data layer that:
 - Comprehensive test coverage (150+ tests passing across all components)
 
 **Commits:**
+- `f06e1c1` - feat(flotsam)[T027/4.4.2]: implement comprehensive utility functions
 - `45a0756` - feat(flotsam)[T027/4.4.1]: implement comprehensive struct validation
 - `3546f69` - feat(flotsam)[T027/4.3]: complete SRS operations implementation
 - `05a5983` - docs(flotsam)[T027]: add comprehensive implementation notes and anchor comments  

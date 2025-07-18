@@ -142,7 +142,7 @@ func TestExtractLinks(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			links := ExtractLinks(test.content)
-			
+
 			if len(links) != len(test.expected) {
 				t.Errorf("Expected %d links, got %d", len(test.expected), len(links))
 				for i, link := range links {
@@ -150,15 +150,15 @@ func TestExtractLinks(t *testing.T) {
 				}
 				return
 			}
-			
+
 			for i, expected := range test.expected {
 				if i >= len(links) {
 					t.Errorf("Missing link at index %d", i)
 					continue
 				}
-				
+
 				link := links[i]
-				
+
 				if link.Title != expected.Title {
 					t.Errorf("Expected title %q, got %q", expected.Title, link.Title)
 				}
@@ -203,23 +203,23 @@ Some more complex examples:
 `
 
 	links := ExtractLinks(content)
-	
+
 	// Debug output to see what we actually get
 	for i, link := range links {
 		t.Logf("Link %d: %s -> %s (type %d, external: %t)", i, link.Title, link.Href, link.Type, link.IsExternal)
 	}
-	
+
 	// Check that we have different types
 	typeCount := map[LinkType]int{}
 	for _, link := range links {
 		typeCount[link.Type]++
 	}
-	
+
 	expectedWikiLinks := 5 // [[test note]], #[[parent note]], [[child note]]#, [[[legacy note]]], [[target|Custom Label]]
 	// AIDEV-NOTE: originally expected 6 but test content only has 5 wiki links - fixed in T027
 	expectedMarkdownLinks := 2 // [Example](https://example.com), [Local](./local.md)
 	expectedImplicitLinks := 1 // https://test.com (if auto-linked)
-	
+
 	if typeCount[LinkTypeWikiLink] != expectedWikiLinks {
 		t.Errorf("Expected %d wiki links, got %d", expectedWikiLinks, typeCount[LinkTypeWikiLink])
 	}
@@ -242,13 +242,13 @@ External wikilink: [[https://example.com]] should be excluded.
 `
 
 	targets := ExtractWikiLinkTargets(content)
-	
+
 	// Should find 3 targets (including the duplicate, excluding external)
 	expectedTargets := []string{"note one", "note two", "note one"}
 	if len(targets) != len(expectedTargets) {
 		t.Errorf("Expected %d targets, got %d: %v", len(expectedTargets), len(targets), targets)
 	}
-	
+
 	// Check specific targets
 	for i, target := range targets {
 		if i >= len(expectedTargets) {
@@ -267,19 +267,19 @@ func TestBuildBacklinkIndex(t *testing.T) {
 		"note2": "This links to [[note3]] and [[note1]].",
 		"note3": "This links to [[note1]].",
 	}
-	
+
 	backlinks := BuildBacklinkIndex(notes)
-	
+
 	// note1 should be linked from note2 and note3
 	if len(backlinks["note1"]) != 2 {
 		t.Errorf("Expected 2 backlinks to note1, got %d", len(backlinks["note1"]))
 	}
-	
+
 	// note2 should be linked from note1
 	if len(backlinks["note2"]) != 1 {
 		t.Errorf("Expected 1 backlink to note2, got %d", len(backlinks["note2"]))
 	}
-	
+
 	// note3 should be linked from note1 and note2
 	if len(backlinks["note3"]) != 2 {
 		t.Errorf("Expected 2 backlinks to note3, got %d", len(backlinks["note3"]))
@@ -293,9 +293,9 @@ func TestRemoveDuplicateLinks(t *testing.T) {
 		{Title: "Other", Href: "other", Type: LinkTypeWikiLink},
 		{Title: "Test", Href: "test", Type: LinkTypeMarkdown}, // different type, same href/title
 	}
-	
+
 	result := RemoveDuplicateLinks(links)
-	
+
 	if len(result) != 3 {
 		t.Errorf("Expected 3 unique links, got %d", len(result))
 		for i, link := range result {
@@ -306,22 +306,22 @@ func TestRemoveDuplicateLinks(t *testing.T) {
 
 func TestLinkExtractor(t *testing.T) {
 	extractor := NewLinkExtractor()
-	
+
 	content := "This has a [[wiki link]] and [markdown](https://example.com) link."
-	
+
 	links, err := extractor.ExtractLinks(content)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	
+
 	if len(links) != 2 {
 		t.Errorf("Expected 2 links, got %d", len(links))
 	}
-	
+
 	// Check that we have both types
 	hasWiki := false
 	hasMarkdown := false
-	
+
 	for _, link := range links {
 		if link.Type == LinkTypeWikiLink {
 			hasWiki = true
@@ -330,7 +330,7 @@ func TestLinkExtractor(t *testing.T) {
 			hasMarkdown = true
 		}
 	}
-	
+
 	if !hasWiki {
 		t.Error("Expected to find wiki link")
 	}
@@ -341,14 +341,14 @@ func TestLinkExtractor(t *testing.T) {
 
 func TestExtractWikiLinksSimple(t *testing.T) {
 	content := "This has [[simple link]] and [[target|label]] links."
-	
+
 	targets := ExtractWikiLinksSimple(content)
-	
+
 	expected := []string{"simple link", "target"}
 	if len(targets) != len(expected) {
 		t.Errorf("Expected %d targets, got %d", len(expected), len(targets))
 	}
-	
+
 	for i, target := range targets {
 		if i >= len(expected) {
 			t.Errorf("Unexpected target at index %d: %s", i, target)

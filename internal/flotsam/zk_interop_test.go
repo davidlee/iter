@@ -3,7 +3,7 @@ package flotsam
 import (
 	"strings"
 	"testing"
-	
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -13,7 +13,7 @@ func parseFrontmatter(content string) (map[string]interface{}, string, error) {
 	if len(lines) < 2 || lines[0] != "---" {
 		return nil, content, nil // No frontmatter
 	}
-	
+
 	// Find the closing ---
 	endIndex := -1
 	for i := 1; i < len(lines); i++ {
@@ -22,24 +22,24 @@ func parseFrontmatter(content string) (map[string]interface{}, string, error) {
 			break
 		}
 	}
-	
+
 	if endIndex == -1 {
 		return nil, content, nil // No closing ---
 	}
-	
+
 	// Parse YAML frontmatter
 	frontmatterLines := lines[1:endIndex]
 	frontmatterText := strings.Join(frontmatterLines, "\n")
-	
+
 	var frontmatter map[string]interface{}
 	if err := yaml.Unmarshal([]byte(frontmatterText), &frontmatter); err != nil {
 		return nil, content, err
 	}
-	
+
 	// Get body content
 	bodyLines := lines[endIndex+1:]
 	body := strings.Join(bodyLines, "\n")
-	
+
 	return frontmatter, body, nil
 }
 
@@ -75,15 +75,15 @@ The [[test link]] should work in both ZK and Vice.`
 	if frontmatter["id"] != "test" {
 		t.Errorf("Expected id 'test', got %v", frontmatter["id"])
 	}
-	
+
 	if frontmatter["title"] != "Test Note with Vice Extensions" {
 		t.Errorf("Expected title 'Test Note with Vice Extensions', got %v", frontmatter["title"])
 	}
-	
+
 	if frontmatter["created-at"] != "2025-07-17 10:00:00" {
 		t.Errorf("Expected created-at '2025-07-17 10:00:00', got %v", frontmatter["created-at"])
 	}
-	
+
 	// Verify tags are parsed correctly
 	tags, ok := frontmatter["tags"].([]interface{})
 	if !ok {
@@ -96,7 +96,7 @@ The [[test link]] should work in both ZK and Vice.`
 			t.Errorf("Expected tags [test, interop], got %v", tags)
 		}
 	}
-	
+
 	// Verify Vice extensions are preserved
 	vice, ok := frontmatter["vice"].(map[string]interface{})
 	if !ok {
@@ -114,29 +114,29 @@ The [[test link]] should work in both ZK and Vice.`
 				t.Errorf("Expected consecutive_correct 0, got %v", srs["consecutive_correct"])
 			}
 		}
-		
+
 		// Check context
 		if vice["context"] != "default" {
 			t.Errorf("Expected context 'default', got %v", vice["context"])
 		}
-		
+
 		// Check flotsam_type
 		if vice["flotsam_type"] != "idea" {
 			t.Errorf("Expected flotsam_type 'idea', got %v", vice["flotsam_type"])
 		}
 	}
-	
+
 	// Verify body content
 	expectedBody := `# Test Note with Vice Extensions
 
 This is a test note with Vice-specific frontmatter extensions.
 
 The [[test link]] should work in both ZK and Vice.`
-	
+
 	if body != expectedBody {
 		t.Errorf("Expected body:\n%s\n\nGot:\n%s", expectedBody, body)
 	}
-	
+
 	// Test link extraction works on the body
 	links := ExtractLinks(body)
 	if len(links) != 1 {
@@ -174,17 +174,17 @@ tags: [draft, 'to/review', tech, versioning]
 	if frontmatter["id"] != "jgtt" {
 		t.Errorf("Expected id 'jgtt', got %v", frontmatter["id"])
 	}
-	
+
 	if frontmatter["title"] != "git" {
 		t.Errorf("Expected title 'git', got %v", frontmatter["title"])
 	}
-	
+
 	// Verify no Vice extensions are present
 	_, hasVice := frontmatter["vice"]
 	if hasVice {
 		t.Error("Expected no 'vice' key in standard ZK frontmatter")
 	}
-	
+
 	// Verify link extraction works
 	links := ExtractLinks(body)
 	if len(links) != 1 {

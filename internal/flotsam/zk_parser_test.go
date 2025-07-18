@@ -103,7 +103,7 @@ func TestCreationDateFrom(t *testing.T) {
 	metadata := map[string]interface{}{
 		"created-at": "2024-01-01T10:00:00Z",
 	}
-	
+
 	// Use a temporary file to get a real Timespec
 	tmpFile := "/tmp/test_times"
 	// AIDEV-NOTE: use 0600 permissions for temp files (security best practice)
@@ -117,14 +117,14 @@ func TestCreationDateFrom(t *testing.T) {
 			t.Logf("Warning: failed to remove temp file %s: %v", tmpFile, err)
 		}
 	}()
-	
+
 	fileStats, err := times.Stat(tmpFile)
 	if err != nil {
 		t.Fatalf("Failed to get file times: %v", err)
 	}
-	
+
 	result := CreationDateFrom(metadata, fileStats)
-	
+
 	expected := time.Date(2024, 1, 1, 10, 0, 0, 0, time.UTC)
 	if !result.Equal(expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
@@ -134,16 +134,16 @@ func TestCreationDateFrom(t *testing.T) {
 	metadata = map[string]interface{}{
 		"date": "2024-01-01 10:00:00",
 	}
-	
+
 	result = CreationDateFrom(metadata, fileStats)
 	if !result.Equal(expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
 	}
-	
+
 	// Test fallback to file times when no metadata
 	emptyMetadata := map[string]interface{}{}
 	result = CreationDateFrom(emptyMetadata, fileStats)
-	
+
 	// Should fallback to file modification time or current time
 	if result.IsZero() {
 		t.Errorf("Expected non-zero time, got zero")
@@ -153,13 +153,13 @@ func TestCreationDateFrom(t *testing.T) {
 func TestCalculateChecksum(t *testing.T) {
 	content := []byte("test content")
 	checksum := CalculateChecksum(content)
-	
+
 	// Should be consistent
 	checksum2 := CalculateChecksum(content)
 	if checksum != checksum2 {
 		t.Errorf("Checksum should be consistent")
 	}
-	
+
 	// Should be different for different content
 	checksum3 := CalculateChecksum([]byte("different content"))
 	if checksum == checksum3 {
@@ -170,12 +170,12 @@ func TestCalculateChecksum(t *testing.T) {
 func TestExtractRelativePath(t *testing.T) {
 	absPath := "/home/user/notes/test.md"
 	basePath := "/home/user/notes"
-	
+
 	result, err := ExtractRelativePath(absPath, basePath)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	
+
 	if result != "test.md" {
 		t.Errorf("Expected 'test.md', got '%s'", result)
 	}

@@ -2,7 +2,7 @@
 // This file contains code adapted from the ZK note-taking system.
 // Original code: https://github.com/zk-org/zk
 // Original license: GNU General Public License v3.0
-// 
+//
 // Portions of this file are derived from ZK's ID generation system,
 // specifically from internal/core/id.go and internal/util/rand/rand.go.
 // The original ZK code is licensed under GPLv3.
@@ -103,9 +103,9 @@ func NewIDGenerator(options IDOptions) func() string {
 // This matches ZK's default configuration from NewDefaultConfig()
 func NewFlotsamIDGenerator() IDGenerator {
 	options := IDOptions{
-		Length:  4,           // ZK default
+		Length:  4,               // ZK default
 		Charset: CharsetAlphanum, // ZK default
-		Case:    CaseLower,   // ZK default
+		Case:    CaseLower,       // ZK default
 	}
 	return NewIDGenerator(options)
 }

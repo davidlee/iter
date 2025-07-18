@@ -2,7 +2,7 @@
 // This file contains code adapted from the go-srs spaced repetition system.
 // Original code: https://github.com/revelaction/go-srs
 // Original license: Apache License 2.0
-// 
+//
 // Portions of this file are derived from go-srs's SM-2 algorithm implementation,
 // specifically from algo/sm2/sm2.go and review/review.go.
 // The original go-srs code is licensed under Apache-2.0.
@@ -24,12 +24,12 @@ const (
 	DefaultEasiness = 2.5
 	// MinEasiness is the minimum allowed easiness factor
 	MinEasiness = 1.3
-	
+
 	// Easiness calculation constants from SM-2 algorithm
 	EasinessConst     = -0.8
 	EasinessLineal    = 0.28
 	EasinessQuadratic = 0.02
-	
+
 	// DueDateStartDays is the base interval for calculating due dates
 	DueDateStartDays = 6
 	// CorrectThreshold is the minimum quality rating considered "correct"
@@ -116,22 +116,22 @@ func (calc *SM2Calculator) ProcessReview(oldData *SRSData, quality Quality) (*SR
 	if err := quality.Validate(); err != nil {
 		return nil, err
 	}
-	
+
 	var newData SRSData
-	
+
 	// Initialize new card if no previous data
 	if oldData == nil {
 		newData = calc.createNewCard(quality)
 	} else {
 		newData = calc.updateCard(*oldData, quality)
 	}
-	
+
 	// Add review to history
 	newData.ReviewHistory = append(newData.ReviewHistory, ReviewRecord{
 		Timestamp: calc.now.Unix(),
 		Quality:   quality,
 	})
-	
+
 	return &newData, nil
 }
 
@@ -140,7 +140,7 @@ func (calc *SM2Calculator) createNewCard(quality Quality) SRSData {
 	data := SRSData{
 		TotalReviews: 1,
 	}
-	
+
 	if quality == NoReview {
 		// No review performed - set defaults
 		data.ConsecutiveCorrect = 0
@@ -156,24 +156,24 @@ func (calc *SM2Calculator) createNewCard(quality Quality) SRSData {
 		}
 		data.Due = calc.now.AddDate(0, 0, 1).Unix() // Due tomorrow
 	}
-	
+
 	return data
 }
 
 // updateCard updates existing SRS data based on review performance
 func (calc *SM2Calculator) updateCard(oldData SRSData, quality Quality) SRSData {
 	newData := SRSData{
-		TotalReviews:   oldData.TotalReviews + 1,
-		ReviewHistory:  oldData.ReviewHistory, // Will be appended to by caller
+		TotalReviews:  oldData.TotalReviews + 1,
+		ReviewHistory: oldData.ReviewHistory, // Will be appended to by caller
 	}
-	
+
 	// Update easiness factor
 	newData.Easiness = calc.calculateEasiness(oldData.Easiness, quality)
-	
+
 	// Update consecutive correct count and due date
 	if quality.IsCorrect() {
 		newData.ConsecutiveCorrect = oldData.ConsecutiveCorrect + 1
-		
+
 		// Calculate next due date based on consecutive correct answers
 		var days float64
 		switch oldData.ConsecutiveCorrect {
@@ -185,14 +185,14 @@ func (calc *SM2Calculator) updateCard(oldData SRSData, quality Quality) SRSData 
 			// Subsequent correct answers: exponential growth
 			days = float64(DueDateStartDays) * math.Pow(oldData.Easiness, float64(oldData.ConsecutiveCorrect-1))
 		}
-		
+
 		newData.Due = calc.now.AddDate(0, 0, int(math.Round(days))).Unix()
 	} else {
 		// Incorrect answer: reset to beginning
 		newData.ConsecutiveCorrect = 0
 		newData.Due = calc.now.AddDate(0, 0, 1).Unix() // Due tomorrow
 	}
-	
+
 	return newData
 }
 
@@ -202,15 +202,15 @@ func (calc *SM2Calculator) calculateEasiness(oldEasiness float64, quality Qualit
 	// Convert quality (0-6) to SM-2 scale: quality 0 maps to -1, quality 1-6 maps to 0-5
 	// This matches go-srs's quality conversion: q = quality - 1
 	q := float64(quality - 1)
-	
+
 	// SM-2 easiness formula with BlueRaja modifications
 	newEasiness := oldEasiness + EasinessConst + (EasinessLineal * q) + (EasinessQuadratic * q * q)
-	
+
 	// Enforce minimum easiness
 	if newEasiness < MinEasiness {
 		return MinEasiness
 	}
-	
+
 	return newEasiness
 }
 
@@ -243,15 +243,15 @@ func (calc *SM2Calculator) GetNextInterval(data *SRSData) int {
 	if data == nil {
 		return 0 // New cards have no interval
 	}
-	
+
 	dueTime := time.Unix(data.Due, 0)
 	duration := dueTime.Sub(calc.now)
 	days := int(math.Ceil(duration.Hours() / 24))
-	
+
 	if days < 0 {
 		return 0 // Overdue cards
 	}
-	
+
 	return days
 }
 
@@ -271,12 +271,12 @@ func DeserializeSRSData(jsonData []byte) (*SRSData, error) {
 	if len(jsonData) == 0 {
 		return nil, ErrEmptyData
 	}
-	
+
 	var data SRSData
 	err := json.Unmarshal(jsonData, &data)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &data, nil
 }

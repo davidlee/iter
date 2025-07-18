@@ -29,7 +29,7 @@ func TestFlotsamNoteLifecycle(t *testing.T) {
 			Length:  4,
 		})
 		noteID := generator()
-		
+
 		// Create note content with frontmatter and links
 		noteContent := fmt.Sprintf(`---
 id: %s
@@ -58,7 +58,7 @@ Content for testing the complete flotsam system integration.
 		frontmatter, body, err := parseFrontmatter(noteContent)
 		require.NoError(t, err)
 		require.NotNil(t, frontmatter)
-		
+
 		// Verify frontmatter parsing
 		assert.Equal(t, noteID, frontmatter["id"])
 		assert.Equal(t, "Test Integration Note", frontmatter["title"])
@@ -66,13 +66,13 @@ Content for testing the complete flotsam system integration.
 		require.True(t, ok)
 		assert.Len(t, tags, 3)
 		assert.Contains(t, body, "This is a test note with")
-		
+
 		// Extract links from body
 		links := ExtractLinks(body)
-		
+
 		// Verify link extraction
 		assert.Len(t, links, 4) // wiki link, complex link, parent note, child note
-		
+
 		// Find specific links
 		var foundWikiLink, foundComplexLink, foundParentLink, foundChildLink bool
 		for _, link := range links {
@@ -92,7 +92,7 @@ Content for testing the complete flotsam system integration.
 				assert.Contains(t, link.Rels, LinkRelationDown)
 			}
 		}
-		
+
 		assert.True(t, foundWikiLink, "Should find wiki link")
 		assert.True(t, foundComplexLink, "Should find complex link with label")
 		assert.True(t, foundParentLink, "Should find parent relationship link")
@@ -111,15 +111,15 @@ func TestSRSLifecycle(t *testing.T) {
 			TotalReviews:       0,
 			ReviewHistory:      []ReviewRecord{},
 		}
-		
+
 		// Create SM-2 calculator
 		calc := NewSM2Calculator()
-		
+
 		assert.Equal(t, 2.5, srsData.Easiness)
 		assert.Equal(t, 0, srsData.ConsecutiveCorrect)
 		assert.Equal(t, 0, srsData.TotalReviews)
 		assert.True(t, calc.IsDue(srsData))
-		
+
 		// Create flotsam note with SRS data
 		note := &FlotsamNote{
 			ID:    "tst1",
@@ -127,51 +127,51 @@ func TestSRSLifecycle(t *testing.T) {
 			Body:  "Test content for SRS lifecycle",
 			SRS:   srsData,
 		}
-		
+
 		// Test 1: First review (correct answer, quality 5)
 		updatedSRS, err := calc.ProcessReview(srsData, CorrectEffort)
 		require.NoError(t, err)
-		
+
 		assert.Equal(t, 1, updatedSRS.ConsecutiveCorrect)
 		assert.Equal(t, 1, updatedSRS.TotalReviews)
 		assert.Greater(t, updatedSRS.Easiness, 2.5) // Should increase
-		assert.False(t, calc.IsDue(updatedSRS)) // Should not be due immediately
-		
+		assert.False(t, calc.IsDue(updatedSRS))     // Should not be due immediately
+
 		// Test 2: Second review (correct answer, quality 4)
 		updatedSRS2, err := calc.ProcessReview(updatedSRS, CorrectHard)
 		require.NoError(t, err)
-		
+
 		assert.Equal(t, 2, updatedSRS2.ConsecutiveCorrect)
 		assert.Equal(t, 2, updatedSRS2.TotalReviews)
 		assert.False(t, calc.IsDue(updatedSRS2))
-		
+
 		// Test 3: Third review (incorrect answer, quality 2)
 		updatedSRS3, err := calc.ProcessReview(updatedSRS2, IncorrectFamiliar)
 		require.NoError(t, err)
-		
+
 		assert.Equal(t, 0, updatedSRS3.ConsecutiveCorrect) // Reset
 		assert.Equal(t, 3, updatedSRS3.TotalReviews)
 		assert.Less(t, updatedSRS3.Easiness, updatedSRS2.Easiness) // Should decrease
 		// Note: Due to SM-2 algorithm, incorrect answers still get scheduled for future review
 		// The card may not be immediately due depending on implementation
-		
+
 		// Test review history tracking
 		assert.Len(t, updatedSRS3.ReviewHistory, 3)
 		assert.Equal(t, CorrectEffort, updatedSRS3.ReviewHistory[0].Quality)
 		assert.Equal(t, CorrectHard, updatedSRS3.ReviewHistory[1].Quality)
 		assert.Equal(t, IncorrectFamiliar, updatedSRS3.ReviewHistory[2].Quality)
-		
+
 		// Update note with final SRS state
 		note.SRS = updatedSRS3
-		
+
 		// Verify note can be serialized with SRS data
 		noteJSON, err := json.Marshal(note)
 		require.NoError(t, err)
-		
+
 		var deserializedNote FlotsamNote
 		err = json.Unmarshal(noteJSON, &deserializedNote)
 		require.NoError(t, err)
-		
+
 		assert.Equal(t, note.ID, deserializedNote.ID)
 		assert.Equal(t, note.SRS.TotalReviews, deserializedNote.SRS.TotalReviews)
 		assert.Equal(t, note.SRS.ConsecutiveCorrect, deserializedNote.SRS.ConsecutiveCorrect)
@@ -183,7 +183,7 @@ func TestCrossComponentWorkflow(t *testing.T) {
 	t.Run("Parse Content → Extract Links → Enable SRS → Complete Review", func(t *testing.T) {
 		// Create temporary directory for test files
 		tempDir := t.TempDir()
-		
+
 		// Generate note ID with timeout protection
 		generator := NewIDGenerator(IDOptions{
 			Case:    CaseLower,
@@ -191,11 +191,11 @@ func TestCrossComponentWorkflow(t *testing.T) {
 			Length:  4,
 		})
 		noteID := generator()
-		
+
 		// Ensure we have a valid ID
 		require.NotEmpty(t, noteID)
 		require.Len(t, noteID, 4)
-		
+
 		// Create note file content
 		noteContent := fmt.Sprintf(`---
 id: %s
@@ -226,18 +226,18 @@ It also has hierarchical relationships: #[[parent concept]] and [[child concept]
 		notePath := filepath.Join(tempDir, fmt.Sprintf("%s.md", noteID))
 		err := os.WriteFile(notePath, []byte(noteContent), 0600)
 		require.NoError(t, err)
-		
+
 		// Step 1: Parse note content
 		// #nosec G304 -- File path is controlled by test code
 		content, err := os.ReadFile(notePath)
 		require.NoError(t, err)
-		
+
 		frontmatter, body, err := parseFrontmatter(string(content))
 		require.NoError(t, err)
-		
+
 		// Step 2: Extract links
 		links := ExtractLinks(body)
-		
+
 		// Step 3: Create flotsam note structure
 		note := &FlotsamNote{
 			ID:    frontmatter["id"].(string),
@@ -245,12 +245,12 @@ It also has hierarchical relationships: #[[parent concept]] and [[child concept]
 			Body:  body,
 			Links: make([]string, len(links)),
 		}
-		
+
 		// Extract link targets
 		for i, link := range links {
 			note.Links[i] = link.Href
 		}
-		
+
 		// Create SRS data from frontmatter
 		srsData := &SRSData{
 			Easiness:           DefaultEasiness,
@@ -260,16 +260,16 @@ It also has hierarchical relationships: #[[parent concept]] and [[child concept]
 			ReviewHistory:      []ReviewRecord{},
 		}
 		note.SRS = srsData
-		
+
 		// Step 4: Enable SRS and conduct review session
 		calc := NewSM2Calculator()
 		assert.True(t, calc.IsDue(note.SRS), "New note should be due for review")
-		
+
 		// Process review (correct answer)
 		reviewQuality := CorrectEffort
 		updatedSRS, err := calc.ProcessReview(note.SRS, reviewQuality)
 		require.NoError(t, err)
-		
+
 		// Step 5: Verify complete workflow
 		assert.Equal(t, noteID, note.ID)
 		assert.Contains(t, note.Links, "concept A")
@@ -277,7 +277,7 @@ It also has hierarchical relationships: #[[parent concept]] and [[child concept]
 		assert.Equal(t, 1, updatedSRS.TotalReviews)
 		assert.Equal(t, 1, updatedSRS.ConsecutiveCorrect)
 		assert.False(t, calc.IsDue(updatedSRS))
-		
+
 		// Step 6: Update frontmatter with new SRS data
 		updatedContent := fmt.Sprintf(`---
 id: %s
@@ -303,26 +303,26 @@ vice:
 			updatedSRS.ReviewHistory[0].Timestamp,
 			int(updatedSRS.ReviewHistory[0].Quality),
 			body)
-		
+
 		// Write updated content back to file
 		err = os.WriteFile(notePath, []byte(updatedContent), 0600)
 		require.NoError(t, err)
-		
+
 		// Step 7: Verify round-trip parsing
 		// #nosec G304 -- File path is controlled by test code
 		updatedFileContent, err := os.ReadFile(notePath)
 		require.NoError(t, err)
-		
+
 		parsedFrontmatter, parsedBody, err := parseFrontmatter(string(updatedFileContent))
 		require.NoError(t, err)
-		
+
 		// Extract vice.srs data
 		viceData := parsedFrontmatter["vice"].(map[string]interface{})
 		srsMap := viceData["srs"].(map[string]interface{})
-		
+
 		assert.Equal(t, 1, int(srsMap["total_reviews"].(int)))
 		assert.Equal(t, 1, int(srsMap["consecutive_correct"].(int)))
-		
+
 		// Verify links still extracted correctly
 		parsedLinks := ExtractLinks(parsedBody)
 		assert.Len(t, parsedLinks, 4) // Same number of links
@@ -340,7 +340,7 @@ func TestDataFlowConsistency(t *testing.T) {
 			TotalReviews:       0,
 			ReviewHistory:      []ReviewRecord{},
 		}
-		
+
 		// Test 1: SRS Data → Frontmatter → SRS Data
 		noteWithSRS := &FlotsamNote{
 			ID:    "flow",
@@ -348,40 +348,40 @@ func TestDataFlowConsistency(t *testing.T) {
 			Body:  "Test content",
 			SRS:   initialSRS,
 		}
-		
+
 		// Serialize to JSON (simulating frontmatter storage)
 		srsJSON, err := json.Marshal(noteWithSRS.SRS)
 		require.NoError(t, err)
-		
+
 		// Deserialize from JSON
 		var deserializedSRS SRSData
 		err = json.Unmarshal(srsJSON, &deserializedSRS)
 		require.NoError(t, err)
-		
+
 		assert.Equal(t, initialSRS.Easiness, deserializedSRS.Easiness)
 		assert.Equal(t, initialSRS.ConsecutiveCorrect, deserializedSRS.ConsecutiveCorrect)
 		assert.Equal(t, initialSRS.Due, deserializedSRS.Due)
-		
+
 		// Test 2: Review Structures → SRS Data Update
 		calc := NewSM2Calculator()
 		updatedSRS, err := calc.ProcessReview(&deserializedSRS, CorrectHard)
 		require.NoError(t, err)
-		
+
 		// Test 3: Updated SRS Data → Scheduling
 		assert.False(t, calc.IsDue(updatedSRS), "Should not be due after review")
 		assert.Greater(t, updatedSRS.Due, time.Now().Unix(), "Due time should be in future")
-		
+
 		// Test 4: Complete round-trip
 		assert.Equal(t, noteWithSRS.ID, "flow")
 		assert.Equal(t, 1, updatedSRS.TotalReviews)
 		assert.Equal(t, 1, updatedSRS.ConsecutiveCorrect)
 		assert.Len(t, updatedSRS.ReviewHistory, 1)
 		assert.Equal(t, CorrectHard, updatedSRS.ReviewHistory[0].Quality)
-		
+
 		// Test 5: Verify scheduling calculations
 		nextReviewTime := time.Unix(updatedSRS.Due, 0)
 		assert.True(t, nextReviewTime.After(time.Now()), "Next review should be in future")
-		
+
 		// For first review with quality 4, interval should be 1 day
 		expectedInterval := time.Hour * 24
 		actualInterval := time.Until(nextReviewTime)
@@ -390,7 +390,6 @@ func TestDataFlowConsistency(t *testing.T) {
 	})
 }
 
-
 // AIDEV-NOTE: Performance test to validate reasonable performance of combined operations
 func TestIntegrationPerformance(t *testing.T) {
 	t.Run("Performance of Combined Operations", func(t *testing.T) {
@@ -398,22 +397,22 @@ func TestIntegrationPerformance(t *testing.T) {
 		if testing.Short() {
 			t.Skip("Skipping performance test in short mode")
 		}
-		
+
 		// Generate multiple notes for performance testing
 		noteCount := 10 // Reduced count to prevent potential issues
 		notes := make([]*FlotsamNote, noteCount)
-		
+
 		generator := NewIDGenerator(IDOptions{
 			Case:    CaseLower,
 			Charset: CharsetAlphanum,
 			Length:  4,
 		})
-		
+
 		start := time.Now()
-		
+
 		for i := 0; i < noteCount; i++ {
 			noteID := generator()
-			
+
 			noteContent := fmt.Sprintf(`---
 id: %s
 title: Performance Test Note %d
@@ -434,14 +433,14 @@ This note has [[link %d]] and [[link %d | with label]].
 
 Content for performance testing the flotsam system.
 `, noteID, i, time.Now().Unix(), i, i, i+1)
-			
+
 			// Parse frontmatter
 			frontmatter, body, err := parseFrontmatter(noteContent)
 			require.NoError(t, err)
-			
+
 			// Extract links
 			links := ExtractLinks(body)
-			
+
 			// Create note structure
 			note := &FlotsamNote{
 				ID:    noteID, // Use the generated ID directly
@@ -456,22 +455,22 @@ Content for performance testing the flotsam system.
 					ReviewHistory:      []ReviewRecord{},
 				},
 			}
-			
+
 			for j, link := range links {
 				note.Links[j] = link.Href
 			}
-			
+
 			notes[i] = note
 		}
-		
+
 		elapsed := time.Since(start)
-		
+
 		// Performance assertions
 		avgTimePerNote := elapsed / time.Duration(noteCount)
 		assert.Less(t, avgTimePerNote, 10*time.Millisecond, "Should process each note in <10ms")
-		
+
 		t.Logf("Processed %d notes in %v (avg: %v per note)", noteCount, elapsed, avgTimePerNote)
-		
+
 		// Verify all notes processed correctly
 		for i, note := range notes {
 			assert.NotEmpty(t, note.ID)

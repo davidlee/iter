@@ -31,8 +31,8 @@ type LinkType int
 // LinkType constants define the different types of links that can be extracted.
 const (
 	LinkTypeMarkdown LinkType = iota // Standard markdown [text](url) links
-	LinkTypeWikiLink                  // Wiki-style [[target]] links
-	LinkTypeImplicit                  // Auto-detected URLs
+	LinkTypeWikiLink                 // Wiki-style [[target]] links
+	LinkTypeImplicit                 // Auto-detected URLs
 )
 
 // LinkRelation defines the relationship between a link's source and target.
@@ -220,13 +220,13 @@ func NewLinkExtractor() *LinkExtractor {
 // This is much more robust than regex-based extraction.
 func (le *LinkExtractor) ExtractLinks(content string) ([]Link, error) {
 	bytes := []byte(content)
-	
+
 	context := parser.NewContext()
 	root := le.md.Parser().Parse(
 		text.NewReader(bytes),
 		parser.WithContext(context),
 	)
-	
+
 	return le.parseLinks(root, bytes)
 }
 
@@ -299,26 +299,26 @@ func (le *LinkExtractor) parseLinks(root ast.Node, source []byte) ([]Link, error
 // AIDEV-NOTE: goldmark Text() deprecated - use manual AST traversal for text extraction
 func extractLinkText(node ast.Node, source []byte) string {
 	var textBuffer strings.Builder
-	
+
 	err := ast.Walk(node, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if !entering {
 			return ast.WalkContinue, nil
 		}
-		
+
 		switch textNode := n.(type) {
 		case *ast.Text:
 			textBuffer.Write(textNode.Value(source))
 		case *ast.String:
 			textBuffer.Write(textNode.Value)
 		}
-		
+
 		return ast.WalkContinue, nil
 	})
-	
+
 	if err != nil {
 		return ""
 	}
-	
+
 	return textBuffer.String()
 }
 
@@ -372,13 +372,13 @@ func ExtractLinks(content string) []Link {
 func ExtractWikiLinkTargets(content string) []string {
 	links := ExtractLinks(content)
 	targets := make([]string, 0)
-	
+
 	for _, link := range links {
 		if link.Type == LinkTypeWikiLink && !link.IsExternal {
 			targets = append(targets, link.Href)
 		}
 	}
-	
+
 	return targets
 }
 
@@ -386,10 +386,10 @@ func ExtractWikiLinkTargets(content string) []string {
 // This is used for context-scoped backlink computation.
 func BuildBacklinkIndex(notes map[string]string) map[string][]string {
 	backlinks := make(map[string][]string)
-	
+
 	for noteID, content := range notes {
 		targets := ExtractWikiLinkTargets(content)
-		
+
 		for _, target := range targets {
 			if backlinks[target] == nil {
 				backlinks[target] = []string{}
@@ -397,7 +397,7 @@ func BuildBacklinkIndex(notes map[string]string) map[string][]string {
 			backlinks[target] = append(backlinks[target], noteID)
 		}
 	}
-	
+
 	return backlinks
 }
 
@@ -406,7 +406,7 @@ func BuildBacklinkIndex(notes map[string]string) map[string][]string {
 func RemoveDuplicateLinks(links []Link) []Link {
 	seen := make(map[string]bool)
 	result := []Link{}
-	
+
 	for _, link := range links {
 		key := link.Href + "|" + link.Title + "|" + string(rune(link.Type))
 		if !seen[key] {
@@ -414,7 +414,7 @@ func RemoveDuplicateLinks(links []Link) []Link {
 			result = append(result, link)
 		}
 	}
-	
+
 	return result
 }
 
@@ -425,12 +425,12 @@ var simpleWikiLinkRegex = regexp.MustCompile(`\[\[([^\]|]+)(?:\|([^\]]+))?\]\]`)
 func ExtractWikiLinksSimple(content string) []string {
 	matches := simpleWikiLinkRegex.FindAllStringSubmatch(content, -1)
 	targets := make([]string, 0, len(matches))
-	
+
 	for _, match := range matches {
 		if len(match) >= 2 && match[1] != "" {
 			targets = append(targets, strings.TrimSpace(match[1]))
 		}
 	}
-	
+
 	return targets
 }
