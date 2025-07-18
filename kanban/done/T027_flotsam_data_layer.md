@@ -13,7 +13,7 @@ Implement the core data layer for the flotsam note system using individual markd
 
 **Type**: `feature`
 
-**Overall Status:** `In Progress`
+**Overall Status:** `Done`
 
 ## Reference (Relevant Files / URLs)
 
