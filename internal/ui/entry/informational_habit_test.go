@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/scoring"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/scoring"
 )
 
 // AIDEV-NOTE: T010/3.3-test-suite; comprehensive testing for InformationalHabitCollectionFlow

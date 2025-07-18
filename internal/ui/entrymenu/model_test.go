@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 func TestNewEntryMenuModelForTesting(t *testing.T) {

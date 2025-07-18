@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"davidlee/vice/internal/config"
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
-	"davidlee/vice/internal/storage"
+	"github.com/davidlee/vice/internal/config"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/storage"
 )
 
 // FileInitializer handles creation of sample configuration files.

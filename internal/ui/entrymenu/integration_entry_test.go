@@ -9,8 +9,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/ui"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/ui"
 )
 
 // TestEntryIntegration_MenuToEntryFlow tests the complete menu→entry→menu integration.

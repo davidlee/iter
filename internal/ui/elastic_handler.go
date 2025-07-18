@@ -8,8 +8,8 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/scoring"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/scoring"
 )
 
 // ElasticHabitHandler handles entry collection for elastic habits with mini/midi/maxi achievement levels.

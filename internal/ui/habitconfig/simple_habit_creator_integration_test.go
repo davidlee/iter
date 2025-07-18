@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // TestSimpleHabitCreator_Integration_AllCombinations tests all field type + scoring type combinations

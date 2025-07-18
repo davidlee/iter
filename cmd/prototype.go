@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"davidlee/vice/internal/debug"
+	"github.com/davidlee/vice/internal/debug"
 	"github.com/spf13/cobra"
 )
 

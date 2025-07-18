@@ -3,7 +3,7 @@ package entry
 import (
 	"fmt"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: entry-field-input-factory; creates appropriate input components for entry collection with scoring integration

@@ -1,4 +1,4 @@
-module davidlee/vice
+module github.com/davidlee/vice
 
 go 1.24.4
 

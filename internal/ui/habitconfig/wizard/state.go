@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // HabitState implements State for habit creation

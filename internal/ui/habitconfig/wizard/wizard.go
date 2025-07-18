@@ -6,7 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // HabitWizardModel is the main bubbletea model for the habit creation wizard

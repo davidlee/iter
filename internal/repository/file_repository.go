@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"davidlee/vice/internal/config"
-	"davidlee/vice/internal/flotsam"
-	init_pkg "davidlee/vice/internal/init"
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
-	"davidlee/vice/internal/storage"
+	"github.com/davidlee/vice/internal/config"
+	"github.com/davidlee/vice/internal/flotsam"
+	init_pkg "github.com/davidlee/vice/internal/init"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/storage"
 	"gopkg.in/yaml.v3"
 )
 

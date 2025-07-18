@@ -3,9 +3,9 @@ package entry
 import (
 	"fmt"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
-	"davidlee/vice/internal/scoring"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/scoring"
 )
 
 // AIDEV-NOTE: habit-collection-flows; defines specialized collection flows for each habit type with field input integration

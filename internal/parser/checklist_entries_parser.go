@@ -7,7 +7,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // ChecklistEntriesParser handles loading and saving checklist_entries.yml.

@@ -7,8 +7,8 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/vice/internal/debug"
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/debug"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: entry-text-input; implements EntryFieldInput for Text fields with multiline support

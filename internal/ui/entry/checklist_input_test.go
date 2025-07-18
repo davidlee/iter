@@ -3,7 +3,7 @@ package entry
 import (
 	"testing"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: checklist-input-tests; comprehensive testing for checklist input component integration

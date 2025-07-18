@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"davidlee/vice/internal/config"
+	"github.com/davidlee/vice/internal/config"
 )
 
 func TestGetDueFlotsamNotes(t *testing.T) {

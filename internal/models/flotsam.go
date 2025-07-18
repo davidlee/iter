@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"davidlee/vice/internal/flotsam"
+	"github.com/davidlee/vice/internal/flotsam"
 )
 
 // FlotsamFrontmatter represents the YAML frontmatter structure for flotsam notes.

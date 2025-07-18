@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 func TestViewRenderer_RenderProgressBar(t *testing.T) {

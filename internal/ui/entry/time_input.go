@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: entry-time-input; implements EntryFieldInput for Time fields with scoring feedback

@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"davidlee/vice/internal/parser"
-	"davidlee/vice/internal/ui/checklist"
+	"github.com/davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/ui/checklist"
 )
 
 // listEditCmd represents the list edit command

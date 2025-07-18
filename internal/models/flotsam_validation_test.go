@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"davidlee/vice/internal/flotsam"
+	"github.com/davidlee/vice/internal/flotsam"
 )
 
 func TestFlotsamNoteValidate(t *testing.T) {

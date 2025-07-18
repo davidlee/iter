@@ -9,9 +9,9 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
-	"davidlee/vice/internal/ui/habitconfig/wizard"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/ui/habitconfig/wizard"
 )
 
 // HabitConfigurator provides UI for managing habit configurations

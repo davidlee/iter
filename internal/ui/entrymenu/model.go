@@ -12,11 +12,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/vice/internal/debug"
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/ui"
-	"davidlee/vice/internal/ui/entry"
-	"davidlee/vice/internal/ui/modal"
+	"github.com/davidlee/vice/internal/debug"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/ui"
+	"github.com/davidlee/vice/internal/ui/entry"
+	"github.com/davidlee/vice/internal/ui/modal"
 )
 
 // EntryMenuItem represents a habit as a menu item for entry collection.

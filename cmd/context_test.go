@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"davidlee/vice/internal/config"
+	"github.com/davidlee/vice/internal/config"
 )
 
 func TestContextCommands(t *testing.T) {

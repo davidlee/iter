@@ -7,10 +7,10 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/vice/internal/debug"
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/ui"
-	"davidlee/vice/internal/ui/entry"
+	"github.com/davidlee/vice/internal/debug"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/ui"
+	"github.com/davidlee/vice/internal/ui/entry"
 )
 
 // EntryFormModal represents a modal for collecting habit entries.

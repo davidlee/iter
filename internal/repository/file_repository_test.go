@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"davidlee/vice/internal/config"
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/config"
+	"github.com/davidlee/vice/internal/models"
 )
 
 func createTestViceEnv(t *testing.T) *config.ViceEnv {

@@ -7,11 +7,11 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
-	"davidlee/vice/internal/scoring"
-	"davidlee/vice/internal/storage"
-	"davidlee/vice/internal/ui/entry"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/scoring"
+	"github.com/davidlee/vice/internal/storage"
+	"github.com/davidlee/vice/internal/ui/entry"
 )
 
 // EntryCollector handles the interactive collection of today's habit entries.

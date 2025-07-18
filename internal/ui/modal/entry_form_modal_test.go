@@ -7,9 +7,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/ui"
-	"davidlee/vice/internal/ui/entry"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/ui"
+	"github.com/davidlee/vice/internal/ui/entry"
 )
 
 // TestEntryFormModal_Creation tests entry form modal creation.

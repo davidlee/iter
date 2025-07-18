@@ -7,8 +7,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
 )
 
 // AIDEV-NOTE: Checklist habit creation following simple idiomatic bubbletea pattern

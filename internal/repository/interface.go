@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"time"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // DataRepository defines the interface for data access operations.

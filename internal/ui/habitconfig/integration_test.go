@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	initpkg "davidlee/vice/internal/init"
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
+	initpkg "github.com/davidlee/vice/internal/init"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
 )
 
 // TestHabitCreationWorkflows tests habit creation workflows without UI interaction

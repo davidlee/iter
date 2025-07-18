@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"davidlee/vice/internal/flotsam"
+	"github.com/davidlee/vice/internal/flotsam"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

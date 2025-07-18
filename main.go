@@ -2,7 +2,7 @@
 package main
 
 import (
-	"davidlee/vice/cmd"
+	"github.com/davidlee/vice/cmd"
 
 	// Import dependencies to keep them in go.mod
 	_ "github.com/charmbracelet/bubbles"

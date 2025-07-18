@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
 )
 
 func TestYAMLFixtureValidation(t *testing.T) {

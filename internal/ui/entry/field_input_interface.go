@@ -1,7 +1,7 @@
 package entry
 
 import (
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 	"github.com/charmbracelet/huh"
 )
 

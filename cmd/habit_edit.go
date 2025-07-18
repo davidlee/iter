@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	initpkg "davidlee/vice/internal/init"
-	"davidlee/vice/internal/ui/habitconfig"
+	initpkg "github.com/davidlee/vice/internal/init"
+	"github.com/davidlee/vice/internal/ui/habitconfig"
 )
 
 // habitEditCmd represents the habit edit command

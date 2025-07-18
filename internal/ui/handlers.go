@@ -2,8 +2,8 @@
 package ui
 
 import (
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/scoring"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/scoring"
 )
 
 // HabitEntryHandler defines the interface for collecting entries for different habit types.

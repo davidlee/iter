@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 func TestNavigationHelper_FindNextIncompleteHabit(t *testing.T) {

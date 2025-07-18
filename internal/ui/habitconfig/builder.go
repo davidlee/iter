@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // HabitBuilder orchestrates the complete habit creation process

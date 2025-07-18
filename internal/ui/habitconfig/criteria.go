@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/huh"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // CriteriaBuilder provides methods to build criteria configuration forms

@@ -8,7 +8,7 @@ import (
 
 	"github.com/charmbracelet/huh"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // EditorConfig holds configuration for the checklist editor.

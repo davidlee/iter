@@ -11,14 +11,14 @@ import (
 	"github.com/charmbracelet/fang"
 	"github.com/spf13/cobra"
 
-	"davidlee/vice/internal/config"
-	"davidlee/vice/internal/debug"
-	init_pkg "davidlee/vice/internal/init"
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
-	"davidlee/vice/internal/storage"
-	"davidlee/vice/internal/ui"
-	"davidlee/vice/internal/ui/entrymenu"
+	"github.com/davidlee/vice/internal/config"
+	"github.com/davidlee/vice/internal/debug"
+	init_pkg "github.com/davidlee/vice/internal/init"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/storage"
+	"github.com/davidlee/vice/internal/ui"
+	"github.com/davidlee/vice/internal/ui/entrymenu"
 )
 
 var (

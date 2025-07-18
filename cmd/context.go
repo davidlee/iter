@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"davidlee/vice/internal/config"
+	"github.com/davidlee/vice/internal/config"
 )
 
 // contextCmd represents the context command

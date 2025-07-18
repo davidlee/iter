@@ -5,7 +5,7 @@ import (
 
 	"github.com/charmbracelet/huh"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // Selector provides a menu interface for selecting checklists.

@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/huh"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // FieldConfig represents the complete configuration for a field type

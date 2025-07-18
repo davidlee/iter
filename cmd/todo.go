@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"davidlee/vice/internal/ui"
+	"github.com/davidlee/vice/internal/ui"
 )
 
 // todoCmd represents the todo command

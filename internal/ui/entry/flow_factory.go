@@ -3,8 +3,8 @@ package entry
 import (
 	"fmt"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/scoring"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/scoring"
 )
 
 // AIDEV-NOTE: flow-factory; creates appropriate habit collection flows with field input and scoring integration

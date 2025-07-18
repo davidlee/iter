@@ -6,9 +6,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/ui"
-	"davidlee/vice/internal/ui/entry"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/ui"
+	"github.com/davidlee/vice/internal/ui/entry"
 )
 
 // TestEntryFormModal_BasicIntegration tests basic modal functionality without teatest.

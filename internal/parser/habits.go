@@ -7,7 +7,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // HabitParser handles parsing and validation of habit schemas.

@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: entry-duration-input; implements EntryFieldInput for Duration fields with scoring feedback

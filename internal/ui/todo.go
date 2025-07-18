@@ -8,10 +8,10 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/vice/internal/config"
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
-	"davidlee/vice/internal/storage"
+	"github.com/davidlee/vice/internal/config"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/storage"
 )
 
 // TodoDashboard displays today's habit status in a table format

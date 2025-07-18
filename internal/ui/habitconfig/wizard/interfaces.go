@@ -10,7 +10,7 @@ package wizard
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // State represents the complete state of the habit creation wizard

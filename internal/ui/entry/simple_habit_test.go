@@ -3,8 +3,8 @@ package entry
 import (
 	"testing"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/scoring"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/scoring"
 )
 
 // AIDEV-NOTE: simple-habit-tests; comprehensive testing for simple habit collection flow

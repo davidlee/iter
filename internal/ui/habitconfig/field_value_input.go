@@ -8,7 +8,7 @@ import (
 
 	"github.com/charmbracelet/huh"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: Field value input UI foundation for entry recording system (T005/3.5)

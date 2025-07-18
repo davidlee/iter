@@ -7,9 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
-	"davidlee/vice/internal/ui/checklist"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/ui/checklist"
 )
 
 // listAddCmd represents the list add command

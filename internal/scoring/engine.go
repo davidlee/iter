@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // Engine handles scoring of habit entries against elastic habit criteria.

@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	init_pkg "davidlee/vice/internal/init"
-	"davidlee/vice/internal/ui"
+	init_pkg "github.com/davidlee/vice/internal/init"
+	"github.com/davidlee/vice/internal/ui"
 )
 
 // menuFlag indicates whether to launch the interactive menu interface

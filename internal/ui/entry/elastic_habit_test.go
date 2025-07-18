@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/scoring"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/scoring"
 )
 
 // AIDEV-NOTE: elastic-habit-tests; comprehensive testing for elastic habit collection flow

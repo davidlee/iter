@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	initpkg "davidlee/vice/internal/init"
-	"davidlee/vice/internal/models"
-	"davidlee/vice/internal/parser"
-	"davidlee/vice/internal/scoring"
-	"davidlee/vice/internal/storage"
-	"davidlee/vice/internal/ui"
+	initpkg "github.com/davidlee/vice/internal/init"
+	"github.com/davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/parser"
+	"github.com/davidlee/vice/internal/scoring"
+	"github.com/davidlee/vice/internal/storage"
+	"github.com/davidlee/vice/internal/ui"
 )
 
 // TestElasticHabitsEndToEnd verifies the complete elastic habits workflow:

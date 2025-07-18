@@ -7,8 +7,8 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"davidlee/vice/internal/debug"
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/debug"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: entry-boolean-input; implements EntryFieldInput for Boolean fields with three-option skip support

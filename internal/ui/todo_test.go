@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"davidlee/vice/internal/config"
-	"davidlee/vice/internal/models"
+	"github.com/davidlee/vice/internal/config"
+	"github.com/davidlee/vice/internal/models"
 )
 
 func TestTodoDashboard(t *testing.T) {
