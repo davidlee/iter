@@ -346,10 +346,9 @@ func (r *FileRepository) LoadFlotsam() (*models.FlotsamCollection, error) {
 		}
 	}
 
-	// Compute backlinks across the entire collection (context-scoped)
-	// AIDEV-NOTE: T027/4.2.2-backlink-integration; backlinks computed after note loading for complete collection
-	r.computeBacklinks(collection)
-
+	// AIDEV-NOTE: T041-backlink-removal; backlink computation removed - delegate to zk instead
+	// Note: Backlinks now handled by zk delegation: `zk list --linked-by <note>`
+	
 	return collection, nil
 }
 
@@ -403,10 +402,10 @@ func (r *FileRepository) parseFlotsamFile(filePath string) (*models.FlotsamNote,
 		FilePath: filePath,
 		
 		// DEPRECATED: Backward compatibility fields
-		Type:      frontmatter.Type, // Will be replaced by vice:type:* tags
-		Links:     links,
-		SRS:       frontmatter.SRS,
-		Backlinks: make([]string, 0), // Will be computed later
+		Type:  frontmatter.Type, // Will be replaced by vice:type:* tags
+		Links: links,
+		SRS:   frontmatter.SRS,
+		// Note: Backlinks removed - use flotsam.GetBacklinks() instead
 	}
 
 	// Validate and set defaults for type
@@ -417,31 +416,8 @@ func (r *FileRepository) parseFlotsamFile(filePath string) (*models.FlotsamNote,
 	return note, nil
 }
 
-// computeBacklinks computes backlinks for all notes in a collection.
-// AIDEV-NOTE: T027/4.2.2-backlink-computation; context-scoped backlink index using ZK algorithm
-// AIDEV-NOTE: backlink-algorithm; builds reverse link map from all note content in collection
-func (r *FileRepository) computeBacklinks(collection *models.FlotsamCollection) {
-	// Build a map of note ID -> content for backlink computation
-	noteContents := make(map[string]string)
-	for _, note := range collection.Notes {
-		noteContents[note.ID] = note.Body
-	}
-
-	// Use ZK's BuildBacklinkIndex to compute reverse links
-	// AIDEV-NOTE: zk-algorithm-reuse; leverages proven ZK backlink computation for context-scoped links
-	backlinkIndex := flotsam.BuildBacklinkIndex(noteContents)
-
-	// Update each note with its computed backlinks
-	for i := range collection.Notes {
-		note := &collection.Notes[i]
-		if backlinks, exists := backlinkIndex[note.ID]; exists {
-			note.Backlinks = backlinks
-		} else {
-			note.Backlinks = []string{} // Ensure empty slice rather than nil
-			// AIDEV-NOTE: empty-slice-pattern; consistent with Vice patterns to use empty slice vs nil
-		}
-	}
-}
+// AIDEV-NOTE: T041-deprecated; computeBacklinks removed - use zk delegation instead
+// Backlink computation now handled by: `zk list --linked-by <note>` and `zk list --link-to <note>`
 
 // SaveFlotsam saves a flotsam collection to markdown files.
 // AIDEV-NOTE: T027/3.2.2-save-flotsam; implements atomic file operations per ADR-002

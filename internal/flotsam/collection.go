@@ -81,9 +81,8 @@ func LoadAllNotes(contextDir string) (*Collection, error) {
 		return nil, fmt.Errorf("failed to walk flotsam directory: %w", err)
 	}
 
-	// Compute backlinks across the entire collection
-	// AIDEV-NOTE: backlink-fallback; keep for offline operation when zk unavailable
-	collection.computeBacklinks()
+	// AIDEV-NOTE: T041-backlink-removal; backlink computation removed - delegate to zk instead
+	// Backlinks now handled by zk delegation: `zk list --linked-by <note>`
 
 	// Update metadata
 	collection.computeMetadata()
@@ -184,30 +183,10 @@ func (c *Collection) GetNoteByID(id string) (*FlotsamNote, bool) {
 	return note, exists
 }
 
-// computeBacklinks computes backlinks for all notes in the collection.
-// This is kept as a fallback for when zk is unavailable.
-// AIDEV-NOTE: backlink-fallback; preserved from T027 for offline operation
-func (c *Collection) computeBacklinks() {
-	// Build a map of note ID -> content for backlink computation
-	noteContents := make(map[string]string)
-	for _, note := range c.Notes {
-		noteContents[note.ID] = note.Body
-	}
-
-	// Use existing BuildBacklinkIndex function
-	backlinkIndex := BuildBacklinkIndex(noteContents)
-
-	// Update each note with its computed backlinks
-	for i := range c.Notes {
-		note := &c.Notes[i]
-		if backlinks, exists := backlinkIndex[note.ID]; exists {
-			// Store backlinks in a way that's accessible
-			// Note: This would need to be added to the FlotsamNote struct
-			// For now, we'll skip this implementation detail
-			_ = backlinks
-		}
-	}
-}
+// AIDEV-NOTE: T041-deprecated; computeBacklinks removed - use zk delegation instead
+// Backlink computation now handled by zk commands:
+// - `zk list --linked-by <note>` for backlinks  
+// - `zk list --link-to <note>` for outbound links
 
 // computeMetadata updates the collection's computed metadata fields.
 func (c *Collection) computeMetadata() {

@@ -83,10 +83,11 @@ type FlotsamNote struct {
 	Modified time.Time `yaml:"-"`
 
 	// DEPRECATED: Backward compatibility fields
-	Type      string           `yaml:"-"` // DEPRECATED: Use vice:type:* tags instead
-	Links     []string         `yaml:"-"` // DEPRECATED: Use zk delegation instead
-	Backlinks []string         `yaml:"-"` // DEPRECATED: Use zk delegation instead
-	SRS       *flotsam.SRSData `yaml:"-"` // DEPRECATED: Use SRS database instead
+	Type  string           `yaml:"-"` // DEPRECATED: Use vice:type:* tags instead
+	Links []string         `yaml:"-"` // DEPRECATED: Use zk delegation instead
+	SRS   *flotsam.SRSData `yaml:"-"` // DEPRECATED: Use SRS database instead
+	
+	// REMOVED: Backlinks field - use flotsam.GetBacklinks() instead
 }
 
 // DEPRECATED: FlotsamCollection - use flotsam.Collection instead
@@ -128,10 +129,9 @@ func NewFlotsamNote(frontmatter *FlotsamFrontmatter, body, filepath string) *Flo
 		FilePath: filepath,
 		
 		// Initialize deprecated fields
-		Type:      "idea", // Default type
-		Links:     make([]string, 0),
-		Backlinks: make([]string, 0),
-		SRS:       nil,
+		Type:  "idea", // Default type
+		Links: make([]string, 0),
+		SRS:   nil,
 	}
 
 	return note

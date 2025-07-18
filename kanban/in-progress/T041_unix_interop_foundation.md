@@ -283,7 +283,7 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   
   **AIDEV-NOTE**: T041-2.2-completed; models successfully simplified to tag-based system while maintaining backward compatibility
 
-- [WIP] **2.3 Remove coupled backlink logic**: Eliminate in-memory backlink computation
+- [x] **2.3 Remove coupled backlink logic**: Eliminate in-memory backlink computation
   - *Scope:* Context-scoped backlink computation removal
   - *Replace:* Delegate to zk's link analysis capabilities
   - *Planning:* Map T027 backlink features to zk equivalents
@@ -335,6 +335,30 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   - **Fallback**: Keep `BuildBacklinkIndex` in collection.go for offline operation
   
   **Expected Reduction**: ~400 lines of backlink logic removed from repository layer
+  
+  **COMPLETED WORK**:
+  - ✅ **Removed computeBacklinks**: Deleted from FileRepository.computeBacklinks() and Collection.computeBacklinks()
+  - ✅ **Removed Backlinks field**: Deleted from models.FlotsamNote struct 
+  - ✅ **Created zk link helpers**: Added internal/flotsam/links.go with GetBacklinks(), GetOutboundLinks()
+  - ✅ **Updated link operations**: Replaced in-memory computation with zk delegation
+  - ✅ **Added zk integration tests**: Created comprehensive tests for link delegation functions
+  - ✅ **Backward compatibility**: Preserved BuildBacklinkIndex() as deprecated function
+  - ✅ **Repository updates**: Updated all references to remove backlink computation
+  - ✅ **Compilation verified**: Code builds successfully with zk delegation
+  
+  **NEW ZK DELEGATION API**:
+  ```go
+  // Get notes that link to this note
+  backlinks, err := flotsam.GetBacklinks("path/to/note.md")
+  
+  // Get notes this note links to  
+  outbound, err := flotsam.GetOutboundLinks("path/to/note.md")
+  
+  // Get both at once
+  backlinks, outbound, err := flotsam.GetLinkedNotes("path/to/note.md")
+  ```
+  
+  **AIDEV-NOTE**: T041-2.3-completed; backlink computation successfully removed and delegated to zk Unix interop
 
 ### 3. SRS Database Foundation
 - [ ] **3.1 SRS database schema**: Design minimal SRS database structure
