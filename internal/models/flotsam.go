@@ -34,13 +34,13 @@ type FlotsamType string
 // Deprecated flotsam type constants - use tag-based behavior system instead.
 const (
 	// IdeaType represents free-form idea capture notes
-	IdeaType      FlotsamType = "idea"      // Free-form idea capture
+	IdeaType FlotsamType = "idea" // Free-form idea capture
 	// FlashcardType represents question/answer cards for SRS
 	FlashcardType FlotsamType = "flashcard" // Question/answer cards for SRS
 	// ScriptType represents executable scripts and commands
-	ScriptType    FlotsamType = "script"    // Executable scripts and commands
+	ScriptType FlotsamType = "script" // Executable scripts and commands
 	// LogType represents journal entries and logs
-	LogType       FlotsamType = "log"       // Journal entries and logs
+	LogType FlotsamType = "log" // Journal entries and logs
 )
 
 // DEPRECATED: FlotsamType methods - use tag-based behavior system instead

@@ -20,8 +20,9 @@ type CommandLineTool interface {
 	Execute(args ...string) (*ToolResult, error)
 }
 
-//revive:disable-next-line:exported // ZKTool naming is intentional to avoid conflicts with existing ZK package
 // ZKTool extends CommandLineTool with zk-specific operations for note management.
+//
+//revive:disable-next-line:exported // ZKTool naming is intentional to avoid conflicts with existing ZK package
 type ZKTool interface {
 	CommandLineTool
 	List(filters ...string) ([]string, error)
@@ -37,9 +38,10 @@ type ToolResult struct {
 	Duration time.Duration // Execution time
 }
 
-//revive:disable-next-line:exported // ZKExecutable naming is intentional to match existing patterns
 // ZKExecutable implements ZKTool interface for zk command-line tool integration.
 // AIDEV-NOTE: simplified implementation for T041/4.1 - basic shell-out abstraction with graceful degradation
+//
+//revive:disable-next-line:exported // ZKExecutable naming is intentional to match existing patterns
 type ZKExecutable struct {
 	path      string // Resolved zk binary path
 	available bool   // Runtime availability status
@@ -51,7 +53,7 @@ type ZKExecutable struct {
 func NewZKExecutable() *ZKExecutable {
 	path, err := exec.LookPath("zk")
 	available := err == nil && path != ""
-	
+
 	return &ZKExecutable{
 		path:      path,
 		available: available,
@@ -77,15 +79,15 @@ func (z *ZKExecutable) Execute(args ...string) (*ToolResult, error) {
 	}
 
 	start := time.Now()
-	
+
 	//nolint:gosec // Command arguments are controlled by vice, not user input
 	cmd := exec.Command(z.path, args...)
-	
+
 	// Capture both stdout and stderr
 	stdout, err := cmd.Output()
 	stderr := ""
 	var exitCode int
-	
+
 	// Get stderr from ExitError if command failed
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
@@ -95,7 +97,7 @@ func (z *ZKExecutable) Execute(args ...string) (*ToolResult, error) {
 			return nil, fmt.Errorf("failed to execute zk command: %w", err)
 		}
 	}
-	
+
 	return &ToolResult{
 		Stdout:   string(stdout),
 		Stderr:   stderr,
@@ -108,27 +110,27 @@ func (z *ZKExecutable) Execute(args ...string) (*ToolResult, error) {
 // Filters are passed directly as arguments to 'zk list'.
 func (z *ZKExecutable) List(filters ...string) ([]string, error) {
 	args := append([]string{"list"}, filters...)
-	
+
 	result, err := z.Execute(args...)
 	if err != nil {
 		return nil, fmt.Errorf("zk list failed: %w", err)
 	}
-	
+
 	if result.ExitCode != 0 {
 		return nil, fmt.Errorf("zk list failed with exit code %d: %s", result.ExitCode, result.Stderr)
 	}
-	
+
 	// Parse output into note paths (one per line)
 	lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
 	var paths []string
-	
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line != "" {
 			paths = append(paths, line)
 		}
 	}
-	
+
 	return paths, nil
 }
 
@@ -138,18 +140,18 @@ func (z *ZKExecutable) Edit(paths ...string) error {
 	if len(paths) == 0 {
 		return fmt.Errorf("no paths specified for editing")
 	}
-	
+
 	args := append([]string{"edit"}, paths...)
-	
+
 	result, err := z.Execute(args...)
 	if err != nil {
 		return fmt.Errorf("zk edit failed: %w", err)
 	}
-	
+
 	if result.ExitCode != 0 {
 		return fmt.Errorf("zk edit failed with exit code %d: %s", result.ExitCode, result.Stderr)
 	}
-	
+
 	return nil
 }
 
@@ -161,13 +163,13 @@ func (z *ZKExecutable) GetLinkedNotes(path string) ([]string, []string, error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get backlinks for %s: %w", path, err)
 	}
-	
+
 	// Get outbound links: notes this note links TO
 	outbound, err := z.List("--link-to", path)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get outbound links for %s: %w", path, err)
 	}
-	
+
 	return backlinks, outbound, nil
 }
 
@@ -185,13 +187,13 @@ func (z *ZKExecutable) WarnIfUnavailable() {
 func ValidateZKConfig(configPath string) error {
 	// AIDEV-NOTE: NOOP for T041/4.1 - placeholder for future validation in T046
 	// Future: Parse TOML, check for incompatible settings
-	
+
 	// Check if config file exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		// Config doesn't exist - this is fine, zk will use defaults
 		return nil
 	}
-	
+
 	// Config exists - assume it's valid for now
 	// TODO: Parse and validate in T046
 	return nil
@@ -201,13 +203,13 @@ func ValidateZKConfig(configPath string) error {
 // Returns the notebook root directory or error if not found.
 func FindZKNotebook(startDir string) (string, error) {
 	dir := startDir
-	
+
 	for {
 		zkDir := filepath.Join(dir, ".zk")
 		if info, err := os.Stat(zkDir); err == nil && info.IsDir() {
 			return dir, nil
 		}
-		
+
 		parent := filepath.Dir(dir)
 		if parent == dir {
 			// Reached filesystem root
@@ -215,6 +217,6 @@ func FindZKNotebook(startDir string) (string, error) {
 		}
 		dir = parent
 	}
-	
+
 	return "", fmt.Errorf("no .zk directory found in %s or parent directories", startDir)
 }

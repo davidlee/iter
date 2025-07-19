@@ -69,7 +69,7 @@ func GetNotesByType(env *config.ViceEnv, noteType string) ([]string, error) {
 
 	// Construct vice:type:* tag
 	tag := fmt.Sprintf("vice:type:%s", noteType)
-	
+
 	notes, err := env.ZKList("--tag", tag)
 	if err != nil {
 		log.Error("Failed to query notes by type", "type", noteType, "tag", tag, "error", err)
@@ -83,13 +83,13 @@ func GetNotesByType(env *config.ViceEnv, noteType string) ([]string, error) {
 // ValidateNoteType checks if a note type is valid.
 func ValidateNoteType(noteType string) error {
 	validTypes := []string{TypeFlashcard, TypeIdea, TypeScript, TypeLog}
-	
+
 	for _, valid := range validTypes {
 		if noteType == valid {
 			return nil
 		}
 	}
-	
+
 	return fmt.Errorf("invalid note type '%s': must be one of %v", noteType, validTypes)
 }
 
@@ -105,12 +105,12 @@ func ParseViceTag(tag string) (string, bool) {
 	if !strings.HasPrefix(tag, prefix) {
 		return "", false
 	}
-	
+
 	noteType := strings.TrimPrefix(tag, prefix)
 	if err := ValidateNoteType(noteType); err != nil {
 		return "", false
 	}
-	
+
 	return noteType, true
 }
 
@@ -122,7 +122,7 @@ func IsViceTag(tag string) bool {
 
 // EnrichWithSRSData combines note paths with SRS database information.
 // Returns a map of note path to SRS data, with warnings for missing entries.
-func EnrichWithSRSData(env *config.ViceEnv, notes []string) (map[string]*SRSData, error) {
+func EnrichWithSRSData(_ *config.ViceEnv, notes []string) (map[string]*SRSData, error) {
 	if len(notes) == 0 {
 		return make(map[string]*SRSData), nil
 	}
@@ -130,21 +130,21 @@ func EnrichWithSRSData(env *config.ViceEnv, notes []string) (map[string]*SRSData
 	// TODO: Implement bulk SRS database query
 	// This requires extending internal/srs/database.go with bulk query methods
 	// For now, return empty map to establish the interface
-	
+
 	log.Debug("Enriching notes with SRS data", "note_count", len(notes))
-	
+
 	srsData := make(map[string]*SRSData)
-	
+
 	// Placeholder: would bulk query SRS database here
 	// srsResults := database.GetSRSDataBulk(notes)
-	
+
 	// Log warnings for notes missing SRS data
 	for _, notePath := range notes {
 		if srsData[notePath] == nil {
 			log.Warn("Vice-typed note missing from SRS database", "path", notePath)
 		}
 	}
-	
+
 	return srsData, nil
 }
 
@@ -152,26 +152,26 @@ func EnrichWithSRSData(env *config.ViceEnv, notes []string) (map[string]*SRSData
 // Logs warnings for inconsistencies but does not return errors.
 func ValidateSRSConsistency(env *config.ViceEnv, notes []string) error {
 	log.Debug("Validating SRS consistency", "note_count", len(notes))
-	
+
 	srsData, err := EnrichWithSRSData(env, notes)
 	if err != nil {
 		return fmt.Errorf("failed to check SRS consistency: %w", err)
 	}
-	
+
 	missingCount := 0
 	for _, notePath := range notes {
 		if srsData[notePath] == nil {
 			missingCount++
 		}
 	}
-	
+
 	if missingCount > 0 {
-		log.Warn("SRS consistency issues detected", 
-			"total_notes", len(notes), 
+		log.Warn("SRS consistency issues detected",
+			"total_notes", len(notes),
 			"missing_srs_entries", missingCount)
 	} else {
 		log.Debug("SRS consistency validation passed", "note_count", len(notes))
 	}
-	
+
 	return nil
 }

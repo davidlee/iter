@@ -142,7 +142,7 @@ func TestFlotsamNote_HasSRS(t *testing.T) {
 
 	t.Run("note with SRS", func(t *testing.T) {
 		note := &FlotsamNote{
-			Tags: []string{"vice:srs", "important"},
+			Tags: []string{"vice:type:flashcard", "important"},
 		}
 		assert.True(t, note.HasSRS())
 	})
@@ -195,7 +195,7 @@ func TestFlotsamCollection_AddNote(t *testing.T) {
 	assert.Equal(t, 1, len(collection.Notes))
 	assert.Equal(t, 1, collection.TotalNotes)
 	assert.Equal(t, "note1", collection.Notes[0].ID)
-	assert.False(t, collection.SRSEnabled)
+	assert.True(t, collection.SRSEnabled)
 }
 
 func TestFlotsamCollection_AddNote_WithSRS(t *testing.T) {
@@ -292,9 +292,9 @@ func TestFlotsamCollection_GetSRSNotes(t *testing.T) {
 
 	notes := []FlotsamNote{
 		{ID: "1", Tags: []string{}},
-		{ID: "2", Tags: []string{"vice:srs"}},
+		{ID: "2", Tags: []string{"vice:type:flashcard"}},
 		{ID: "3", Tags: []string{}},
-		{ID: "4", Tags: []string{"vice:srs"}},
+		{ID: "4", Tags: []string{"vice:type:idea"}},
 	}
 
 	for _, note := range notes {
@@ -332,7 +332,7 @@ func TestFlotsamCollection_computeMetadata(t *testing.T) {
 	// Add note with SRS
 	noteWithSRS := FlotsamNote{
 		ID:   "2",
-		Tags: []string{"vice:srs"},
+		Tags: []string{"vice:type:flashcard"},
 	}
 	collection.AddNote(noteWithSRS)
 	assert.Equal(t, 2, collection.TotalNotes)

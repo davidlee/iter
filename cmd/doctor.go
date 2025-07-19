@@ -1,3 +1,4 @@
+// Package cmd provides CLI commands for the vice application.
 // AIDEV-NOTE: T041/4.2-doctor; comprehensive system health diagnostics with ZK dependency detection
 package cmd
 
@@ -43,16 +44,16 @@ func runDoctor(_ *cobra.Command, _ []string) error {
 	}
 
 	allOK := true
-	
+
 	// Check vice configuration
 	allOK = checkViceConfiguration(env) && allOK
-	
+
 	// Check external dependencies
 	allOK = checkExternalDependencies(env) && allOK
-	
+
 	// Check database connectivity
 	allOK = checkDatabases(env) && allOK
-	
+
 	// Summary
 	fmt.Println()
 	if allOK {
@@ -66,9 +67,9 @@ func runDoctor(_ *cobra.Command, _ []string) error {
 // checkViceConfiguration validates vice directory structure and config
 func checkViceConfiguration(env *config.ViceEnv) bool {
 	fmt.Println("📁 Checking vice configuration...")
-	
+
 	allOK := true
-	
+
 	// Check XDG directories
 	directories := map[string]string{
 		"Config": env.ConfigDir,
@@ -76,7 +77,7 @@ func checkViceConfiguration(env *config.ViceEnv) bool {
 		"State":  env.StateDir,
 		"Cache":  env.CacheDir,
 	}
-	
+
 	for name, dir := range directories {
 		if info, err := os.Stat(dir); err == nil {
 			if info.IsDir() {
@@ -89,18 +90,18 @@ func checkViceConfiguration(env *config.ViceEnv) bool {
 			fmt.Printf("   ⚠️  %s directory missing (will be created): %s\n", name, dir)
 		}
 	}
-	
+
 	// Check context configuration
 	fmt.Printf("   ✅ Active context: %s\n", env.Context)
 	fmt.Printf("   ✅ Context data directory: %s\n", env.ContextData)
-	
+
 	// Check available contexts
 	if len(env.Contexts) > 0 {
 		fmt.Printf("   ✅ Available contexts: %v\n", env.Contexts)
 	} else {
 		fmt.Printf("   ⚠️  No contexts configured (using defaults)\n")
 	}
-	
+
 	fmt.Println()
 	return allOK
 }
@@ -108,13 +109,13 @@ func checkViceConfiguration(env *config.ViceEnv) bool {
 // checkExternalDependencies validates external tool availability
 func checkExternalDependencies(env *config.ViceEnv) bool {
 	fmt.Println("🔧 Checking external dependencies...")
-	
+
 	allOK := true
-	
+
 	// Check ZK availability
 	if env.IsZKAvailable() {
 		fmt.Printf("   ✅ zk tool: available at %s\n", env.ZK.Name())
-		
+
 		// Try to get version if possible
 		if result, err := env.ZK.Execute("--version"); err == nil && result.ExitCode == 0 {
 			version := result.Stdout
@@ -123,7 +124,7 @@ func checkExternalDependencies(env *config.ViceEnv) bool {
 			}
 			fmt.Printf("   ✅ zk version: %s\n", version)
 		}
-		
+
 		// Check ZK notebook configuration
 		if err := env.ValidateZKNotebook(); err != nil {
 			fmt.Printf("   ⚠️  zk configuration issue: %v\n", err)
@@ -136,7 +137,7 @@ func checkExternalDependencies(env *config.ViceEnv) bool {
 		fmt.Printf("       Note: Some flotsam features require zk\n")
 		allOK = false
 	}
-	
+
 	fmt.Println()
 	return allOK
 }
@@ -144,9 +145,9 @@ func checkExternalDependencies(env *config.ViceEnv) bool {
 // checkDatabases validates database connectivity and structure
 func checkDatabases(env *config.ViceEnv) bool {
 	fmt.Println("💾 Checking databases...")
-	
+
 	allOK := true
-	
+
 	// Check SRS database (if it exists)
 	srsDBPath := filepath.Join(env.GetFlotsamDir(), ".vice", "flotsam.db")
 	if info, err := os.Stat(srsDBPath); err == nil {
@@ -160,7 +161,7 @@ func checkDatabases(env *config.ViceEnv) bool {
 	} else {
 		fmt.Printf("   ℹ️  SRS database not found (will be created when needed): %s\n", srsDBPath)
 	}
-	
+
 	// Check habits/entries files in context
 	habitsFile := filepath.Join(env.ContextData, "habits.yml")
 	if _, err := os.Stat(habitsFile); err == nil {
@@ -168,14 +169,14 @@ func checkDatabases(env *config.ViceEnv) bool {
 	} else {
 		fmt.Printf("   ℹ️  Habits file not found (will be created when needed): %s\n", habitsFile)
 	}
-	
+
 	entriesFile := filepath.Join(env.ContextData, "entries.yml")
 	if _, err := os.Stat(entriesFile); err == nil {
 		fmt.Printf("   ✅ Entries file: %s\n", entriesFile)
 	} else {
 		fmt.Printf("   ℹ️  Entries file not found (will be created when needed): %s\n", entriesFile)
 	}
-	
+
 	fmt.Println()
 	return allOK
 }

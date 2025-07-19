@@ -135,10 +135,10 @@ func TestFlotsamNoteValidate(t *testing.T) {
 
 func TestFlotsamNoteTagBehavior(t *testing.T) {
 	tests := []struct {
-		name     string
-		note     FlotsamNote
-		checkSRS bool
-		checkFC  bool
+		name      string
+		note      FlotsamNote
+		checkSRS  bool
+		checkFC   bool
 		checkType string
 	}{
 		{
@@ -153,13 +153,13 @@ func TestFlotsamNoteTagBehavior(t *testing.T) {
 			checkType: "flashcard",
 		},
 		{
-			name: "idea note without SRS",
+			name: "idea note with SRS",
 			note: FlotsamNote{
 				ID:    "abc2",
 				Title: "Test Idea",
 				Tags:  []string{"vice:type:idea", "concept"},
 			},
-			checkSRS:  false,
+			checkSRS:  true,
 			checkFC:   false,
 			checkType: "idea",
 		},
@@ -297,4 +297,3 @@ func TestIsValidFlotsamID(t *testing.T) {
 		})
 	}
 }
-

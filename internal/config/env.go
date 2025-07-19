@@ -257,7 +257,7 @@ func (env *ViceEnv) ZKList(filters ...string) ([]string, error) {
 	if !env.IsZKAvailable() {
 		return nil, fmt.Errorf("zk not available - install from https://github.com/zk-org/zk")
 	}
-	
+
 	return env.ZK.List(filters...)
 }
 
@@ -267,7 +267,7 @@ func (env *ViceEnv) ZKEdit(paths ...string) error {
 	if !env.IsZKAvailable() {
 		return fmt.Errorf("zk not available - install from https://github.com/zk-org/zk")
 	}
-	
+
 	return env.ZK.Edit(paths...)
 }
 
@@ -282,6 +282,6 @@ func (env *ViceEnv) GetZKNotebookDir() string {
 func (env *ViceEnv) ValidateZKNotebook() error {
 	notebookDir := env.GetZKNotebookDir()
 	configPath := filepath.Join(notebookDir, ".zk", "config.toml")
-	
+
 	return zk.ValidateZKConfig(configPath)
 }

@@ -576,10 +576,20 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   - **Test Results**: All 96 flotsam tests pass, including new tag functionality
 
 ### 5. Basic CLI Implementation
-- [ ] **5.1 flotsam list command**: Implement `vice flotsam list` with zk delegation
-  - *Delegation:* `zk list --tag vice:srs --format json`
-  - *Enhancement:* Combine with SRS database for due date info
-  - *Planning:* Design output formatting and filtering options
+- [x] **5.1 flotsam list command**: Implement `vice flotsam list` with zk delegation
+  - *Delegation:* Updated to use `vice:type:*` tags instead of deprecated `vice:srs`
+  - *Enhancement:* Combines ZK delegation with SRS database for enriched output
+  - *Planning:* Implemented multiple output formats (table, json, paths) and type filtering
+  - **COMPLETED**: Full `vice flotsam list` implementation with ZK delegation and SRS integration
+  - **Architecture**: Uses updated tag hierarchy (`vice:type:flashcard/idea/script/log`)
+  - **Features**: Type filtering (`--type`), SRS enrichment (`--srs`), multiple output formats (`--format`)
+  - **Error Handling**: Graceful degradation when ZK unavailable, clear installation guidance
+  - **Testing**: Comprehensive test suite (15 test cases) covering command structure, output formatting, integration
+  - **Files Created**:
+    - `cmd/flotsam.go` (27 lines) - Main flotsam command with subcommand structure
+    - `cmd/flotsam_list.go` (223 lines) - Complete list implementation with ZK+SRS integration
+    - `cmd/flotsam_list_test.go` (104 lines) - Full test coverage for command functionality
+  - **User Experience**: Rich table output with SRS status, JSON for scripting, paths for piping
 - [ ] **5.2 flotsam due command**: Implement `vice flotsam due` with SRS queries
   - *Query:* Direct SRS database query for due notes
   - *Output:* File paths or rich format with metadata
