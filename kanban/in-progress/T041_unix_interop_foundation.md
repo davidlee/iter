@@ -590,10 +590,22 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
     - `cmd/flotsam_list.go` (223 lines) - Complete list implementation with ZK+SRS integration
     - `cmd/flotsam_list_test.go` (104 lines) - Full test coverage for command functionality
   - **User Experience**: Rich table output with SRS status, JSON for scripting, paths for piping
-- [ ] **5.2 flotsam due command**: Implement `vice flotsam due` with SRS queries
-  - *Query:* Direct SRS database query for due notes
-  - *Output:* File paths or rich format with metadata
-  - *Planning:* Consider date range filtering and priority sorting
+  - **Commit**: baa3be6 - feat(flotsam)[T041/5.1]: implement vice flotsam list with ZK delegation and SRS integration
+- [x] **5.2 flotsam due command**: Implement `vice flotsam due` with SRS queries
+  - *Query:* ZK-first enrichment pattern per ADR-008 for note discovery
+  - *Output:* Rich table format with ID, title, due date, and overdue status
+  - *Planning:* Implemented due today + overdue filtering, sorted by due date ascending
+  - **COMPLETED**: Full `vice flotsam due` implementation following ZK-first enrichment pattern
+  - **Architecture**: ADR-008 ZK-first pattern - query ZK for notes, enrich with SRS scheduling data
+  - **Features**: Multiple output formats (table/json/paths), result limiting (`--limit`), overdue status
+  - **Sorting**: Due date ascending (oldest first), then filename for deterministic ordering
+  - **Error Handling**: Graceful degradation when ZK unavailable, skips notes missing from SRS database
+  - **Testing**: Comprehensive test suite (13 test functions) covering filtering, sorting, output formatting
+  - **Files Created**:
+    - `doc/decisions/ADR-008-zk-first-enrichment-pattern.md` (73 lines) - Architectural decision record
+    - `cmd/flotsam_due.go` (251 lines) - Complete due command with ZK+SRS integration
+    - `cmd/flotsam_due_test.go` (351 lines) - Full test coverage including metadata extraction
+  - **User Experience**: Clear overdue indicators ("1 day late", "N days late"), table formatting, JSON for scripting
 - [ ] **5.3 flotsam edit command**: Implement `vice flotsam edit` with zk delegation
   - *Delegation:* `zk edit <note>` with proper path resolution
   - *Integration:* Work with both individual notes and filtered lists

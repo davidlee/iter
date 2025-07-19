@@ -53,7 +53,8 @@
       "Bash(ZK_NOTEBOOK_DIR=/home/david/dev/vice/temp/zk zk list --tag compatibility --format \"{{id}} - {{title}} - {{tags}}\")",
       "Bash(git commit:*)",
       "Bash(zk:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(gh pr view:*)"
     ],
     "deny": []
   }

@@ -6,6 +6,7 @@ import (
 
 // flotsamCmd represents the flotsam command
 // AIDEV-NOTE: T041/5.1-flotsam-cmd; Unix interop foundation for flotsam operations via zk delegation
+// AIDEV-NOTE: established subcommand structure for flotsam list/due/edit operations
 var flotsamCmd = &cobra.Command{
 	Use:   "flotsam",
 	Short: "Manage flotsam notes with SRS scheduling",
