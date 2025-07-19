@@ -46,6 +46,11 @@ func init() {
 func runFlotsamEdit(_ *cobra.Command, args []string) error {
 	env := GetViceEnv()
 
+	// Auto-initialize flotsam environment if needed
+	if err := flotsam.EnsureFlotsamEnvironment(env); err != nil {
+		return fmt.Errorf("failed to initialize flotsam environment: %w", err)
+	}
+
 	// Check ZK availability first
 	if !env.IsZKAvailable() {
 		return fmt.Errorf("zk not available - install from https://github.com/zk-org/zk")

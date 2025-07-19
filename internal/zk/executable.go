@@ -1,3 +1,4 @@
+//nolint:revive // ZKNotebook follows existing patterns in codebase
 // Package zk provides abstraction for external command-line tools integration.
 // This file implements the simplified ZKExecutable for T041/4.1 basic abstraction.
 // AIDEV-NOTE: T041/4.1-zk-abstraction; composition-based tool interface, replaces complex tool.go
@@ -48,6 +49,120 @@ type ZKExecutable struct {
 	warned    bool   // Track if user has been warned about missing zk
 }
 
+// ZKNotebook represents a ZK tool instance bound to a specific notebook directory.
+// AIDEV-NOTE: T041/6.1c-notebook-bound; always includes --notebook-dir in commands
+// AIDEV-NOTE: Key architectural improvement - eliminates ENV variable dependencies
+// AIDEV-NOTE: All ZK operations now use explicit --notebook-dir flag for reliability
+type ZKNotebook struct {
+	executable  *ZKExecutable
+	notebookDir string
+}
+
+// NewZKNotebook creates a ZK instance bound to a specific notebook directory.
+func NewZKNotebook(notebookDir string) *ZKNotebook {
+	return &ZKNotebook{
+		executable:  NewZKExecutable(),
+		notebookDir: notebookDir,
+	}
+}
+
+// NewUnavailableZKNotebook creates a ZK instance that always reports as unavailable.
+// AIDEV-NOTE: T041-fix-test; provides unavailable ZK instance for testing scenarios
+func NewUnavailableZKNotebook(notebookDir string) *ZKNotebook {
+	return &ZKNotebook{
+		executable:  NewUnavailableZKExecutable(),
+		notebookDir: notebookDir,
+	}
+}
+
+// Name returns the tool name identifier.
+func (z *ZKNotebook) Name() string {
+	return z.executable.Name()
+}
+
+// Available returns true if zk is available in the system PATH.
+func (z *ZKNotebook) Available() bool {
+	return z.executable.Available()
+}
+
+// NotebookDir returns the bound notebook directory path.
+func (z *ZKNotebook) NotebookDir() string {
+	return z.notebookDir
+}
+
+// Execute runs a zk command with --notebook-dir automatically prepended.
+func (z *ZKNotebook) Execute(args ...string) (*ToolResult, error) {
+	// Prepend --notebook-dir to all commands
+	fullArgs := []string{"--notebook-dir", z.notebookDir}
+	fullArgs = append(fullArgs, args...)
+
+	return z.executable.Execute(fullArgs...)
+}
+
+// List executes 'zk list' with optional filters, automatically using the bound notebook.
+func (z *ZKNotebook) List(filters ...string) ([]string, error) {
+	args := append([]string{"list"}, filters...)
+
+	result, err := z.Execute(args...)
+	if err != nil {
+		return nil, fmt.Errorf("zk list failed: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return nil, fmt.Errorf("zk list failed with exit code %d: %s", result.ExitCode, result.Stderr)
+	}
+
+	// Parse output into note paths (one per line)
+	lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
+	var paths []string
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			paths = append(paths, line)
+		}
+	}
+
+	return paths, nil
+}
+
+// Edit executes 'zk edit' with the specified note paths, automatically using the bound notebook.
+func (z *ZKNotebook) Edit(paths ...string) error {
+	if len(paths) == 0 {
+		return fmt.Errorf("no paths specified for editing")
+	}
+
+	args := append([]string{"edit"}, paths...)
+
+	result, err := z.Execute(args...)
+	if err != nil {
+		return fmt.Errorf("zk edit failed: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return fmt.Errorf("zk edit failed with exit code %d: %s", result.ExitCode, result.Stderr)
+	}
+
+	return nil
+}
+
+// GetLinkedNotes returns backlinks and outbound links for a note path.
+func (z *ZKNotebook) GetLinkedNotes(path string) ([]string, []string, error) {
+	// Get backlinks: notes that link TO this note
+	backlinks, err := z.List("--linked-by", path)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get backlinks for %s: %w", path, err)
+	}
+
+	// Get outbound links: notes this note links TO
+	outbound, err := z.List("--link-to", path)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get outbound links for %s: %w", path, err)
+	}
+
+	return backlinks, outbound, nil
+}
+
 // NewZKExecutable creates a new ZK tool instance with runtime detection.
 // It searches for zk in PATH and initializes availability status.
 func NewZKExecutable() *ZKExecutable {
@@ -57,6 +172,16 @@ func NewZKExecutable() *ZKExecutable {
 	return &ZKExecutable{
 		path:      path,
 		available: available,
+		warned:    false,
+	}
+}
+
+// NewUnavailableZKExecutable creates a ZK tool instance that always reports as unavailable.
+// AIDEV-NOTE: T041-fix-test; for testing scenarios where ZK should be unavailable
+func NewUnavailableZKExecutable() *ZKExecutable {
+	return &ZKExecutable{
+		path:      "",
+		available: false,
 		warned:    false,
 	}
 }

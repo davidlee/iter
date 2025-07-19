@@ -285,3 +285,17 @@ func (env *ViceEnv) ValidateZKNotebook() error {
 
 	return zk.ValidateZKConfig(configPath)
 }
+
+// GetFlotsamZK returns a ZKNotebook instance bound to the flotsam directory.
+// AIDEV-NOTE: T041/6.1c-notebook-bound; creates notebook-specific ZK instance
+// AIDEV-NOTE: T041-fix-test; respects env.ZK availability for proper test mocking
+func (env *ViceEnv) GetFlotsamZK() *zk.ZKNotebook {
+	flotsamDir := filepath.Join(env.ContextData, "flotsam")
+
+	// For testing: if env.ZK is explicitly nil, return unavailable notebook
+	if env.ZK == nil {
+		return zk.NewUnavailableZKNotebook(flotsamDir)
+	}
+
+	return zk.NewZKNotebook(flotsamDir)
+}

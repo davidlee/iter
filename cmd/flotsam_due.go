@@ -64,6 +64,11 @@ type dueNote struct {
 func runFlotsamDue(_ *cobra.Command, _ []string) error {
 	env := GetViceEnv()
 
+	// Auto-initialize flotsam environment if needed
+	if err := flotsam.EnsureFlotsamEnvironment(env); err != nil {
+		return fmt.Errorf("failed to initialize flotsam environment: %w", err)
+	}
+
 	// Step 1: ZK query for note discovery and metadata (ZK-first pattern per ADR-008)
 	notes, err := flotsam.GetAllViceNotes(env)
 	if err != nil {

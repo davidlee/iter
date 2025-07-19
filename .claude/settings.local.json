@@ -66,7 +66,16 @@
       "mcp__serena__write_memory",
       "mcp__serena__replace_regex",
       "mcp__serena__think_about_whether_you_are_done",
-      "mcp__serena__summarize_changes"
+      "mcp__serena__summarize_changes",
+      "Bash(ZLOCATION=\"/home/david/.local/share/vice/personal/flotsam\" zk list --tag vice:type:flashcard)",
+      "Bash(ZLOCATION=\"/home/david/.local/share/vice/personal/flotsam\" zk list)",
+      "Bash(ZK_NOTEBOOK_DIR=\"/home/david/.local/share/vice/personal/flotsam\" zk list)",
+      "Bash(ZK_NOTEBOOK_DIR=\"/home/david/.local/share/vice/personal/flotsam\" zk list --tag \"vice:type:flashcard\")",
+      "Bash(ZK_NOTEBOOK_DIR=\"/home/david/.local/share/vice/personal/flotsam\" zk list --help)",
+      "Bash(ZK_NOTEBOOK_DIR=\"/home/david/.local/share/vice/personal/flotsam\" zk list --tag vice:type:flashcard)",
+      "mcp__serena__insert_after_symbol",
+      "mcp__serena__replace_symbol_body",
+      "mcp__serena__initial_instructions"
     ],
     "deny": []
   }

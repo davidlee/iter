@@ -43,14 +43,16 @@ func GetLogNotes(env *config.ViceEnv) ([]string, error) {
 // All returned notes are SRS-enabled by definition.
 // AIDEV-NOTE: key function for bulk SRS operations, delegates to zk wildcard queries
 func GetAllViceNotes(env *config.ViceEnv) ([]string, error) {
-	if !env.IsZKAvailable() {
+	zkNotebook := env.GetFlotsamZK()
+
+	if !zkNotebook.Available() {
 		log.Warn("ZK unavailable, cannot query vice-typed notes")
 		return []string{}, fmt.Errorf("zk not available - install from https://github.com/zk-org/zk")
 	}
 
 	// Query for all vice:type:* tags
 	// Note: zk supports wildcard tag queries
-	notes, err := env.ZKList("--tag", "vice:type:*")
+	notes, err := zkNotebook.List("--tag", "vice:type:*")
 	if err != nil {
 		log.Error("Failed to query all vice-typed notes", "error", err)
 		return nil, fmt.Errorf("failed to query vice-typed notes: %w", err)
@@ -61,8 +63,11 @@ func GetAllViceNotes(env *config.ViceEnv) ([]string, error) {
 }
 
 // GetNotesByType returns all notes tagged with the specified vice:type.
+// AIDEV-NOTE: T041/6.1c-zk-integration; uses ZKNotebook with --notebook-dir pattern for reliable tag queries
 func GetNotesByType(env *config.ViceEnv, noteType string) ([]string, error) {
-	if !env.IsZKAvailable() {
+	zkNotebook := env.GetFlotsamZK()
+
+	if !zkNotebook.Available() {
 		log.Warn("ZK unavailable, cannot query notes", "type", noteType)
 		return []string{}, fmt.Errorf("zk not available - install from https://github.com/zk-org/zk")
 	}
@@ -70,7 +75,7 @@ func GetNotesByType(env *config.ViceEnv, noteType string) ([]string, error) {
 	// Construct vice:type:* tag
 	tag := fmt.Sprintf("vice:type:%s", noteType)
 
-	notes, err := env.ZKList("--tag", tag)
+	notes, err := zkNotebook.List("--tag", tag)
 	if err != nil {
 		log.Error("Failed to query notes by type", "type", noteType, "tag", tag, "error", err)
 		return nil, fmt.Errorf("failed to query notes with tag %s: %w", tag, err)
