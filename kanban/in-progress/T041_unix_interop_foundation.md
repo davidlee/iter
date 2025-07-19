@@ -501,7 +501,7 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
     - `cmd/doctor_test.go` (210 lines) - Comprehensive test suite
   - **Test Coverage**: 4 test cases covering command execution, configuration checks, zk detection
   - **Integration**: Uses ViceEnv ZK integration from T041/4.1 for seamless dependency checking
-- [ ] **4.3 Tag-based note detection**: Implement vice:type:* tag hierarchy with SRS integration
+- [x] **4.3 Tag-based note detection**: Implement vice:type:* tag hierarchy with SRS integration
   - *Scope:* Filter notes by vice-specific type tags, integrate with SRS database
   - *Integration:* Combine zk tag queries with bulk SRS database operations
   - *Planning:* All vice:type:* notes participate in SRS (vice:srs redundant, removed)
@@ -558,6 +558,22 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   - `internal/srs/database.go` - Add bulk query methods
   - `go.mod` - Add charmbracelet/log dependency
   - Update existing HasSRS(), IsFlashcard() methods to use new architecture
+  
+  **COMPLETED IMPLEMENTATION**:
+  - **Tag Hierarchy**: Complete vice:type:* system with flashcard, idea, script, log types
+  - **ZK Integration**: All tag query functions delegate to ZK with graceful degradation
+  - **Logging**: Added charmbracelet/log for structured warnings and debug info
+  - **Architecture Change**: Removed vice:srs redundancy - all vice:type:* notes are SRS-enabled
+  - **API Functions**: GetFlashcardNotes(), GetIdeaNotes(), GetAllViceNotes(), GetNotesByType()
+  - **Validation**: Tag parsing, type validation, SRS consistency checking
+  - **Error Handling**: Clear messages with installation guidance when ZK unavailable
+  - **Backward Compatibility**: Updated HasSRS() to detect vice:type:* tags
+  - **Files Created**:
+    - `internal/flotsam/tags.go` (211 lines) - Complete tag hierarchy implementation
+    - `internal/flotsam/tags_test.go` (235 lines) - 15 comprehensive test cases
+  - **Dependencies Added**: github.com/charmbracelet/log for structured logging
+  - **Files Modified**: `internal/models/flotsam.go` - Updated HasSRS() method
+  - **Test Results**: All 96 flotsam tests pass, including new tag functionality
 
 ### 5. Basic CLI Implementation
 - [ ] **5.1 flotsam list command**: Implement `vice flotsam list` with zk delegation

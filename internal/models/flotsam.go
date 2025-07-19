@@ -179,9 +179,16 @@ func (fn *FlotsamNote) UpdateFromFrontmatter(frontmatter *FlotsamFrontmatter) {
 }
 
 // HasSRS returns true if the note has SRS data configured.
-// Uses tag-based detection for Unix interop approach, with backward compatibility.
+// Uses tag-based detection: all vice:type:* notes are SRS-enabled.
 func (fn *FlotsamNote) HasSRS() bool {
-	return fn.HasTag("vice:srs") || fn.SRS != nil
+	// Check for any vice:type:* tag (all are SRS-enabled)
+	for _, tag := range fn.Tags {
+		if strings.HasPrefix(tag, "vice:type:") {
+			return true
+		}
+	}
+	// Backward compatibility: check for embedded SRS data
+	return fn.SRS != nil
 }
 
 // IsFlashcard returns true if the note is configured as a flashcard.
