@@ -390,10 +390,18 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   - **Unix Interop Design**: Minimal caching, delegates file parsing to zk
   - **Files Enhanced**: Extended `internal/srs/database.go` (+140 lines), `database_test.go` (+210 lines)
   - **Linting**: Clean - all gosec issues addressed
-- [ ] **3.3 Basic SRS operations**: Implement core SRS database operations
+- [x] **3.3 Basic SRS operations**: Implement core SRS database operations
   - *Operations:* Create, update, query due notes, review completion
   - *Interface:* Simple Go functions for CLI integration
   - *Planning:* Design for testability and future UI integration
+  - **COMPLETED**: All core SRS operations already implemented in T041/3.1
+  - **Enhanced**: Added proper .vice directory creation and ZK notebook detection
+  - **Database Placement**: Implements ADR-004 strategy - places `.vice/flotsam.db` alongside `.zk/`
+  - **ZK Notebook Detection**: Searches parent directories to find notebook root
+  - **Operations Available**: CreateSRSNote, UpdateReview, GetDueNotes, GetSRSData, DeleteSRSNote, GetStats
+  - **Directory Management**: Automatic `.vice` directory creation with proper permissions (0750)
+  - **Testing**: 6 additional tests for database placement and directory creation
+  - **Path Logic**: `determineDatabasePath()` and `findZKNotebookRoot()` functions
 
 ### 4. ZK Integration Foundation
 - [ ] **4.1 ZK shell-out abstraction**: Create reusable zk command execution

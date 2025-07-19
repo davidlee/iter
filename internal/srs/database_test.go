@@ -509,3 +509,136 @@ func TestCacheMetadataSchema(t *testing.T) {
 		assert.Contains(t, columns, col, "Missing column: %s", col)
 	}
 }
+
+// Database path determination tests
+
+func TestDetermineDatabasePath_NoZKNotebook(t *testing.T) {
+	tempDir := t.TempDir()
+	
+	dbPath, err := determineDatabasePath(tempDir)
+	require.NoError(t, err)
+	
+	expectedPath := filepath.Join(tempDir, ".vice", "flotsam.db")
+	assert.Equal(t, expectedPath, dbPath)
+}
+
+func TestDetermineDatabasePath_WithZKNotebook(t *testing.T) {
+	tempDir := t.TempDir()
+	
+	// Create .zk directory to simulate zk notebook
+	zkDir := filepath.Join(tempDir, ".zk")
+	err := os.MkdirAll(zkDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+	
+	dbPath, err := determineDatabasePath(tempDir)
+	require.NoError(t, err)
+	
+	expectedPath := filepath.Join(tempDir, ".vice", "flotsam.db")
+	assert.Equal(t, expectedPath, dbPath)
+}
+
+func TestDetermineDatabasePath_SubdirectoryOfZKNotebook(t *testing.T) {
+	tempDir := t.TempDir()
+	
+	// Create .zk directory in tempDir
+	zkDir := filepath.Join(tempDir, ".zk")
+	err := os.MkdirAll(zkDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+	
+	// Create subdirectory
+	subDir := filepath.Join(tempDir, "flotsam", "notes")
+	err = os.MkdirAll(subDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+	
+	// Call from subdirectory - should find notebook root
+	dbPath, err := determineDatabasePath(subDir)
+	require.NoError(t, err)
+	
+	expectedPath := filepath.Join(tempDir, ".vice", "flotsam.db")
+	assert.Equal(t, expectedPath, dbPath)
+}
+
+func TestFindZKNotebookRoot_NotFound(t *testing.T) {
+	tempDir := t.TempDir()
+	
+	root, found := findZKNotebookRoot(tempDir)
+	assert.False(t, found)
+	assert.Empty(t, root)
+}
+
+func TestFindZKNotebookRoot_CurrentDirectory(t *testing.T) {
+	tempDir := t.TempDir()
+	
+	// Create .zk directory
+	zkDir := filepath.Join(tempDir, ".zk")
+	err := os.MkdirAll(zkDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+	
+	root, found := findZKNotebookRoot(tempDir)
+	assert.True(t, found)
+	assert.Equal(t, tempDir, root)
+}
+
+func TestFindZKNotebookRoot_ParentDirectory(t *testing.T) {
+	tempDir := t.TempDir()
+	
+	// Create .zk directory in tempDir
+	zkDir := filepath.Join(tempDir, ".zk")
+	err := os.MkdirAll(zkDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+	
+	// Create subdirectory structure
+	subDir := filepath.Join(tempDir, "sub", "deeper")
+	err = os.MkdirAll(subDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+	
+	// Search from subdirectory - should find tempDir
+	root, found := findZKNotebookRoot(subDir)
+	assert.True(t, found)
+	assert.Equal(t, tempDir, root)
+}
+
+func TestNewDatabase_CreatesViceDirectory(t *testing.T) {
+	tempDir := t.TempDir()
+	
+	db, err := NewDatabase(tempDir, "test-context")
+	require.NoError(t, err)
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
+	
+	// Verify .vice directory was created
+	viceDir := filepath.Join(tempDir, ".vice")
+	info, err := os.Stat(viceDir)
+	require.NoError(t, err)
+	assert.True(t, info.IsDir())
+	
+	// Verify database file was created
+	assert.FileExists(t, db.dbPath)
+}
+
+func TestNewDatabase_ZKNotebookPlacement(t *testing.T) {
+	tempDir := t.TempDir()
+	
+	// Create .zk directory to simulate zk notebook
+	zkDir := filepath.Join(tempDir, ".zk")
+	err := os.MkdirAll(zkDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+	
+	// Create database from subdirectory
+	subDir := filepath.Join(tempDir, "flotsam")
+	err = os.MkdirAll(subDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+	
+	db, err := NewDatabase(subDir, "test-context")
+	require.NoError(t, err)
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
+	
+	// Database should be placed in notebook root, not subdirectory
+	expectedPath := filepath.Join(tempDir, ".vice", "flotsam.db")
+	assert.Equal(t, expectedPath, db.dbPath)
+	
+	// Verify .vice directory was created in notebook root
+	viceDir := filepath.Join(tempDir, ".vice")
+	info, err := os.Stat(viceDir)
+	require.NoError(t, err)
+	assert.True(t, info.IsDir())
+}

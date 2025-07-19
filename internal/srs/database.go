@@ -42,9 +42,18 @@ type SRSData struct {
 }
 
 // NewDatabase creates a new SRS database connection.
-// AIDEV-NOTE: database path convention - contextDir/.vice/flotsam.db for Unix interop
+// AIDEV-NOTE: database path convention - finds notebook root and places .vice/ alongside .zk/
 func NewDatabase(contextDir, context string) (*Database, error) {
-	dbPath := filepath.Join(contextDir, ".vice", "flotsam.db")
+	dbPath, err := determineDatabasePath(contextDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to determine database path: %w", err)
+	}
+
+	// Ensure .vice directory exists
+	viceDir := filepath.Dir(dbPath)
+	if err := os.MkdirAll(viceDir, 0750); err != nil {
+		return nil, fmt.Errorf("failed to create .vice directory: %w", err)
+	}
 
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
@@ -408,4 +417,46 @@ func (c *CacheManager) updateCacheMetadata(dirMtime time.Time) error {
 func (c *CacheManager) InvalidateCache() error {
 	oldTime := time.Unix(0, 0)
 	return c.updateCacheMetadata(oldTime)
+}
+
+// determineDatabasePath implements ADR-004 database placement strategy.
+// AIDEV-NOTE: places .vice/flotsam.db alongside .zk/ in notebook root, or in contextDir if no zk
+func determineDatabasePath(contextDir string) (string, error) {
+	// 1. Check if contextDir is or contains a zk notebook
+	notebookRoot, isZKNotebook := findZKNotebookRoot(contextDir)
+	
+	if isZKNotebook {
+		// Place .vice/flotsam.db alongside .zk/notebook.db
+		return filepath.Join(notebookRoot, ".vice", "flotsam.db"), nil
+	}
+	
+	// 2. No zk notebook found - use contextDir/.vice/flotsam.db
+	return filepath.Join(contextDir, ".vice", "flotsam.db"), nil
+}
+
+// findZKNotebookRoot searches for .zk directory in contextDir and parent directories.
+// Returns (notebookRoot, true) if found, ("", false) if not found.
+func findZKNotebookRoot(startDir string) (string, bool) {
+	currentDir := startDir
+	
+	for {
+		// Check if .zk directory exists in current directory
+		zkDir := filepath.Join(currentDir, ".zk")
+		if info, err := os.Stat(zkDir); err == nil && info.IsDir() {
+			// Found .zk directory - this is the notebook root
+			return currentDir, true
+		}
+		
+		// Move up one directory
+		parentDir := filepath.Dir(currentDir)
+		
+		// Stop if we've reached the root or can't go up further
+		if parentDir == currentDir || parentDir == "/" {
+			break
+		}
+		
+		currentDir = parentDir
+	}
+	
+	return "", false
 }
