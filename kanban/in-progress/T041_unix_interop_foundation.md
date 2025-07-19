@@ -481,10 +481,26 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
     - `internal/config/env.go` - Added ZK field and delegation methods (+52 lines)
   - **Files Preserved**: Moved complex `tool.go` to `.complex` for future advanced features
   - **Architecture**: Follows specification design, ready for T046 enhancement
-- [ ] **4.2 ZK dependency detection**: Implement zk availability checking
+- [x] **4.2 ZK dependency detection**: Implement zk availability checking
   - *Scope:* `vice doctor` command for dependency validation
   - *Errors:* Helpful messages for missing zk installation
   - *Planning:* Consider graceful degradation strategies
+  
+  **COMPLETED IMPLEMENTATION**:
+  - **New Command**: Created `vice doctor` from scratch with comprehensive system diagnostics
+  - **ZK Detection**: Integrated ZK availability checking with version detection and installation guidance
+  - **Health Checks**: 
+    - Vice configuration (XDG directories, contexts, config files)
+    - External dependencies (zk tool with version info)
+    - Database connectivity (SRS, habits, entries files)
+  - **User Experience**: Clear visual feedback with ✅/❌/⚠️/ℹ️ status indicators
+  - **Installation Guidance**: Direct users to https://github.com/zk-org/zk when zk unavailable
+  - **Graceful Handling**: Command succeeds even with issues, provides informational output only
+  - **Files Created**:
+    - `cmd/doctor.go` (205 lines) - Complete doctor command implementation
+    - `cmd/doctor_test.go` (210 lines) - Comprehensive test suite
+  - **Test Coverage**: 4 test cases covering command execution, configuration checks, zk detection
+  - **Integration**: Uses ViceEnv ZK integration from T041/4.1 for seamless dependency checking
 - [ ] **4.3 Tag-based note detection**: Implement `vice:srs` tag integration
   - *Scope:* Filter notes by vice-specific tags
   - *Integration:* Combine zk tag queries with SRS database
