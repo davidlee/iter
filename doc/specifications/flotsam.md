@@ -75,6 +75,21 @@ $VICE_DATA/{context}/        # Vice context root (see file_paths_runtime_env.md)
 - **SRS Database Location**: `.vice/flotsam.db` placed alongside `.zk/notebook.db`
 - **Context Isolation**: Each vice context has its own flotsam notebook directory
 
+**Future Extensibility Considerations**:
+- **Custom Notebook Paths**: Notebook directory name should be configurable via `config.toml`
+- **Multiple Database Types**: Support both notebook-level (SRS) and context-level (habits) databases
+- **Database Placement Strategy**: Different database types may have different placement rules:
+  ```
+  $VICE_DATA/{context}/
+  ├── .vice/
+  │   └── habits.db              # Context-level database
+  └── {notebook_name}/           # Configurable notebook directory
+      ├── .zk/
+      ├── .vice/
+      │   └── flotsam.db        # Notebook-level database
+      └── notes.md
+  ```
+
 ## Core Data Structures
 
 ### Simplified Note Model

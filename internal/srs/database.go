@@ -42,7 +42,10 @@ type SRSData struct {
 }
 
 // NewDatabase creates a new SRS database connection.
-// AIDEV-NOTE: database path convention - finds notebook root and places .vice/ alongside .zk/
+// AIDEV-NOTE: database path convention - places .vice/ in notebook directory within context
+// AIDEV-TODO: interface needs refactoring for extensibility - see T041 task notes
+// AIDEV-TODO: support custom notebook paths from config.toml
+// AIDEV-TODO: support multiple database types (SRS, habits, etc) with different placement rules
 func NewDatabase(contextDir, context string) (*Database, error) {
 	dbPath, err := determineDatabasePath(contextDir)
 	if err != nil {
@@ -419,44 +422,17 @@ func (c *CacheManager) InvalidateCache() error {
 	return c.updateCacheMetadata(oldTime)
 }
 
-// determineDatabasePath implements ADR-004 database placement strategy.
-// AIDEV-NOTE: places .vice/flotsam.db alongside .zk/ in notebook root, or in contextDir if no zk
+// determineDatabasePath implements corrected database placement strategy.
+// AIDEV-NOTE: places .vice/flotsam.db in notebook directory within vice context
+// AIDEV-TODO: extensibility issues - hardcoded "flotsam" and single database type
+// AIDEV-TODO: future should support: custom notebook names, multiple DB types, config-driven paths
+// AIDEV-TODO: recommended refactor: DatabaseConfig{Type, ContextDir, NotebookDir} struct
 func determineDatabasePath(contextDir string) (string, error) {
-	// 1. Check if contextDir is or contains a zk notebook
-	notebookRoot, isZKNotebook := findZKNotebookRoot(contextDir)
+	// For now, assume default notebook directory "flotsam" within context
+	// TODO: Make notebook directory configurable via vice config
+	notebookDir := filepath.Join(contextDir, "flotsam")
 	
-	if isZKNotebook {
-		// Place .vice/flotsam.db alongside .zk/notebook.db
-		return filepath.Join(notebookRoot, ".vice", "flotsam.db"), nil
-	}
-	
-	// 2. No zk notebook found - use contextDir/.vice/flotsam.db
-	return filepath.Join(contextDir, ".vice", "flotsam.db"), nil
+	// Place .vice/flotsam.db within the notebook directory
+	return filepath.Join(notebookDir, ".vice", "flotsam.db"), nil
 }
 
-// findZKNotebookRoot searches for .zk directory in contextDir and parent directories.
-// Returns (notebookRoot, true) if found, ("", false) if not found.
-func findZKNotebookRoot(startDir string) (string, bool) {
-	currentDir := startDir
-	
-	for {
-		// Check if .zk directory exists in current directory
-		zkDir := filepath.Join(currentDir, ".zk")
-		if info, err := os.Stat(zkDir); err == nil && info.IsDir() {
-			// Found .zk directory - this is the notebook root
-			return currentDir, true
-		}
-		
-		// Move up one directory
-		parentDir := filepath.Dir(currentDir)
-		
-		// Stop if we've reached the root or can't go up further
-		if parentDir == currentDir || parentDir == "/" {
-			break
-		}
-		
-		currentDir = parentDir
-	}
-	
-	return "", false
-}

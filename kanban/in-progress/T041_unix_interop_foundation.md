@@ -408,6 +408,12 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
     - **Issue**: Database placement logic needs update to find notebook directory within context
     - **Reference**: Updated `doc/specifications/flotsam.md` with correct structure
     - **Cross-reference**: `doc/specifications/file_paths_runtime_env.md` for context structure
+  - **🔄 EXTENSIBILITY CONSIDERATIONS**: Current implementation needs future-proofing
+    - **Custom notebook paths**: Config.toml should allow configurable notebook directory names
+    - **Multiple database types**: Need to support both notebook-level and context-level databases
+    - **Database path strategy**: Current `determineDatabasePath()` too rigid for extensibility
+    - **Recommended refactor**: DatabaseConfig struct with Type, ContextDir, NotebookDir fields
+    - **Technical debt**: Current interface will need breaking changes for full extensibility
 
 ### 4. ZK Integration Foundation
 - [ ] **4.1 ZK shell-out abstraction**: Create reusable zk command execution
