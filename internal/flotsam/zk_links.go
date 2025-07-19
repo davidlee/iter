@@ -314,7 +314,6 @@ func extractLinkText(node ast.Node, source []byte) string {
 
 		return ast.WalkContinue, nil
 	})
-
 	if err != nil {
 		return ""
 	}

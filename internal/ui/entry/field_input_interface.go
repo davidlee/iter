@@ -1,8 +1,8 @@
 package entry
 
 import (
-	"github.com/davidlee/vice/internal/models"
 	"github.com/charmbracelet/huh"
+	"github.com/davidlee/vice/internal/models"
 )
 
 // AIDEV-NOTE: entry-field-input-interface; designed for T010 entry collection with immediate scoring feedback

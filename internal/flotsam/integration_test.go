@@ -224,7 +224,7 @@ It also has hierarchical relationships: #[[parent concept]] and [[child concept]
 
 		// Write note to file
 		notePath := filepath.Join(tempDir, fmt.Sprintf("%s.md", noteID))
-		err := os.WriteFile(notePath, []byte(noteContent), 0600)
+		err := os.WriteFile(notePath, []byte(noteContent), 0o600)
 		require.NoError(t, err)
 
 		// Step 1: Parse note content
@@ -305,7 +305,7 @@ vice:
 			body)
 
 		// Write updated content back to file
-		err = os.WriteFile(notePath, []byte(updatedContent), 0600)
+		err = os.WriteFile(notePath, []byte(updatedContent), 0o600)
 		require.NoError(t, err)
 
 		// Step 7: Verify round-trip parsing

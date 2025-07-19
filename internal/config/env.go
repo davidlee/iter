@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/davidlee/vice/internal/zk"
 )
 
 // AIDEV-NOTE: DefaultAppName already defined in paths.go, reusing
@@ -25,6 +27,9 @@ type ViceEnv struct {
 
 	// Configuration settings (loaded from config.toml or defaults)
 	Contexts []string // available contexts from config.toml [core] section
+
+	// Tool integrations
+	ZK *zk.ZKExecutable // ZK tool integration (nil if unavailable)
 
 	// Override flags (for priority resolution)
 	ConfigDirOverride string // from CLI --config-dir flag
@@ -73,6 +78,9 @@ func GetDefaultViceEnv() (*ViceEnv, error) {
 
 	// Compute context data path
 	env.ContextData = filepath.Join(env.DataDir, env.Context)
+
+	// Initialize ZK tool integration
+	env.ZK = zk.NewZKExecutable()
 
 	return env, nil
 }
@@ -225,4 +233,55 @@ func resolveXDGDir(viceEnvVar, xdgEnvVar, fallbackDir string) (string, error) {
 	}
 
 	return filepath.Join(homeDir, fallbackDir, DefaultAppName), nil
+}
+
+// ZK Integration Methods
+// AIDEV-NOTE: T041/4.1-zk-integration; ViceEnv methods for graceful ZK tool integration
+
+// IsZKAvailable returns true if zk tool is available for use.
+func (env *ViceEnv) IsZKAvailable() bool {
+	return env.ZK != nil && env.ZK.Available()
+}
+
+// WarnZKUnavailable prints a warning if zk is unavailable (once per session).
+// Use this for interactive sessions where user should know about missing functionality.
+func (env *ViceEnv) WarnZKUnavailable() {
+	if env.ZK != nil {
+		env.ZK.WarnIfUnavailable()
+	}
+}
+
+// ZKList delegates to zk list command with graceful degradation.
+// Returns note paths or error with installation guidance.
+func (env *ViceEnv) ZKList(filters ...string) ([]string, error) {
+	if !env.IsZKAvailable() {
+		return nil, fmt.Errorf("zk not available - install from https://github.com/zk-org/zk")
+	}
+
+	return env.ZK.List(filters...)
+}
+
+// ZKEdit delegates to zk edit command with graceful degradation.
+// Returns error with installation guidance if zk unavailable.
+func (env *ViceEnv) ZKEdit(paths ...string) error {
+	if !env.IsZKAvailable() {
+		return fmt.Errorf("zk not available - install from https://github.com/zk-org/zk")
+	}
+
+	return env.ZK.Edit(paths...)
+}
+
+// GetZKNotebookDir returns the path to the ZK notebook within current context.
+// This is where .zk directory should be located.
+func (env *ViceEnv) GetZKNotebookDir() string {
+	return env.GetFlotsamDir() // ZK notebook is co-located with flotsam directory
+}
+
+// ValidateZKNotebook validates ZK notebook configuration for compatibility.
+// Currently a NOOP placeholder for future enhancement (T046).
+func (env *ViceEnv) ValidateZKNotebook() error {
+	notebookDir := env.GetZKNotebookDir()
+	configPath := filepath.Join(notebookDir, ".zk", "config.toml")
+
+	return zk.ValidateZKConfig(configPath)
 }

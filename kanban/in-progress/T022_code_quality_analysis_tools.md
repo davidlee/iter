@@ -30,8 +30,8 @@ As a developer, I want comprehensive code quality analysis tools integrated into
 ## 2. Acceptance Criteria
 
 - [ ] go-architect tool integrated for architectural analysis
-- [ ] spm-go tool integrated for software metrics
-- [ ] effrit tool integrated for efficiency analysis
+- [x] spm-go tool integrated for software metrics
+- [x] effrit tool integrated for efficiency analysis
 - [ ] All tools executable via Justfile commands
 - [ ] Tools configured with appropriate thresholds/rules for this codebase
 - [ ] Documentation on how to interpret and act on tool outputs

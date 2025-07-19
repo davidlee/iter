@@ -21,47 +21,30 @@ type FlotsamFrontmatter struct {
 	Created time.Time `yaml:"created-at"`     // ZK timestamp format
 	Tags    []string  `yaml:"tags,omitempty"` // ZK tag array
 
-	// Flotsam extensions
-	Type FlotsamType `yaml:"type,omitempty"` // idea|flashcard|script|log
-
-	// SRS data (flotsam extension, ignored by ZK)
-	SRS *flotsam.SRSData `yaml:"srs,omitempty"` // Spaced repetition data
+	// Deprecated: Backward compatibility fields
+	Type FlotsamType      `yaml:"type,omitempty"` // DEPRECATED: Use vice:type:* tags instead
+	SRS  *flotsam.SRSData `yaml:"srs,omitempty"`  // DEPRECATED: Use SRS database instead
 }
 
-// FlotsamType represents the type of flotsam note.
+// FlotsamType represents deprecated note type classification.
+// Behaviors are now determined by tags: vice:type:idea, vice:type:flashcard, etc.
+// This type is kept for backward compatibility with repository layer.
 type FlotsamType string
 
-// Flotsam note types define the behavior and intended use of notes.
+// Deprecated flotsam type constants - use tag-based behavior system instead.
 const (
-	IdeaType      FlotsamType = "idea"      // Free-form idea capture
+	// IdeaType represents free-form idea capture notes
+	IdeaType FlotsamType = "idea" // Free-form idea capture
+	// FlashcardType represents question/answer cards for SRS
 	FlashcardType FlotsamType = "flashcard" // Question/answer cards for SRS
-	ScriptType    FlotsamType = "script"    // Executable scripts and commands
-	LogType       FlotsamType = "log"       // Journal entries and logs
+	// ScriptType represents executable scripts and commands
+	ScriptType FlotsamType = "script" // Executable scripts and commands
+	// LogType represents journal entries and logs
+	LogType FlotsamType = "log" // Journal entries and logs
 )
 
-// FlotsamNote represents a complete flotsam note with both frontmatter and content.
-// This embeds the flotsam package's FlotsamNote for compatibility while providing
-// a models-level interface that integrates with Vice's data patterns.
-// AIDEV-NOTE: bridge between flotsam package and Vice models layer
-type FlotsamNote struct {
-	// Embed the core flotsam note structure
-	flotsam.FlotsamNote
-
-	// Additional Vice-specific fields can be added here if needed
-}
-
-// FlotsamCollection represents a collection of flotsam notes with metadata.
-// This follows the pattern of other Vice collections (Schema, ChecklistSchema).
-type FlotsamCollection struct {
-	Version     string        `yaml:"version"`           // Schema version for future migrations
-	CreatedDate string        `yaml:"created_date"`      // Collection creation date
-	Context     string        `yaml:"context,omitempty"` // Vice context for isolation
-	Notes       []FlotsamNote `yaml:"notes"`             // Collection of notes
-
-	// Collection-level metadata
-	TotalNotes int  `yaml:"-"` // Computed: total note count
-	SRSEnabled bool `yaml:"-"` // Computed: any notes have SRS data
-}
+// DEPRECATED: FlotsamType methods - use tag-based behavior system instead
+// These methods are kept for backward compatibility with existing tests.
 
 // Validate validates a FlotsamType value.
 func (ft FlotsamType) Validate() error {
@@ -88,6 +71,44 @@ func DefaultType() FlotsamType {
 	return IdeaType
 }
 
+// FlotsamNote represents a complete flotsam note with both frontmatter and content.
+// This is a simplified wrapper around flotsam.FlotsamNote for models-level compatibility.
+// AIDEV-NOTE: simplified models-level interface - main logic in flotsam package
+type FlotsamNote struct {
+	// Core note data (no embedding)
+	ID      string    `yaml:"id"`
+	Title   string    `yaml:"title"`
+	Created time.Time `yaml:"created-at"`
+	Tags    []string  `yaml:"tags,omitempty"`
+
+	// Runtime fields (not in frontmatter)
+	Body     string    `yaml:"-"`
+	FilePath string    `yaml:"-"`
+	Modified time.Time `yaml:"-"`
+
+	// Deprecated: Backward compatibility fields
+	Type  string           `yaml:"-"` // DEPRECATED: Use vice:type:* tags instead
+	Links []string         `yaml:"-"` // DEPRECATED: Use zk delegation instead
+	SRS   *flotsam.SRSData `yaml:"-"` // DEPRECATED: Use SRS database instead
+
+	// REMOVED: Backlinks field - use flotsam.GetBacklinks() instead
+}
+
+// FlotsamCollection represents a deprecated collection of flotsam notes.
+// This type is kept for backward compatibility with repository layer.
+type FlotsamCollection struct {
+	Version     string        `yaml:"version"`           // Schema version for future migrations
+	CreatedDate string        `yaml:"created_date"`      // Collection creation date
+	Context     string        `yaml:"context,omitempty"` // Vice context for isolation
+	Notes       []FlotsamNote `yaml:"notes"`             // Collection of notes
+
+	// Collection-level metadata
+	TotalNotes int  `yaml:"-"` // Computed: total note count
+	SRSEnabled bool `yaml:"-"` // Computed: any notes have SRS data
+}
+
+// Note: FlotsamType methods removed - use tag-based behavior system instead
+
 // NewFlotsamFrontmatter creates a new FlotsamFrontmatter with required fields.
 // AIDEV-NOTE: constructor ensures ZK compatibility with required fields
 func NewFlotsamFrontmatter(id, title string) *FlotsamFrontmatter {
@@ -95,31 +116,33 @@ func NewFlotsamFrontmatter(id, title string) *FlotsamFrontmatter {
 		ID:      id,
 		Title:   title,
 		Created: time.Now(),
-		Type:    DefaultType(),
 		Tags:    make([]string, 0),
+		Type:    DefaultType(), // DEPRECATED: Use vice:type:* tags instead
 	}
 }
 
 // NewFlotsamNote creates a new FlotsamNote with the given frontmatter.
 func NewFlotsamNote(frontmatter *FlotsamFrontmatter, body, filepath string) *FlotsamNote {
 	note := &FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{
-			ID:       frontmatter.ID,
-			Title:    frontmatter.Title,
-			Type:     string(frontmatter.Type),
-			Tags:     frontmatter.Tags,
-			Created:  frontmatter.Created,
-			Modified: time.Now(),
-			Body:     body,
-			FilePath: filepath,
-			SRS:      frontmatter.SRS,
-		},
+		ID:       frontmatter.ID,
+		Title:    frontmatter.Title,
+		Tags:     frontmatter.Tags,
+		Created:  frontmatter.Created,
+		Modified: time.Now(),
+		Body:     body,
+		FilePath: filepath,
+
+		// Initialize deprecated fields
+		Type:  "idea", // Default type
+		Links: make([]string, 0),
+		SRS:   nil,
 	}
 
 	return note
 }
 
-// NewFlotsamCollection creates a new FlotsamCollection with metadata.
+// NewFlotsamCollection creates a new deprecated flotsam collection.
+// This constructor is kept for backward compatibility with repository layer.
 func NewFlotsamCollection(context string) *FlotsamCollection {
 	return &FlotsamCollection{
 		Version:     "1.0",
@@ -139,8 +162,8 @@ func (fn *FlotsamNote) GetFrontmatter() *FlotsamFrontmatter {
 		Title:   fn.Title,
 		Created: fn.Created,
 		Tags:    fn.Tags,
-		Type:    FlotsamType(fn.Type),
-		SRS:     fn.SRS,
+		Type:    FlotsamType(fn.Type), // DEPRECATED: Use vice:type:* tags instead
+		SRS:     fn.SRS,               // DEPRECATED: Use SRS database instead
 	}
 }
 
@@ -150,29 +173,50 @@ func (fn *FlotsamNote) UpdateFromFrontmatter(frontmatter *FlotsamFrontmatter) {
 	fn.Title = frontmatter.Title
 	fn.Created = frontmatter.Created
 	fn.Tags = frontmatter.Tags
-	fn.Type = string(frontmatter.Type)
-	fn.SRS = frontmatter.SRS
+	fn.Type = string(frontmatter.Type) // DEPRECATED: Use vice:type:* tags instead
+	fn.SRS = frontmatter.SRS           // DEPRECATED: Use SRS database instead
 	fn.Modified = time.Now()
 }
 
 // HasSRS returns true if the note has SRS data configured.
+// Uses tag-based detection: all vice:type:* notes are SRS-enabled.
 func (fn *FlotsamNote) HasSRS() bool {
+	// Check for any vice:type:* tag (all are SRS-enabled)
+	for _, tag := range fn.Tags {
+		if strings.HasPrefix(tag, "vice:type:") {
+			return true
+		}
+	}
+	// Backward compatibility: check for embedded SRS data
 	return fn.SRS != nil
 }
 
 // IsFlashcard returns true if the note is configured as a flashcard.
+// Uses tag-based detection for Unix interop approach.
 func (fn *FlotsamNote) IsFlashcard() bool {
-	return FlotsamType(fn.Type) == FlashcardType
+	return fn.HasTag("vice:type:flashcard")
 }
 
-// ValidateType validates the note's type field.
-func (fn *FlotsamNote) ValidateType() error {
-	if fn.Type == "" {
-		fn.Type = string(DefaultType())
-		return nil
+// HasTag returns true if the note has the specified tag.
+func (fn *FlotsamNote) HasTag(tag string) bool {
+	for _, t := range fn.Tags {
+		if t == tag {
+			return true
+		}
 	}
+	return false
+}
 
-	return FlotsamType(fn.Type).Validate()
+// HasType returns true if the note has the specified type tag.
+func (fn *FlotsamNote) HasType(noteType string) bool {
+	return fn.HasTag("vice:type:" + noteType)
+}
+
+// ValidateType validates and sets default type (deprecated method).
+// This method is kept for backward compatibility with repository layer.
+func (fn *FlotsamNote) ValidateType() error {
+	// No-op: type validation is now handled by tags
+	return nil
 }
 
 // Validate validates the entire FlotsamNote structure.
@@ -193,17 +237,9 @@ func (fn *FlotsamNote) validateInternal() error {
 		return fmt.Errorf("title is required")
 	}
 
-	// Validate type (uses existing ValidateType with defaults)
-	if err := fn.ValidateType(); err != nil {
-		return fmt.Errorf("invalid type: %w", err)
-	}
+	// Note: Type validation removed - tags handle behavior
 
-	// Validate SRS data if present
-	if fn.SRS != nil {
-		if err := validateSRSData(fn.SRS); err != nil {
-			return fmt.Errorf("invalid SRS data: %w", err)
-		}
-	}
+	// Note: SRS data validation removed - stored in SQLite database
 
 	// Created time should not be zero
 	if fn.Created.IsZero() {
@@ -230,27 +266,25 @@ func (ff *FlotsamFrontmatter) Validate() error {
 		return fmt.Errorf("title is required")
 	}
 
-	// Validate type
-	if err := ff.Type.Validate(); err != nil {
-		return fmt.Errorf("invalid type: %w", err)
-	}
-
 	// Created time is required
 	if ff.Created.IsZero() {
 		return fmt.Errorf("created timestamp is required")
 	}
 
-	// Validate SRS data if present
-	if ff.SRS != nil {
-		if err := validateSRSData(ff.SRS); err != nil {
-			return fmt.Errorf("invalid SRS data: %w", err)
+	// DEPRECATED: Validate type for backward compatibility
+	if ff.Type != "" {
+		if err := ff.Type.Validate(); err != nil {
+			return fmt.Errorf("invalid type: %w", err)
 		}
 	}
+
+	// Note: SRS validation removed - use tag-based behaviors
 
 	return nil
 }
 
-// Validate validates the FlotsamCollection structure.
+// Validate validates the flotsam collection (deprecated method).
+// This validation is kept for backward compatibility with repository layer.
 func (fc *FlotsamCollection) Validate() error {
 	// Context is required for isolation
 	if strings.TrimSpace(fc.Context) == "" {
@@ -286,40 +320,10 @@ func isValidFlotsamID(id string) bool {
 	return matched
 }
 
-// validateSRSData validates SRS data structure and bounds.
-// AIDEV-NOTE: follows go-srs SM-2 algorithm constraints from internal/flotsam/srs_sm2.go
-func validateSRSData(srs *flotsam.SRSData) error {
-	if srs == nil {
-		return nil // SRS data is optional
-	}
+// Note: validateSRSData removed - SRS validation handled in flotsam package
 
-	// Easiness bounds from SM-2 algorithm (MinEasiness = 1.3, typical max = 4.0)
-	if srs.Easiness < 1.3 || srs.Easiness > 4.0 {
-		return fmt.Errorf("easiness %.2f out of bounds: must be between 1.3 and 4.0", srs.Easiness)
-	}
-
-	// ConsecutiveCorrect must be non-negative
-	if srs.ConsecutiveCorrect < 0 {
-		return fmt.Errorf("consecutive_correct %d must be non-negative", srs.ConsecutiveCorrect)
-	}
-
-	// TotalReviews must be non-negative
-	if srs.TotalReviews < 0 {
-		return fmt.Errorf("total_reviews %d must be non-negative", srs.TotalReviews)
-	}
-
-	// Due timestamp must be positive (Unix timestamp)
-	if srs.Due < 0 {
-		return fmt.Errorf("due timestamp %d must be positive", srs.Due)
-	}
-
-	// Logical consistency: TotalReviews should be >= ConsecutiveCorrect
-	if srs.TotalReviews < srs.ConsecutiveCorrect {
-		return fmt.Errorf("total_reviews %d cannot be less than consecutive_correct %d", srs.TotalReviews, srs.ConsecutiveCorrect)
-	}
-
-	return nil
-}
+// DEPRECATED: FlotsamCollection methods - use flotsam.Collection instead
+// These methods are kept for backward compatibility with repository layer.
 
 // AddNote adds a note to the collection and updates metadata.
 func (fc *FlotsamCollection) AddNote(note FlotsamNote) {
@@ -353,7 +357,7 @@ func (fc *FlotsamCollection) GetNote(id string) (*FlotsamNote, bool) {
 func (fc *FlotsamCollection) GetNotesByType(noteType FlotsamType) []FlotsamNote {
 	var notes []FlotsamNote
 	for _, note := range fc.Notes {
-		if FlotsamType(note.Type) == noteType {
+		if note.HasType(string(noteType)) {
 			notes = append(notes, note)
 		}
 	}
@@ -372,7 +376,6 @@ func (fc *FlotsamCollection) GetSRSNotes() []FlotsamNote {
 }
 
 // computeMetadata updates the collection's computed metadata fields.
-// AIDEV-NOTE: maintains collection statistics for UI and performance
 func (fc *FlotsamCollection) computeMetadata() {
 	fc.TotalNotes = len(fc.Notes)
 

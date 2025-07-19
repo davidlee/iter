@@ -2,91 +2,332 @@
 
 ## Overview
 
-The `flotsam` package provides a comprehensive data layer for the flotsam note system, implementing a files-first architecture with ZK-compatible parsing and spaced repetition system (SRS) functionality. This package combines components from the [ZK note-taking system](https://github.com/zk-org/zk) and [go-srs](https://github.com/revelaction/go-srs) to create a unified system for managing notes with spaced repetition learning.
+The `flotsam` package provides Unix interop functionality for the flotsam note system, implementing a **tool orchestration architecture** that delegates complex operations to zk while maintaining vice-specific SRS functionality. This package combines selective components from the [ZK note-taking system](https://github.com/zk-org/zk) and [go-srs](https://github.com/revelaction/go-srs) to create a **productivity orchestration platform**.
 
 ## Architecture
 
-### Files-First Design
+### Unix Interop Design
 
-The flotsam system uses individual markdown files with YAML frontmatter as the source of truth, with optional SQLite performance caching. This design ensures:
+The flotsam system uses **tool delegation** where zk handles note management and vice handles SRS scheduling. This design ensures:
 
-- **Data Portability**: All data travels with markdown files
-- **ZK Compatibility**: Works seamlessly with existing ZK notebooks
-- **Performance**: SQLite cache for fast SRS queries
-- **Reliability**: Source files are always recoverable
+- **Tool Specialization**: zk handles search/linking/editing, vice handles SRS/habit integration
+- **Clean Separation**: `.vice/` folder for vice data, `.zk/` folder for zk data
+- **Performance**: SQLite SRS database for fast scheduling queries
+- **Composability**: Standard Unix tool composition patterns
 
 ### Component Integration
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           FLOTSAM PACKAGE COMPONENTS                           │
+│                        UNIX INTEROP ARCHITECTURE                               │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                 │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐              │
-│  │   ZK Components │    │ go-srs Components│    │ Integration     │              │
-│  │                 │    │                 │    │ Components      │              │
-│  │ • ID Generation │    │ • SM-2 Algorithm│    │ • Data Models   │              │
-│  │ • Frontmatter   │    │ • SRS Interfaces│    │ • Serialization │              │
-│  │ • Link Parsing  │    │ • Review System │    │ • Validation    │              │
-│  │ • AST Processing│    │ • Quality Scale │    │ • Integration   │              │
+│  │   ZK TOOL       │    │ VICE SRS        │    │ ORCHESTRATION   │              │
+│  │   (External)    │    │ (Internal)      │    │ LAYER           │              │
+│  │                 │    │                 │    │                 │              │
+│  │ • Note Search   │    │ • SM-2 Algorithm│    │ • Tool Abstraction│            │
+│  │ • Editor Integ  │    │ • SRS Database  │    │ • Command Routing│             │
+│  │ • Link Analysis │    │ • Review System │    │ • Error Handling│              │
+│  │ • Fuzzy Finding │    │ • Quality Scale │    │ • Cache Management│            │
 │  └─────────────────┘    └─────────────────┘    └─────────────────┘              │
 │           │                       │                       │                     │
 │           ▼                       ▼                       ▼                     │
 │  ┌─────────────────────────────────────────────────────────────────┐            │
-│  │                    UNIFIED API LAYER                            │            │
+│  │                    FLOTSAM COMMANDS                             │            │
 │  │                                                                 │            │
 │  │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐       │            │
-│  │  │ Note Creation │  │ Link Extraction│  │ SRS Processing│       │            │
-│  │  │ & Parsing     │  │ & Resolution   │  │ & Scheduling  │       │            │
+│  │  │ vice flotsam  │  │ vice flotsam  │  │ vice flotsam  │       │            │
+│  │  │ list          │  │ due           │  │ edit          │       │            │
+│  │  │ (zk + SRS)    │  │ (SRS query)   │  │ (zk delegate) │       │            │
 │  │  └───────────────┘  └───────────────┘  └───────────────┘       │            │
 │  └─────────────────────────────────────────────────────────────────┘            │
 │                                                                                 │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Directory Structure
+
+**Note**: Cross-reference with [`doc/specifications/file_paths_runtime_env.md`](./file_paths_runtime_env.md) for full context directory structure.
+
+The flotsam notebook is located within a vice context at `$VICE_DATA/{context}/flotsam/` by default:
+
+```
+$VICE_DATA/{context}/        # Vice context root (see file_paths_runtime_env.md)
+├── habits.yml              # Vice habit definitions  
+├── entries.yml             # Vice daily completion data
+└── flotsam/                # Notebook directory (configurable, defaults to "flotsam")
+    ├── .zk/                # ZK notebook data
+    │   ├── config.toml     # zk configuration (managed by vice)
+    │   ├── notebook.db     # zk's database (search, links, metadata)
+    │   └── templates/
+    │       └── flotsam.md  # vice-specific note template
+    ├── .vice/              # Vice notebook data (alongside .zk/)
+    │   ├── flotsam.db     # SRS database (scheduling, reviews)
+    │   └── config.toml    # vice notebook-local config
+    ├── concept-1.md       # Clean notes with vice:srs tag
+    └── concept-2.md       # zk handles content, vice handles SRS
+```
+
+**Key Design Points**:
+- **Notebook Directory**: `$VICE_DATA/{context}/flotsam/` contains both `.zk/` and `.vice/` 
+- **Coexistence**: `.zk/` and `.vice/` directories are siblings within the notebook
+- **SRS Database Location**: `.vice/flotsam.db` placed alongside `.zk/notebook.db`
+- **Context Isolation**: Each vice context has its own flotsam notebook directory
+
+**Future Extensibility Considerations**:
+- **Custom Notebook Paths**: Notebook directory name should be configurable via `config.toml`
+- **Multiple Database Types**: Support both notebook-level (SRS) and context-level (habits) databases
+- **Database Placement Strategy**: Different database types may have different placement rules:
+  ```
+  $VICE_DATA/{context}/
+  ├── .vice/
+  │   └── habits.db              # Context-level database
+  └── {notebook_name}/           # Configurable notebook directory
+      ├── .zk/
+      ├── .vice/
+      │   └── flotsam.db        # Notebook-level database
+      └── notes.md
+  ```
+
 ## Core Data Structures
 
-### FlotsamNote
+### Simplified Note Model
 
-The primary data structure representing a complete flotsam note:
+**Unix Interop Design**: Notes are **clean markdown files** with minimal frontmatter. Complex operations are delegated to zk.
+
+#### Note Frontmatter (ZK-Compatible)
+
+```yaml
+---
+id: abc1
+title: My Concept Note
+created-at: 2025-07-18T10:30:00Z
+tags: [vice:srs, vice:type:flashcard, concept, important]
+---
+
+# My Concept Note
+
+Content goes here with [[wikilinks]] to other notes.
+```
+
+#### Single Note Operations
 
 ```go
+// Simplified note structure for single-note operations
 type FlotsamNote struct {
-    // Core note data
-    ID       string    `yaml:"id" json:"id"`
-    Title    string    `yaml:"title" json:"title"`
-    Type     string    `yaml:"type" json:"type"`         // idea, flashcard, script, log
-    Tags     []string  `yaml:"tags" json:"tags"`
-    Created  time.Time `yaml:"created-at" json:"created-at"`
-    Modified time.Time `yaml:"-" json:"-"`               // File modification time
+    ID       string    `yaml:"id"`
+    Title    string    `yaml:"title"`
+    Created  time.Time `yaml:"created-at"`
+    Tags     []string  `yaml:"tags"`
     
-    // Content
-    Body      string   `yaml:"-" json:"-"`               // Markdown body content
-    Links     []string `yaml:"-" json:"-"`               // Extracted [[wikilinks]]
-    Backlinks []string `yaml:"-" json:"-"`               // Computed reverse links
-    FilePath  string   `yaml:"-" json:"-"`               // Absolute file path
-    
-    // SRS data (optional)
-    SRS *SRSData `yaml:"srs,omitempty" json:"srs,omitempty"`
+    // Runtime fields (not in frontmatter)
+    Body     string    `yaml:"-"`
+    FilePath string    `yaml:"-"`
+    Modified time.Time `yaml:"-"`
+}
+
+// Helper methods for tag-based behavior
+func (n *FlotsamNote) HasTag(tag string) bool {
+    for _, t := range n.Tags {
+        if t == tag {
+            return true
+        }
+    }
+    return false
+}
+
+func (n *FlotsamNote) HasType(noteType string) bool {
+    return n.HasTag("vice:type:" + noteType)
+}
+
+func (n *FlotsamNote) IsFlashcard() bool {
+    return n.HasType("flashcard")
+}
+
+func (n *FlotsamNote) HasSRS() bool {
+    return n.HasTag("vice:srs")
 }
 ```
 
-### SRSData
+### Tag-based Behavior System
 
-Spaced repetition data stored in frontmatter:
+**Design Principle**: Use zk's tag system for note behaviors instead of separate fields. This keeps the source of truth in markdown while leveraging zk's powerful tag query capabilities.
+
+#### Vice-specific Tag Patterns
+
+```bash
+# Core behavior tags (all vice:type:* notes participate in SRS by default)
+vice:type:flashcard   # Question/answer cards for SRS scheduling
+vice:type:idea        # Free-form idea capture for SRS scheduling
+vice:type:script      # Executable scripts and commands for SRS scheduling
+vice:type:log         # Journal entries and logs for SRS scheduling
+
+# Hierarchical tags (future extensibility)
+vice:type:flashcard:active    # Currently being reviewed
+vice:type:flashcard:suspended # Temporarily disabled
+vice:habit:daily             # Daily habit integration
+```
+
+#### Composable Operations
+
+```bash
+# Find all flashcards due for review (all vice:type:flashcard are SRS-enabled)
+zk list --tag "vice:type:flashcard" --format path | 
+    vice flotsam due --stdin
+
+# Interactive review of overdue flashcards  
+zk list --tag "vice:type:flashcard" --format path | 
+    vice flotsam due --stdin --overdue --interactive
+
+# Edit all script notes
+zk edit --tag "vice:type:script" --interactive
+
+# Batch review all notes of a specific type
+zk list --tag "vice:type:script" --format path | 
+    vice flotsam review --stdin
+
+# Get all SRS-enabled notes (any vice:type:* tag)
+zk list --tag "vice:type:*" --format path |
+    vice flotsam status --stdin
+```
+
+**Benefits**:
+- **Discoverable**: `zk list --tag "vice:type:flashcard"`
+- **Composable**: Complex queries via zk's tag system
+- **Source of truth**: Lives in markdown, managed by zk
+- **No sync issues**: No need to cache behavior data
+- **Extensible**: New behaviors via new tags
+
+### SRS Database Schema
+
+**SRS data lives in SQLite** (`$VICE_DATA/{context}/flotsam/.vice/flotsam.db`), **not in frontmatter**:
+
+```sql
+CREATE TABLE srs_reviews (
+    note_path TEXT PRIMARY KEY,
+    note_id TEXT NOT NULL,
+    context TEXT NOT NULL,
+    
+    -- SM-2 algorithm fields
+    easiness REAL NOT NULL DEFAULT 2.5,
+    consecutive_correct INTEGER NOT NULL DEFAULT 0,
+    due_date INTEGER NOT NULL,
+    total_reviews INTEGER NOT NULL DEFAULT 0,
+    
+    -- Metadata
+    created_at INTEGER NOT NULL,
+    last_reviewed INTEGER,
+    
+    -- Optional cache fields (for performance)
+    title TEXT,              -- Cached from zk for display
+    last_synced INTEGER,     -- Cache invalidation timestamp
+    
+    FOREIGN KEY (context) REFERENCES contexts(name)
+);
+```
+
+**Design Notes**:
+- **Minimal caching**: Only cache title for display purposes
+- **No type caching**: Use zk tag queries for type-based filtering
+- **Cache invalidation**: `last_synced` timestamp for cache management
+- **Composition over caching**: Better to compose zk queries than duplicate data
+
+## Performance Strategy
+
+### Hybrid Approach: Unix Interop + In-Memory Fallback
+
+**Design Principle**: Use Unix interop for most operations, with in-memory collection loading preserved for performance-critical UX scenarios.
+
+#### Unix Interop (Primary)
+```bash
+# Most operations use zk delegation
+zk list --tag "vice:srs" --format json | vice flotsam due --stdin
+zk edit --tag "vice:type:flashcard" --interactive
+```
+
+**Benefits**: Tool specialization, composability, reduced maintenance
+**Use Cases**: One-off searches, batch operations, scripting
+
+#### In-Memory Collection (Performance Fallback)
+```go
+// For search-as-you-type and high-frequency operations
+type FlotsamCollection struct {
+    Notes    []FlotsamNote
+    noteMap  map[string]*FlotsamNote      // Fast lookup by ID
+    titleIdx map[string][]*FlotsamNote    // Fast title search
+}
+
+func LoadAllNotes(contextDir string) (*FlotsamCollection, error)
+func (c *FlotsamCollection) SearchByTitle(query string) []*FlotsamNote
+func (c *FlotsamCollection) FilterByTags(tags []string) []*FlotsamNote
+```
+
+**Benefits**: Sub-millisecond search, no process spawning overhead
+**Use Cases**: Interactive search, real-time filtering, TUI applications
+
+#### Adaptive Performance Selection
+```go
+func SearchNotes(query string, interactive bool) ([]*FlotsamNote, error) {
+    if interactive && len(query) > 0 {
+        // Use in-memory collection for real-time search
+        collection, err := LoadAllNotes(contextDir)
+        if err != nil {
+            return nil, err
+        }
+        return collection.SearchByTitle(query), nil
+    } else {
+        // Use zk for one-off searches
+        return searchViaZK(query)
+    }
+}
+```
+
+### Preserved Components from T027
+
+**Performance-Critical (Keep)**:
+- `LoadFlotsam()` - Collection loading into memory
+- `parseFlotsamFile()` - Single note parsing
+- In-memory search/filter operations
+- `computeBacklinks()` - For zk-unavailable scenarios
+
+**Utility Functions (Keep)**:
+- `saveFlotsamNote()` - Atomic file operations
+- `serializeFlotsamNote()` - Frontmatter serialization
+- File path validation and security
+
+**Abstraction Layer (Remove)**:
+- `DataRepository` interface
+- CRUD method abstractions
+- Context switching complexity
+- Complex error wrapping
+
+**Refactored Location**: 
+- `internal/flotsam/collection.go` - In-memory collection operations
+- `internal/flotsam/files.go` - File I/O utilities
+- `internal/flotsam/search.go` - Search operations with fallback logic
+
+### SRS Data Structure
 
 ```go
+// SRS data structure for algorithm operations
 type SRSData struct {
-    // Easiness factor (default 2.5, minimum 1.3)
-    Easiness float64 `yaml:"easiness" json:"easiness"`
-    // Number of consecutive correct answers
-    ConsecutiveCorrect int `yaml:"consecutive_correct" json:"consecutive_correct"`
-    // Unix timestamp when the card is due for review
-    Due int64 `yaml:"due" json:"due"`
-    // Total number of reviews performed
-    TotalReviews int `yaml:"total_reviews" json:"total_reviews"`
-    // Review history for debugging/analysis
-    ReviewHistory []ReviewRecord `yaml:"review_history,omitempty" json:"review_history,omitempty"`
+    NotePath           string    `json:"note_path"`
+    Context            string    `json:"context"`
+    
+    // SM-2 algorithm fields
+    Easiness           float64   `json:"easiness"`
+    ConsecutiveCorrect int       `json:"consecutive_correct"`
+    Due                int64     `json:"due"`
+    TotalReviews       int       `json:"total_reviews"`
+    
+    // Metadata
+    CreatedAt          time.Time `json:"created_at"`
+    LastReviewed       *time.Time `json:"last_reviewed,omitempty"`
+    
+    // Cache fields
+    Title              string    `json:"title,omitempty"`
+    Tags               []string  `json:"tags,omitempty"`
 }
 ```
 
@@ -462,6 +703,130 @@ This package incorporates code from two external projects:
 - **Files**: `srs_sm2.go`, `srs_interfaces.go`, `srs_review.go`
 
 All components are properly attributed with copyright headers and license compliance documentation.
+
+## Tool Abstraction & Integration
+
+### Command-Line Tool Interface Design
+
+**Architecture Principle**: Use composition with interface segregation to support multiple external tools (zk, taskwarrior, remind) without inheritance complexity.
+
+#### Core Tool Abstraction
+
+```go
+// CommandLineTool provides generic interface for external command-line tools
+type CommandLineTool interface {
+    Name() string
+    Available() bool
+    Execute(args ...string) (*ToolResult, error)
+}
+
+// ZKTool extends CommandLineTool with zk-specific operations
+type ZKTool interface {
+    CommandLineTool
+    List(filters ...string) ([]Note, error)
+    Edit(paths ...string) error
+    GetLinkedNotes(path string) ([]string, []string, error) // backlinks, outbound
+}
+
+// Concrete implementation for zk tool
+type ZKExecutable struct {
+    path      string    // Resolved zk binary path
+    available bool      // Runtime availability status
+    warned    bool      // Track if user has been warned about missing zk
+}
+```
+
+**Design Benefits**:
+- **Generic Interface**: `CommandLineTool` works for zk, taskwarrior (`tw`), remind (`rem`)
+- **Tool-Specific Extensions**: `ZKTool` adds zk-specific operations
+- **Composition**: ViceEnv contains tool instances, no inheritance
+- **Future Extensibility**: New tools implement `CommandLineTool` interface
+
+#### ViceEnv Integration
+
+```go
+type ViceEnv struct {
+    // existing fields...
+    ZK *ZKExecutable  // nil if zk unavailable
+}
+
+// Usage pattern with graceful degradation
+func (env *ViceEnv) ListFlotsamNotes(filters ...string) ([]Note, error) {
+    if env.ZK != nil && env.ZK.Available() {
+        return env.ZK.List(filters...)
+    }
+    
+    // Fallback to in-memory collection
+    collection, err := env.loadInMemoryCollection()
+    if err != nil {
+        return nil, fmt.Errorf("zk unavailable and fallback failed: %w", err)
+    }
+    return collection.FilterByTags(filters), nil
+}
+```
+
+### Graceful Degradation Strategy
+
+**Availability Levels**:
+- **Full Functionality**: zk available, all Unix interop operations work
+- **Degraded Mode**: zk unavailable, fallback to in-memory operations where possible
+- **Failed Operations**: Operations requiring zk (edit, link analysis) return helpful errors
+
+**Error Handling**:
+- **Interactive Sessions**: Warn once per session to stdout with installation guidance
+- **Non-Interactive Commands**: Return error messages directing to zk installation
+- **Installation URL**: Direct users to https://github.com/zk-org/zk for installation
+
+**Functionality Matrix**:
+
+| Operation | ZK Available | ZK Unavailable | Notes |
+|-----------|-------------|----------------|-------|
+| List notes | zk delegation | In-memory fallback | Performance difference |
+| Search notes | zk queries | In-memory search | Limited query capabilities |
+| Edit notes | zk editor | Error + guidance | Requires external editor |
+| Link analysis | zk commands | Error + guidance | No fallback available |
+| SRS queries | Database only | Database only | Independent of zk |
+
+### ZK Configuration Management
+
+**Shared Ownership Model**: Vice and user share responsibility for `.zk/config.toml` management.
+
+**Configuration Validation** *(Future Enhancement)*:
+```go
+type ZKConfig struct {
+    NoteDir     string                 `toml:"note-dir"`
+    NotebookDir string                 `toml:"notebook-dir"`  
+    Editor      string                 `toml:"editor"`
+    Custom      map[string]interface{} `toml:",remainder"`
+}
+
+func ValidateZKConfig(configPath string) (*ZKConfig, error) {
+    // NOOP for now - placeholder for future validation
+    // Future: Check for incompatible note-dir, ID format conflicts
+    return parseZKConfig(configPath), nil
+}
+```
+
+**Responsibilities**:
+- **Vice**: Validate compatibility, create initial config for new notebooks
+- **User**: Free to modify non-breaking settings (editor, custom fields)
+- **Breaking Changes**: Unexpected note file formats, incompatible ID schemes (future detection)
+
+### Command Pipeline Support
+
+**Future Enhancement**: Complex tool orchestration using command pipelines.
+
+**Reference Library**: [go-command-chain](https://github.com/rainu/go-command-chain) for building command pipelines when needed.
+
+**Use Cases**:
+```bash
+# Example: Complex workflow combining zk + vice
+zk list --tag "vice:srs" --format path | 
+    vice flotsam due --stdin --overdue | 
+    zk edit --interactive
+```
+
+**Implementation**: Add pipeline support when tool orchestration becomes complex enough to warrant abstraction.
 
 ## Future Enhancements
 

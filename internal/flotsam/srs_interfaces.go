@@ -113,6 +113,11 @@ type FlotsamNote struct {
 	SRS *SRSData `yaml:"srs,omitempty" json:"srs,omitempty"`
 }
 
+// HasSRS returns true if the note has SRS data configured.
+func (fn *FlotsamNote) HasSRS() bool {
+	return fn.SRS != nil
+}
+
 // SRSStats provides statistics about SRS usage and performance
 type SRSStats struct {
 	// Card counts
