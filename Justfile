@@ -1,3 +1,11 @@
+serena-local:
+  uv run --directory ~/.local/src/serena serena-mcp-server
+
+serena-uvx:
+  uvx --from git+https://github.com/oraios/serena serena-mcp-server
+
+claude-introduce-serena-uvx:
+  claude mcp add serena -- uvx --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project $(pwd)
 
 build:
   go build -o vice .
