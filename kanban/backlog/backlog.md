@@ -22,6 +22,21 @@ Affinity:
 
 ## Habit Management 
 
+## remind integration
+
+- give habits (etc) a short ulid secondary ID (uid) 
+  - and unique text convention ("[:h!UID:]" - habit; "[z!ID]" - note; "[u!ID]" - url )
+  - use conventions w. remind file & entries to reference habits
+  - now we can get us complex scheduling via remind for habits; 
+    - conceptually they have a scheduler attribute e.g. (simple,onCompletion,recurring/remind)
+
+
+# task switch logging / detection for interstitial journalling
+- aka clutch
+  - very OS dependent
+  - macos - have simple python prototype
+  - linux: sway vs hyprland vs ...?
+
 ### Atomic Habits
 TODO: think about how to adapt / support / reinforce "Atomic Habits" framework, e.g.:
 
