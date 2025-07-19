@@ -607,10 +607,20 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
     - `cmd/flotsam_due_test.go` (351 lines) - Full test coverage including metadata extraction
   - **User Experience**: Clear overdue indicators ("1 day late", "N days late"), table formatting, JSON for scripting
   - **Commit**: f5a1f79 - feat(flotsam)[T041/5.2]: implement vice flotsam due with ZK-first enrichment pattern
-- [ ] **5.3 flotsam edit command**: Implement `vice flotsam edit` with zk delegation
-  - *Delegation:* `zk edit <note>` with proper path resolution
-  - *Integration:* Work with both individual notes and filtered lists
-  - *Planning:* Design for interactive selection and batch editing
+- [x] **5.3 flotsam edit command**: Implement `vice flotsam edit` with zk delegation
+  - *Delegation:* ZK's `--interactive` mode for picker, direct `zk edit` for note IDs
+  - *Integration:* Interactive selection of all vice-typed notes, multi-file editing support
+  - *Planning:* Implemented both interactive picker and direct note ID editing modes
+  - **COMPLETED**: Full `vice flotsam edit` implementation with ZK interactive delegation
+  - **Architecture**: Two-mode operation - interactive picker (no args) and direct note ID editing
+  - **Features**: ZK `--interactive` integration, note ID resolution, multi-file editing support
+  - **Path Resolution**: Smart ID matching with prefix and contains logic for flexible note finding
+  - **Error Handling**: Graceful degradation when ZK unavailable, clear error messages for missing notes
+  - **Testing**: Comprehensive test suite (8 test functions) covering command structure, ID matching, integration
+  - **Files Created**:
+    - `cmd/flotsam_edit.go` (132 lines) - Complete edit command with interactive and direct modes
+    - `cmd/flotsam_edit_test.go` (300 lines) - Full test coverage for ID matching and command logic
+  - **User Experience**: Seamless ZK editor integration respecting ZK_EDITOR/VISUAL/EDITOR environment variables
 
 ### 6. Testing & Validation
 - [ ] **6.1 Migration testing**: Ensure all existing functionality preserved
