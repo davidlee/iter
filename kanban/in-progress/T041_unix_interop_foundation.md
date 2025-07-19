@@ -69,6 +69,8 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
 
 ## Implementation Plan & Progress
 
+📋 **Reference**: See detailed code audit and architecture design in [`doc/design-artefacts/T041-migration-plan.md`](../../doc/design-artefacts/T041-migration-plan.md)
+
 **Sub-tasks:**
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
 
@@ -361,10 +363,19 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   **AIDEV-NOTE**: T041-2.3-completed; backlink computation successfully removed and delegated to zk Unix interop
 
 ### 3. SRS Database Foundation
-- [ ] **3.1 SRS database schema**: Design minimal SRS database structure
+- [x] **3.1 SRS database schema**: Design minimal SRS database structure
   - *Schema:* `(note_path, last_reviewed, next_due, quality, interval_days)`
   - *Location:* `.vice/flotsam.db` separate from zk database
   - *Planning:* Consider future schema evolution and migration
+  - **COMPLETED**: Implemented SQLite-based SRS database with minimal schema
+  - **Database Location**: `.vice/flotsam.db` per Unix interop specification
+  - **Schema**: `srs_reviews` table with note_path, SM-2 fields, metadata
+  - **Operations**: GetDueNotes, UpdateReview, GetSRSData, CreateSRSNote, DeleteSRSNote, GetStats
+  - **Performance**: Indexed on due_date and context for fast queries
+  - **Testing**: Comprehensive test suite with 7 test cases covering all operations
+  - **Files Created**: `internal/srs/database.go` (270 lines), `internal/srs/database_test.go` (293 lines)
+  - **Dependencies**: Added `github.com/mattn/go-sqlite3` driver
+  - **Linting**: Clean - all errcheck, gosec, and revive issues addressed
 - [ ] **3.2 mtime cache invalidation**: Implement cache consistency checking
   - *Approach:* Directory mtime checking on CLI invocations
   - *Scope:* Fast validation without external dependencies
