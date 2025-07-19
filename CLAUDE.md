@@ -4,12 +4,14 @@
 
 This is "vice" - a CLI habit tracker application built in Go.
 
-## Architecture
+## Architecture Docs
 
-See `doc/architecture.md` (header doc) and other more focused `doc/` files.
-See `doc/guidance/bubbletea_guide.md` for guidance on UI code or tests.
+- `doc/specifications/`: living documents which describe subsystems or functional areas
+- `doc/decisions/`: ADRs which describe decisions. "Accepted" decisions must be adhered to.
+- `doc/guidance/`: how-to guides for specific topics, e.g. `bubbletea_guide.md` for UI code / testing.
+- `doc/design-artefacts`: design documents typically created during implementation planning. May not be up to date, but of historical interest.
 
-IMPORTANT: find and read relevant docs before modifying, planning or debugging UI code or tests.
+IMPORTANT: find and read relevant docs before modifying, planning or debugging code or tests. Suggest creating or updating these when appropriate.
 
 ## Core Design Habits 
 
