@@ -1,3 +1,4 @@
+// AIDEV-NOTE: T041/4.2-doctor; comprehensive system health diagnostics with ZK dependency detection
 package cmd
 
 import (

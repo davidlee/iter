@@ -1,5 +1,6 @@
 // Package flotsam provides tag-based note detection and SRS integration.
 // This file implements the vice:type:* tag hierarchy with zk delegation.
+// AIDEV-NOTE: T041/4.3-tags; complete vice:type:* hierarchy replacing vice:srs redundancy
 package flotsam
 
 import (
@@ -40,6 +41,7 @@ func GetLogNotes(env *config.ViceEnv) ([]string, error) {
 
 // GetAllViceNotes returns all notes with any vice:type:* tag.
 // All returned notes are SRS-enabled by definition.
+// AIDEV-NOTE: key function for bulk SRS operations, delegates to zk wildcard queries
 func GetAllViceNotes(env *config.ViceEnv) ([]string, error) {
 	if !env.IsZKAvailable() {
 		log.Warn("ZK unavailable, cannot query vice-typed notes")

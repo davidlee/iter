@@ -1,5 +1,6 @@
 // Package zk provides abstraction for external command-line tools integration.
 // This file implements the simplified ZKExecutable for T041/4.1 basic abstraction.
+// AIDEV-NOTE: T041/4.1-zk-abstraction; composition-based tool interface, replaces complex tool.go
 package zk
 
 import (
