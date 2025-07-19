@@ -291,3 +291,221 @@ func getTableColumns(db *Database, tableName string) ([]string, error) {
 
 	return columns, rows.Err()
 }
+
+// Cache invalidation tests
+
+func TestCacheManager(t *testing.T) {
+	db := setupTestDB(t)
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
+
+	tempDir := t.TempDir()
+	
+	// Create flotsam directory
+	flotsamDir := filepath.Join(tempDir, "flotsam")
+	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+
+	cacheManager := db.GetCacheManager(tempDir)
+	assert.Equal(t, flotsamDir, cacheManager.flotsamDir)
+	assert.Equal(t, tempDir, cacheManager.contextDir)
+}
+
+func TestValidateCache_NewCache(t *testing.T) {
+	db := setupTestDB(t)
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
+
+	tempDir := t.TempDir()
+	flotsamDir := filepath.Join(tempDir, "flotsam")
+	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+
+	cacheManager := db.GetCacheManager(tempDir)
+
+	// First validation should trigger refresh (cache miss)
+	err = cacheManager.ValidateCache()
+	require.NoError(t, err)
+
+	// Verify cache metadata was created
+	cachedMtime, err := cacheManager.getCachedDirMtime()
+	require.NoError(t, err)
+	assert.True(t, cachedMtime.Unix() > 0)
+}
+
+func TestValidateCache_UpToDate(t *testing.T) {
+	db := setupTestDB(t)
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
+
+	tempDir := t.TempDir()
+	flotsamDir := filepath.Join(tempDir, "flotsam")
+	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+
+	cacheManager := db.GetCacheManager(tempDir)
+
+	// Initial cache
+	err = cacheManager.ValidateCache()
+	require.NoError(t, err)
+
+	initialMtime, err := cacheManager.getCachedDirMtime()
+	require.NoError(t, err)
+
+	// Second validation should not change anything (cache hit)
+	err = cacheManager.ValidateCache()
+	require.NoError(t, err)
+
+	currentMtime, err := cacheManager.getCachedDirMtime()
+	require.NoError(t, err)
+
+	// Cache metadata should be unchanged
+	assert.Equal(t, initialMtime.Unix(), currentMtime.Unix())
+}
+
+func TestValidateCache_DirectoryChanged(t *testing.T) {
+	db := setupTestDB(t)
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
+
+	tempDir := t.TempDir()
+	flotsamDir := filepath.Join(tempDir, "flotsam")
+	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+
+	cacheManager := db.GetCacheManager(tempDir)
+
+	// Initial cache
+	err = cacheManager.ValidateCache()
+	require.NoError(t, err)
+
+	initialMtime, err := cacheManager.getCachedDirMtime()
+	require.NoError(t, err)
+
+	// Wait a bit to ensure different mtime
+	time.Sleep(100 * time.Millisecond)
+
+	// Modify directory by adding a file
+	testFile := filepath.Join(flotsamDir, "test.md")
+	err = os.WriteFile(testFile, []byte("test content"), 0600) //nolint:gosec // Test file permissions
+	require.NoError(t, err)
+
+	// Check actual directory mtime before validation
+	actualDirMtime, err := cacheManager.getCurrentDirMtime()
+	require.NoError(t, err)
+	t.Logf("Initial cached mtime: %v", initialMtime)
+	t.Logf("Actual dir mtime after file write: %v", actualDirMtime)
+
+	// Validation should detect change and refresh
+	err = cacheManager.ValidateCache()
+	require.NoError(t, err)
+
+	newMtime, err := cacheManager.getCachedDirMtime()
+	require.NoError(t, err)
+	t.Logf("New cached mtime: %v", newMtime)
+
+	// Cache should be updated (either newer than initial, or same second as actual dir mtime)
+	assert.True(t, newMtime.After(initialMtime) || newMtime.Unix() == actualDirMtime.Unix())
+}
+
+func TestRefreshCache(t *testing.T) {
+	db := setupTestDB(t)
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
+
+	tempDir := t.TempDir()
+	flotsamDir := filepath.Join(tempDir, "flotsam")
+	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+
+	// Create test markdown files
+	testFiles := []string{"note1.md", "note2.md", "other.txt"}
+	for _, file := range testFiles {
+		filePath := filepath.Join(flotsamDir, file)
+		err = os.WriteFile(filePath, []byte("content"), 0600) //nolint:gosec // Test file permissions
+		require.NoError(t, err)
+	}
+
+	cacheManager := db.GetCacheManager(tempDir)
+
+	// Refresh cache
+	err = cacheManager.RefreshCache()
+	require.NoError(t, err)
+
+	// Verify cache metadata was updated
+	cachedMtime, err := cacheManager.getCachedDirMtime()
+	require.NoError(t, err)
+	assert.True(t, cachedMtime.Unix() > 0)
+
+	// Verify we can get current directory mtime
+	currentMtime, err := cacheManager.getCurrentDirMtime()
+	require.NoError(t, err)
+	assert.True(t, currentMtime.Unix() > 0)
+}
+
+func TestInvalidateCache(t *testing.T) {
+	db := setupTestDB(t)
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
+
+	tempDir := t.TempDir()
+	flotsamDir := filepath.Join(tempDir, "flotsam")
+	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	require.NoError(t, err)
+
+	cacheManager := db.GetCacheManager(tempDir)
+
+	// Initial cache
+	err = cacheManager.RefreshCache()
+	require.NoError(t, err)
+
+	initialMtime, err := cacheManager.getCachedDirMtime()
+	require.NoError(t, err)
+	assert.True(t, initialMtime.Unix() > 0)
+
+	// Invalidate cache
+	err = cacheManager.InvalidateCache()
+	require.NoError(t, err)
+
+	// Cache should be marked as invalid (epoch time)
+	invalidatedMtime, err := cacheManager.getCachedDirMtime()
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), invalidatedMtime.Unix())
+}
+
+func TestValidateCache_NonexistentDirectory(t *testing.T) {
+	db := setupTestDB(t)
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
+
+	tempDir := t.TempDir()
+	// Don't create flotsam directory
+
+	cacheManager := db.GetCacheManager(tempDir)
+
+	// Validation should handle nonexistent directory gracefully
+	err := cacheManager.ValidateCache()
+	require.NoError(t, err)
+
+	// Cache should be set with epoch time
+	cachedMtime, err := cacheManager.getCachedDirMtime()
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), cachedMtime.Unix())
+}
+
+func TestCacheMetadataSchema(t *testing.T) {
+	db := setupTestDB(t)
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
+
+	// Verify cache_metadata table exists
+	query := `
+		SELECT name FROM sqlite_master 
+		WHERE type='table' AND name='cache_metadata'
+	`
+	var tableName string
+	err := db.db.QueryRow(query).Scan(&tableName)
+	require.NoError(t, err)
+	assert.Equal(t, "cache_metadata", tableName)
+
+	// Verify column structure
+	columns, err := getTableColumns(db, "cache_metadata")
+	require.NoError(t, err)
+
+	expectedColumns := []string{"context", "last_sync", "flotsam_dir_mtime"}
+	for _, col := range expectedColumns {
+		assert.Contains(t, columns, col, "Missing column: %s", col)
+	}
+}

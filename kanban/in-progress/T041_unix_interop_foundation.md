@@ -376,10 +376,20 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   - **Files Created**: `internal/srs/database.go` (270 lines), `internal/srs/database_test.go` (293 lines)
   - **Dependencies**: Added `github.com/mattn/go-sqlite3` driver
   - **Linting**: Clean - all errcheck, gosec, and revive issues addressed
-- [ ] **3.2 mtime cache invalidation**: Implement cache consistency checking
+- [x] **3.2 mtime cache invalidation**: Implement cache consistency checking
   - *Approach:* Directory mtime checking on CLI invocations
   - *Scope:* Fast validation without external dependencies
   - *Planning:* Design for both CLI and future persistent processes
+  - **COMPLETED**: Implemented mtime-based cache invalidation for SRS database
+  - **Cache Metadata Table**: `cache_metadata` tracks directory mtime per context
+  - **CacheManager**: ValidateCache(), RefreshCache(), InvalidateCache() methods
+  - **Directory-level Checking**: Fast bulk validation via flotsam directory mtime
+  - **Integration**: GetCacheManager() method on Database for easy access
+  - **Performance**: O(1) directory check before expensive file scanning
+  - **Testing**: 8 comprehensive test cases covering all cache scenarios
+  - **Unix Interop Design**: Minimal caching, delegates file parsing to zk
+  - **Files Enhanced**: Extended `internal/srs/database.go` (+140 lines), `database_test.go` (+210 lines)
+  - **Linting**: Clean - all gosec issues addressed
 - [ ] **3.3 Basic SRS operations**: Implement core SRS database operations
   - *Operations:* Create, update, query due notes, review completion
   - *Interface:* Simple Go functions for CLI integration

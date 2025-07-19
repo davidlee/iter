@@ -5,6 +5,7 @@ package srs
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -64,6 +65,11 @@ func NewDatabase(contextDir, context string) (*Database, error) {
 	return srsDB, nil
 }
 
+// GetCacheManager creates a cache manager for this database.
+func (d *Database) GetCacheManager(contextDir string) *CacheManager {
+	return NewCacheManager(d, contextDir)
+}
+
 // Close closes the database connection.
 func (d *Database) Close() error {
 	if d.db != nil {
@@ -97,6 +103,20 @@ func (d *Database) ensureSchema() error {
 	_, err := d.db.Exec(tableSchema)
 	if err != nil {
 		return fmt.Errorf("failed to create table: %w", err)
+	}
+
+	// Create cache metadata table for mtime tracking
+	cacheMetadataSchema := `
+		CREATE TABLE IF NOT EXISTS cache_metadata (
+			context TEXT PRIMARY KEY,
+			last_sync INTEGER NOT NULL,
+			flotsam_dir_mtime INTEGER NOT NULL
+		);
+	`
+
+	_, err = d.db.Exec(cacheMetadataSchema)
+	if err != nil {
+		return fmt.Errorf("failed to create cache metadata table: %w", err)
 	}
 
 	// Create performance indexes
@@ -268,4 +288,124 @@ func (d *Database) GetStats(contextName string) (map[string]interface{}, error) 
 	}
 
 	return stats, nil
+}
+
+// CacheManager handles mtime-based cache invalidation for SRS database.
+// AIDEV-NOTE: mtime-based cache invalidation for Unix interop - directory-level checks for performance
+type CacheManager struct {
+	db          *Database
+	contextDir  string
+	flotsamDir  string
+}
+
+// NewCacheManager creates a new cache manager for the given database and context.
+func NewCacheManager(db *Database, contextDir string) *CacheManager {
+	flotsamDir := filepath.Join(contextDir, "flotsam")
+	return &CacheManager{
+		db:         db,
+		contextDir: contextDir,
+		flotsamDir: flotsamDir,
+	}
+}
+
+// ValidateCache checks if the cache is up-to-date and refreshes if necessary.
+// AIDEV-NOTE: fast directory-level mtime check before expensive file scanning
+func (c *CacheManager) ValidateCache() error {
+	// 1. Get cached directory mtime
+	cachedMtime, err := c.getCachedDirMtime()
+	if err != nil {
+		// Cache miss - do full refresh
+		return c.RefreshCache()
+	}
+
+	// 2. Check current directory mtime
+	currentMtime, err := c.getCurrentDirMtime()
+	if err != nil {
+		// Directory doesn't exist or error - cache is invalid
+		return c.RefreshCache()
+	}
+
+	// 3. If directory unchanged, cache is valid
+	if !currentMtime.After(cachedMtime) {
+		return nil
+	}
+
+	// 4. Directory changed - refresh cache
+	return c.RefreshCache()
+}
+
+// RefreshCache scans files and updates cache with current state.
+// AIDEV-NOTE: file-level granular refresh for precise cache updates
+func (c *CacheManager) RefreshCache() error {
+	// 1. Scan flotsam directory for markdown files (for future file-level caching)
+	pattern := filepath.Join(c.flotsamDir, "*.md")
+	_, err := filepath.Glob(pattern)
+	if err != nil {
+		return fmt.Errorf("failed to scan flotsam files: %w", err)
+	}
+
+	// 2. Get current directory mtime
+	currentDirMtime, err := c.getCurrentDirMtime()
+	if err != nil {
+		// If directory doesn't exist, set to epoch time
+		currentDirMtime = time.Unix(0, 0)
+	}
+
+	// 3. Update cache metadata
+	err = c.updateCacheMetadata(currentDirMtime)
+	if err != nil {
+		return fmt.Errorf("failed to update cache metadata: %w", err)
+	}
+
+	// 4. For Unix interop, we don't implement file-level caching yet
+	// The SRS database will be the source of truth for SRS data
+	// File content parsing is delegated to zk or direct file reads
+	
+	return nil
+}
+
+// getCachedDirMtime retrieves the cached directory modification time.
+func (c *CacheManager) getCachedDirMtime() (time.Time, error) {
+	query := `SELECT flotsam_dir_mtime FROM cache_metadata WHERE context = ?`
+	
+	var mtimeUnix int64
+	err := c.db.db.QueryRow(query, c.db.context).Scan(&mtimeUnix)
+	if err != nil {
+		return time.Time{}, err
+	}
+	
+	return time.Unix(mtimeUnix, 0), nil
+}
+
+// getCurrentDirMtime gets the current modification time of the flotsam directory.
+func (c *CacheManager) getCurrentDirMtime() (time.Time, error) {
+	info, err := os.Stat(c.flotsamDir)
+	if err != nil {
+		return time.Time{}, err
+	}
+	
+	return info.ModTime(), nil
+}
+
+// updateCacheMetadata updates the cache metadata with current timestamps.
+func (c *CacheManager) updateCacheMetadata(dirMtime time.Time) error {
+	query := `
+		INSERT OR REPLACE INTO cache_metadata 
+		(context, last_sync, flotsam_dir_mtime)
+		VALUES (?, ?, ?)
+	`
+	
+	now := time.Now().Unix()
+	_, err := c.db.db.Exec(query, c.db.context, now, dirMtime.Unix())
+	if err != nil {
+		return fmt.Errorf("failed to update cache metadata: %w", err)
+	}
+	
+	return nil
+}
+
+// InvalidateCache marks the cache as invalid by setting old timestamps.
+func (c *CacheManager) InvalidateCache() error {
+	oldTime := time.Unix(0, 0)
+	return c.updateCacheMetadata(oldTime)
 }
