@@ -621,6 +621,7 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
     - `cmd/flotsam_edit.go` (132 lines) - Complete edit command with interactive and direct modes
     - `cmd/flotsam_edit_test.go` (300 lines) - Full test coverage for ID matching and command logic
   - **User Experience**: Seamless ZK editor integration respecting ZK_EDITOR/VISUAL/EDITOR environment variables
+  - **Commit**: 3310127 - feat(flotsam)[T041/5.3]: implement vice flotsam edit with ZK interactive delegation
 
 ### 6. Testing & Validation
 - [ ] **6.1 Migration testing**: Ensure all existing functionality preserved

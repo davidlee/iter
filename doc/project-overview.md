@@ -31,3 +31,19 @@ errors before committing, you MUST:
 - NEVER modify project-wide linter configuration at `.golangci.yml`
 
 See: [revive comment directives](https://github.com/mgechev/revive?tab=readme-ov-file#comment-directives)
+
+## Serena
+
+IMPORTANT: Remember to use the Serena MCP tool where appropriate:
+- Use the Serena MCP Tool for file / edit operations when:
+  - Exploring codebases
+  - Applying regex operations, especially over multiple files
+  - Symbol navigation and reference tracking
+  - Understanding project architecture
+  - Code refactoring with pattern-based changes
+- Use Built-in Tools When:
+  - Creating new files from scratch
+  - Simple string replacements
+  - File is in hot cache and there is no risk of edits causing syntax errors
+
+The Serena MCP server should be running - otherwise STOP and report it.
