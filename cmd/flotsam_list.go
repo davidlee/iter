@@ -21,6 +21,7 @@ var (
 
 // flotsamListCmd represents the flotsam list command
 // AIDEV-NOTE: T041/5.1-list-cmd; combines zk delegation with SRS database for enriched note listing
+// AIDEV-NOTE: implements type filtering, SRS enrichment, multiple output formats with graceful ZK degradation
 var flotsamListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List flotsam notes with optional SRS information",
