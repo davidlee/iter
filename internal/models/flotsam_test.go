@@ -69,8 +69,7 @@ func TestNewFlotsamNote(t *testing.T) {
 		ID:      "xyz9",
 		Title:   "Test Note",
 		Created: time.Now(),
-		Type:    FlashcardType,
-		Tags:    []string{"test", "example"},
+		Tags:    []string{"test", "example", "vice:type:flashcard"},
 	}
 
 	note := NewFlotsamNote(fm, "This is the body content", "/path/to/note.md")
@@ -105,14 +104,10 @@ func TestFlotsamNote_GetFrontmatter(t *testing.T) {
 	}
 
 	note := &FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{
-			ID:      "test123",
-			Title:   "Test Note",
-			Type:    "flashcard",
-			Tags:    []string{"learning"},
-			Created: time.Now(),
-			SRS:     srsData,
-		},
+		ID:      "test123",
+		Title:   "Test Note",
+		Tags:    []string{"vice:srs", "vice:type:flashcard", "learning"},
+		Created: time.Now(),
 	}
 
 	fm := note.GetFrontmatter()
@@ -126,18 +121,15 @@ func TestFlotsamNote_GetFrontmatter(t *testing.T) {
 
 func TestFlotsamNote_UpdateFromFrontmatter(t *testing.T) {
 	note := &FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{
-			ID:    "old123",
-			Title: "Old Title",
-			Type:  "idea",
-		},
+		ID:    "old123",
+		Title: "Old Title",
+		Tags:  []string{"vice:type:idea"},
 	}
 
 	newFM := &FlotsamFrontmatter{
 		ID:      "new456",
 		Title:   "New Title",
-		Type:    FlashcardType,
-		Tags:    []string{"updated"},
+		Tags:    []string{"updated", "vice:type:flashcard"},
 		Created: time.Now().Add(-time.Hour),
 	}
 
@@ -153,16 +145,14 @@ func TestFlotsamNote_UpdateFromFrontmatter(t *testing.T) {
 func TestFlotsamNote_HasSRS(t *testing.T) {
 	t.Run("note without SRS", func(t *testing.T) {
 		note := &FlotsamNote{
-			FlotsamNote: flotsam.FlotsamNote{SRS: nil},
+			Tags: []string{"concept"},
 		}
 		assert.False(t, note.HasSRS())
 	})
 
 	t.Run("note with SRS", func(t *testing.T) {
 		note := &FlotsamNote{
-			FlotsamNote: flotsam.FlotsamNote{
-				SRS: &flotsam.SRSData{Easiness: 2.5},
-			},
+			Tags: []string{"vice:srs", "important"},
 		}
 		assert.True(t, note.HasSRS())
 	})
@@ -183,51 +173,31 @@ func TestFlotsamNote_IsFlashcard(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			var tags []string
+			if tt.noteType != "" {
+				tags = []string{"vice:type:" + tt.noteType}
+			}
 			note := &FlotsamNote{
-				FlotsamNote: flotsam.FlotsamNote{Type: tt.noteType},
+				Tags: tags,
 			}
 			assert.Equal(t, tt.expected, note.IsFlashcard())
 		})
 	}
 }
 
-func TestFlotsamNote_ValidateType(t *testing.T) {
-	t.Run("valid type", func(t *testing.T) {
-		note := &FlotsamNote{
-			FlotsamNote: flotsam.FlotsamNote{Type: "flashcard"},
-		}
-		err := note.ValidateType()
-		assert.NoError(t, err)
-		assert.Equal(t, "flashcard", note.Type)
-	})
-
-	t.Run("empty type gets default", func(t *testing.T) {
-		note := &FlotsamNote{
-			FlotsamNote: flotsam.FlotsamNote{Type: ""},
-		}
-		err := note.ValidateType()
-		assert.NoError(t, err)
-		assert.Equal(t, "idea", note.Type)
-	})
-
-	t.Run("invalid type", func(t *testing.T) {
-		note := &FlotsamNote{
-			FlotsamNote: flotsam.FlotsamNote{Type: "invalid"},
-		}
-		err := note.ValidateType()
-		assert.Error(t, err)
-	})
-}
+// AIDEV-TODO: T041/post-cleanup - ValidateType() method removed with Type field
+// Type validation now handled via tag-based system
+/* func TestFlotsamNote_ValidateType(t *testing.T) {
+	// Test moved to tag-based validation
+} */
 
 func TestFlotsamCollection_AddNote(t *testing.T) {
 	collection := NewFlotsamCollection("test")
 
 	note := FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{
-			ID:    "note1",
-			Title: "First Note",
-			Type:  "idea",
-		},
+		ID:    "note1",
+		Title: "First Note",
+		Tags:  []string{"vice:type:idea"},
 	}
 
 	collection.AddNote(note)
@@ -242,12 +212,9 @@ func TestFlotsamCollection_AddNote_WithSRS(t *testing.T) {
 	collection := NewFlotsamCollection("test")
 
 	note := FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{
-			ID:    "note1",
-			Title: "SRS Note",
-			Type:  "flashcard",
-			SRS:   &flotsam.SRSData{Easiness: 2.5},
-		},
+		ID:    "note1",
+		Title: "SRS Note",
+		Tags:  []string{"vice:type:flashcard"},
 	}
 
 	collection.AddNote(note)
@@ -260,10 +227,12 @@ func TestFlotsamCollection_RemoveNote(t *testing.T) {
 	collection := NewFlotsamCollection("test")
 
 	note1 := FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{ID: "note1", Title: "Note 1"},
+		ID:    "note1",
+		Title: "Note 1",
 	}
 	note2 := FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{ID: "note2", Title: "Note 2"},
+		ID:    "note2",
+		Title: "Note 2",
 	}
 
 	collection.AddNote(note1)
@@ -286,7 +255,8 @@ func TestFlotsamCollection_GetNote(t *testing.T) {
 	collection := NewFlotsamCollection("test")
 
 	note := FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{ID: "findme", Title: "Find Me"},
+		ID:    "findme",
+		Title: "Find Me",
 	}
 	collection.AddNote(note)
 
@@ -306,10 +276,10 @@ func TestFlotsamCollection_GetNotesByType(t *testing.T) {
 	collection := NewFlotsamCollection("test")
 
 	notes := []FlotsamNote{
-		{FlotsamNote: flotsam.FlotsamNote{ID: "1", Type: "idea"}},
-		{FlotsamNote: flotsam.FlotsamNote{ID: "2", Type: "flashcard"}},
-		{FlotsamNote: flotsam.FlotsamNote{ID: "3", Type: "idea"}},
-		{FlotsamNote: flotsam.FlotsamNote{ID: "4", Type: "script"}},
+		{ID: "1", Tags: []string{"vice:type:idea"}},
+		{ID: "2", Tags: []string{"vice:type:flashcard"}},
+		{ID: "3", Tags: []string{"vice:type:idea"}},
+		{ID: "4", Tags: []string{"vice:type:script"}},
 	}
 
 	for _, note := range notes {
@@ -331,10 +301,10 @@ func TestFlotsamCollection_GetSRSNotes(t *testing.T) {
 	collection := NewFlotsamCollection("test")
 
 	notes := []FlotsamNote{
-		{FlotsamNote: flotsam.FlotsamNote{ID: "1", SRS: nil}},
-		{FlotsamNote: flotsam.FlotsamNote{ID: "2", SRS: &flotsam.SRSData{Easiness: 2.5}}},
-		{FlotsamNote: flotsam.FlotsamNote{ID: "3", SRS: nil}},
-		{FlotsamNote: flotsam.FlotsamNote{ID: "4", SRS: &flotsam.SRSData{Easiness: 2.8}}},
+		{ID: "1", Tags: []string{}},
+		{ID: "2", Tags: []string{"vice:srs"}},
+		{ID: "3", Tags: []string{}},
+		{ID: "4", Tags: []string{"vice:srs"}},
 	}
 
 	for _, note := range notes {
@@ -362,7 +332,8 @@ func TestFlotsamCollection_computeMetadata(t *testing.T) {
 
 	// Add note without SRS
 	noteNoSRS := FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{ID: "1", SRS: nil},
+		ID:   "1",
+		Tags: []string{},
 	}
 	collection.AddNote(noteNoSRS)
 	assert.Equal(t, 1, collection.TotalNotes)
@@ -370,10 +341,8 @@ func TestFlotsamCollection_computeMetadata(t *testing.T) {
 
 	// Add note with SRS
 	noteWithSRS := FlotsamNote{
-		FlotsamNote: flotsam.FlotsamNote{
-			ID:  "2",
-			SRS: &flotsam.SRSData{Easiness: 2.5},
-		},
+		ID:   "2",
+		Tags: []string{"vice:srs"},
 	}
 	collection.AddNote(noteWithSRS)
 	assert.Equal(t, 2, collection.TotalNotes)
@@ -391,21 +360,13 @@ func TestFlotsamFrontmatter_YAMLSerialization(t *testing.T) {
 		ID:      "test123",
 		Title:   "Test Note",
 		Created: time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC),
-		Tags:    []string{"test", "example"},
-		Type:    FlashcardType,
-		SRS: &flotsam.SRSData{
-			Easiness:           2.5,
-			ConsecutiveCorrect: 1,
-			Due:                1640995200,
-			TotalReviews:       3,
-		},
+		Tags:    []string{"test", "example", "vice:type:flashcard"},
 	}
 
 	// This test validates the struct tags are correct for YAML serialization
 	// The actual YAML marshaling would be tested in integration tests
 
 	assert.Equal(t, "test123", fm.ID)
-	assert.Equal(t, FlashcardType, fm.Type)
-	assert.NotNil(t, fm.SRS)
-	assert.Equal(t, 2.5, fm.SRS.Easiness)
+	assert.Equal(t, "Test Note", fm.Title)
+	assert.Contains(t, fm.Tags, "vice:type:flashcard")
 }

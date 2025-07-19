@@ -114,38 +114,23 @@ This note has no outbound links.
 		noteMap[note.ID] = note
 	}
 
-	// Verify backlinks
-	// Note A should have no backlinks (no one links to it)
-	if noteA := noteMap["aaaa"]; noteA != nil {
-		if len(noteA.Backlinks) != 0 {
-			t.Errorf("Note A should have 0 backlinks, got %d: %v", len(noteA.Backlinks), noteA.Backlinks)
-		}
+	// AIDEV-NOTE: Backlink computation removed in T041/2.3 - now delegated to zk
+	// This test verifies that notes were loaded correctly, but backlink computation
+	// is no longer done in-memory. See internal/flotsam/links.go for zk delegation.
+
+	// Verify notes were loaded correctly
+	if noteA := noteMap["aaaa"]; noteA == nil {
+		t.Error("Note A should be loaded")
+	}
+	if noteB := noteMap["bbbb"]; noteB == nil {
+		t.Error("Note B should be loaded")
+	}
+	if noteC := noteMap["cccc"]; noteC == nil {
+		t.Error("Note C should be loaded")
 	}
 
-	// Note B should have 1 backlink from A
-	if noteB := noteMap["bbbb"]; noteB != nil {
-		if len(noteB.Backlinks) != 1 {
-			t.Errorf("Note B should have 1 backlink, got %d: %v", len(noteB.Backlinks), noteB.Backlinks)
-		} else if noteB.Backlinks[0] != "aaaa" {
-			t.Errorf("Note B should have backlink from 'aaaa', got '%s'", noteB.Backlinks[0])
-		}
-	}
-
-	// Note C should have 2 backlinks from A and B
-	if noteC := noteMap["cccc"]; noteC != nil {
-		if len(noteC.Backlinks) != 2 {
-			t.Errorf("Note C should have 2 backlinks, got %d: %v", len(noteC.Backlinks), noteC.Backlinks)
-		} else {
-			// Check that both A and B are in backlinks (order doesn't matter)
-			found := make(map[string]bool)
-			for _, backlink := range noteC.Backlinks {
-				found[backlink] = true
-			}
-			if !found["aaaa"] || !found["bbbb"] {
-				t.Errorf("Note C should have backlinks from 'aaaa' and 'bbbb', got %v", noteC.Backlinks)
-			}
-		}
-	}
+	// NOTE: Backlink testing moved to internal/flotsam/links_test.go
+	// where zk delegation functions are tested
 
 	// Verify outbound links are also correctly parsed
 	if noteA := noteMap["aaaa"]; noteA != nil {
