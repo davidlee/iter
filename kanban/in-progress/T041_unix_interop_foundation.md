@@ -457,13 +457,30 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
 
 
 ### 4. ZK Integration Foundation
-- [ ] **4.1 ZK shell-out abstraction**: Create reusable zk command execution
+- [x] **4.1 ZK shell-out abstraction**: Create reusable zk command execution
   - *Interface:* `CommandLineTool` and `ZKTool` interfaces with `ZKExecutable` implementation
   - *Features:* Simple runtime detection, basic error handling, graceful degradation
   - *ViceEnv Integration:* Store zk availability in ViceEnv, warn once per session if missing
   - *Configuration:* NOOP .zk/config.toml validation (placeholder for future enhancement)
   - *Error Handling:* Interactive sessions warn to stdout, non-interactive return error with https://github.com/zk-org/zk
   - *Future Work:* Advanced installation management and validation deferred to T046
+  
+  **COMPLETED IMPLEMENTATION**:
+  - **Core Interfaces**: `CommandLineTool`, `ZKTool`, `ZKExecutable` with composition design
+  - **Runtime Detection**: Automatic zk PATH lookup, availability tracking
+  - **ViceEnv Integration**: ZK field added, graceful delegation methods (`ZKList`, `ZKEdit`)
+  - **Error Handling**: Once per session warnings, installation guidance URLs
+  - **Graceful Degradation**: All methods handle zk unavailability with clear error messages
+  - **NOOP Config Validation**: `ValidateZKConfig()` placeholder for T046 enhancement
+  - **Test Coverage**: 17 test cases covering all functionality, edge cases, integration
+  - **Files Created**:
+    - `internal/zk/executable.go` (196 lines) - Core ZK abstraction
+    - `internal/zk/executable_test.go` (218 lines) - Comprehensive test suite
+    - `internal/config/zk_integration_test.go` (113 lines) - ViceEnv integration tests
+  - **Files Modified**:
+    - `internal/config/env.go` - Added ZK field and delegation methods (+52 lines)
+  - **Files Preserved**: Moved complex `tool.go` to `.complex` for future advanced features
+  - **Architecture**: Follows specification design, ready for T046 enhancement
 - [ ] **4.2 ZK dependency detection**: Implement zk availability checking
   - *Scope:* `vice doctor` command for dependency validation
   - *Errors:* Helpful messages for missing zk installation
