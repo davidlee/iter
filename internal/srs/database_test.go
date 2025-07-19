@@ -13,7 +13,7 @@ import (
 func TestNewDatabase(t *testing.T) {
 	tempDir := t.TempDir()
 	viceDir := filepath.Join(tempDir, ".vice")
-	err := os.MkdirAll(viceDir, 0750) //nolint:gosec // Test directory permissions
+	err := os.MkdirAll(viceDir, 0o750) //nolint:gosec // Test directory permissions
 	require.NoError(t, err)
 
 	db, err := NewDatabase(tempDir, "test-context")
@@ -31,7 +31,7 @@ func TestNewDatabase(t *testing.T) {
 func TestDatabaseSchema(t *testing.T) {
 	tempDir := t.TempDir()
 	viceDir := filepath.Join(tempDir, ".vice")
-	err := os.MkdirAll(viceDir, 0750) //nolint:gosec // Test directory permissions
+	err := os.MkdirAll(viceDir, 0o750) //nolint:gosec // Test directory permissions
 	require.NoError(t, err)
 
 	db, err := NewDatabase(tempDir, "test-context")
@@ -257,7 +257,7 @@ func TestGetStats(t *testing.T) {
 func setupTestDB(t *testing.T) *Database {
 	tempDir := t.TempDir()
 	viceDir := filepath.Join(tempDir, ".vice")
-	err := os.MkdirAll(viceDir, 0750) //nolint:gosec // Test directory permissions
+	err := os.MkdirAll(viceDir, 0o750) //nolint:gosec // Test directory permissions
 	require.NoError(t, err)
 
 	db, err := NewDatabase(tempDir, "test-context")
@@ -299,10 +299,10 @@ func TestCacheManager(t *testing.T) {
 	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
 
 	tempDir := t.TempDir()
-	
+
 	// Create flotsam directory
 	flotsamDir := filepath.Join(tempDir, "flotsam")
-	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	err := os.MkdirAll(flotsamDir, 0o750) //nolint:gosec // Test directory permissions
 	require.NoError(t, err)
 
 	cacheManager := db.GetCacheManager(tempDir)
@@ -316,7 +316,7 @@ func TestValidateCache_NewCache(t *testing.T) {
 
 	tempDir := t.TempDir()
 	flotsamDir := filepath.Join(tempDir, "flotsam")
-	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	err := os.MkdirAll(flotsamDir, 0o750) //nolint:gosec // Test directory permissions
 	require.NoError(t, err)
 
 	cacheManager := db.GetCacheManager(tempDir)
@@ -337,7 +337,7 @@ func TestValidateCache_UpToDate(t *testing.T) {
 
 	tempDir := t.TempDir()
 	flotsamDir := filepath.Join(tempDir, "flotsam")
-	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	err := os.MkdirAll(flotsamDir, 0o750) //nolint:gosec // Test directory permissions
 	require.NoError(t, err)
 
 	cacheManager := db.GetCacheManager(tempDir)
@@ -366,7 +366,7 @@ func TestValidateCache_DirectoryChanged(t *testing.T) {
 
 	tempDir := t.TempDir()
 	flotsamDir := filepath.Join(tempDir, "flotsam")
-	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	err := os.MkdirAll(flotsamDir, 0o750) //nolint:gosec // Test directory permissions
 	require.NoError(t, err)
 
 	cacheManager := db.GetCacheManager(tempDir)
@@ -383,7 +383,7 @@ func TestValidateCache_DirectoryChanged(t *testing.T) {
 
 	// Modify directory by adding a file
 	testFile := filepath.Join(flotsamDir, "test.md")
-	err = os.WriteFile(testFile, []byte("test content"), 0600) //nolint:gosec // Test file permissions
+	err = os.WriteFile(testFile, []byte("test content"), 0o600) //nolint:gosec // Test file permissions
 	require.NoError(t, err)
 
 	// Check actual directory mtime before validation
@@ -410,14 +410,14 @@ func TestRefreshCache(t *testing.T) {
 
 	tempDir := t.TempDir()
 	flotsamDir := filepath.Join(tempDir, "flotsam")
-	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	err := os.MkdirAll(flotsamDir, 0o750) //nolint:gosec // Test directory permissions
 	require.NoError(t, err)
 
 	// Create test markdown files
 	testFiles := []string{"note1.md", "note2.md", "other.txt"}
 	for _, file := range testFiles {
 		filePath := filepath.Join(flotsamDir, file)
-		err = os.WriteFile(filePath, []byte("content"), 0600) //nolint:gosec // Test file permissions
+		err = os.WriteFile(filePath, []byte("content"), 0o600) //nolint:gosec // Test file permissions
 		require.NoError(t, err)
 	}
 
@@ -444,7 +444,7 @@ func TestInvalidateCache(t *testing.T) {
 
 	tempDir := t.TempDir()
 	flotsamDir := filepath.Join(tempDir, "flotsam")
-	err := os.MkdirAll(flotsamDir, 0750) //nolint:gosec // Test directory permissions
+	err := os.MkdirAll(flotsamDir, 0o750) //nolint:gosec // Test directory permissions
 	require.NoError(t, err)
 
 	cacheManager := db.GetCacheManager(tempDir)
@@ -514,52 +514,52 @@ func TestCacheMetadataSchema(t *testing.T) {
 
 func TestDetermineDatabasePath_DefaultNotebook(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	dbPath, err := determineDatabasePath(tempDir)
 	require.NoError(t, err)
-	
+
 	expectedPath := filepath.Join(tempDir, "flotsam", ".vice", "flotsam.db")
 	assert.Equal(t, expectedPath, dbPath)
 }
 
 func TestDetermineDatabasePath_ContextDir(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	dbPath, err := determineDatabasePath(tempDir)
 	require.NoError(t, err)
-	
+
 	expectedPath := filepath.Join(tempDir, "flotsam", ".vice", "flotsam.db")
 	assert.Equal(t, expectedPath, dbPath)
 }
 
 func TestNewDatabase_CreatesViceDirectory(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	db, err := NewDatabase(tempDir, "test-context")
 	require.NoError(t, err)
 	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
-	
+
 	// Verify .vice directory was created in notebook directory
 	viceDir := filepath.Join(tempDir, "flotsam", ".vice")
 	info, err := os.Stat(viceDir)
 	require.NoError(t, err)
 	assert.True(t, info.IsDir())
-	
+
 	// Verify database file was created
 	assert.FileExists(t, db.dbPath)
 }
 
 func TestNewDatabase_NotebookDirectoryPlacement(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	db, err := NewDatabase(tempDir, "test-context")
 	require.NoError(t, err)
 	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
-	
+
 	// Database should be placed in flotsam/.vice/ within context
 	expectedPath := filepath.Join(tempDir, "flotsam", ".vice", "flotsam.db")
 	assert.Equal(t, expectedPath, db.dbPath)
-	
+
 	// Verify .vice directory was created in notebook directory
 	viceDir := filepath.Join(tempDir, "flotsam", ".vice")
 	info, err := os.Stat(viceDir)

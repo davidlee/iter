@@ -337,7 +337,6 @@ func (r *FileRepository) LoadFlotsam() (*models.FlotsamCollection, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, &Error{
 			Operation: "LoadFlotsam",
@@ -348,7 +347,7 @@ func (r *FileRepository) LoadFlotsam() (*models.FlotsamCollection, error) {
 
 	// AIDEV-NOTE: T041-backlink-removal; backlink computation removed - delegate to zk instead
 	// Note: Backlinks now handled by zk delegation: `zk list --linked-by <note>`
-	
+
 	return collection, nil
 }
 
@@ -400,7 +399,7 @@ func (r *FileRepository) parseFlotsamFile(filePath string) (*models.FlotsamNote,
 		Modified: fileInfo.ModTime(),
 		Body:     body,
 		FilePath: filePath,
-		
+
 		// DEPRECATED: Backward compatibility fields
 		Type:  frontmatter.Type, // Will be replaced by vice:type:* tags
 		Links: links,

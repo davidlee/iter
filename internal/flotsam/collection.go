@@ -13,6 +13,7 @@ import (
 // Collection represents an in-memory collection of flotsam notes with search indices.
 // This is used for performance-critical operations like search-as-you-type.
 // AIDEV-NOTE: performance-fallback; in-memory collection for when zk shell-out is too slow for interactive UX
+//
 //revive:disable-next-line:exported Collection is descriptive enough in flotsam package context
 type Collection struct {
 	Notes []FlotsamNote
@@ -76,7 +77,6 @@ func LoadAllNotes(contextDir string) (*Collection, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to walk flotsam directory: %w", err)
 	}
@@ -185,7 +185,7 @@ func (c *Collection) GetNoteByID(id string) (*FlotsamNote, bool) {
 
 // AIDEV-NOTE: T041-deprecated; computeBacklinks removed - use zk delegation instead
 // Backlink computation now handled by zk commands:
-// - `zk list --linked-by <note>` for backlinks  
+// - `zk list --linked-by <note>` for backlinks
 // - `zk list --link-to <note>` for outbound links
 
 // computeMetadata updates the collection's computed metadata fields.

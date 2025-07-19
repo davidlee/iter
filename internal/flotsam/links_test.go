@@ -15,13 +15,13 @@ func TestGetBacklinks(t *testing.T) {
 
 	// Test with a non-existent note (zk may return error, which is expected)
 	backlinks, err := GetBacklinks("non-existent-note.md")
-	
+
 	// If there's an error, it should be due to zk command failure (expected)
 	// If no error, backlinks should be a valid slice
 	if err == nil && backlinks == nil {
 		t.Error("GetBacklinks should return empty slice, not nil when no error")
 	}
-	
+
 	// This test mainly verifies the function exists and handles zk delegation
 	t.Logf("GetBacklinks test completed - err: %v, results: %d items", err, len(backlinks))
 }
@@ -35,13 +35,13 @@ func TestGetOutboundLinks(t *testing.T) {
 
 	// Test with a non-existent note (zk may return error, which is expected)
 	outbound, err := GetOutboundLinks("non-existent-note.md")
-	
+
 	// If there's an error, it should be due to zk command failure (expected)
 	// If no error, outbound should be a valid slice
 	if err == nil && outbound == nil {
 		t.Error("GetOutboundLinks should return empty slice, not nil when no error")
 	}
-	
+
 	t.Logf("GetOutboundLinks test completed - err: %v, results: %d items", err, len(outbound))
 }
 
@@ -54,9 +54,9 @@ func TestGetLinkedNotes(t *testing.T) {
 
 	// Test with a non-existent note (both calls may fail, which is expected)
 	backlinks, outbound, err := GetLinkedNotes("non-existent-note.md")
-	
+
 	// This test mainly verifies the function exists and handles zk delegation
-	t.Logf("GetLinkedNotes test completed - err: %v, backlinks: %d, outbound: %d", 
+	t.Logf("GetLinkedNotes test completed - err: %v, backlinks: %d, outbound: %d",
 		err, len(backlinks), len(outbound))
 }
 
@@ -97,12 +97,12 @@ func TestParseZKPathOutput(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := parseZKPathOutput(tt.input)
-			
+
 			if len(result) != len(tt.expected) {
 				t.Errorf("Expected %d paths, got %d", len(tt.expected), len(result))
 				return
 			}
-			
+
 			for i, expected := range tt.expected {
 				if result[i] != expected {
 					t.Errorf("Expected path %q at index %d, got %q", expected, i, result[i])

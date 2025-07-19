@@ -54,7 +54,7 @@ func NewDatabase(contextDir, context string) (*Database, error) {
 
 	// Ensure .vice directory exists
 	viceDir := filepath.Dir(dbPath)
-	if err := os.MkdirAll(viceDir, 0750); err != nil {
+	if err := os.MkdirAll(viceDir, 0o750); err != nil {
 		return nil, fmt.Errorf("failed to create .vice directory: %w", err)
 	}
 
@@ -305,9 +305,9 @@ func (d *Database) GetStats(contextName string) (map[string]interface{}, error) 
 // CacheManager handles mtime-based cache invalidation for SRS database.
 // AIDEV-NOTE: mtime-based cache invalidation for Unix interop - directory-level checks for performance
 type CacheManager struct {
-	db          *Database
-	contextDir  string
-	flotsamDir  string
+	db         *Database
+	contextDir string
+	flotsamDir string
 }
 
 // NewCacheManager creates a new cache manager for the given database and context.
@@ -372,20 +372,20 @@ func (c *CacheManager) RefreshCache() error {
 	// 4. For Unix interop, we don't implement file-level caching yet
 	// The SRS database will be the source of truth for SRS data
 	// File content parsing is delegated to zk or direct file reads
-	
+
 	return nil
 }
 
 // getCachedDirMtime retrieves the cached directory modification time.
 func (c *CacheManager) getCachedDirMtime() (time.Time, error) {
 	query := `SELECT flotsam_dir_mtime FROM cache_metadata WHERE context = ?`
-	
+
 	var mtimeUnix int64
 	err := c.db.db.QueryRow(query, c.db.context).Scan(&mtimeUnix)
 	if err != nil {
 		return time.Time{}, err
 	}
-	
+
 	return time.Unix(mtimeUnix, 0), nil
 }
 
@@ -395,7 +395,7 @@ func (c *CacheManager) getCurrentDirMtime() (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
-	
+
 	return info.ModTime(), nil
 }
 
@@ -406,13 +406,13 @@ func (c *CacheManager) updateCacheMetadata(dirMtime time.Time) error {
 		(context, last_sync, flotsam_dir_mtime)
 		VALUES (?, ?, ?)
 	`
-	
+
 	now := time.Now().Unix()
 	_, err := c.db.db.Exec(query, c.db.context, now, dirMtime.Unix())
 	if err != nil {
 		return fmt.Errorf("failed to update cache metadata: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -431,8 +431,7 @@ func determineDatabasePath(contextDir string) (string, error) {
 	// For now, assume default notebook directory "flotsam" within context
 	// TODO: Make notebook directory configurable via vice config
 	notebookDir := filepath.Join(contextDir, "flotsam")
-	
+
 	// Place .vice/flotsam.db within the notebook directory
 	return filepath.Join(notebookDir, ".vice", "flotsam.db"), nil
 }
-

@@ -16,7 +16,7 @@ func GetBacklinks(notePath string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get backlinks: %w", err)
 	}
-	
+
 	return parseZKPathOutput(output), nil
 }
 
@@ -27,7 +27,7 @@ func GetOutboundLinks(notePath string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get outbound links: %w", err)
 	}
-	
+
 	return parseZKPathOutput(output), nil
 }
 
@@ -50,13 +50,13 @@ func GetLinkedNotes(notePath string) (backlinks []string, outbound []string, err
 // parseZKPathOutput parses zk command output that returns paths (one per line).
 func parseZKPathOutput(output string) []string {
 	lines := strings.Split(strings.TrimSpace(output), "\n")
-	
+
 	var result []string
 	for _, line := range lines {
 		if line = strings.TrimSpace(line); line != "" {
 			result = append(result, line)
 		}
 	}
-	
+
 	return result
 }

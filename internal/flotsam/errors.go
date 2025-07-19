@@ -6,6 +6,7 @@ import "fmt"
 
 // Error represents errors from flotsam operations.
 // This is simplified from the repository.Error type.
+//
 //revive:disable-next-line:exported Error is descriptive enough in flotsam package context
 type Error struct {
 	Operation string
