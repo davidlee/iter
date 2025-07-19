@@ -37,6 +37,14 @@ ALWAYS:
 
 Concise ADRs should be added when appropriate (e.g. a decision is made with scope of impact greater than a single file).
 
+## Context Management
+
+We don't auto-compact. You must ensure detailed documentation to ensure smooth handover. 
+
+Use the `kanban/` task card and the `doc/` folder as your persistent memory.
+
+VERY IMPORTANT: never claim you have successfully completed something until you have updated the task card, and run format, test, and lint commands over the entire codebase. Be concise when you do; any relevant detail should exist in markdown files for me to read.
+
 ## Development Commands
 
 The project otherwise uses standard Go tooling. See `Justfile` for typical commands.
