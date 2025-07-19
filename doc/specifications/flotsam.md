@@ -701,6 +701,130 @@ This package incorporates code from two external projects:
 
 All components are properly attributed with copyright headers and license compliance documentation.
 
+## Tool Abstraction & Integration
+
+### Command-Line Tool Interface Design
+
+**Architecture Principle**: Use composition with interface segregation to support multiple external tools (zk, taskwarrior, remind) without inheritance complexity.
+
+#### Core Tool Abstraction
+
+```go
+// CommandLineTool provides generic interface for external command-line tools
+type CommandLineTool interface {
+    Name() string
+    Available() bool
+    Execute(args ...string) (*ToolResult, error)
+}
+
+// ZKTool extends CommandLineTool with zk-specific operations
+type ZKTool interface {
+    CommandLineTool
+    List(filters ...string) ([]Note, error)
+    Edit(paths ...string) error
+    GetLinkedNotes(path string) ([]string, []string, error) // backlinks, outbound
+}
+
+// Concrete implementation for zk tool
+type ZKExecutable struct {
+    path      string    // Resolved zk binary path
+    available bool      // Runtime availability status
+    warned    bool      // Track if user has been warned about missing zk
+}
+```
+
+**Design Benefits**:
+- **Generic Interface**: `CommandLineTool` works for zk, taskwarrior (`tw`), remind (`rem`)
+- **Tool-Specific Extensions**: `ZKTool` adds zk-specific operations
+- **Composition**: ViceEnv contains tool instances, no inheritance
+- **Future Extensibility**: New tools implement `CommandLineTool` interface
+
+#### ViceEnv Integration
+
+```go
+type ViceEnv struct {
+    // existing fields...
+    ZK *ZKExecutable  // nil if zk unavailable
+}
+
+// Usage pattern with graceful degradation
+func (env *ViceEnv) ListFlotsamNotes(filters ...string) ([]Note, error) {
+    if env.ZK != nil && env.ZK.Available() {
+        return env.ZK.List(filters...)
+    }
+    
+    // Fallback to in-memory collection
+    collection, err := env.loadInMemoryCollection()
+    if err != nil {
+        return nil, fmt.Errorf("zk unavailable and fallback failed: %w", err)
+    }
+    return collection.FilterByTags(filters), nil
+}
+```
+
+### Graceful Degradation Strategy
+
+**Availability Levels**:
+- **Full Functionality**: zk available, all Unix interop operations work
+- **Degraded Mode**: zk unavailable, fallback to in-memory operations where possible
+- **Failed Operations**: Operations requiring zk (edit, link analysis) return helpful errors
+
+**Error Handling**:
+- **Interactive Sessions**: Warn once per session to stdout with installation guidance
+- **Non-Interactive Commands**: Return error messages directing to zk installation
+- **Installation URL**: Direct users to https://github.com/zk-org/zk for installation
+
+**Functionality Matrix**:
+
+| Operation | ZK Available | ZK Unavailable | Notes |
+|-----------|-------------|----------------|-------|
+| List notes | zk delegation | In-memory fallback | Performance difference |
+| Search notes | zk queries | In-memory search | Limited query capabilities |
+| Edit notes | zk editor | Error + guidance | Requires external editor |
+| Link analysis | zk commands | Error + guidance | No fallback available |
+| SRS queries | Database only | Database only | Independent of zk |
+
+### ZK Configuration Management
+
+**Shared Ownership Model**: Vice and user share responsibility for `.zk/config.toml` management.
+
+**Configuration Validation** *(Future Enhancement)*:
+```go
+type ZKConfig struct {
+    NoteDir     string                 `toml:"note-dir"`
+    NotebookDir string                 `toml:"notebook-dir"`  
+    Editor      string                 `toml:"editor"`
+    Custom      map[string]interface{} `toml:",remainder"`
+}
+
+func ValidateZKConfig(configPath string) (*ZKConfig, error) {
+    // NOOP for now - placeholder for future validation
+    // Future: Check for incompatible note-dir, ID format conflicts
+    return parseZKConfig(configPath), nil
+}
+```
+
+**Responsibilities**:
+- **Vice**: Validate compatibility, create initial config for new notebooks
+- **User**: Free to modify non-breaking settings (editor, custom fields)
+- **Breaking Changes**: Unexpected note file formats, incompatible ID schemes (future detection)
+
+### Command Pipeline Support
+
+**Future Enhancement**: Complex tool orchestration using command pipelines.
+
+**Reference Library**: [go-command-chain](https://github.com/rainu/go-command-chain) for building command pipelines when needed.
+
+**Use Cases**:
+```bash
+# Example: Complex workflow combining zk + vice
+zk list --tag "vice:srs" --format path | 
+    vice flotsam due --stdin --overdue | 
+    zk edit --interactive
+```
+
+**Implementation**: Add pipeline support when tool orchestration becomes complex enough to warrant abstraction.
+
 ## Future Enhancements
 
 ### Planned Features

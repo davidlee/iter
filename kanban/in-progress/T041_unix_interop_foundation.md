@@ -1,7 +1,7 @@
 ---
 title: "Unix Interop Foundation & T027 Migration"
 tags: ["flotsam", "unix-interop", "architecture", "migration", "zk-integration"]
-related_tasks: ["replaces:T027", "unblocks:T026", "enables:T042,T043,T044,T045"]
+related_tasks: ["replaces:T027", "unblocks:T026", "enables:T042,T043,T044,T045", "spawned:T046"]
 context_windows: ["doc/design-artefacts/unix-interop-vs-coupled-integration-analysis.md", "internal/repository/*", "internal/flotsam/*"]
 ---
 # Unix Interop Foundation & T027 Migration
@@ -458,9 +458,12 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
 
 ### 4. ZK Integration Foundation
 - [ ] **4.1 ZK shell-out abstraction**: Create reusable zk command execution
-  - *Interface:* Tool abstraction for zk commands
-  - *Features:* Error handling, output parsing, configuration
-  - *Planning:* Design for extensibility to other tools (remind, taskwarrior)
+  - *Interface:* `CommandLineTool` and `ZKTool` interfaces with `ZKExecutable` implementation
+  - *Features:* Simple runtime detection, basic error handling, graceful degradation
+  - *ViceEnv Integration:* Store zk availability in ViceEnv, warn once per session if missing
+  - *Configuration:* NOOP .zk/config.toml validation (placeholder for future enhancement)
+  - *Error Handling:* Interactive sessions warn to stdout, non-interactive return error with https://github.com/zk-org/zk
+  - *Future Work:* Advanced installation management and validation deferred to T046
 - [ ] **4.2 ZK dependency detection**: Implement zk availability checking
   - *Scope:* `vice doctor` command for dependency validation
   - *Errors:* Helpful messages for missing zk installation
