@@ -21,21 +21,25 @@ type FlotsamFrontmatter struct {
 	Created time.Time `yaml:"created-at"`     // ZK timestamp format
 	Tags    []string  `yaml:"tags,omitempty"` // ZK tag array
 
-	// DEPRECATED: Backward compatibility fields
-	Type FlotsamType `yaml:"type,omitempty"` // DEPRECATED: Use vice:type:* tags instead
-	SRS  *flotsam.SRSData `yaml:"srs,omitempty"` // DEPRECATED: Use SRS database instead
+	// Deprecated: Backward compatibility fields
+	Type FlotsamType      `yaml:"type,omitempty"` // DEPRECATED: Use vice:type:* tags instead
+	SRS  *flotsam.SRSData `yaml:"srs,omitempty"`  // DEPRECATED: Use SRS database instead
 }
 
-// DEPRECATED: FlotsamType enum - use tag-based behavior system instead
+// FlotsamType represents deprecated note type classification.
 // Behaviors are now determined by tags: vice:type:idea, vice:type:flashcard, etc.
 // This type is kept for backward compatibility with repository layer.
 type FlotsamType string
 
-// DEPRECATED: Flotsam note types - use vice:type:* tags instead
+// Deprecated flotsam type constants - use tag-based behavior system instead.
 const (
+	// IdeaType represents free-form idea capture notes
 	IdeaType      FlotsamType = "idea"      // Free-form idea capture
+	// FlashcardType represents question/answer cards for SRS
 	FlashcardType FlotsamType = "flashcard" // Question/answer cards for SRS
+	// ScriptType represents executable scripts and commands
 	ScriptType    FlotsamType = "script"    // Executable scripts and commands
+	// LogType represents journal entries and logs
 	LogType       FlotsamType = "log"       // Journal entries and logs
 )
 
@@ -72,25 +76,25 @@ func DefaultType() FlotsamType {
 // AIDEV-NOTE: simplified models-level interface - main logic in flotsam package
 type FlotsamNote struct {
 	// Core note data (no embedding)
-	ID       string    `yaml:"id"`
-	Title    string    `yaml:"title"`
-	Created  time.Time `yaml:"created-at"`
-	Tags     []string  `yaml:"tags,omitempty"`
+	ID      string    `yaml:"id"`
+	Title   string    `yaml:"title"`
+	Created time.Time `yaml:"created-at"`
+	Tags    []string  `yaml:"tags,omitempty"`
 
 	// Runtime fields (not in frontmatter)
 	Body     string    `yaml:"-"`
 	FilePath string    `yaml:"-"`
 	Modified time.Time `yaml:"-"`
 
-	// DEPRECATED: Backward compatibility fields
+	// Deprecated: Backward compatibility fields
 	Type  string           `yaml:"-"` // DEPRECATED: Use vice:type:* tags instead
 	Links []string         `yaml:"-"` // DEPRECATED: Use zk delegation instead
 	SRS   *flotsam.SRSData `yaml:"-"` // DEPRECATED: Use SRS database instead
-	
+
 	// REMOVED: Backlinks field - use flotsam.GetBacklinks() instead
 }
 
-// DEPRECATED: FlotsamCollection - use flotsam.Collection instead
+// FlotsamCollection represents a deprecated collection of flotsam notes.
 // This type is kept for backward compatibility with repository layer.
 type FlotsamCollection struct {
 	Version     string        `yaml:"version"`           // Schema version for future migrations
@@ -127,7 +131,7 @@ func NewFlotsamNote(frontmatter *FlotsamFrontmatter, body, filepath string) *Flo
 		Modified: time.Now(),
 		Body:     body,
 		FilePath: filepath,
-		
+
 		// Initialize deprecated fields
 		Type:  "idea", // Default type
 		Links: make([]string, 0),
@@ -137,7 +141,7 @@ func NewFlotsamNote(frontmatter *FlotsamFrontmatter, body, filepath string) *Flo
 	return note
 }
 
-// DEPRECATED: NewFlotsamCollection - use flotsam.LoadAllNotes() instead
+// NewFlotsamCollection creates a new deprecated flotsam collection.
 // This constructor is kept for backward compatibility with repository layer.
 func NewFlotsamCollection(context string) *FlotsamCollection {
 	return &FlotsamCollection{
@@ -201,7 +205,7 @@ func (fn *FlotsamNote) HasType(noteType string) bool {
 	return fn.HasTag("vice:type:" + noteType)
 }
 
-// DEPRECATED: ValidateType - use tag-based validation instead
+// ValidateType validates and sets default type (deprecated method).
 // This method is kept for backward compatibility with repository layer.
 func (fn *FlotsamNote) ValidateType() error {
 	// No-op: type validation is now handled by tags
@@ -272,7 +276,7 @@ func (ff *FlotsamFrontmatter) Validate() error {
 	return nil
 }
 
-// DEPRECATED: FlotsamCollection validation - use flotsam.Collection instead
+// Validate validates the flotsam collection (deprecated method).
 // This validation is kept for backward compatibility with repository layer.
 func (fc *FlotsamCollection) Validate() error {
 	// Context is required for isolation

@@ -1,3 +1,6 @@
+// Package zk provides Unix interop functionality for delegating operations to the zk CLI tool.
+// This package implements tool orchestration patterns for note management while maintaining
+// vice-specific SRS functionality through separate database storage.
 package zk
 
 import (
@@ -16,10 +19,15 @@ import (
 type ToolErrorType string
 
 const (
+	// ErrToolNotFound indicates the tool binary was not found in PATH
 	ErrToolNotFound      ToolErrorType = "tool_not_found"
+	// ErrToolNotExecutable indicates the tool binary exists but is not executable
 	ErrToolNotExecutable ToolErrorType = "tool_not_executable"
+	// ErrCommandFailed indicates the tool command execution failed
 	ErrCommandFailed     ToolErrorType = "command_failed"
+	// ErrInvalidOutput indicates the tool output could not be parsed
 	ErrInvalidOutput     ToolErrorType = "invalid_output"
+	// ErrPermissionDenied indicates insufficient permissions to execute the tool
 	ErrPermissionDenied  ToolErrorType = "permission_denied"
 )
 
@@ -67,6 +75,7 @@ type Tool interface {
 	Version() (string, error)
 }
 
+//revive:disable-next-line:exported // ZKTool naming is intentional to avoid conflicts
 // ZKTool implements Tool interface for zk operations
 type ZKTool struct {
 	path        string
@@ -172,6 +181,7 @@ func (zk *ZKTool) Execute(ctx context.Context, args ...string) (*ToolResult, err
 		sanitizedArgs[i] = sanitizeArg(arg)
 	}
 
+	//nolint:gosec // Subprocess with sanitized args and controlled binary path
 	cmd := exec.CommandContext(ctx, zk.path, sanitizedArgs...)
 
 	if zk.workingDir != "" {
@@ -218,6 +228,7 @@ func sanitizeArg(arg string) string {
 	return arg
 }
 
+//revive:disable-next-line:exported // ZKCommand naming is intentional to avoid conflicts
 // ZKCommand provides a fluent interface for building zk commands
 type ZKCommand struct {
 	tool        *ZKTool
@@ -458,6 +469,7 @@ func ParseZKPaths(data []byte) ([]string, error) {
 	return strings.Split(content, "\n"), nil
 }
 
+//revive:disable-next-line:exported // ZKNote naming is intentional to avoid conflicts
 // ZKNote represents a note as returned by zk list --format json
 type ZKNote struct {
 	Filename   string                 `json:"filename"`

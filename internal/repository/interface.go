@@ -35,27 +35,27 @@ type DataRepository interface {
 	UnloadAllData() error
 	IsDataLoaded() bool
 
-	// DEPRECATED: Flotsam operations (T027 integration)
+	// Deprecated: Flotsam operations (T027 integration)
 	// AIDEV-NOTE: T041-deprecated; repository abstraction layer scheduled for removal
 	// AIDEV-NOTE: T041-unix-interop; replaced by direct flotsam package usage + zk delegation
 	// Use flotsam.LoadAllNotes() and flotsam.Collection instead
 
-	// DEPRECATED: Collection operations - use flotsam.LoadAllNotes() instead
+	// Deprecated: Collection operations - use flotsam.LoadAllNotes() instead
 	LoadFlotsam() (*models.FlotsamCollection, error)
 	SaveFlotsam(collection *models.FlotsamCollection) error
 
-	// DEPRECATED: Individual note CRUD operations - use flotsam package directly
+	// Deprecated: Individual note CRUD operations - use flotsam package directly
 	CreateFlotsamNote(note *models.FlotsamNote) error
 	GetFlotsamNote(id string) (*models.FlotsamNote, error)
 	UpdateFlotsamNote(note *models.FlotsamNote) error
 	DeleteFlotsamNote(id string) error
 
-	// DEPRECATED: Search and query operations - use zk delegation or flotsam.SearchNotes()
+	// Deprecated: Search and query operations - use zk delegation or flotsam.SearchNotes()
 	SearchFlotsam(query string) ([]*models.FlotsamNote, error)
 	GetFlotsamByType(noteType models.FlotsamType) ([]*models.FlotsamNote, error)
 	GetFlotsamByTag(tag string) ([]*models.FlotsamNote, error)
 
-	// DEPRECATED: SRS operations - use flotsam.Collection methods instead
+	// Deprecated: SRS operations - use flotsam.Collection methods instead
 	GetDueFlotsamNotes() ([]*models.FlotsamNote, error)
 	GetFlotsamWithSRS() ([]*models.FlotsamNote, error)
 

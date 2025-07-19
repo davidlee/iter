@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davidlee/vice/internal/flotsam"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -76,8 +75,8 @@ func TestNewFlotsamNote(t *testing.T) {
 
 	assert.Equal(t, "xyz9", note.ID)
 	assert.Equal(t, "Test Note", note.Title)
-	assert.Equal(t, "flashcard", note.Type)
-	assert.Equal(t, []string{"test", "example"}, note.Tags)
+	assert.Equal(t, []string{"test", "example", "vice:type:flashcard"}, note.Tags)
+	assert.True(t, note.IsFlashcard())
 	assert.Equal(t, "This is the body content", note.Body)
 	assert.Equal(t, "/path/to/note.md", note.FilePath)
 	assert.WithinDuration(t, time.Now(), note.Modified, time.Second)
@@ -96,13 +95,6 @@ func TestNewFlotsamCollection(t *testing.T) {
 }
 
 func TestFlotsamNote_GetFrontmatter(t *testing.T) {
-	srsData := &flotsam.SRSData{
-		Easiness:           2.5,
-		ConsecutiveCorrect: 0,
-		Due:                time.Now().Unix(),
-		TotalReviews:       0,
-	}
-
 	note := &FlotsamNote{
 		ID:      "test123",
 		Title:   "Test Note",
@@ -114,9 +106,7 @@ func TestFlotsamNote_GetFrontmatter(t *testing.T) {
 
 	assert.Equal(t, "test123", fm.ID)
 	assert.Equal(t, "Test Note", fm.Title)
-	assert.Equal(t, FlashcardType, fm.Type)
-	assert.Equal(t, []string{"learning"}, fm.Tags)
-	assert.Equal(t, srsData, fm.SRS)
+	assert.Equal(t, []string{"vice:srs", "vice:type:flashcard", "learning"}, fm.Tags)
 }
 
 func TestFlotsamNote_UpdateFromFrontmatter(t *testing.T) {
@@ -137,8 +127,8 @@ func TestFlotsamNote_UpdateFromFrontmatter(t *testing.T) {
 
 	assert.Equal(t, "new456", note.ID)
 	assert.Equal(t, "New Title", note.Title)
-	assert.Equal(t, "flashcard", note.Type)
-	assert.Equal(t, []string{"updated"}, note.Tags)
+	assert.Equal(t, []string{"updated", "vice:type:flashcard"}, note.Tags)
+	assert.True(t, note.IsFlashcard())
 	assert.WithinDuration(t, time.Now(), note.Modified, time.Second)
 }
 
@@ -214,7 +204,7 @@ func TestFlotsamCollection_AddNote_WithSRS(t *testing.T) {
 	note := FlotsamNote{
 		ID:    "note1",
 		Title: "SRS Note",
-		Tags:  []string{"vice:type:flashcard"},
+		Tags:  []string{"vice:srs", "vice:type:flashcard"},
 	}
 
 	collection.AddNote(note)

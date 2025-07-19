@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestZKTool_IsAvailable(t *testing.T) {
@@ -425,7 +427,8 @@ func TestValidateNotePath(t *testing.T) {
 	// Create temporary directories for testing
 	tmpDir := t.TempDir()
 	notebookDir := tmpDir + "/notebook"
-	os.MkdirAll(notebookDir, 0o755)
+	err := os.MkdirAll(notebookDir, 0o750)
+	require.NoError(t, err)
 
 	tests := []struct {
 		name        string
