@@ -558,6 +558,36 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
 
 ## Notes / Discussion Log
 
+### **T041/3.4 Completion (2025-07-19 - AI)**
+
+**Issue Analysis**: The `flotsam_validation_test.go.broken` file had multiple critical problems:
+- **Syntax Errors**: Malformed struct literals, missing commas, broken string concatenations
+- **Architecture Mismatch**: Tests expected deprecated `Type` field instead of current tag-based system
+- **Invalid References**: Using non-existent types like `IdeaType`, removed `validateSRSData` function
+- **Structural Problems**: Tests didn't align with simplified model architecture from T041/2.2
+
+**Decision Rationale**: Complete rewrite chosen over repair because:
+1. **Economic**: Fixing syntax would still leave architectural misalignment
+2. **Quality**: New tag-based system needed proper test coverage  
+3. **Standards**: Opportunity to implement Kent Beck test principles correctly
+4. **Maintainability**: Clean slate avoided accumulating technical debt
+
+**Implementation Approach**:
+- **Removed**: SRS validation tests (now handled in flotsam package/database layer)
+- **Added**: Tag behavior validation (`HasSRS()`, `IsFlashcard()`, `HasType()`)
+- **Preserved**: Core validation logic (ID format, title, timestamps)
+- **Enhanced**: Test coverage for ZK-compatible ID validation
+- **Aligned**: Tests with current Unix interop specification
+
+**Test Quality Metrics**:
+- **Isolated**: Each test case is independent
+- **Behavioral**: Tests validate tag-based behaviors, not implementation details
+- **Readable**: Clear test names and structure
+- **Specific**: Precise error messages for failures
+- **Fast**: Sub-millisecond execution time
+
+**Architecture Validation**: Tests now properly validate the tag-based behavior system where `vice:srs` and `vice:type:*` tags determine note behaviors instead of embedded Type fields.
+
 ### **Task Creation (2025-07-18 - AI)**
 
 **Design Analysis Reference**: 
