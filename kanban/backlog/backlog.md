@@ -22,13 +22,21 @@ Affinity:
 
 ## Habit Management 
 
-## remind integration
+### Gateway Drug for Remind: integration
+
+
 
 - give habits (etc) a short ulid secondary ID (uid) 
   - and unique text convention ("[:h!UID:]" - habit; "[z!ID]" - note; "[u!ID]" - url )
   - use conventions w. remind file & entries to reference habits
   - now we can get us complex scheduling via remind for habits; 
     - conceptually they have a scheduler attribute e.g. (simple,onCompletion,recurring/remind)
+
+### Calendar
+
+- https://pkg.go.dev/google.golang.org/api
+- ical ... 
+
 
 
 # task switch logging / detection for interstitial journalling

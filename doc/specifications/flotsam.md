@@ -454,19 +454,24 @@ if calc.IsDue(note.SRS) {
 
 ### Quality Scale
 
-The SRS system uses a 0-6 quality scale:
+The SRS system uses a 0-6 quality scale, adapted from traditional memory recall to **idea development progress**:
 
 ```go
 const (
     NoReview          Quality = 0  // No review performed
-    IncorrectBlackout Quality = 1  // Total failure to recall
-    IncorrectFamiliar Quality = 2  // Incorrect but familiar
-    IncorrectEasy     Quality = 3  // Incorrect but seemed easy
-    CorrectHard       Quality = 4  // Correct with difficulty
-    CorrectEffort     Quality = 5  // Correct with some effort
-    CorrectEasy       Quality = 6  // Perfect recall
+    IncorrectBlackout Quality = 1  // Total creative block/needs major restructuring
+    IncorrectFamiliar Quality = 2  // Stalled/stuck - needs more frequent attention  
+    IncorrectEasy     Quality = 3  // Minor progress/small changes
+    CorrectHard       Quality = 4  // Progressing with effort/moderate development
+    CorrectEffort     Quality = 5  // Good progress/idea advancing well
+    CorrectEasy       Quality = 6  // Flowing/major development/idea maturing
 )
 ```
+
+**Interpretation for Creative Work** (per SM-2 adaptation research):
+- **Quality ≤2**: Triggers "failure" response - more frequent scheduling to prevent languishing
+- **Quality 3-4**: Normal development cycle - standard SM-2 intervals  
+- **Quality 5-6**: High-performing ideas - longer intervals, less frequent review needed
 
 ## Usage Examples
 
@@ -828,6 +833,322 @@ zk list --tag "vice:srs" --format path |
 
 **Implementation**: Add pipeline support when tool orchestration becomes complex enough to warrant abstraction.
 
+## Content Change Detection for SRS Quality Assessment
+
+### Problem Statement
+
+For `idea` and other non-flashcard note types, SRS quality assessment needs to measure engagement/development rather than binary correctness. Content change detection after editing provides a meaningful metric for this assessment.
+
+### Context-Level Git Integration
+
+**Auto-versioning at VICE_CONTEXT level** provides comprehensive change tracking and audit trail.
+
+#### Architecture
+
+```
+$VICE_DATA/{context}/
+├── .git/                    # Auto-initialized git repository
+│   ├── objects/            # Version history of all vice operations
+│   ├── refs/heads/main     # Single branch for linear history  
+│   └── config             # Git configuration
+├── habits.yml             # Vice habit definitions
+├── entries.yml            # Vice daily completion data
+└── flotsam/               # Notebook directory
+    ├── .zk/               # ZK notebook data
+    ├── .vice/             # Vice notebook data  
+    ├── note1.md           # User notes (git-tracked)
+    └── note2.md
+```
+
+#### Implementation Strategy
+
+```go
+// Auto-commit after file-modifying vice commands
+type ViceEnv struct {
+    // existing fields...
+    GitEnabled bool     // Auto-detected git availability
+    GitRepo    string   // Path to context git repository
+}
+
+func (env *ViceEnv) AutoCommit(command string) error {
+    if !env.GitEnabled || !env.isGitRepo() {
+        return env.initContextGit()
+    }
+    
+    // Stage all changes in context directory
+    if err := env.gitAdd("."); err != nil {
+        return fmt.Errorf("git add failed: %w", err)
+    }
+    
+    // Commit with standardized message
+    timestamp := time.Now().Format("15:04:05")
+    message := fmt.Sprintf("vice %s - %s", command, timestamp)
+    
+    return env.gitCommit(message)
+}
+
+func (env *ViceEnv) initContextGit() error {
+    if !hasGitCommand() {
+        log.Debug("Git not available - skipping auto-versioning")
+        return nil
+    }
+    
+    if err := env.gitInit(env.ContextData); err != nil {
+        return fmt.Errorf("failed to initialize context git: %w", err)
+    }
+    
+    // Create .gitignore for non-trackable files
+    gitignore := `# Vice auto-generated - temp files
+.vice/cache/
+*.tmp
+*.lock
+`
+    return os.WriteFile(filepath.Join(env.ContextData, ".gitignore"), []byte(gitignore), 0644)
+}
+```
+
+#### SRS Quality Assessment via Git
+
+**Conceptual Mapping**: Following research on SM-2 adaptation to creative work, we map content changes to SM-2 quality ratings that reflect **idea development progress** rather than recall accuracy.
+
+**Quality Interpretation for Ideas**:
+- **No changes** (0-2): Stalled/blocked - idea needs restructuring or more attention
+- **Minor changes** (3-4): Progressing - idea is developing but needs continued work  
+- **Major changes** (5-6): Flowing - idea is mature and developing well
+
+```go
+// Detect content changes after edit operations
+func (env *ViceEnv) AssessEditQuality(notePath string, preEditCommit string) (srs.Quality, error) {
+    // Check if file changed since pre-edit commit
+    hasChanges, err := env.gitHasChanges(notePath, preEditCommit)
+    if err != nil {
+        // Fallback to mtime comparison
+        return env.assessQualityByMtime(notePath)
+    }
+    
+    if !hasChanges {
+        return srs.IncorrectFamiliar, nil  // Stalled idea - quality 2 (needs more frequent attention)
+    }
+    
+    // Analyze change magnitude (future enhancement)
+    changeSize, err := env.gitDiffStats(notePath, preEditCommit)
+    if err != nil {
+        return srs.CorrectHard, nil  // Changed but unknown magnitude - quality 4 (progressing)
+    }
+    
+    // Map change size to development progress quality
+    switch {
+    case changeSize.Lines < 5:
+        return srs.CorrectEffort, nil     // Minor development - quality 5 (idea advancing)
+    default:
+        return srs.CorrectEasy, nil      // Significant development - quality 6 (idea flowing)
+    }
+}
+```
+
+**Key Insight from Research**: SM-2 "failure" (quality ≤2) in creative work indicates an idea is "blocked/stuck" rather than "forgotten". This triggers more frequent review cycles to prevent ideas from languishing, which aligns perfectly with our change detection approach.
+
+#### Integration Points
+
+**Command Integration**:
+- `vice flotsam add`: Auto-commit after note creation
+- `vice flotsam edit`: Pre-edit commit capture, post-edit quality assessment  
+- `vice habit complete`: Auto-commit after habit data updates
+- All file-modifying commands trigger `AutoCommit()`
+
+**User Benefits**:
+- **Full Audit Trail**: Complete history of vice operations with timestamps
+- **Rollback Capability**: `git log` shows all operations, `git reset` for recovery
+- **Change Analysis**: Precise diff information for debugging and analysis
+- **No Interference**: User can still initialize git in `flotsam/` for manual control
+
+### Mtime-Based Fallback Detection
+
+**File timestamp comparison** when git unavailable or repository not initialized.
+
+#### Implementation Strategy
+
+```go
+// Extended SRS schema with last_reviewed timestamp
+type SRSData struct {
+    // existing fields...
+    LastReviewed    *time.Time `json:"last_reviewed,omitempty"`
+    LastContentHash string     `json:"last_content_hash,omitempty"` // SHA256 for change detection
+}
+
+// Database schema update
+const srsSchemaV2 = `
+ALTER TABLE srs_reviews ADD COLUMN last_reviewed INTEGER;
+ALTER TABLE srs_reviews ADD COLUMN last_content_hash TEXT;
+`
+
+func (env *ViceEnv) assessQualityByMtime(notePath string) (srs.Quality, error) {
+    // Get current file mtime
+    stat, err := os.Stat(notePath)
+    if err != nil {
+        return srs.NoReview, fmt.Errorf("failed to stat file: %w", err)
+    }
+    currentMtime := stat.ModTime()
+    
+    // Get last reviewed time from SRS database
+    srsData, err := env.getSRSData(notePath)
+    if err != nil {
+        return srs.NoReview, err
+    }
+    
+    if srsData.LastReviewed == nil {
+        // First review - assume engagement
+        return srs.CorrectEffort, nil
+    }
+    
+    // Compare modification times
+    if currentMtime.After(*srsData.LastReviewed) {
+        // File changed since last review
+        return env.assessQualityByContent(notePath, srsData.LastContentHash)
+    }
+    
+    // No changes detected
+    return srs.IncorrectFamiliar, nil  // Stale idea - quality 2
+}
+
+func (env *ViceEnv) assessQualityByContent(notePath, oldHash string) (srs.Quality, error) {
+    content, err := os.ReadFile(notePath)
+    if err != nil {
+        return srs.CorrectHard, nil  // Assume change but unknown - quality 4
+    }
+    
+    newHash := sha256.Sum256(content)
+    newHashStr := hex.EncodeToString(newHash[:])
+    
+    if newHashStr == oldHash {
+        return srs.IncorrectFamiliar, nil  // Mtime changed but content same - quality 2
+    }
+    
+    // Content changed - could analyze magnitude here
+    return srs.CorrectHard, nil  // Content changed - quality 4
+}
+```
+
+#### Workflow Integration
+
+```go
+// Edit workflow with change detection
+func runFlotsamEdit(notePath string, env *config.ViceEnv) error {
+    // Capture pre-edit state
+    preEditTime := time.Now()
+    var preEditCommit string
+    
+    if env.GitEnabled {
+        // Commit current state before edit
+        if err := env.AutoCommit("pre-edit snapshot"); err != nil {
+            log.Warn("Failed to create pre-edit commit", "error", err)
+        } else {
+            preEditCommit = env.getHEADCommit()
+        }
+    }
+    
+    // Store pre-edit content hash for mtime fallback
+    preEditHash, _ := env.getFileHash(notePath)
+    
+    // Execute edit via ZK
+    if err := env.ZK.Edit(notePath); err != nil {
+        return fmt.Errorf("edit failed: %w", err)
+    }
+    
+    // Assess quality based on changes
+    var quality srs.Quality
+    var err error
+    
+    if env.GitEnabled && preEditCommit != "" {
+        quality, err = env.AssessEditQuality(notePath, preEditCommit)
+    } else {
+        quality, err = env.assessQualityByMtimeAndHash(notePath, preEditTime, preEditHash)
+    }
+    
+    if err != nil {
+        log.Warn("Failed to assess edit quality", "error", err)
+        quality = srs.CorrectHard  // Default assumption
+    }
+    
+    // Update SRS database with new quality assessment
+    return env.updateSRSAfterEdit(notePath, quality, time.Now())
+}
+```
+
+### Configuration and User Control
+
+#### Git Integration Settings
+
+```toml
+# vice config.toml
+[flotsam]
+auto_git = true              # Enable context-level git integration  
+git_commit_frequency = "command"  # "command", "daily", "manual"
+change_detection = "git"     # "git", "mtime", "both"
+
+[flotsam.quality_mapping]
+no_change = 2               # Quality for unchanged notes
+minor_change = 4            # Quality for small changes  
+major_change = 6            # Quality for significant changes
+```
+
+#### User Flexibility
+
+**Context-Level Git**: Auto-managed by vice for audit trail and change detection
+**Notebook-Level Git**: Optional user-managed git repo in `flotsam/` for detailed version control
+**Coexistence**: Both can exist simultaneously without conflict
+
+### Error Handling and Edge Cases
+
+**Design Philosophy**: Treat change detection as a **heuristic** rather than attempting perfect accuracy. Accept git's built-in capabilities for handling edge cases.
+
+```go
+// Graceful degradation when git operations fail
+func (env *ViceEnv) AutoCommit(command string) error {
+    if err := env.attemptGitCommit(command); err != nil {
+        log.Debug("Git commit failed, continuing without versioning", "error", err)
+        // Operation continues - git failure doesn't block user workflow
+        return nil
+    }
+    return nil
+}
+
+// Handle edge cases in change detection  
+func (env *ViceEnv) AssessEditQuality(notePath string, preEditCommit string) (srs.Quality, error) {
+    // Handle binary files, permission issues, corrupted git state
+    if err := env.validateGitState(); err != nil {
+        log.Warn("Git state invalid, falling back to mtime", "error", err)
+        return env.assessQualityByMtime(notePath)
+    }
+    
+    // Handle cases where file was deleted and recreated
+    if !env.fileExistsInCommit(notePath, preEditCommit) {
+        return srs.CorrectEasy, nil  // New content creation - quality 6
+    }
+    
+    // Accept git's change detection for moves, renames, permission changes
+    // Don't distinguish content vs metadata changes - it's all engagement
+    return env.gitBasedQualityAssessment(notePath, preEditCommit)
+}
+```
+
+#### Implementation Constraints
+
+**Database Migration**: No existing SRS databases to migrate - ignore migration complexity
+**Repository Conflicts**: Not a concern for user workflows - ignore nested git repo warnings for now
+**Quality Granularity**: Fixed thresholds initially - make configurable later if needed
+**Performance**: Standard git performance acceptable - no optimization needed
+**Multi-user**: Not a consideration for single-user contexts
+**Edge Cases**: Accept git's limitations as "good enough" heuristic
+
+#### Heuristic Acceptance Criteria
+
+- **File renames/moves**: Trust git's move detection
+- **Permission changes**: Count as engagement if git detects change
+- **Metadata-only changes**: Acceptable false positive for engagement measurement
+- **Binary files**: Fallback to mtime comparison
+- **Corrupted git state**: Graceful fallback to mtime without blocking workflow
+
 ## Future Enhancements
 
 ### Planned Features
@@ -835,15 +1156,19 @@ zk list --tag "vice:srs" --format path |
 - **Advanced Scheduling**: Alternative SRS algorithms (SM-18, FSRS)
 - **Bulk Operations**: Batch processing for large note collections
 - **Query Language**: Advanced search and filtering capabilities
+- **Change Magnitude Analysis**: Diff-based quality assessment with line/character counts
+- **Semantic Change Detection**: Content analysis beyond simple text changes
 
 ### Performance Optimizations
 - **Streaming Processing**: Process large note collections without loading all into memory
 - **Incremental Updates**: More efficient change detection and processing
 - **Cache Optimization**: Advanced caching strategies for frequently accessed data
 - **Parallel Processing**: Concurrent note processing for bulk operations
+- **Git Performance**: Shallow clones and sparse checkouts for large repositories
 
 ### Integration Enhancements
 - **Task Management**: Integration with Vice's task-oriented workflows
 - **Incremental Writing**: Support for progressive note development
 - **Context Switching**: Efficient context migration and synchronization
 - **Export/Import**: Data portability between different note systems
+- **Multi-Tool Orchestration**: Pipeline composition with taskwarrior, remind, etc.

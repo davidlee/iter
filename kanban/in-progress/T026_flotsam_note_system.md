@@ -1,7 +1,7 @@
 ---
 title: "Flotsam Note System"
-tags: ["feature", "notes", "zettelkasten", "search"]
-related_tasks: ["blocked-by:T041", "relates-to:T042,T043,T044,T045", "supersedes:T027"]
+tags: ["feature", "notes", "zettelkasten", "srs", "advanced"]
+related_tasks: ["depends-on:T041", "spawned:T047", "relates-to:T042,T043,T044,T045", "supersedes:T027"]
 context_windows: ["internal/**/*.go", "CLAUDE.md", "doc/**/*.md", "kanban/**/*.md", "cmd/**/*.go"]
 ---
 # Flotsam Note System
@@ -11,18 +11,20 @@ Implement a "flotsam" note system inspired by Notational Velocity, digital zette
 
 **Type**: `feature`
 
-**Overall Status:** `Blocked` - Awaiting T041 Unix Interop Foundation
+**Overall Status:** `Ready` - T041 Unix Interop Foundation Complete
 
-## ARCHITECTURAL CHANGE NOTICE
+## FOUNDATION STATUS UPDATE
 
-**Unix Interop Decision (2025-07-18)**: After comprehensive analysis, vice is pivoting from T027's coupled integration to Unix interop patterns. See `doc/design-artefacts/unix-interop-vs-coupled-integration-analysis.md` for full rationale.
+**T041 Completion (2025-07-19)**: Unix interop foundation successfully implemented and delivered:
 
-**Impact on T026**:
-- **Handled by ZK Integration**: External editor, fuzzy search, wiki links, templates, note management
-- **Remains Relevant**: SRS scheduling, flotsam-specific workflows, vice integration
-- **New Foundation**: T041 establishes Unix interop foundation and SRS database
+✅ **Delivered by T041**:
+- ZK integration with auto-init (external editor, fuzzy search, wiki links, templates)
+- SRS database foundation with SQLite schema
+- Basic CLI commands: `vice flotsam add/list/due/edit`
+- Unix interop patterns and graceful degradation
+- Directory auto-creation and ZK notebook initialization
 
-**Revised Scope**: T026 now focuses on SRS workflows and flotsam-specific UX built on top of zk integration, rather than implementing note management from scratch.
+**T026 Revised Scope**: Focus on advanced SRS workflows, content change detection, and enhanced flotsam-specific UX built on the solid T041 foundation.
 
 ## Reference (Relevant Files / URLs)
 
@@ -65,16 +67,23 @@ This supports reflective practice, knowledge management, and incremental learnin
 
 ## Acceptance Criteria (ACs)
 
-- [ ] vice provides a fuzzy search interface for flotsam notes
-- [ ] Create new flotsam with title and markdown body
-- [ ] Edit existing flotsam with live preview
-- [ ] Fuzzy search by title and content
-- [ ] Support for tags and metadata
-- [ ] Wiki-style [[link]] syntax with backlink indexing
-- [ ] Spaced repetition scheduling for flashcards
+✅ **COMPLETED by T041**:
+- [x] Create new flotsam with title and markdown body (`vice flotsam add`)
+- [x] Edit existing flotsam with external editor (`vice flotsam edit`)
+- [x] Fuzzy search by title and content (ZK `--interactive` integration)
+- [x] Support for tags and metadata (ZK-compatible frontmatter)
+- [x] Wiki-style [[link]] syntax with backlink indexing (ZK delegation)
+- [x] Basic spaced repetition scheduling (SRS database with SM-2)
+- [x] Data persistence in markdown format (individual .md files)
+- [x] Support for different types (idea, flashcard, script, log via `vice:type:*` tags)
+
+**REMAINING for T026**:
+- [ ] Advanced SRS quality assessment with content change detection
+- [ ] Context-level git integration for audit trails
+- [ ] Enhanced SRS review workflows and statistics
 - [ ] Attachment to habits and entries
-- [ ] Data persistence in YAML format
-- [ ] Support for different types (idea, flashcard, future: script, log)
+- [ ] Interactive TUI interface for advanced workflows
+- [ ] Bulk operations and advanced note management
 
 ## Architecture
 
@@ -153,75 +162,70 @@ flotsam:
 **Sub-tasks:**
 *(Sub-task status: `[ ]` = todo, `[WIP]` = currently being worked on by AI , `[x]` = done, `[blocked]` = blocked)*
 
-### 1. Data Layer Foundation (T027)
-- [x] **1 Data Layer Implementation**: Complete data layer foundation in T027
+### 1. Foundation (COMPLETED)
+- [x] **T041 Unix Interop Foundation**: Complete foundation with ZK integration, SRS database, basic CLI
+  - [x] ZK tool integration and auto-init
+  - [x] SRS database schema and operations  
+  - [x] Basic commands: add, list, due, edit
+  - [x] Tag-based behavior system (vice:type:*)
+  - [x] Directory auto-creation and notebook initialization
 
-### 2. Core CLI Commands
+### 2. Content Change Detection & Advanced SRS
+- [ ] **2.1 Context-level Git Integration** (Extract from T041/6.2)
+  - *Scope:* Auto-init git in VICE_CONTEXT, auto-commit after file operations
+  - *Purpose:* Audit trail and content change detection for SRS quality assessment
+  - *Implementation:* Add GitEnabled field to ViceEnv, AutoCommit() method
+  - *Integration:* Hook into all file-modifying vice commands
+- [ ] **2.2 Git-based SRS Quality Assessment** (Extract from T041/6.2)
+  - *Scope:* Detect content changes via git diff for idea note quality scoring
+  - *Quality Mapping:* No changes = quality 2, minor = 5, major = 6 (per SM-2 adaptation research)
+  - *Integration:* Update `vice flotsam edit` workflow with pre/post-edit change detection
+  - *Fallback:* Graceful degradation when git unavailable
+- [ ] **2.3 Mtime-based Change Detection** (Extract from T041/6.3)  
+  - *Scope:* File timestamp + content hash comparison when git unavailable
+  - *Database:* Add last_reviewed, last_content_hash columns to SRS schema
+  - *Implementation:* Compare file mtime vs last_reviewed timestamp
+  - *Purpose:* Fallback change detection for SRS quality assessment
 
-- Create vice flotsam command**: Main command entry point
-  - [ ]  Create vice flotsam command**: Main command entry point
-  - [ ]  Add subcommand routing: list, new, edit, search, review
-    - `new`: given a string, create a new flotsam file with that title.
-    - `list`: list flotsam id, title 
-    - `edit`: edit flotsam in $EDITOR
-    - `search`: 
+### 3. Enhanced SRS Workflows
+- [ ] **3.1 Advanced Review Interface**
+  - *Scope:* Enhanced `vice flotsam review` with statistics and progress tracking
+  - *Features:* Review sessions, performance metrics, overdue handling
+  - *Integration:* Use content change detection for automatic quality assessment
+- [ ] **3.2 SRS Statistics and Analytics**
+  - *Scope:* Review performance tracking and learning analytics
+  - *Implementation:* Database queries for review history, success rates, scheduling effectiveness
+  - *UI:* Command-line statistics display and progress reports
 
-  - [ ]  Implement Context awareness**: Use current vice context
+### 4. Vice Ecosystem Integration
+- [ ] **4.1 Habit Integration**
+  - *Scope:* Attach flotsam notes to habits and habit entries
+  - *Data Model:* Add flotsam_id field to habit schema
+  - *Workflow:* Reference notes from habit completion and review
+- [ ] **4.2 Cross-Context Operations** 
+  - *Scope:* Optional access to flotsam notes across vice contexts
+  - *Implementation:* Context-aware search and linking capabilities
+  - *Security:* Respect context isolation by default with explicit cross-context flags
 
+### 5. Advanced User Experience
+- [ ] **5.1 Interactive TUI Interface**
+  - *Scope:* Bubbletea-based interactive interface for advanced workflows
+  - *Features:* Three-pane view (search, list, preview), in-app operations
+  - *Integration:* Combine with ZK delegation for hybrid UX
+- [ ] **5.2 Bulk Operations and Management**
+  - *Scope:* Batch operations on multiple notes
+  - *Features:* Bulk tagging, SRS scheduling, export/import
+  - *Performance:* Efficient processing of large note collections
 
-
-```
-### 2. Core CLI Commands
-- [ ] **3.1 Flotsam Command Structure**: Base command and subcommands
-  - [ ] **3.1.1 Create vice flotsam command**: Main command entry point
-  - [ ] **3.1.2 Add subcommand routing**: list, new, edit, search, review
-  - [ ] **3.1.3 Implement context awareness**: Use current vice context
-- [ ] **3.2 Basic CRUD Operations**: Create, read, update, delete notes
-  - [ ] **3.2.1 Implement flotsam new**: Create new notes with templates
-  - [ ] **3.2.2 Implement flotsam edit**: Edit existing notes in $EDITOR
-  - [ ] **3.2.3 Implement flotsam list**: List notes with filtering
-  - [ ] **3.2.4 Implement flotsam remove**: Delete notes safely
-
-### 3. Search and Navigation
-- [ ] **4.1 Fuzzy Search Interface**: Interactive note discovery
-  - [ ] **4.1.1 Implement title/content search**: Fuzzy matching on title and body
-  - [ ] **4.1.2 Add tag-based filtering**: Search by tags and metadata
-  - [ ] **4.1.3 Implement interactive selection**: fzf-style interface
-- [ ] **4.2 Wiki Link System**: Link resolution and backlinks
-  - [ ] **4.2.1 Implement link extraction**: Parse [[wikilinks]] from content
-  - [ ] **4.2.2 Build backlink index**: Compute reverse link relationships
-  - [ ] **4.2.3 Add link navigation**: Jump between linked notes
-
-### 4. Spaced Repetition System
-- [ ] **5.1 Review Interface**: SRS-based note review
-  - [ ] **5.1.1 Implement flotsam review**: Show due notes for review
-  - [ ] **5.1.2 Add quality rating**: 0-6 scale quality feedback
-  - [ ] **5.1.3 Update SRS scheduling**: SM-2 algorithm integration
-- [ ] **5.2 Flashcard Support**: Specialized review for flashcard notes
-  - [ ] **5.2.1 Add flashcard templates**: Front/back card structure
-  - [ ] **5.2.2 Implement flashcard review**: Specialized review interface
-  - [ ] **5.2.3 Add performance tracking**: Review statistics and trends
-
-### 5. UI and User Experience
-- [ ] **6.1 Interactive Interface**: Bubbletea-based TUI
-  - [ ] **6.1.1 Create main flotsam view**: Three-pane interface (search, list, preview)
-  - [ ] **6.1.2 Implement note editing**: In-app editing with live preview
-  - [ ] **6.1.3 Add keyboard shortcuts**: Efficient navigation and actions
-- [ ] **6.2 Integration with Vice**: Seamless ecosystem integration
-  - [ ] **6.2.1 Link to habit entries**: Attach flotsam to habit data
-  - [ ] **6.2.2 Add flotsam references**: Reference notes from other vice commands
-  - [ ] **6.2.3 Implement cross-context**: Optional cross-context note access
-
-### 6. Advanced Features
-- [ ] **7.1 Templates and Automation**: Note creation templates
-  - [ ] **7.1.1 Implement template system**: ZK-compatible templates
-  - [ ] **7.1.2 Add automation hooks**: Trigger creation from other commands
-  - [ ] **7.1.3 Support custom templates**: User-defined note templates
-- [ ] **7.2 Export and Interoperability**: Data exchange capabilities
-  - [ ] **7.2.1 Implement export functions**: Various format export
-  - [ ] **7.2.2 Add import capabilities**: Import from other note systems
-  - [ ] **7.2.3 Support external editors**: Integration with external tools
-```
+### 6. Templates and Automation  
+- [ ] **6.1 Advanced Templates**
+  - *Scope:* Enhanced note creation templates beyond basic type templates
+  - *Features:* User-defined templates, automation hooks, dynamic content
+  - *Integration:* ZK-compatible template system
+- [ ] **6.2 Workflow Automation**
+  - *Scope:* Automated note creation and management triggers
+  - *Features:* Create notes from habit completion, scheduled note creation
+  - *Integration:* Hook into vice's event system
 
 
 ## Roadblocks

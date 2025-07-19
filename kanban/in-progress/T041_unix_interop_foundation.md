@@ -1,7 +1,7 @@
 ---
 title: "Unix Interop Foundation & T027 Migration"
 tags: ["flotsam", "unix-interop", "architecture", "migration", "zk-integration"]
-related_tasks: ["replaces:T027", "unblocks:T026", "enables:T042,T043,T044,T045", "spawned:T046"]
+related_tasks: ["replaces:T027", "unblocks:T026", "enables:T042,T043,T044,T045", "spawned:T046,T047"]
 context_windows: ["doc/design-artefacts/unix-interop-vs-coupled-integration-analysis.md", "internal/repository/*", "internal/flotsam/*"]
 ---
 # Unix Interop Foundation & T027 Migration
@@ -11,7 +11,7 @@ Implement Unix interop approach for flotsam functionality and migrate away from 
 
 **Type**: `refactoring` + `feature`
 
-**Overall Status:** `COMPLETED`
+**Overall Status:** `COMPLETED` - Ready for DONE
 
 ## Reference (Relevant Files / URLs)
 
@@ -641,11 +641,13 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   - *Tag Format:* ✅ Fixed YAML tags format for ZK compatibility (`tags: ['vice:type:*']`)
   - *ID Generation:* 🔄 **IN PROGRESS** - Implementing ZK delegation for unique ID generation
   - **COMPLETED**: Basic data layer POC fully functional, ready for production use
-- [ ] **6.2 Integration testing**: Test zk shell-out functionality
+- [x] **6.2 SRS content change detection extracted to T047**
+- [x] **6.3 Git integration features extracted to T047**
+- [ ] **6.4 Integration testing**: Test zk shell-out functionality
   - *Scope:* Test all zk command delegations and error handling
   - *Mocking:* Consider test doubles for zk commands
   - *Planning:* Design for CI/CD environments without zk
-- [ ] **6.3 Performance validation**: Compare startup time vs T027
+- [ ] **6.5 Performance validation**: Compare startup time vs T027
   - *Metrics:* Cold start time, memory usage, operation latency
   - *Baseline:* Current T027 performance characteristics
   - *Planning:* Establish performance regression testing
