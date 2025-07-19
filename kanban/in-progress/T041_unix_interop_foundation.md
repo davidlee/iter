@@ -606,6 +606,7 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
     - `cmd/flotsam_due.go` (251 lines) - Complete due command with ZK+SRS integration
     - `cmd/flotsam_due_test.go` (351 lines) - Full test coverage including metadata extraction
   - **User Experience**: Clear overdue indicators ("1 day late", "N days late"), table formatting, JSON for scripting
+  - **Commit**: f5a1f79 - feat(flotsam)[T041/5.2]: implement vice flotsam due with ZK-first enrichment pattern
 - [ ] **5.3 flotsam edit command**: Implement `vice flotsam edit` with zk delegation
   - *Delegation:* `zk edit <note>` with proper path resolution
   - *Integration:* Work with both individual notes and filtered lists
