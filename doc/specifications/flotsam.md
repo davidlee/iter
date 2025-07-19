@@ -157,28 +157,27 @@ func (n *FlotsamNote) HasSRS() bool {
 #### Vice-specific Tag Patterns
 
 ```bash
-# Core behavior tags
-vice:srs              # Note participates in SRS scheduling
-vice:type:flashcard   # Question/answer cards for SRS
-vice:type:idea        # Free-form idea capture  
-vice:type:script      # Executable scripts and commands
-vice:type:log         # Journal entries and logs
+# Core behavior tags (all vice:type:* notes participate in SRS by default)
+vice:type:flashcard   # Question/answer cards for SRS scheduling
+vice:type:idea        # Free-form idea capture for SRS scheduling
+vice:type:script      # Executable scripts and commands for SRS scheduling
+vice:type:log         # Journal entries and logs for SRS scheduling
 
 # Hierarchical tags (future extensibility)
-vice:srs:active       # Currently being reviewed
-vice:srs:suspended    # Temporarily disabled
-vice:habit:daily      # Daily habit integration
+vice:type:flashcard:active    # Currently being reviewed
+vice:type:flashcard:suspended # Temporarily disabled
+vice:habit:daily             # Daily habit integration
 ```
 
 #### Composable Operations
 
 ```bash
-# Find all flashcards due for review
-zk list --tag "vice:srs AND vice:type:flashcard" --format path | 
+# Find all flashcards due for review (all vice:type:flashcard are SRS-enabled)
+zk list --tag "vice:type:flashcard" --format path | 
     vice flotsam due --stdin
 
 # Interactive review of overdue flashcards  
-zk list --tag "vice:srs AND vice:type:flashcard" --format path | 
+zk list --tag "vice:type:flashcard" --format path | 
     vice flotsam due --stdin --overdue --interactive
 
 # Edit all script notes
@@ -187,6 +186,10 @@ zk edit --tag "vice:type:script" --interactive
 # Batch review all notes of a specific type
 zk list --tag "vice:type:script" --format path | 
     vice flotsam review --stdin
+
+# Get all SRS-enabled notes (any vice:type:* tag)
+zk list --tag "vice:type:*" --format path |
+    vice flotsam status --stdin
 ```
 
 **Benefits**:

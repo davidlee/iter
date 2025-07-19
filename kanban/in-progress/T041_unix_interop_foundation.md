@@ -501,10 +501,63 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
     - `cmd/doctor_test.go` (210 lines) - Comprehensive test suite
   - **Test Coverage**: 4 test cases covering command execution, configuration checks, zk detection
   - **Integration**: Uses ViceEnv ZK integration from T041/4.1 for seamless dependency checking
-- [ ] **4.3 Tag-based note detection**: Implement `vice:srs` tag integration
-  - *Scope:* Filter notes by vice-specific tags
-  - *Integration:* Combine zk tag queries with SRS database
-  - *Planning:* Design tag naming conventions and hierarchy
+- [ ] **4.3 Tag-based note detection**: Implement vice:type:* tag hierarchy with SRS integration
+  - *Scope:* Filter notes by vice-specific type tags, integrate with SRS database
+  - *Integration:* Combine zk tag queries with bulk SRS database operations
+  - *Planning:* All vice:type:* notes participate in SRS (vice:srs redundant, removed)
+  
+  **IMPLEMENTATION PLAN**:
+  
+  **Architecture Decision**: Remove `vice:srs` tag redundancy - all `vice:type:*` notes are SRS-enabled by definition
+  
+  **Tag Hierarchy to Implement**:
+  - `vice:type:flashcard` → Question/answer cards for SRS
+  - `vice:type:idea` → Free-form idea capture for SRS  
+  - `vice:type:script` → Executable scripts for SRS
+  - `vice:type:log` → Journal entries for SRS
+  
+  **Core Functions Needed**:
+  ```go
+  // Query functions
+  func GetFlashcardNotes() ([]string, error)     // zk list --tag "vice:type:flashcard"
+  func GetIdeaNotes() ([]string, error)          // zk list --tag "vice:type:idea"
+  func GetAllViceNotes() ([]string, error)      // zk list --tag "vice:type:*"
+  func GetNotesByType(noteType string) ([]string, error) // Generic type query
+  
+  // SRS integration  
+  func EnrichWithSRSData(notes []string) (map[string]*SRSData, error) // Bulk SRS query
+  func ValidateSRSConsistency(notes []string) error // Log warnings for missing SRS data
+  ```
+  
+  **Database Integration Strategy**:
+  1. Query zk for vice:type:* tagged notes (primary source of truth)
+  2. Bulk query SRS database: `SELECT * FROM srs_reviews WHERE note_path IN (?...)`
+  3. Log warnings for notes with vice:type tags but missing SRS database entries
+  4. Return enriched data combining zk metadata + SRS scheduling info
+  
+  **Logging Integration**:
+  - Add `github.com/charmbracelet/log` dependency for structured logging
+  - Log warnings for SRS consistency issues: `log.Warn("Vice-typed note missing from SRS database", "path", notePath, "type", noteType)`
+  - Log performance metrics for bulk operations
+  
+  **Error Handling**:
+  - Graceful degradation when zk unavailable (return empty results + warning)
+  - Continue processing when individual notes have issues
+  - Clear error messages referencing both zk and SRS database states
+  
+  **Test Strategy**:
+  - Unit tests for each tag type query function
+  - Integration tests for zk + SRS database coordination  
+  - Mock zk responses for consistent testing
+  - Test bulk SRS query performance and correctness
+  - Test warning generation for missing SRS data
+  
+  **Files to Create/Modify**:
+  - `internal/flotsam/tags.go` - Tag query functions
+  - `internal/flotsam/tags_test.go` - Comprehensive tag testing
+  - `internal/srs/database.go` - Add bulk query methods
+  - `go.mod` - Add charmbracelet/log dependency
+  - Update existing HasSRS(), IsFlashcard() methods to use new architecture
 
 ### 5. Basic CLI Implementation
 - [ ] **5.1 flotsam list command**: Implement `vice flotsam list` with zk delegation
