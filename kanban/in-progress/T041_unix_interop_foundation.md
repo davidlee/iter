@@ -575,7 +575,7 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   - **Files Modified**: `internal/models/flotsam.go` - Updated HasSRS() method
   - **Test Results**: All 96 flotsam tests pass, including new tag functionality
 
-### 5. Basic CLI Implementation
+### 5. Basic CLI Implementation ✅ **COMPLETED**
 - [x] **5.1 flotsam list command**: Implement `vice flotsam list` with zk delegation
   - *Delegation:* Updated to use `vice:type:*` tags instead of deprecated `vice:srs`
   - *Enhancement:* Combines ZK delegation with SRS database for enriched output
@@ -622,6 +622,14 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
     - `cmd/flotsam_edit_test.go` (300 lines) - Full test coverage for ID matching and command logic
   - **User Experience**: Seamless ZK editor integration respecting ZK_EDITOR/VISUAL/EDITOR environment variables
   - **Commit**: 3310127 - feat(flotsam)[T041/5.3]: implement vice flotsam edit with ZK interactive delegation
+
+**Phase 5 Summary**: All three core flotsam commands successfully implemented with ZK delegation patterns:
+- **`vice flotsam list`**: Discovery and SRS enrichment with filtering and multiple output formats
+- **`vice flotsam due`**: Due note queries with overdue indicators and smart sorting
+- **`vice flotsam edit`**: Interactive picker and direct editing with multi-file support
+
+**Implementation Metrics**: 3 commands, 732 lines of new code, 36 test functions, zero lint issues
+**Architecture Established**: Complete Unix interop foundation following ADR-008 ZK-first patterns
 
 ### 6. Testing & Validation
 - [ ] **6.1 Migration testing**: Ensure all existing functionality preserved
@@ -775,3 +783,62 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
 - **Performance Monitoring**: Ensure Unix interop meets performance expectations
 
 This task establishes the foundation for vice's evolution from monolithic habit tracker to Unix productivity tool orchestrator.
+
+### **T041/5.3 Handover Notes (2025-07-19 - AI)**
+
+**Implementation Complete**: Successfully implemented `vice flotsam edit` command completing Phase 5 of T041.
+
+**Final Deliverables**:
+- **Core Implementation**: `cmd/flotsam_edit.go` (132 lines) with dual-mode operation
+  - Interactive mode: `vice flotsam edit` → ZK's fuzzy picker for all vice-typed notes
+  - Direct mode: `vice flotsam edit abc1` → Smart ID resolution with multi-file support
+- **Comprehensive Testing**: `cmd/flotsam_edit_test.go` (300 lines) covering all scenarios
+- **Documentation**: `doc/design-artefacts/serena-mcp-evaluation.md` - detailed tool comparison
+
+**Architecture Patterns Established**:
+- **ADR-008 Compliance**: ZK-first enrichment pattern consistently applied
+- **Graceful Degradation**: Clear error messages when ZK unavailable with installation guidance
+- **Smart ID Resolution**: Flexible matching with prefix and contains logic (extensible for fuzzy search)
+- **Environment Integration**: Respects ZK_EDITOR, VISUAL, and EDITOR variables
+
+**Key Technical Decisions**:
+- **Two-Mode Design**: Interactive picker (no args) vs. direct editing (with note ID)
+- **Multi-File Editing**: Opens all matching notes simultaneously via `env.ZKEdit(paths...)`
+- **ZK Integration**: Leverages `--interactive` flag for seamless fuzzy finding
+- **Error Strategy**: Skip notes missing from SRS database rather than failing entire operation
+
+**Test Coverage**: 8 comprehensive test functions covering:
+- Command structure and flag registration
+- Note ID matching logic (prefix, contains, case sensitivity)
+- Multi-file and single-file scenarios
+- Integration with command tree
+- Argument parsing and mode selection
+
+**Code Quality**: ✅ Zero lint issues, ✅ All tests pass, ✅ Proper AIDEV anchor comments added
+
+**Future Enhancement Opportunities** (filed for later tasks):
+- Advanced filtering options (--type, --tag, etc.) similar to `flotsam list`
+- Pipe integration from other flotsam commands (edit due notes, etc.)
+- Enhanced fuzzy matching algorithms beyond simple prefix/contains
+- Template-based note creation workflows
+
+**Dependencies**: 
+- **Required**: ZK tool installed and available in PATH
+- **Integrates With**: `internal/config.ViceEnv.ZKEdit()`, `internal/flotsam.GetAllViceNotes()`
+- **Follows**: ADR-008 ZK-first enrichment pattern
+
+**Usage Examples**:
+```bash
+# Interactive picker of all vice-typed notes
+vice flotsam edit
+
+# Edit specific note by ID  
+vice flotsam edit abc1
+
+# Force interactive mode even with ID
+vice flotsam edit abc1 --interactive
+```
+
+**Performance**: Interactive mode delegates to ZK's optimized fuzzy finder. Direct mode requires single GetAllViceNotes() call for path resolution.
+
+**Next Logical Activities**: Phase 6 (Testing & Validation) subtasks remain, but Phase 5 foundation is complete and ready for production use.

@@ -62,6 +62,7 @@ func runFlotsamEdit(_ *cobra.Command, args []string) error {
 }
 
 // runInteractiveEdit opens ZK's interactive picker for all vice-typed notes
+// AIDEV-NOTE: T041/5.3-interactive-mode; leverages ZK's --interactive flag for seamless fuzzy finding
 func runInteractiveEdit(env *config.ViceEnv) error {
 	// Use ZK's interactive mode with tag filtering for all vice:type:* notes
 	// This leverages ZK's built-in fuzzy finder and respects user's editor preferences
@@ -69,6 +70,7 @@ func runInteractiveEdit(env *config.ViceEnv) error {
 }
 
 // runDirectEdit resolves a note ID to its path and opens it for editing
+// AIDEV-NOTE: T041/5.3-direct-mode; uses ZK-first pattern for discovery, supports multi-file editing
 func runDirectEdit(env *config.ViceEnv, noteID string) error {
 	// Step 1: Discover all vice-typed notes (ZK-first pattern per ADR-008)
 	notes, err := flotsam.GetAllViceNotes(env)
@@ -99,6 +101,7 @@ func runDirectEdit(env *config.ViceEnv, noteID string) error {
 
 // findNotesByID searches for notes containing the given ID in their filename
 // This is a simple implementation that can be enhanced later with more sophisticated matching
+// AIDEV-NOTE: T041/5.3-id-matching; supports prefix and contains matching, extensible for fuzzy search
 func findNotesByID(notePaths []string, noteID string) []string {
 	var matches []string
 
