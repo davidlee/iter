@@ -48,20 +48,32 @@ The flotsam system uses **tool delegation** where zk handles note management and
 
 ### Directory Structure
 
+**Note**: Cross-reference with [`doc/specifications/file_paths_runtime_env.md`](./file_paths_runtime_env.md) for full context directory structure.
+
+The flotsam notebook is located within a vice context at `$VICE_DATA/{context}/flotsam/` by default:
+
 ```
-notebook/
-├── .zk/
-│   ├── config.toml          # zk configuration (managed by vice)
-│   ├── notebook.db          # zk's database (search, links, metadata)
-│   └── templates/
-│       └── flotsam.md       # vice-specific note template
-├── .vice/
-│   ├── flotsam.db          # SRS database (scheduling, reviews)
-│   └── config.toml         # vice notebook-local config
-└── flotsam/
-    ├── concept-1.md        # Clean notes with vice:srs tag
-    └── concept-2.md        # zk handles content, vice handles SRS
+$VICE_DATA/{context}/        # Vice context root (see file_paths_runtime_env.md)
+├── habits.yml              # Vice habit definitions  
+├── entries.yml             # Vice daily completion data
+└── flotsam/                # Notebook directory (configurable, defaults to "flotsam")
+    ├── .zk/                # ZK notebook data
+    │   ├── config.toml     # zk configuration (managed by vice)
+    │   ├── notebook.db     # zk's database (search, links, metadata)
+    │   └── templates/
+    │       └── flotsam.md  # vice-specific note template
+    ├── .vice/              # Vice notebook data (alongside .zk/)
+    │   ├── flotsam.db     # SRS database (scheduling, reviews)
+    │   └── config.toml    # vice notebook-local config
+    ├── concept-1.md       # Clean notes with vice:srs tag
+    └── concept-2.md       # zk handles content, vice handles SRS
 ```
+
+**Key Design Points**:
+- **Notebook Directory**: `$VICE_DATA/{context}/flotsam/` contains both `.zk/` and `.vice/` 
+- **Coexistence**: `.zk/` and `.vice/` directories are siblings within the notebook
+- **SRS Database Location**: `.vice/flotsam.db` placed alongside `.zk/notebook.db`
+- **Context Isolation**: Each vice context has its own flotsam notebook directory
 
 ## Core Data Structures
 
@@ -171,7 +183,7 @@ zk list --tag "vice:type:script" --format path |
 
 ### SRS Database Schema
 
-**SRS data lives in SQLite** (`.vice/flotsam.db`), **not in frontmatter**:
+**SRS data lives in SQLite** (`$VICE_DATA/{context}/flotsam/.vice/flotsam.db`), **not in frontmatter**:
 
 ```sql
 CREATE TABLE srs_reviews (

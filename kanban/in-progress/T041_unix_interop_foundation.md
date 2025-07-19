@@ -402,6 +402,12 @@ As a developer implementing flotsam (Markdown / Zettelkasten + SRS) functionalit
   - **Directory Management**: Automatic `.vice` directory creation with proper permissions (0750)
   - **Testing**: 6 additional tests for database placement and directory creation
   - **Path Logic**: `determineDatabasePath()` and `findZKNotebookRoot()` functions
+  - **⚠️ ARCHITECTURE CORRECTION NEEDED**: Current implementation places `.vice/` in wrong location
+    - **Current**: Places `.vice/flotsam.db` in vice context root or alongside zk notebook
+    - **Correct**: Should place `.vice/flotsam.db` in `$VICE_DATA/{context}/flotsam/.vice/`
+    - **Issue**: Database placement logic needs update to find notebook directory within context
+    - **Reference**: Updated `doc/specifications/flotsam.md` with correct structure
+    - **Cross-reference**: `doc/specifications/file_paths_runtime_env.md` for context structure
 
 ### 4. ZK Integration Foundation
 - [ ] **4.1 ZK shell-out abstraction**: Create reusable zk command execution
